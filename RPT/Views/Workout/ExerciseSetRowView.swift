@@ -280,7 +280,7 @@ struct ExerciseSetRowView: View {
             // Update the set
             onUpdate(validatedWeight, validatedReps, validatedRPE)
             
-            // MARK: - New Code for Drop Set Calculation
+            // MARK: - Code for Drop Set Calculation
             // If this is the first set, update drop sets through callback
             if isFirstSet && validatedWeight > 0 && onUpdateDropSets != nil {
                 onUpdateDropSets!(validatedWeight)

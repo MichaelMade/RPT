@@ -47,7 +47,7 @@ struct HomeView: View {
                     
                     // Start/Continue workout button
                     Button(action: {
-                        if let existingWorkout = activeWorkoutBinding {
+                        if let _ = activeWorkoutBinding {
                             // If there's an active workout, show it
                             showActiveWorkoutSheet = true
                         } else {
