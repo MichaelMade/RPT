@@ -16,7 +16,7 @@ RPT is a SwiftUI-based iOS application designed to help athletes plan and track 
 
 - **iOS**: 17.0 or later
 - **Xcode**: 15.0 or later
-- **Swift**: 5.9 or later
+- **Swift**: 6 or later
 
 ## Installation
 
