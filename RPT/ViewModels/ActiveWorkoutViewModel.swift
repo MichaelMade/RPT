@@ -17,17 +17,22 @@ class ActiveWorkoutViewModel: ObservableObject {
     @Published var exerciseOrder: [Exercise] = [] // Track order of exercises
     @Published var showingRestTimer = false
     @Published var currentRestDuration: Int = 90
+    @Published var completedExercises: Set<PersistentIdentifier> = [] // Only manually tracked completions
+    @Published var expandedExercises: Set<PersistentIdentifier> = Set() // Track which exercises are expanded
     
     private let workoutManager: WorkoutManager
-    // MARK: - New Property
     private let exerciseManager: ExerciseManager
-    // MARK: - End New Property
     
     var hasSets: Bool {
         return !workout.sets.isEmpty
     }
     
-    // MARK: - Modified Initializer
+    // Add computed property to check if all exercises are completed
+    var allExercisesCompleted: Bool {
+        guard !exerciseOrder.isEmpty else { return false }
+        return exerciseOrder.allSatisfy { isExerciseCompleted($0) }
+    }
+    
     init(workout: Workout, workoutManager: WorkoutManager? = nil, exerciseManager: ExerciseManager? = nil) {
         self.workout = workout
         self.workoutName = workout.name
@@ -37,19 +42,19 @@ class ActiveWorkoutViewModel: ObservableObject {
         // Initialize exercise groups and order
         updateExerciseGroupsAndOrder()
         
-        // MARK: - New Code for Populating Previous Weights
-        // If this is a new workout with exercises added from a template,
-        // populate with the most recent weights for each exercise
+        // Populate with previous weights - but fixed to not auto-complete
         populateWithPreviousWeights()
-        // MARK: - End New Code
+        
+        // Initialize all exercises as expanded by default
+        for exercise in exerciseOrder {
+            expandedExercises.insert(exercise.id)
+        }
     }
-    // MARK: - End Modified Initializer
     
-    // MARK: - New Method for Previous Weights
-    // Method to populate workout with the most recent weights used for each exercise
+    // Updated method to populate workout with previous weights without affecting completion
     private func populateWithPreviousWeights() {
-        // Only run this if the workout was created from a template and has sets with zero weights
-        if workout.startedFromTemplate != nil && workout.sets.contains(where: { $0.weight == 0 }) {
+        // Only run this if the workout was created from a template
+        if workout.startedFromTemplate != nil {
             for exercise in exerciseOrder {
                 // Get the workout history for this exercise
                 let history = workoutManager.getWorkoutHistory(for: exercise)
@@ -67,18 +72,18 @@ class ActiveWorkoutViewModel: ObservableObject {
                         
                         // Get current sets for this exercise in the current workout
                         if let currentSets = exerciseGroups[exercise]?.sorted(by: { $0.completedAt < $1.completedAt }) {
-                            // Update weights based on previous workout
+                            // Apply previous weights to the new sets
                             for (index, currentSet) in currentSets.enumerated() {
                                 if let previousSet = sortedSets[safe: index] {
-                                    // Use the previous weight
+                                    // Apply the weight directly to the set
                                     currentSet.weight = previousSet.weight
                                     
-                                    // Use the previous reps or keep the template reps if they exist
+                                    // Use the previous reps if currentSet has 0 reps
                                     if currentSet.reps == 0 {
                                         currentSet.reps = previousSet.reps
                                     }
                                     
-                                    // Use the previous RPE if available
+                                    // Copy RPE if available
                                     currentSet.rpe = previousSet.rpe
                                 }
                             }
@@ -87,11 +92,10 @@ class ActiveWorkoutViewModel: ObservableObject {
                 }
             }
             
-            // Save the updated workout
+            // Save the workout with the weights but no exercises marked as completed
             saveWorkout()
         }
     }
-    // MARK: - End New Method
     
     // MARK: - Workout Management
     
@@ -130,6 +134,9 @@ class ActiveWorkoutViewModel: ObservableObject {
             // Add to order if it's a new exercise
             exerciseOrder.append(exercise)
         }
+        
+        // Automatically expand the newly added exercise
+        expandedExercises.insert(exercise.id)
         
         saveWorkout()
     }
@@ -215,6 +222,10 @@ class ActiveWorkoutViewModel: ObservableObject {
             if let index = exerciseOrder.firstIndex(where: { $0.id == exercise.id }) {
                 exerciseOrder.remove(at: index)
             }
+            
+            // Also remove from expanded exercises and completed
+            expandedExercises.remove(exercise.id)
+            completedExercises.remove(exercise.id)
         }
         
         saveWorkout()
@@ -230,7 +241,34 @@ class ActiveWorkoutViewModel: ObservableObject {
             exerciseOrder.remove(at: index)
         }
         
+        // Also remove from expanded exercises and completed
+        expandedExercises.remove(exercise.id)
+        completedExercises.remove(exercise.id)
+        
         saveWorkout()
+    }
+    
+    // MARK: - Exercise Completion and Expansion
+    
+    func toggleExerciseCompletion(_ exercise: Exercise) {
+        if completedExercises.contains(exercise.id) {
+            completedExercises.remove(exercise.id)
+        } else {
+            completedExercises.insert(exercise.id)
+        }
+    }
+    
+    func isExerciseCompleted(_ exercise: Exercise) -> Bool {
+        // Exercise is completed ONLY if manually marked as completed
+        return completedExercises.contains(exercise.id)
+    }
+    
+    func toggleExerciseExpansion(_ exercise: Exercise) {
+        if expandedExercises.contains(exercise.id) {
+            expandedExercises.remove(exercise.id)
+        } else {
+            expandedExercises.insert(exercise.id)
+        }
     }
     
     // MARK: - Helper Methods
@@ -286,5 +324,16 @@ class ActiveWorkoutViewModel: ObservableObject {
     // Cancel rest timer
     func cancelRestTimer() {
         showingRestTimer = false
+    }
+    
+    // MARK: - Progress Tracking
+    
+    var completedExercisesCount: Int {
+        return completedExercises.count
+    }
+    
+    // Total number of exercises
+    var totalExercisesCount: Int {
+        return exerciseOrder.count
     }
 }

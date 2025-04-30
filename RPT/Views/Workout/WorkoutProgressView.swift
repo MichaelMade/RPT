@@ -54,25 +54,3 @@ struct WorkoutProgressView: View {
         .padding(.bottom, 4)
     }
 }
-
-// Extension to ActiveWorkoutViewModel to track exercise completion
-extension ActiveWorkoutViewModel {
-    // Count completed exercises (those with at least one set with weight > 0)
-    var completedExercisesCount: Int {
-        var completed = 0
-        
-        for exercise in exerciseOrder {
-            if let sets = exerciseGroups[exercise], 
-               sets.contains(where: { $0.weight > 0 }) {
-                completed += 1
-            }
-        }
-        
-        return completed
-    }
-    
-    // Total number of exercises
-    var totalExercisesCount: Int {
-        return exerciseOrder.count
-    }
-}

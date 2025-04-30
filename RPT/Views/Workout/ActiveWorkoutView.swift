@@ -54,50 +54,56 @@ struct ActiveWorkoutView: View {
                                     // Sort sets by completion date to maintain set order
                                     let sortedSets = sets.sorted(by: { $0.completedAt < $1.completedAt })
                                     
-                                    // Check if exercise is completed
-                                    let isCompleted = sets.contains(where: { $0.weight > 0 })
-                                    
                                     Section {
                                         // Exercise header with the new component
                                         ExerciseHeaderView(
                                             exercise: exercise,
-                                            isCompleted: isCompleted,
+                                            isCompleted: viewModel.isExerciseCompleted(exercise),
                                             onDelete: {
                                                 exerciseToDelete = exercise
                                                 showingDeleteExerciseConfirmation = true
+                                            },
+                                            onToggleCompletion: {
+                                                viewModel.toggleExerciseCompletion(exercise)
+                                            },
+                                            onToggleDetails: {
+                                                viewModel.toggleExerciseExpansion(exercise)
                                             }
                                         )
                                         
-                                        // Sets with drop set auto-calculation
-                                        ForEach(sortedSets.indices, id: \.self) { index in
-                                            let set = sortedSets[index]
-                                            ExerciseSetRowView(
-                                                set: set,
-                                                isFirstSet: index == 0, // Determine if this is the first set
-                                                onUpdate: { weight, reps, rpe in
-                                                    viewModel.updateSet(set, weight: weight, reps: reps, rpe: rpe)
-                                                },
-                                                onDelete: {
-                                                    viewModel.deleteSet(set)
-                                                },
-                                                onStartRestTimer: {
-                                                    viewModel.startRestTimer()
-                                                },
-                                                onUpdateDropSets: { firstSetWeight in
-                                                    // If this is the first set, update subsequent sets based on RPT drops
-                                                    updateDropSets(exercise: exercise, firstSetWeight: firstSetWeight, sets: sortedSets)
-                                                }
-                                            )
+                                        // Only show sets if the exercise is expanded
+                                        if viewModel.expandedExercises.contains(exercise.id) {
+                                            // Sets with drop set auto-calculation
+                                            ForEach(sortedSets.indices, id: \.self) { index in
+                                                let set = sortedSets[index]
+                                                ExerciseSetRowView(
+                                                    set: set,
+                                                    isFirstSet: index == 0, // Determine if this is the first set
+                                                    onUpdate: { weight, reps, rpe in
+                                                        viewModel.updateSet(set, weight: weight, reps: reps, rpe: rpe)
+                                                    },
+                                                    onDelete: {
+                                                        viewModel.deleteSet(set)
+                                                    },
+                                                    onStartRestTimer: {
+                                                        viewModel.startRestTimer()
+                                                    },
+                                                    onUpdateDropSets: { firstSetWeight in
+                                                        // If this is the first set, update subsequent sets based on RPT drops
+                                                        updateDropSets(exercise: exercise, firstSetWeight: firstSetWeight, sets: sortedSets)
+                                                    }
+                                                )
+                                            }
+                                            
+                                            // Add set button
+                                            Button(action: {
+                                                viewModel.addSetToExercise(exercise)
+                                            }) {
+                                                Label("Add Set", systemImage: "plus.circle")
+                                                    .foregroundColor(exercise.category.style.color)
+                                            }
+                                            .padding(.vertical, 4)
                                         }
-                                        
-                                        // Add set button
-                                        Button(action: {
-                                            viewModel.addSetToExercise(exercise)
-                                        }) {
-                                            Label("Add Set", systemImage: "plus.circle")
-                                                .foregroundColor(exercise.category.style.color)
-                                        }
-                                        .padding(.vertical, 4)
                                     }
                                 }
                             }
@@ -169,10 +175,11 @@ struct ActiveWorkoutView: View {
                                 Text("Finish")
                                     .padding(.horizontal)
                                     .padding(.vertical, 8)
-                                    .background(Color.green)
+                                    .background(viewModel.allExercisesCompleted ? Color.green : Color.gray)
                                     .foregroundColor(.white)
                                     .cornerRadius(8)
                             }
+                            .disabled(!viewModel.allExercisesCompleted)
                         }
                         .padding()
                         .background(Color(UIColor.systemBackground))
