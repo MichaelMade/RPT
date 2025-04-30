@@ -1,0 +1,130 @@
+//
+//  TemplateExerciseEditView.swift
+//  RPT
+//
+//  Created by Michael Moore on 4/27/25.
+//
+
+import SwiftUI
+import SwiftData
+
+struct TemplateExerciseEditView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var exerciseName: String
+    @State private var suggestedSets: Int
+    @State private var notes: String
+    @State private var repRanges: [TemplateRepRange]
+    
+    let exercise: TemplateExercise
+    let onSave: (TemplateExercise) -> Void
+    
+    init(exercise: TemplateExercise, onSave: @escaping (TemplateExercise) -> Void) {
+        self.exercise = exercise
+        self.onSave = onSave
+        
+        // Initialize state
+        _exerciseName = State(initialValue: exercise.exerciseName)
+        _suggestedSets = State(initialValue: exercise.suggestedSets)
+        _notes = State(initialValue: exercise.notes)
+        _repRanges = State(initialValue: exercise.repRanges)
+    }
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section(header: Text("Exercise Details")) {
+                    HStack {
+                        Text(exerciseName)
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Button("Change") {
+                            // Would show exercise selector here
+                        }
+                        .disabled(true) // Disabled for simplicity
+                    }
+                    
+                    Stepper("Sets: \(suggestedSets)", value: $suggestedSets, in: 1...5)
+                    
+                    TextField("Notes", text: $notes, axis: .vertical)
+                        .lineLimit(5)
+                }
+                
+                Section(header: Text("Rep Ranges")) {
+                    ForEach(repRanges.indices.sorted(by: { repRanges[$0].setNumber < repRanges[$1].setNumber }), id: \.self) { index in
+                        let setNumber = repRanges[index].setNumber
+                        
+                        VStack {
+                            HStack {
+                                Text("Set \(setNumber)")
+                                    .font(.headline)
+                                
+                                Spacer()
+                                
+                                if setNumber > 1 {
+                                    HStack {
+                                        Text("Weight:")
+                                        
+                                        let percentBinding = Binding<Double>(
+                                            get: { repRanges[index].percentageOfFirstSet ?? 1.0 },
+                                            set: { repRanges[index].percentageOfFirstSet = $0 }
+                                        )
+                                        
+                                        Text("\(Int((percentBinding.wrappedValue) * 100))%")
+                                        
+                                        Stepper("", value: percentBinding, in: 0.5...1.0, step: 0.05)
+                                            .labelsHidden()
+                                    }
+                                }
+                            }
+                            
+                            HStack {
+                                Text("Rep Range:")
+                                
+                                Stepper("\(repRanges[index].minReps)-\(repRanges[index].maxReps)", onIncrement: {
+                                    repRanges[index].minReps += 1
+                                    repRanges[index].maxReps += 1
+                                }, onDecrement: {
+                                    if repRanges[index].minReps > 1 {
+                                        repRanges[index].minReps -= 1
+                                        repRanges[index].maxReps -= 1
+                                    }
+                                })
+                            }
+                        }
+                    }
+                    
+                    Text("Note: For RPT, the first set is always 100% weight. Subsequent sets reduce weight by percentage.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .navigationTitle("Configure Exercise")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        // Create updated exercise
+                        let updatedExercise = TemplateExercise(
+                            id: exercise.id,
+                            exerciseName: exerciseName,
+                            suggestedSets: suggestedSets,
+                            repRanges: repRanges,
+                            notes: notes
+                        )
+                        
+                        onSave(updatedExercise)
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
