@@ -120,7 +120,7 @@ struct ExerciseSetRowView: View {
                 
                 // RPE input (optional)
                 if showRPE {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .center, spacing: 6) {
                         Text("RPE (1-10)")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -132,34 +132,17 @@ struct ExerciseSetRowView: View {
                                 .textFieldStyle(.roundedBorder)
                                 .multilineTextAlignment(.center)
                                 .frame(maxWidth: 80)
-                            
-                            // Quick RPE buttons
-                            HStack(spacing: 5) {
-                                ForEach([7, 8, 9, 10], id: \.self) { value in
-                                    Button("\(value)") {
-                                        rpeInput = "\(value)"
-                                        feedbackGenerator.impactOccurred(intensity: 0.5)
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .font(.caption)
-                                    .padding(.horizontal, 2)
-                                    .padding(.vertical, 2)
-                                }
-                            }
-                            
-                            Spacer()
                         }
                     }
                 }
                 
+                
                 // Action buttons
-                HStack {
+                HStack(spacing: 15) {
                     Button("Cancel") {
                         isEditing = false
                     }
                     .buttonStyle(.bordered)
-                    
-                    Spacer()
                     
                     Button("Delete", role: .destructive) {
                         feedbackGenerator.impactOccurred(intensity: 0.7)
@@ -167,11 +150,14 @@ struct ExerciseSetRowView: View {
                     }
                     .buttonStyle(.bordered)
                     
+                    Spacer()
+                    
                     Button("Save") {
                         saveSet()
                     }
                     .buttonStyle(.borderedProminent)
                 }
+                .frame(height: 50)
             }
             .padding(8)
             .background(Color(UIColor.secondarySystemBackground))
