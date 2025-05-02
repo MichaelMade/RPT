@@ -67,7 +67,6 @@ class ActiveWorkoutViewModel: ObservableObject {
         // Initialize exercise groups and order
         updateExerciseGroupsAndOrder()
         
-        // Populate with previous weights - but fixed to not auto-complete
         do {
             try populateWithPreviousWeights()
         } catch {

@@ -137,7 +137,14 @@ struct ActiveWorkoutView: View {
                 // Minimize button to temporarily hide the workout
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
-                        _ = viewModel.saveWorkoutSafely()
+                        // Save the workout without marking it as discarded
+                        let saved = viewModel.saveWorkoutSafely()
+                        
+                        // Explicitly ensure WorkoutStateManager knows this was saved (not discarded)
+                        let workoutStateManager = WorkoutStateManager.shared
+                        workoutStateManager.markWorkoutAsSaved(viewModel.workout.id)
+                        
+                        // Just dismiss the sheet
                         dismiss()
                     }) {
                         HStack {
@@ -186,6 +193,10 @@ struct ActiveWorkoutView: View {
                 Button("Save & Exit", role: .none) {
                     _ = viewModel.saveWorkoutSafely()
                     
+                    // Explicitly mark as saved, not discarded
+                    let workoutStateManager = WorkoutStateManager.shared
+                    workoutStateManager.markWorkoutAsSaved(viewModel.workout.id)
+                    
                     // Call completion callback if provided
                     if let callback = onCompleteWorkout {
                         callback()
@@ -195,7 +206,10 @@ struct ActiveWorkoutView: View {
                 }
                 
                 Button("Discard Workout", role: .destructive) {
-                    _ = viewModel.discardWorkoutSafely()
+                    let result = viewModel.discardWorkoutSafely()
+                    
+                    let workoutStateManager = WorkoutStateManager.shared
+                    workoutStateManager.markWorkoutAsDiscarded(viewModel.workout.id)
                     
                     // Call completion callback if provided
                     if let callback = onCompleteWorkout {
@@ -215,7 +229,10 @@ struct ActiveWorkoutView: View {
                 isPresented: $showingConfirmationDialog
             ) {
                 Button("Discard Workout", role: .destructive) {
-                    _ = viewModel.discardWorkoutSafely()
+                    let result = viewModel.discardWorkoutSafely()
+                    
+                    let workoutStateManager = WorkoutStateManager.shared
+                    workoutStateManager.markWorkoutAsDiscarded(viewModel.workout.id)
                     
                     // Call completion callback if provided
                     if let callback = onCompleteWorkout {

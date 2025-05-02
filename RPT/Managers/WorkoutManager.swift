@@ -167,6 +167,19 @@ class WorkoutManager: ObservableObject {
         return (try? modelContext.fetch(descriptor)) ?? []
     }
     
+    // Get incomplete workouts (saved but not yet completed)
+    func getIncompleteWorkouts() -> [Workout] {
+        var descriptor = FetchDescriptor<Workout>(
+            predicate: #Predicate<Workout> { !$0.isCompleted },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        
+        // Limit to most recent incomplete workout
+        descriptor.fetchLimit = 1
+        
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+    
     // Get workouts by date range
     func getWorkouts(from startDate: Date, to endDate: Date) -> [Workout] {
         let descriptor = FetchDescriptor<Workout>(

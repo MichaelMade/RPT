@@ -12,6 +12,7 @@ struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showingRPTCalculator = false
     @State private var selectedWorkout: Workout?
+    @StateObject private var workoutStateManager = WorkoutStateManager.shared
     
     // Bindings for active workout
     @Binding var activeWorkoutBinding: Workout?
@@ -47,21 +48,47 @@ struct HomeView: View {
                     
                     // Start/Continue workout button
                     Button(action: {
-                        if let _ = activeWorkoutBinding {
-                            // If there's an active workout, show it
-                            showActiveWorkoutSheet = true
-                        } else {
-                            // Create a new workout
+                        if workoutStateManager.wasAnyWorkoutDiscarded() {
+                            // If a workout was ever discarded, force creating a new one
                             viewModel.startNewWorkout()
-                            // Set it as the active workout which will trigger the sheet
+                            // Reset discard state
+                            workoutStateManager.clearDiscardedState()
+                            // Set new workout
                             activeWorkoutBinding = viewModel.currentWorkout
+                            
+                            // Also show the sheet
+                            DispatchQueue.main.async {
+                                showActiveWorkoutSheet = true
+                            }
+                        } else if activeWorkoutBinding != nil {
+                            // Normal continue flow when we have an active workout
+                            showActiveWorkoutSheet = true
+                            
+                            // Add an async call to ensure it happens
+                            DispatchQueue.main.async {
+                                showActiveWorkoutSheet = true
+                            }
+                        } else {
+                            // Normal new workout flow
+                            viewModel.startNewWorkout()
+                            activeWorkoutBinding = viewModel.currentWorkout
+                            
+                            // Also show the sheet
+                            DispatchQueue.main.async {
+                                showActiveWorkoutSheet = true
+                            }
                         }
                     }) {
                         HStack {
-                            Image(systemName: activeWorkoutBinding != nil ? "arrow.clockwise.circle.fill" : "plus.circle.fill")
+                            // Check for active workout but not if it was discarded
+                            let canContinueWorkout = activeWorkoutBinding != nil && 
+                                                    !workoutStateManager.wasAnyWorkoutDiscarded()
+                            
+                            // Use the appropriate icon and text based on whether we can continue
+                            Image(systemName: canContinueWorkout ? "arrow.clockwise.circle.fill" : "plus.circle.fill")
                                 .font(.title2)
                             
-                            Text(activeWorkoutBinding != nil ? "Continue Workout" : "Start New Workout")
+                            Text(canContinueWorkout ? "Continue Workout" : "Start New Workout")
                                 .font(.headline)
                             
                             Spacer()
@@ -70,7 +97,9 @@ struct HomeView: View {
                                 .foregroundColor(.secondary)
                         }
                         .padding()
-                        .background(activeWorkoutBinding != nil ? Color.green : Color.blue)
+                        .background(activeWorkoutBinding != nil && 
+                                    !workoutStateManager.wasAnyWorkoutDiscarded() ? 
+                                     Color.green : Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(12)
                     }
@@ -129,12 +158,34 @@ struct HomeView: View {
                 WorkoutDetailView(workout: workout)
             }
             .onAppear {
+                // Reload data from workout manager, including any incomplete workouts
                 viewModel.loadRecentWorkouts()
                 
-                // If we have a newly created workout, set it as active
-                if let workout = viewModel.currentWorkout, activeWorkoutBinding == nil {
-                    activeWorkoutBinding = workout
+                // Debug to help understand state
+                print("HomeView appear - activeWorkoutBinding: \(activeWorkoutBinding != nil)")
+                print("HomeView appear - currentWorkout: \(viewModel.currentWorkout != nil)")
+                print("HomeView appear - wasDiscarded: \(workoutStateManager.wasAnyWorkoutDiscarded())")
+                
+                if workoutStateManager.wasAnyWorkoutDiscarded() {
+                    
+                    // Don't allow showing the sheet while navigating back to this view
+                    DispatchQueue.main.async {
+                        // Double check
+                        activeWorkoutBinding = nil
+                        showActiveWorkoutSheet = false
+                    }
+                } 
+                // Handle the case where we have a current workout in the ViewModel but no active binding
+                else if viewModel.currentWorkout != nil {
+                    // This ensures "Continue Workout" shows properly when returning to HomeView
+                    activeWorkoutBinding = viewModel.currentWorkout
+                    
+                    // Debug
+                    print("HomeView - Setting activeWorkoutBinding from currentWorkout: \(viewModel.currentWorkout?.name ?? "unnamed")")
                 }
+                
+                // Final debug check
+                print("HomeView after checks - activeWorkoutBinding: \(activeWorkoutBinding != nil)")
             }
         }
     }
