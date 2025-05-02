@@ -29,10 +29,8 @@ class HomeViewModel: ObservableObject {
         userStats = userManager.getUserStats()
         
         // Check for discarded state - if a workout was discarded, don't load incomplete
-        let workoutStateManager = WorkoutStateManager.shared
-        if workoutStateManager.wasAnyWorkoutDiscarded() {
+        if WorkoutStateManager.shared.wasAnyWorkoutDiscarded() {
             // Don't load incomplete workouts if any was discarded
-            print("HomeViewModel - Not loading incomplete workouts due to discard state")
             currentWorkout = nil
             return
         }
@@ -42,7 +40,6 @@ class HomeViewModel: ObservableObject {
         if let lastIncomplete = incompleteWorkouts.first {
             // Set as current workout so it can be continued
             currentWorkout = lastIncomplete
-            print("HomeViewModel - Found incomplete workout: \(lastIncomplete.name)")
         } else {
             // No incomplete workouts found
             currentWorkout = nil

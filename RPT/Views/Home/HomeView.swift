@@ -55,28 +55,20 @@ struct HomeView: View {
                             workoutStateManager.clearDiscardedState()
                             // Set new workout
                             activeWorkoutBinding = viewModel.currentWorkout
-                            
-                            // Also show the sheet
-                            DispatchQueue.main.async {
-                                showActiveWorkoutSheet = true
-                            }
                         } else if activeWorkoutBinding != nil {
                             // Normal continue flow when we have an active workout
-                            showActiveWorkoutSheet = true
-                            
-                            // Add an async call to ensure it happens
-                            DispatchQueue.main.async {
-                                showActiveWorkoutSheet = true
-                            }
                         } else {
                             // Normal new workout flow
                             viewModel.startNewWorkout()
                             activeWorkoutBinding = viewModel.currentWorkout
-                            
-                            // Also show the sheet
-                            DispatchQueue.main.async {
-                                showActiveWorkoutSheet = true
-                            }
+                        }
+                        
+                        // Always show the sheet after handling all cases
+                        showActiveWorkoutSheet = true
+                        
+                        // Use async to overcome any race conditions
+                        DispatchQueue.main.async {
+                            showActiveWorkoutSheet = true
                         }
                     }) {
                         HStack {
@@ -161,16 +153,9 @@ struct HomeView: View {
                 // Reload data from workout manager, including any incomplete workouts
                 viewModel.loadRecentWorkouts()
                 
-                // Debug to help understand state
-                print("HomeView appear - activeWorkoutBinding: \(activeWorkoutBinding != nil)")
-                print("HomeView appear - currentWorkout: \(viewModel.currentWorkout != nil)")
-                print("HomeView appear - wasDiscarded: \(workoutStateManager.wasAnyWorkoutDiscarded())")
-                
+                // If a workout was discarded, make sure it stays that way
                 if workoutStateManager.wasAnyWorkoutDiscarded() {
-                    
-                    // Don't allow showing the sheet while navigating back to this view
                     DispatchQueue.main.async {
-                        // Double check
                         activeWorkoutBinding = nil
                         showActiveWorkoutSheet = false
                     }
@@ -179,13 +164,7 @@ struct HomeView: View {
                 else if viewModel.currentWorkout != nil {
                     // This ensures "Continue Workout" shows properly when returning to HomeView
                     activeWorkoutBinding = viewModel.currentWorkout
-                    
-                    // Debug
-                    print("HomeView - Setting activeWorkoutBinding from currentWorkout: \(viewModel.currentWorkout?.name ?? "unnamed")")
                 }
-                
-                // Final debug check
-                print("HomeView after checks - activeWorkoutBinding: \(activeWorkoutBinding != nil)")
             }
         }
     }

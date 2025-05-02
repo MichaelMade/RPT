@@ -45,8 +45,7 @@ struct ContentView: View {
                 showActiveWorkoutSheet: Binding(
                     get: { 
                         // Don't show sheet if workout was discarded
-                        let shouldShow = !workoutStateManager.wasAnyWorkoutDiscarded() && showingActiveWorkoutSheet
-                        return shouldShow
+                        return !workoutStateManager.wasAnyWorkoutDiscarded() && showingActiveWorkoutSheet
                     },
                     set: { newValue in
                         if workoutStateManager.wasAnyWorkoutDiscarded() && newValue == true {
@@ -55,8 +54,8 @@ struct ContentView: View {
                         } else {
                             showingActiveWorkoutSheet = newValue
                             
+                            // Force update sheet presentation with a slight delay to overcome race conditions
                             if newValue == true {
-                                // Also update with a slight delay to overcome any race conditions
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                     showingActiveWorkoutSheet = true
                                 }
@@ -102,8 +101,7 @@ struct ContentView: View {
                 showActiveWorkoutSheet: Binding(
                     get: { 
                         // Don't show sheet if workout was discarded
-                        let shouldShow = !workoutStateManager.wasAnyWorkoutDiscarded() && showingActiveWorkoutSheet
-                        return shouldShow
+                        return !workoutStateManager.wasAnyWorkoutDiscarded() && showingActiveWorkoutSheet
                     },
                     set: { newValue in
                         if workoutStateManager.wasAnyWorkoutDiscarded() && newValue == true {
@@ -112,8 +110,8 @@ struct ContentView: View {
                         } else {
                             showingActiveWorkoutSheet = newValue
                             
+                            // Force update sheet presentation with a slight delay to overcome race conditions
                             if newValue == true {
-                                // Also update with a slight delay to overcome any race conditions
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                     showingActiveWorkoutSheet = true
                                 }
@@ -133,12 +131,7 @@ struct ContentView: View {
                 }
                 .tag(3)
         }
-        .fullScreenCover(isPresented: $showingActiveWorkoutSheet, onDismiss: {
-            // On dismiss, print debug info but don't reset anything
-            
-            if !workoutStateManager.wasAnyWorkoutDiscarded() && activeWorkout != nil {
-            }
-        }) {
+        .fullScreenCover(isPresented: $showingActiveWorkoutSheet) {
             if let workout = activeWorkout {
                 ActiveWorkoutView(
                     workout: workout,
@@ -199,53 +192,49 @@ struct ContentView: View {
                 }
             }
         }
-        // Add a separate onChange for tab changes to handle the workout being discarded
+        // Handle tab changes for workout state management
         .onChange(of: selectedTab) { _, _ in
-            // If a workout was ever discarded, make absolutely sure the sheet stays dismissed
+            // If a workout was ever discarded, make sure the sheet stays dismissed
             if workoutStateManager.wasAnyWorkoutDiscarded() {
-                // Force sheet closed on tab change if workout was discarded
                 showingActiveWorkoutSheet = false
                 
-                // Extra safety: update on next run loop
+                // Update on next run loop for extra safety
                 DispatchQueue.main.async {
                     showingActiveWorkoutSheet = false
                 }
             }
+            // Check for incomplete workouts when changing tabs if no workout is being tracked
             else if activeWorkout == nil && !workoutStateManager.wasAnyWorkoutDiscarded() {
-                // When switching tabs, check if there's any incomplete workout in the database
-                // that we can continue (but only if we don't already have an active workout AND no workout was discarded)
-                let workoutManager = WorkoutManager.shared
-                let incompleteWorkouts = workoutManager.getIncompleteWorkouts()
+                // Load any incomplete workout from the database 
+                let incompleteWorkouts = WorkoutManager.shared.getIncompleteWorkouts()
                 
                 if let lastIncomplete = incompleteWorkouts.first {
-                    // Set as current workout so it can be continued when user returns to home tab
+                    // Set as active workout so it can be continued
                     activeWorkout = lastIncomplete
-                    print("ContentView - Tab change - Found incomplete workout: \(lastIncomplete.name)")
                 }
             }
         }
-        // Add a simple check on appear for safety
+        // Initial setup when ContentView appears
         .onAppear {
             // If a workout was discarded, make sure the sheet stays closed
-            if workoutStateManager.wasAnyWorkoutDiscarded() && showingActiveWorkoutSheet {
+            if workoutStateManager.wasAnyWorkoutDiscarded() {
                 showingActiveWorkoutSheet = false
+                activeWorkout = nil
             } 
-            else if activeWorkout == nil && !workoutStateManager.wasAnyWorkoutDiscarded() {
-                // When the app starts, check if there's any incomplete workout in the database
-                // Only if no workout was discarded
-                let workoutManager = WorkoutManager.shared
-                let incompleteWorkouts = workoutManager.getIncompleteWorkouts()
+            // Check for incomplete workouts on app start if no workout is being tracked
+            else if activeWorkout == nil {
+                // Load any incomplete workout from the database
+                let incompleteWorkouts = WorkoutManager.shared.getIncompleteWorkouts()
                 
                 if let lastIncomplete = incompleteWorkouts.first {
-                    // Set as current workout so it can be continued
-                    print("ContentView - App start - Found incomplete workout: \(lastIncomplete.name)")
+                    // Set as active workout so it can be continued
                     activeWorkout = lastIncomplete
                 }
             }
             
-            // Simple timer to enforce state
+            // Timer to continuously enforce the discarded state
             Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-                // If a workout was discarded but the sheet is shown, close it
+                // If a workout was discarded but the sheet is shown, forcibly close it
                 if workoutStateManager.wasAnyWorkoutDiscarded() && showingActiveWorkoutSheet {
                     showingActiveWorkoutSheet = false
                 }
