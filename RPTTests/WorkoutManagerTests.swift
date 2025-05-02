@@ -65,22 +65,31 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(formatted, "200.5 lb")
     }
 
-    func testFormatVolume_belowThreshold() {
+    func testFormatVolume_belowThreshold_wholeNumber() {
         // Given
         let volume: Double = 750.0
         // When
         let formatted = manager.formatVolume(volume)
         // Then
-        XCTAssertEqual(formatted, "750.0 lb")
+        XCTAssertEqual(formatted, "750 lb")
     }
-
-    func testFormatVolume_aboveThreshold() {
+    
+    func testFormatVolume_belowThreshold_decimalNumber() {
         // Given
-        let volume: Double = 2500.0
+        let volume: Double = 750.5
         // When
         let formatted = manager.formatVolume(volume)
         // Then
-        XCTAssertEqual(formatted, "2.5k lb")
+        XCTAssertEqual(formatted, "750.5 lb")
+    }
+
+    func testFormatVolume_aboveThreshold_wholeNumber() {
+        // Given
+        let volume: Double = 2000.0
+        // When
+        let formatted = manager.formatVolume(volume)
+        // Then
+        XCTAssertEqual(formatted, "2k lb")
     }
 
     // MARK: - Workout Statistics Formatting
@@ -91,7 +100,7 @@ final class WorkoutManagerLogicTests: XCTestCase {
         let result = manager.calculateWorkoutStatsFormatted(timeframe: .week)
         // Then
         XCTAssertEqual(result.count, 0)
-        XCTAssertEqual(result.totalVolume, "0.0 lb")
+        XCTAssertEqual(result.totalVolume, "0 lb")
         XCTAssertEqual(result.averageDuration, "0:00")
     }
 
@@ -101,7 +110,52 @@ final class WorkoutManagerLogicTests: XCTestCase {
         let result = manager.calculateWorkoutStatsFormatted(timeframe: .allTime)
         // Then
         XCTAssertEqual(result.count, 0)
-        XCTAssertEqual(result.totalVolume, "0.0 lb")
+        XCTAssertEqual(result.totalVolume, "0 lb")
         XCTAssertEqual(result.averageDuration, "0:00")
+    }
+    
+    // MARK: - Workout Model Tests
+    
+    func testWorkoutTotalVolumeCalculation() {
+        // Given
+        let workout = Workout(name: "Test Workout")
+        let exercise = Exercise(name: "Test Exercise", category: .compound, primaryMuscleGroups: [.abs])
+        
+        // When - empty workout
+        // Then
+        XCTAssertEqual(workout.totalVolume, 0.0)
+        
+        // When - add one set
+        _ = workout.addSet(exercise: exercise, weight: 100, reps: 10)
+        // Then
+        XCTAssertEqual(workout.totalVolume, 1000.0)
+        
+        // When - add another set
+        _ = workout.addSet(exercise: exercise, weight: 90, reps: 12)
+        // Then
+        XCTAssertEqual(workout.totalVolume, 1000.0 + 1080.0)
+    }
+    
+    func testWorkoutFormattedTotalVolume() {
+        // Given
+        let workout = Workout(name: "Test Workout")
+        let exercise = Exercise(name: "Test Exercise", category: .compound, primaryMuscleGroups: [.abs])
+        
+        // When - whole number volume
+        _ = workout.addSet(exercise: exercise, weight: 100, reps: 10) // 1000 volume
+        // Then
+        XCTAssertEqual(workout.formattedTotalVolume(), "1000 lb")
+        
+        // When - decimal volume
+        workout.sets.removeAll() // Clear sets
+        _ = workout.addSet(exercise: exercise, weight: 100, reps: 5) // 500 volume
+        _ = workout.addSet(exercise: exercise, weight: 90, reps: 5) // 450 volume
+        // Then - total should be 950
+        XCTAssertEqual(workout.formattedTotalVolume(), "950 lb")
+        
+        // When - add fraction
+        _ = workout.addSet(exercise: exercise, weight: 45, reps: 1) // 45 volume
+        // Then - total should be 995
+        XCTAssertEqual(workout.formattedTotalVolume(), "995 lb")
     }
 }
