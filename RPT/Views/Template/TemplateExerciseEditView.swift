@@ -128,3 +128,24 @@ struct TemplateExerciseEditView: View {
         }
     }
 }
+
+#Preview {
+    // Create a sample template exercise for the preview
+    let sampleExercise = TemplateExercise(
+        exerciseName: "Bench Press",
+        suggestedSets: 3,
+        repRanges: [
+            TemplateRepRange(setNumber: 1, minReps: 4, maxReps: 6, percentageOfFirstSet: 1.0),
+            TemplateRepRange(setNumber: 2, minReps: 6, maxReps: 8, percentageOfFirstSet: 0.9),
+            TemplateRepRange(setNumber: 3, minReps: 8, maxReps: 10, percentageOfFirstSet: 0.8)
+        ],
+        notes: "Focus on chest contraction"
+    )
+    
+    return TemplateExerciseEditView(
+        exercise: sampleExercise,
+        onSave: { _ in
+            // This is just a preview, so no need to handle the save action
+        }
+    )
+}

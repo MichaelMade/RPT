@@ -68,8 +68,7 @@ struct ExerciseSelectorView: View {
                             // Make the entire row tappable
                             Button(action: {
                                 // Provide haptic feedback
-                                let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
-                                feedbackGenerator.impactOccurred()
+                                HapticFeedbackManager.shared.medium()
                                 
                                 // Select the exercise and dismiss
                                 onSelectExercise(exercise)
@@ -124,4 +123,11 @@ struct ExerciseSelectorView: View {
             }
         }
     }
+}
+
+#Preview {
+    ExerciseSelectorView { _ in
+        // This is a preview so we don't need to handle the selection
+    }
+    .modelContainer(for: [Exercise.self])
 }

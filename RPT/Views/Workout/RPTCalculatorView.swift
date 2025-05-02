@@ -115,3 +115,8 @@ struct RPTCalculatorView: View {
         return WorkoutManager.shared.roundToNearest5(calculatedWeight)
     }
 }
+
+#Preview {
+    // Create a preview with some realistic data
+    RPTCalculatorView()
+}

@@ -37,3 +37,13 @@ struct EmptyWorkoutView: View {
         .frame(maxHeight: .infinity)
     }
 }
+
+#Preview {
+    NavigationStack {
+        EmptyWorkoutView {
+            // This would handle the add exercise action in a real app
+            print("Add exercise button tapped")
+        }
+        .navigationTitle("New Workout")
+    }
+}

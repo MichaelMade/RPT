@@ -137,3 +137,41 @@ struct TemplateEditView: View {
         exercises.append(newExercise)
     }
 }
+
+#Preview {
+    let modelContainer = try! ModelContainer(for: WorkoutTemplate.self, Exercise.self)
+    
+    // For new template preview
+    return NavigationStack {
+        TemplateEditView(isNewTemplate: true, existingTemplate: nil)
+            .modelContainer(modelContainer)
+    }
+    
+    // Uncomment for edit template preview
+    /*
+    // Create sample template for preview
+    let template = WorkoutTemplate(
+        name: "Upper Body Day",
+        exercises: [
+            TemplateExercise(
+                exerciseName: "Bench Press",
+                suggestedSets: 3,
+                repRanges: [
+                    TemplateRepRange(setNumber: 1, minReps: 4, maxReps: 6, percentageOfFirstSet: 1.0),
+                    TemplateRepRange(setNumber: 2, minReps: 6, maxReps: 8, percentageOfFirstSet: 0.9)
+                ],
+                notes: "Focus on chest contraction"
+            )
+        ],
+        notes: "Rest 2-3 minutes between sets"
+    )
+    
+    return NavigationStack {
+        TemplateEditView(
+            isNewTemplate: false,
+            existingTemplate: template
+        )
+        .modelContainer(modelContainer)
+    }
+    */
+}

@@ -22,10 +22,7 @@ struct ExerciseSetRowView: View {
     // New callback for updating drop sets
     let onUpdateDropSets: ((Int) -> Void)?
     // MARK: - End New Properties
-    
-    // Haptic feedback generator
-    private let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
-    
+        
     let onUpdate: (Int, Int, Int?) -> Void
     let onDelete: () -> Void
     var onStartRestTimer: (() -> Void)? = nil // Optional rest timer callback
@@ -145,7 +142,7 @@ struct ExerciseSetRowView: View {
                     .buttonStyle(.bordered)
                     
                     Button("Delete", role: .destructive) {
-                        feedbackGenerator.impactOccurred(intensity: 0.7)
+                        HapticFeedbackManager.shared.heavy()
                         onDelete()
                     }
                     .buttonStyle(.bordered)
@@ -163,8 +160,6 @@ struct ExerciseSetRowView: View {
             .background(Color(UIColor.secondarySystemBackground))
             .cornerRadius(8)
             .onAppear {
-                // Initialize haptic feedback
-                feedbackGenerator.prepare()
                 
                 // Initialize text fields with current values
                 weightInput = "\(set.weight)"
@@ -202,7 +197,7 @@ struct ExerciseSetRowView: View {
                 Spacer()
                 
                 Button(action: {
-                    feedbackGenerator.impactOccurred(intensity: 0.4)
+                    HapticFeedbackManager.shared.medium()
                     isEditing = true
                 }) {
                     Image(systemName: "pencil")
@@ -213,7 +208,7 @@ struct ExerciseSetRowView: View {
             .padding(.vertical, 8)
             .contentShape(Rectangle())
             .onTapGesture {
-                feedbackGenerator.impactOccurred(intensity: 0.4)
+                HapticFeedbackManager.shared.medium()
                 isEditing = true
             }
         }
@@ -223,7 +218,7 @@ struct ExerciseSetRowView: View {
     
     private func adjustWeight(by amount: Int) {
         // Provide haptic feedback
-        feedbackGenerator.impactOccurred(intensity: 0.6)
+        HapticFeedbackManager.shared.medium()
         
         // Parse current weight
         if let currentWeight = Int(weightInput) {
@@ -240,7 +235,7 @@ struct ExerciseSetRowView: View {
     
     private func adjustReps(by amount: Int) {
         // Provide haptic feedback
-        feedbackGenerator.impactOccurred(intensity: 0.6)
+        HapticFeedbackManager.shared.medium()
         
         // Parse current reps
         if let currentReps = Int(repsInput) {
@@ -255,7 +250,7 @@ struct ExerciseSetRowView: View {
     // MARK: - Modified saveSet method
     private func saveSet() {
         // Provide haptic feedback
-        feedbackGenerator.impactOccurred(intensity: 0.7)
+        HapticFeedbackManager.shared.heavy()
         
         // Convert inputs to appropriate types
         if let weightInput = Int(weightInput), let reps = Int(repsInput) {

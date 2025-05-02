@@ -25,3 +25,24 @@ struct CategoryFilterButton: View {
         }
     }
 }
+
+#Preview {
+    HStack(spacing: 12) {
+        // Unselected filter
+        CategoryFilterButton(
+            title: "Compound",
+            isSelected: false
+        ) {
+            // Action would go here
+        }
+        
+        // Selected filter
+        CategoryFilterButton(
+            title: "Isolation",
+            isSelected: true
+        ) {
+            // Action would go here
+        }
+    }
+    .padding()
+}

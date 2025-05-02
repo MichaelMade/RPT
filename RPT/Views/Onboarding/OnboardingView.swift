@@ -113,3 +113,7 @@ struct OnboardingPage: View {
         }
     }
 }
+
+#Preview {
+    OnboardingView(hasCompletedOnboarding: .constant(false))
+}

@@ -54,3 +54,9 @@ struct AboutView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 }
+
+#Preview {
+    NavigationStack {
+        AboutView()
+    }
+}

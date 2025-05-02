@@ -102,6 +102,33 @@ struct WorkoutDetailView: View {
     }
 }
 
+#Preview {
+    let modelContainer = try! ModelContainer(for: Workout.self, ExerciseSet.self, Exercise.self)
+    
+    // Create a sample workout for the preview
+    let workout = Workout(date: Date(), name: "Chest Day")
+    let benchPress = Exercise(
+        name: "Bench Press",
+        category: .compound,
+        primaryMuscleGroups: [.chest],
+        secondaryMuscleGroups: [.triceps, .shoulders]
+    )
+    
+    // Add some sets
+    let set1 = ExerciseSet(weight: 225, reps: 5, exercise: benchPress, workout: workout)
+    let set2 = ExerciseSet(weight: 205, reps: 7, exercise: benchPress, workout: workout)
+    let set3 = ExerciseSet(weight: 185, reps: 9, exercise: benchPress, workout: workout)
+    workout.sets.append(contentsOf: [set1, set2, set3])
+    
+    // Complete the workout
+    workout.complete()
+    
+    return NavigationStack {
+        WorkoutDetailView(workout: workout)
+    }
+    .modelContainer(modelContainer)
+}
+
 // Stats box for summary
 struct StatBox: View {
     let title: String
@@ -135,6 +162,8 @@ struct ExerciseSection: View {
             // Exercise header
             Text(exercise.name)
                 .font(.headline)
+                .padding(.leading, 8)
+            
             
             // Sets
             VStack(spacing: 6) {

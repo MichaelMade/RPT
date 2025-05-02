@@ -54,3 +54,8 @@ struct WorkoutProgressView: View {
         .padding(.bottom, 4)
     }
 }
+
+#Preview {
+    // Create a preview with some realistic data
+    WorkoutProgressView(completedExercises: 2, totalExercises: 4)
+}

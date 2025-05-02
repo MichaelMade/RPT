@@ -34,3 +34,32 @@ struct ExerciseIconView: View {
         }
     }
 }
+
+#Preview {
+    HStack(spacing: 20) {
+        VStack(spacing: 8) {
+            ExerciseIconView(category: .compound)
+            Text("Compound")
+                .font(.caption)
+        }
+        
+        VStack(spacing: 8) {
+            ExerciseIconView(category: .isolation)
+            Text("Isolation")
+                .font(.caption)
+        }
+        
+        VStack(spacing: 8) {
+            ExerciseIconView(category: .bodyweight)
+            Text("Bodyweight")
+                .font(.caption)
+        }
+        
+        VStack(spacing: 8) {
+            ExerciseIconView(category: .cardio)
+            Text("Cardio")
+                .font(.caption)
+        }
+    }
+    .padding()
+}

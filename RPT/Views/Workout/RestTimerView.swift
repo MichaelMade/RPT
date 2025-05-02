@@ -16,11 +16,7 @@ struct RestTimerView: View {
     @State private var timer: Timer.TimerPublisher = Timer.publish(every: 1, on: .main, in: .common)
     @State private var timerConnector: Cancellable?
     @State private var isPaused = false
-    
-    // Haptic feedback generators
-    private let startFeedback = UIImpactFeedbackGenerator(style: .medium)
-    private let completionFeedback = UINotificationFeedbackGenerator()
-    
+        
     init(defaultDuration: Int, isShowing: Binding<Bool>) {
         self.defaultDuration = defaultDuration
         self._isShowing = isShowing
@@ -139,8 +135,6 @@ struct RestTimerView: View {
         .shadow(radius: 10)
         .frame(width: 300)
         .onAppear {
-            startFeedback.prepare()
-            completionFeedback.prepare()
             startTimer()
         }
         .onDisappear {
@@ -188,7 +182,7 @@ struct RestTimerView: View {
         timer = Timer.publish(every: 1, on: .main, in: .common)
         timerConnector = timer.connect()
         isPaused = false
-        startFeedback.impactOccurred()
+        HapticFeedbackManager.shared.medium()
         
         // Create a new publisher and subscribe to it
         let timerPublisher = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -201,12 +195,12 @@ struct RestTimerView: View {
                 
                 // Play sound when almost done
                 if timeRemaining <= 3 && timeRemaining > 0 {
-                    startFeedback.impactOccurred(intensity: 0.6)
+                    HapticFeedbackManager.shared.medium()
                 }
                 
                 // Handle timer completion
                 if timeRemaining == 0 {
-                    completionFeedback.notificationOccurred(.success)
+                    HapticFeedbackManager.shared.success()
                     
                     // Auto-close after a delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
@@ -242,7 +236,7 @@ struct RestTimerView: View {
     
     private func toggleTimer() {
         isPaused.toggle()
-        startFeedback.impactOccurred(intensity: 0.4)
+        HapticFeedbackManager.shared.medium()
     }
     
     private func skipTimer() {
@@ -252,7 +246,7 @@ struct RestTimerView: View {
         }
         
         timeRemaining = 0
-        completionFeedback.notificationOccurred(.success)
+        HapticFeedbackManager.shared.success()
         
         // Auto-close after a delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
@@ -267,25 +261,21 @@ struct RestTimerView: View {
         if isPaused {
             startTimer()
         }
-        startFeedback.impactOccurred(intensity: 0.5)
+        HapticFeedbackManager.shared.medium()
     }
     
     // Store cancellables
     @State private var timerCancellable = Set<AnyCancellable>()
 }
 
-// MARK: - Preview
-
-struct RestTimerView_Previews: PreviewProvider {
-    static var previews: some View {
-        ZStack {
-            Color.gray.opacity(0.3)
-                .ignoresSafeArea()
-            
-            RestTimerView(
-                defaultDuration: 180,
-                isShowing: .constant(true)
-            )
-        }
+#Preview {
+    ZStack {
+        Color.gray.opacity(0.3)
+            .ignoresSafeArea()
+        
+        RestTimerView(
+            defaultDuration: 180,
+            isShowing: .constant(true)
+        )
     }
 }

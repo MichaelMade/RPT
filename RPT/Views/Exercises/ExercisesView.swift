@@ -153,3 +153,10 @@ struct ExercisesView: View {
         }
     }
 }
+
+#Preview {
+    NavigationStack {
+        ExercisesView()
+            .modelContainer(for: [Exercise.self])
+    }
+}

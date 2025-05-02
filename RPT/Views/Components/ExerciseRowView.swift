@@ -61,38 +61,34 @@ struct ExerciseRowView: View {
     }
 }
 
-// Preview
-struct ExerciseRowView_Previews: PreviewProvider {
-    static var previews: some View {
-        List {
-            ExerciseRowView(
-                exercise: Exercise(
-                    name: "Barbell Bench Press",
-                    category: .compound,
-                    primaryMuscleGroups: [.chest],
-                    secondaryMuscleGroups: [.triceps, .shoulders]
-                )
+#Preview {
+    List {
+        ExerciseRowView(
+            exercise: Exercise(
+                name: "Barbell Bench Press",
+                category: .compound,
+                primaryMuscleGroups: [.chest],
+                secondaryMuscleGroups: [.triceps, .shoulders]
             )
-            
-            ExerciseRowView(
-                exercise: Exercise(
-                    name: "Bicep Curl",
-                    category: .isolation,
-                    primaryMuscleGroups: [.biceps],
-                    secondaryMuscleGroups: [.forearms],
-                    isCustom: true
-                )
+        )
+        
+        ExerciseRowView(
+            exercise: Exercise(
+                name: "Bicep Curl",
+                category: .isolation,
+                primaryMuscleGroups: [.biceps],
+                secondaryMuscleGroups: [.forearms],
+                isCustom: true
             )
-            
-            ExerciseRowView(
-                exercise: Exercise(
-                    name: "Push-Up",
-                    category: .bodyweight,
-                    primaryMuscleGroups: [.chest, .triceps, .shoulders],
-                    secondaryMuscleGroups: [.abs]
-                )
+        )
+        
+        ExerciseRowView(
+            exercise: Exercise(
+                name: "Push-Up",
+                category: .bodyweight,
+                primaryMuscleGroups: [.chest, .triceps, .shoulders],
+                secondaryMuscleGroups: [.abs]
             )
-        }
-        .previewLayout(.sizeThatFits)
+        )
     }
 }

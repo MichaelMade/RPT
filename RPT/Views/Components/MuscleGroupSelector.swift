@@ -35,3 +35,21 @@ struct MuscleGroupSelector: View {
         }
     }
 }
+
+#Preview {
+    Form {
+        Section(header: Text("Primary Muscle Groups")) {
+            MuscleGroupSelector(
+                selectedMuscles: .constant([.chest, .shoulders]), 
+                excludedMuscles: [.other]
+            )
+        }
+        
+        Section(header: Text("Secondary Muscle Groups")) {
+            MuscleGroupSelector(
+                selectedMuscles: .constant([.triceps]), 
+                excludedMuscles: [.chest, .shoulders, .other]
+            )
+        }
+    }
+}

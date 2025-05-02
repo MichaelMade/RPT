@@ -113,3 +113,10 @@ struct SettingsView: View {
         }
     }
 }
+
+#Preview {
+    NavigationStack {
+        SettingsView()
+            .modelContainer(for: [UserSettings.self])
+    }
+}

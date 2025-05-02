@@ -123,3 +123,42 @@ struct TemplateDetailView: View {
         }
     }
 }
+
+#Preview {
+    let _ = try! ModelContainer(for: WorkoutTemplate.self, Exercise.self)
+    
+    // Create sample template with RPT style rep ranges
+    let template = WorkoutTemplate(
+        name: "Upper Body RPT",
+        exercises: [
+            TemplateExercise(
+                exerciseName: "Bench Press",
+                suggestedSets: 3,
+                repRanges: [
+                    TemplateRepRange(setNumber: 1, minReps: 4, maxReps: 6, percentageOfFirstSet: 1.0),
+                    TemplateRepRange(setNumber: 2, minReps: 6, maxReps: 8, percentageOfFirstSet: 0.9),
+                    TemplateRepRange(setNumber: 3, minReps: 8, maxReps: 10, percentageOfFirstSet: 0.8)
+                ],
+                notes: "Focus on chest contraction"
+            ),
+            TemplateExercise(
+                exerciseName: "Pull-Up",
+                suggestedSets: 3,
+                repRanges: [
+                    TemplateRepRange(setNumber: 1, minReps: 6, maxReps: 8, percentageOfFirstSet: 1.0),
+                    TemplateRepRange(setNumber: 2, minReps: 8, maxReps: 10, percentageOfFirstSet: 0.9),
+                    TemplateRepRange(setNumber: 3, minReps: 10, maxReps: 12, percentageOfFirstSet: 0.8)
+                ],
+                notes: "Add weight if needed"
+            )
+        ],
+        notes: "Rest 2-3 minutes between sets"
+    )
+    
+    return TemplateDetailView(
+        template: template,
+        onStartWorkout: { _ in
+            // Preview doesn't need to handle the workout callback
+        }
+    )
+}

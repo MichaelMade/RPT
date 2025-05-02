@@ -23,3 +23,28 @@ struct CustomBackButton: View {
         }
     }
 }
+
+#Preview {
+    NavigationStack {
+        VStack {
+            HStack {
+                CustomBackButton {
+                    // This would handle the back action in a real app
+                    print("Back button tapped")
+                }
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            Spacer()
+            
+            Text("Content View")
+                .font(.title)
+            
+            Spacer()
+        }
+        .navigationTitle("Custom Back Button")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+    }
+}

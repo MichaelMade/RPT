@@ -26,3 +26,16 @@ struct ExerciseCategoryTag: View {
         .cornerRadius(8)
     }
 }
+
+#Preview {
+    VStack(alignment: .leading, spacing: 10) {
+        Text("Exercise Categories")
+            .font(.headline)
+            .padding(.bottom, 4)
+        
+        ForEach(ExerciseCategory.allCases, id: \.self) { category in
+            ExerciseCategoryTag(category: category)
+        }
+    }
+    .padding()
+}
