@@ -148,7 +148,7 @@ struct ExerciseSection: View {
                         
                         Spacer()
                         
-                        Text("\(set.weight, specifier: "%.1f") lb × \(set.reps) reps")
+                        Text("\(set.weight) lb × \(set.reps) reps")
                             .font(.subheadline)
                         
                         if let rpe = set.rpe {

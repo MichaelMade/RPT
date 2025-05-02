@@ -20,23 +20,23 @@ struct ExerciseSetRowView: View {
     // New property to track if this is the first set
     let isFirstSet: Bool
     // New callback for updating drop sets
-    let onUpdateDropSets: ((Double) -> Void)?
+    let onUpdateDropSets: ((Int) -> Void)?
     // MARK: - End New Properties
     
     // Haptic feedback generator
     private let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     
-    let onUpdate: (Double, Int, Int?) -> Void
+    let onUpdate: (Int, Int, Int?) -> Void
     let onDelete: () -> Void
     var onStartRestTimer: (() -> Void)? = nil // Optional rest timer callback
     
     // MARK: - Updated Initializer
     init(set: ExerciseSet,
          isFirstSet: Bool = false, // New parameter
-         onUpdate: @escaping (Double, Int, Int?) -> Void,
+         onUpdate: @escaping (Int, Int, Int?) -> Void,
          onDelete: @escaping () -> Void,
          onStartRestTimer: (() -> Void)? = nil,
-         onUpdateDropSets: ((Double) -> Void)? = nil) { // New parameter
+         onUpdateDropSets: ((Int) -> Void)? = nil) { // New parameter
         self.set = set
         self.isFirstSet = isFirstSet
         self.onUpdate = onUpdate
@@ -59,15 +59,15 @@ struct ExerciseSetRowView: View {
                         // Quick decrease buttons
                         HStack(spacing: 0) {
                             QuickAdjustButton(
-                                label: "-10",
-                                action: { adjustWeight(by: -10) }
+                                label: "-5",
+                                action: { adjustWeight(by: -5) }
                             )
                         }
                         
                         // Weight input field
                         HStack {
                             TextField("Weight", text: $weightInput)
-                                .keyboardType(.decimalPad)
+                                .keyboardType(.numberPad)
                                 .textFieldStyle(.roundedBorder)
                                 .multilineTextAlignment(.center)
                                 .frame(minWidth: 70)
@@ -79,8 +79,8 @@ struct ExerciseSetRowView: View {
                         // Quick increase buttons
                         HStack(spacing: 0) {
                             QuickAdjustButton(
-                                label: "+10",
-                                action: { adjustWeight(by: 10) }
+                                label: "+5",
+                                action: { adjustWeight(by: 5) }
                             )
                         }
                     }
@@ -167,7 +167,7 @@ struct ExerciseSetRowView: View {
                 feedbackGenerator.prepare()
                 
                 // Initialize text fields with current values
-                weightInput = String(format: "%.1f", set.weight)
+                weightInput = "\(set.weight)"
                 repsInput = "\(set.reps)"
                 
                 if let rpe = set.rpe {
@@ -180,7 +180,7 @@ struct ExerciseSetRowView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("\(set.weight, specifier: "%.1f") lb")
+                        Text("\(set.weight) lb")
                             .font(.title3)
                             .fontWeight(.medium)
                         
@@ -221,17 +221,20 @@ struct ExerciseSetRowView: View {
     
     // MARK: - Helper Methods
     
-    private func adjustWeight(by amount: Double) {
+    private func adjustWeight(by amount: Int) {
         // Provide haptic feedback
         feedbackGenerator.impactOccurred(intensity: 0.6)
         
         // Parse current weight
-        if let currentWeight = Double(weightInput) {
+        if let currentWeight = Int(weightInput) {
             let newWeight = max(0, currentWeight + amount)
-            weightInput = String(format: "%.1f", newWeight)
+            // Round to nearest 5
+            let roundedWeight = WorkoutManager.shared.roundToNearest5(Double(newWeight))
+            weightInput = "\(roundedWeight)"
         } else if amount > 0 {
             // If field is empty and we're increasing, start at the increment
-            weightInput = String(format: "%.1f", abs(amount))
+            let roundedAmount = WorkoutManager.shared.roundToNearest5(Double(abs(amount)))
+            weightInput = "\(roundedAmount)"
         }
     }
     
@@ -255,28 +258,28 @@ struct ExerciseSetRowView: View {
         feedbackGenerator.impactOccurred(intensity: 0.7)
         
         // Convert inputs to appropriate types
-        if let weight = Double(weightInput), let reps = Int(repsInput) {
+        if let weightInput = Int(weightInput), let reps = Int(repsInput) {
             let rpe = rpeInput.isEmpty ? nil : Int(rpeInput)
             
             // Validate inputs
-            let validatedWeight = max(0, weight)
+            let weight = WorkoutManager.shared.roundToNearest5(Double(max(0, weightInput)))
             let validatedReps = max(0, reps)
             let validatedRPE = rpe.map { min(10, max(1, $0)) }
             
             // Update the set
-            onUpdate(validatedWeight, validatedReps, validatedRPE)
+            onUpdate(weight, validatedReps, validatedRPE)
             
             // MARK: - Code for Drop Set Calculation
             // If this is the first set, update drop sets through callback
-            if isFirstSet && validatedWeight > 0 && onUpdateDropSets != nil {
-                onUpdateDropSets!(validatedWeight)
+            if isFirstSet && weight > 0 && onUpdateDropSets != nil {
+                onUpdateDropSets!(weight)
             }
             // MARK: - End New Code
             
             isEditing = false
             
             // Start rest timer if callback is available and set has weight
-            if validatedWeight > 0, let startTimer = onStartRestTimer {
+            if weight > 0, let startTimer = onStartRestTimer {
                 // Small delay to allow the keyboard to dismiss
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     startTimer()
@@ -304,105 +307,56 @@ struct ExerciseSetRowView: View {
 }
 
 #Preview {
+    // Create a model container for preview
     let modelContainer = try! ModelContainer(for: ExerciseSet.self, Exercise.self)
     
-    // Create an exercise
-    let benchPress = Exercise(
+    // Create a sample exercise and set
+    let exercise = Exercise(
         name: "Bench Press",
         category: .compound,
         primaryMuscleGroups: [.chest],
         secondaryMuscleGroups: [.triceps, .shoulders]
     )
     
-    // Create a set
-    let exerciseSet = ExerciseSet(
-        weight: 225.0,
-        reps: 6,
-        exercise: benchPress
+    let set = ExerciseSet(
+        weight: 225,
+        reps: 8,
+        exercise: exercise
     )
     
-    modelContainer.mainContext.insert(benchPress)
-    modelContainer.mainContext.insert(exerciseSet)
-    
-    return VStack {
-        // Regular set
+    return VStack(spacing: 20) {
+        // Normal set view
         ExerciseSetRowView(
-            set: exerciseSet,
-            isFirstSet: false,
-            onUpdate: { _, _, _ in },
-            onDelete: {},
-            onStartRestTimer: {},
-            onUpdateDropSets: nil
-        )
-        .padding()
-        .background(Color(.systemBackground))
-        
-        // First set with drop set calculation
-        ExerciseSetRowView(
-            set: exerciseSet,
+            set: set,
             isFirstSet: true,
             onUpdate: { _, _, _ in },
-            onDelete: {},
-            onStartRestTimer: {},
-            onUpdateDropSets: { _ in }
+            onDelete: { }
         )
         .padding()
-        .background(Color(.systemBackground))
-    }
-    .modelContainer(modelContainer)
-    .preferredColorScheme(.light)
-}
-
-// Preview in edit mode
-#Preview("Editing Set") {
-    let modelContainer = try! ModelContainer(for: ExerciseSet.self, Exercise.self)
-    
-    // Create an exercise
-    let benchPress = Exercise(
-        name: "Bench Press",
-        category: .compound,
-        primaryMuscleGroups: [.chest],
-        secondaryMuscleGroups: [.triceps, .shoulders]
-    )
-    
-    // Create a set
-    let exerciseSet = ExerciseSet(
-        weight: 225.0,
-        reps: 6,
-        exercise: benchPress
-    )
-    
-    modelContainer.mainContext.insert(benchPress)
-    modelContainer.mainContext.insert(exerciseSet)
-    
-    // This is a workaround to force the edit mode to be active in preview
-    struct EditModeWrapper: View {
-        @State private var isEditing = true
-        var set: ExerciseSet
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(8)
         
-        var body: some View {
-            if isEditing {
-                ExerciseSetRowView(
-                    set: set,
-                    isFirstSet: true,
-                    onUpdate: { _, _, _ in },
-                    onDelete: {},
-                    onStartRestTimer: {},
-                    onUpdateDropSets: { _ in }
-                )
-                .onAppear {
-                    // This forces edit mode in preview
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        // Hack to force edit mode in preview
-                        // Note: This only works for actual preview, not for the code
-                    }
-                }
-            }
+        // Another set with edit mode on initially
+        let editSet = ExerciseSet(
+            weight: 200,
+            reps: 10,
+            exercise: exercise,
+            rpe: 8
+        )
+        
+        ExerciseSetRowView(
+            set: editSet,
+            onUpdate: { _, _, _ in },
+            onDelete: { }
+        )
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(8)
+        .onAppear {
+            // This doesn't actually work in preview, but shows the editing UI
+            // for demonstration purposes
         }
     }
-    
-    return EditModeWrapper(set: exerciseSet)
-        .padding()
-        .background(Color(.systemBackground))
-        .modelContainer(modelContainer)
+    .padding()
+    .modelContainer(modelContainer)
 }

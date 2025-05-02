@@ -42,7 +42,7 @@ struct WorkoutRow: View {
                     
                     Spacer()
                     
-                    Text(String(format: "%.1f lb", workout.totalVolume))
+                    Text(workout.formattedTotalVolume())
                         .font(.caption)
                         .fontWeight(.medium)
                 }

@@ -182,43 +182,53 @@ struct RestTimerView: View {
     // MARK: - Timer Methods
     
     private func startTimer() {
+        // Cancel any existing timer first to prevent duplicates
+        stopTimer()
+        
         timer = Timer.publish(every: 1, on: .main, in: .common)
         timerConnector = timer.connect()
         isPaused = false
         startFeedback.impactOccurred()
         
-        // Subscribe to the timer
-        Timer.publish(every: 1, on: .main, in: .common)
-            .autoconnect()
-            .sink { _ in
-                guard !isPaused else { return }
+        // Create a new publisher and subscribe to it
+        let timerPublisher = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+        
+        let cancellable = timerPublisher.sink { _ in
+            guard !isPaused else { return }
+            
+            if timeRemaining > 0 {
+                timeRemaining -= 1
                 
-                if timeRemaining > 0 {
-                    timeRemaining -= 1
+                // Play sound when almost done
+                if timeRemaining <= 3 && timeRemaining > 0 {
+                    startFeedback.impactOccurred(intensity: 0.6)
+                }
+                
+                // Handle timer completion
+                if timeRemaining == 0 {
+                    completionFeedback.notificationOccurred(.success)
                     
-                    // Play sound when almost done
-                    if timeRemaining <= 3 && timeRemaining > 0 {
-                        startFeedback.impactOccurred(intensity: 0.6)
-                    }
-                    
-                    // Handle timer completion
-                    if timeRemaining == 0 {
-                        completionFeedback.notificationOccurred(.success)
-                        
-                        // Auto-close after a delay
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            withAnimation {
-                                isShowing = false
-                            }
+                    // Auto-close after a delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        withAnimation {
+                            isShowing = false
                         }
                     }
                 }
             }
-            .store(in: &timerCancellable)
+        }
+        
+        // Store the cancellable
+        timerCancellable.insert(cancellable)
     }
     
     private func stopTimer() {
+        // Cancel the connector
         timerConnector?.cancel()
+        timerConnector = nil
+        
+        // Cancel all timer subscriptions
+        timerCancellable.forEach { $0.cancel() }
         timerCancellable.removeAll()
     }
     
@@ -236,6 +246,11 @@ struct RestTimerView: View {
     }
     
     private func skipTimer() {
+        // Stop the timer first
+        if !isPaused {
+            stopTimer()
+        }
+        
         timeRemaining = 0
         completionFeedback.notificationOccurred(.success)
         
@@ -268,7 +283,7 @@ struct RestTimerView_Previews: PreviewProvider {
                 .ignoresSafeArea()
             
             RestTimerView(
-                defaultDuration: 90,
+                defaultDuration: 180,
                 isShowing: .constant(true)
             )
         }

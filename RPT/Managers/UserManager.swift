@@ -95,13 +95,13 @@ class UserManager {
     
     // Get user statistics
     func getUserStats() -> (totalWorkouts: Int, totalVolume: Double, workoutStreak: Int) {
-        guard let user = getCurrentUser() else { return (0, 0, 0) }
+        guard let user = getCurrentUser() else { return (0, 0.0, 0) }
         
         return (user.totalWorkouts, user.totalVolume, user.workoutStreak)
     }
     
     // Get personal bests for display
-    func getPersonalBests() -> [(exercise: String, weight: Double)] {
+    func getPersonalBests() -> [(exercise: String, weight: Int)] {
         guard let user = getCurrentUser() else { return [] }
         
         return user.personalBests.map { (exercise: $0.key, weight: $0.value) }

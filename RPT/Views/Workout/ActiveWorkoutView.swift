@@ -14,8 +14,6 @@ struct ActiveWorkoutView: View {
     @State private var showingExerciseSelector = false
     @State private var showingConfirmationDialog = false
     @State private var showingCompleteConfirmation = false
-    @State private var exerciseToDelete: Exercise? = nil
-    @State private var showingDeleteExerciseConfirmation = false
     @State private var showingExitConfirmation = false
     
     // Track whether to show custom back button
@@ -54,89 +52,21 @@ struct ActiveWorkoutView: View {
                                     // Sort sets by completion date to maintain set order
                                     let sortedSets = sets.sorted(by: { $0.completedAt < $1.completedAt })
                                     
-                                    Section {
-                                        // Exercise header with the new component
-                                        ExerciseHeaderView(
-                                            exercise: exercise,
-                                            isCompleted: viewModel.isExerciseCompleted(exercise),
-                                            onDelete: {
-                                                exerciseToDelete = exercise
-                                                showingDeleteExerciseConfirmation = true
-                                            },
-                                            onToggleCompletion: {
-                                                viewModel.toggleExerciseCompletion(exercise)
-                                            },
-                                            onToggleDetails: {
-                                                viewModel.toggleExerciseExpansion(exercise)
-                                            }
-                                        )
-                                        
-                                        // Only show sets if the exercise is expanded
-                                        if viewModel.expandedExercises.contains(exercise.id) {
-                                            // Sets with drop set auto-calculation
-                                            ForEach(sortedSets.indices, id: \.self) { index in
-                                                let set = sortedSets[index]
-                                                ExerciseSetRowView(
-                                                    set: set,
-                                                    isFirstSet: index == 0, // Determine if this is the first set
-                                                    onUpdate: { weight, reps, rpe in
-                                                        viewModel.updateSet(set, weight: weight, reps: reps, rpe: rpe)
-                                                    },
-                                                    onDelete: {
-                                                        viewModel.deleteSet(set)
-                                                    },
-                                                    onStartRestTimer: {
-                                                        viewModel.startRestTimer()
-                                                    },
-                                                    onUpdateDropSets: { firstSetWeight in
-                                                        // If this is the first set, update subsequent sets based on RPT drops
-                                                        updateDropSets(exercise: exercise, firstSetWeight: firstSetWeight, sets: sortedSets)
-                                                    }
-                                                )
-                                            }
-                                            
-                                            // Add set button
-                                            Button(action: {
-                                                viewModel.addSetToExercise(exercise)
-                                            }) {
-                                                Label("Add Set", systemImage: "plus.circle")
-                                                    .foregroundColor(exercise.category.style.color)
-                                            }
-                                            .padding(.vertical, 4)
-                                        }
-                                    }
+                                    // Use the new ExerciseSectionView component
+                                    ExerciseSectionView(
+                                        viewModel: viewModel,
+                                        exercise: exercise,
+                                        sets: sortedSets
+                                    )
                                 }
                             }
                         }
                         .listStyle(.insetGrouped)
                     } else {
-                        // Empty state
-                        VStack(spacing: 20) {
-                            Image(systemName: "dumbbell.fill")
-                                .font(.system(size: 60))
-                                .foregroundColor(.gray)
-                            
-                            Text("No Exercises Added")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                            
-                            Text("Tap the button below to add your first exercise")
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
-                            
-                            Button(action: {
-                                showingExerciseSelector = true
-                            }) {
-                                Label("Add Exercise", systemImage: "plus")
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                            }
-                        }
-                        .padding()
-                        .frame(maxHeight: .infinity)
+                        // Use the new EmptyWorkoutView component
+                        EmptyWorkoutView(onAddExercise: {
+                            showingExerciseSelector = true
+                        })
                     }
                     
                     // Bottom action bar - only show when we have exercises
@@ -207,7 +137,7 @@ struct ActiveWorkoutView: View {
                 // Minimize button to temporarily hide the workout
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
-                        viewModel.saveWorkout()
+                        _ = viewModel.saveWorkoutSafely()
                         dismiss()
                     }) {
                         HStack {
@@ -222,7 +152,7 @@ struct ActiveWorkoutView: View {
                     Menu {
                         TextField("Workout Name", text: $viewModel.workoutName)
                             .onChange(of: viewModel.workoutName) { _, _ in
-                                viewModel.updateWorkoutName()
+                                _ = viewModel.updateWorkoutNameSafely()
                             }
                         
                         Button(action: {
@@ -245,7 +175,7 @@ struct ActiveWorkoutView: View {
             }
             .sheet(isPresented: $showingExerciseSelector) {
                 ExerciseSelectorView { selectedExercise in
-                    viewModel.addExerciseToWorkout(selectedExercise)
+                    _ = viewModel.addExerciseToWorkoutSafely(selectedExercise)
                 }
             }
             // Exit confirmation
@@ -254,7 +184,7 @@ struct ActiveWorkoutView: View {
                 isPresented: $showingExitConfirmation
             ) {
                 Button("Save & Exit", role: .none) {
-                    viewModel.saveWorkout()
+                    _ = viewModel.saveWorkoutSafely()
                     
                     // Call completion callback if provided
                     if let callback = onCompleteWorkout {
@@ -265,7 +195,7 @@ struct ActiveWorkoutView: View {
                 }
                 
                 Button("Discard Workout", role: .destructive) {
-                    viewModel.discardWorkout()
+                    _ = viewModel.discardWorkoutSafely()
                     
                     // Call completion callback if provided
                     if let callback = onCompleteWorkout {
@@ -285,7 +215,7 @@ struct ActiveWorkoutView: View {
                 isPresented: $showingConfirmationDialog
             ) {
                 Button("Discard Workout", role: .destructive) {
-                    viewModel.discardWorkout()
+                    _ = viewModel.discardWorkoutSafely()
                     
                     // Call completion callback if provided
                     if let callback = onCompleteWorkout {
@@ -303,7 +233,7 @@ struct ActiveWorkoutView: View {
                 isPresented: $showingCompleteConfirmation
             ) {
                 Button("Complete and Save") {
-                    viewModel.completeWorkout()
+                    _ = viewModel.completeWorkoutSafely()
                     
                     // Call completion callback if provided
                     if let callback = onCompleteWorkout {
@@ -319,15 +249,15 @@ struct ActiveWorkoutView: View {
             // Delete exercise confirmation
             .confirmationDialog(
                 "Delete Exercise",
-                isPresented: $showingDeleteExerciseConfirmation,
-                presenting: exerciseToDelete
+                isPresented: $viewModel.showingDeleteExerciseConfirmation,
+                presenting: viewModel.exerciseToDelete
             ) { exercise in
                 Button("Delete \(exercise.name)", role: .destructive) {
-                    viewModel.deleteExerciseFromWorkout(exercise)
-                    exerciseToDelete = nil
+                    _ = viewModel.deleteExerciseFromWorkoutSafely(exercise)
+                    viewModel.exerciseToDelete = nil
                 }
                 Button("Cancel", role: .cancel) {
-                    exerciseToDelete = nil
+                    viewModel.exerciseToDelete = nil
                 }
             } message: { exercise in
                 Text("Are you sure you want to remove \(exercise.name) from this workout? All sets for this exercise will be deleted.")
@@ -336,33 +266,7 @@ struct ActiveWorkoutView: View {
         .interactiveDismissDisabled() // Prevent swipe-to-dismiss
     }
     
-    // Method to update drop sets based on first set weight - updated to round to nearest 5 pounds
-    private func updateDropSets(exercise: Exercise, firstSetWeight: Double, sets: [ExerciseSet]) {
-        // Only update if there are multiple sets
-        guard sets.count > 1 else { return }
-        
-        // Get settings manager to access drop percentages
-        let settingsManager = SettingsManager.shared
-        let dropPercentages = settingsManager.settings.defaultRPTPercentageDrops
-        
-        // Update each subsequent set based on the drop percentages
-        for index in 1..<min(sets.count, dropPercentages.count) {
-            if let dropPercentage = dropPercentages[safe: index] {
-                let calculatedWeight = firstSetWeight * (1.0 - dropPercentage)
-                
-                // Round to nearest 5 pounds for practical weight values in the gym
-                let roundedWeight = round(calculatedWeight / 5.0) * 5.0
-                
-                // Update the set
-                viewModel.updateSet(
-                    sets[index],
-                    weight: roundedWeight,
-                    reps: sets[index].reps,
-                    rpe: sets[index].rpe
-                )
-            }
-        }
-    }
+    // updateDropSets method moved to ExerciseSectionView
 }
 
 #Preview {

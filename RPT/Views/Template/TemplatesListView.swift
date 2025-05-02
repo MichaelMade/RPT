@@ -172,7 +172,8 @@ struct TemplatesListView: View {
                 Button("Save & Continue Later", role: .none) {
                     // Save the active workout
                     if let workout = activeWorkoutBinding {
-                        WorkoutManager.shared.saveWorkout(workout)
+                        // Use the safe version that doesn't throw
+                        _ = WorkoutManager.shared.saveWorkoutSafely(workout)
                         
                         // Clear active workout
                         activeWorkoutBinding = nil
@@ -192,7 +193,8 @@ struct TemplatesListView: View {
                 Button("Discard Workout", role: .destructive) {
                     // Discard the active workout
                     if let workout = activeWorkoutBinding {
-                        WorkoutManager.shared.deleteWorkout(workout)
+                        // Use the safe version that doesn't throw
+                        _ = WorkoutManager.shared.deleteWorkoutSafely(workout)
                         
                         // Clear active workout
                         activeWorkoutBinding = nil

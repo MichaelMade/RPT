@@ -15,25 +15,25 @@ class SettingsViewModel: ObservableObject {
     
     @Published var restTimerDuration: Int {
         didSet {
-            settingsManager.updateRestTimerDuration(seconds: restTimerDuration)
+            _ = settingsManager.updateRestTimerDurationSafely(seconds: restTimerDuration)
         }
     }
     
     @Published var defaultRPTPercentageDrops: [Double] {
         didSet {
-            settingsManager.updateRPTPercentageDrops(drops: defaultRPTPercentageDrops)
+            _ = settingsManager.updateRPTPercentageDropsSafely(drops: defaultRPTPercentageDrops)
         }
     }
     
     @Published var showRPE: Bool {
         didSet {
-            settingsManager.updateShowRPE(show: showRPE)
+            _ = settingsManager.updateShowRPESafely(show: showRPE)
         }
     }
     
     @Published var darkModePreference: DarkModePreference {
         didSet {
-            settingsManager.updateDarkModePreference(preference: darkModePreference)
+            _ = settingsManager.updateDarkModePreferenceSafely(preference: darkModePreference)
         }
     }
     
@@ -48,7 +48,7 @@ class SettingsViewModel: ObservableObject {
     }
     
     func resetToDefaults() {
-        settingsManager.resetToDefaults()
+        _ = settingsManager.resetToDefaultsSafely()
         
         // Update local properties
         self.restTimerDuration = settingsManager.settings.restTimerDuration
@@ -57,7 +57,7 @@ class SettingsViewModel: ObservableObject {
         self.darkModePreference = settingsManager.settings.darkModePreference
     }
     
-    func calculateExample(firstWeight: Double = 225.0) -> String {
+    func calculateExample(firstWeight: Int = 225) -> String {
         return settingsManager.calculateRPTExample(firstSetWeight: firstWeight)
     }
     

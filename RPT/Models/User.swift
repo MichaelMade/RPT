@@ -14,8 +14,8 @@ final class User {
     var username: String
     var email: String
     var dateJoined: Date
-    var height: Double? // in cm
-    var weight: Double? // in kg
+    var height: Double? // in inches
+    var weight: Double? // in pounds
     var birthdate: Date?
     var profileImageName: String?
     var settings: UserSettings?
@@ -25,7 +25,7 @@ final class User {
     var workoutStreak: Int
     var totalWorkouts: Int
     var totalVolume: Double
-    var personalBests: [String: Double] // Exercise name: weight
+    var personalBests: [String: Int] // Exercise name: weight
     
     // Relationships
     @Relationship(deleteRule: .cascade, inverse: \Workout.user)
@@ -43,8 +43,8 @@ final class User {
         lastActive: Date = Date(),
         workoutStreak: Int = 0,
         totalWorkouts: Int = 0,
-        totalVolume: Double = 0,
-        personalBests: [String: Double] = [:]
+        totalVolume: Double = 0.0,
+        personalBests: [String: Int] = [:]
     ) {
         self.id = id
         self.username = username
@@ -75,9 +75,8 @@ final class User {
     var bmi: Double? {
         guard let height = height, let weight = weight, height > 0 else { return nil }
         
-        // BMI = weight(kg) / height(m)²
-        let heightInMeters = height / 100
-        return weight / (heightInMeters * heightInMeters)
+        // BMI = 703 * weight(lb) / height(in)²
+        return 703 * weight / (height * height)
     }
     
     // Update user stats after completing a workout
@@ -89,8 +88,7 @@ final class User {
         totalWorkouts += 1
         
         // Update total volume
-        let workoutVolume = workout.sets.reduce(0.0) { $0 + ($1.weight * Double($1.reps)) }
-        totalVolume += workoutVolume
+        totalVolume += workout.totalVolume
         
         // Update workout streak
         updateWorkoutStreak()

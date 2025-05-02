@@ -36,29 +36,62 @@ class WorkoutManager: ObservableObject {
     }
     
     // Save a workout
-    func saveWorkout(_ workout: Workout) {
+    func saveWorkout(_ workout: Workout) throws {
         // Calculate workout duration if not already set
         if workout.duration == 0 {
             workout.duration = Date().timeIntervalSince(workout.date)
         }
         
-        try? modelContext.save()
+        try modelContext.save()
+    }
+    
+    // Non-throwing version for backward compatibility
+    func saveWorkoutSafely(_ workout: Workout) -> Bool {
+        do {
+            try saveWorkout(workout)
+            return true
+        } catch {
+            print("Failed to save workout: \(error)")
+            return false
+        }
     }
     
     // Complete a workout
-    func completeWorkout(_ workout: Workout) {
+    func completeWorkout(_ workout: Workout) throws {
         workout.complete()
         
         // Process for user stats and achievements
         userManager.processCompletedWorkout(workout)
         
-        try? modelContext.save()
+        try modelContext.save()
+    }
+    
+    // Non-throwing version for backward compatibility
+    func completeWorkoutSafely(_ workout: Workout) -> Bool {
+        do {
+            try completeWorkout(workout)
+            return true
+        } catch {
+            print("Failed to complete workout: \(error)")
+            return false
+        }
     }
     
     // Delete a workout
-    func deleteWorkout(_ workout: Workout) {
+    func deleteWorkout(_ workout: Workout) throws {
         modelContext.delete(workout)
-        try? modelContext.save()
+        try modelContext.save()
+    }
+    
+    // Non-throwing version for backward compatibility
+    func deleteWorkoutSafely(_ workout: Workout) -> Bool {
+        do {
+            try deleteWorkout(workout)
+            return true
+        } catch {
+            print("Failed to delete workout: \(error)")
+            return false
+        }
     }
     
     // MARK: - Workout Exercise & Set Management
@@ -79,7 +112,7 @@ class WorkoutManager: ObservableObject {
     }
     
     // Add a set to an exercise in a workout
-    func addSet(to workout: Workout, for exercise: Exercise, weight: Double, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
+    func addSet(to workout: Workout, for exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
         let newSet = ExerciseSet(
             weight: weight,
             reps: reps,
@@ -96,7 +129,7 @@ class WorkoutManager: ObservableObject {
     }
     
     // Update a set
-    func updateSet(_ set: ExerciseSet, weight: Double, reps: Int, rpe: Int?) {
+    func updateSet(_ set: ExerciseSet, weight: Int, reps: Int, rpe: Int?) {
         set.weight = weight
         set.reps = reps
         set.rpe = rpe
@@ -212,7 +245,7 @@ class WorkoutManager: ObservableObject {
         let workouts = getWorkouts(from: startDate, to: now)
         
         let count = workouts.count
-        let totalVolume = workouts.reduce(0) { $0 + $1.totalVolume }
+        let totalVolume = workouts.reduce(0.0) { $0 + $1.totalVolume }
         let totalDuration = workouts.reduce(0) { $0 + $1.duration }
         
         let averageDuration = count > 0 ? totalDuration / Double(count) : 0
@@ -225,12 +258,24 @@ class WorkoutManager: ObservableObject {
         return String(format: "%.1f lb", weight)
     }
     
+    // Round to nearest 5 pounds
+    func roundToNearest5(_ weight: Double) -> Int {
+        return Int(round(weight / 5.0) * 5.0)
+    }
+    
     // Get formatted volume
     func formatVolume(_ volume: Double) -> String {
+        let isWholeNumber = volume.truncatingRemainder(dividingBy: 1) == 0
+        
         if volume > 1000 {
-            return String(format: "%.1fk lb", volume / 1000)
+            let thousands = volume / 1000
+            return isWholeNumber ? 
+                "\(Int(thousands))k lb" : 
+                String(format: "%.1fk lb", thousands)
         } else {
-            return String(format: "%.1f lb", volume)
+            return isWholeNumber ? 
+                "\(Int(volume)) lb" : 
+                String(format: "%.1f lb", volume)
         }
     }
     

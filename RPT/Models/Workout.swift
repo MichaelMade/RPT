@@ -47,7 +47,7 @@ final class Workout {
     
     // Calculate total volume
     var totalVolume: Double {
-        sets.reduce(0) { $0 + ($1.weight * Double($1.reps)) }
+        sets.reduce(0.0) { $0 + (Double($1.weight) * Double($1.reps)) }
     }
     
     // Calculate total working sets (non-warmup)
@@ -88,7 +88,7 @@ final class Workout {
         var summary = "\(name) - \(dateString)\n"
         summary += "Exercises: \(exerciseList)\n"
         summary += "Sets: \(workingSetsCount)\n"
-        summary += "Total Volume: \(volumeFormatted) kg\n"
+        summary += "Total Volume: \(volumeFormatted) lb\n"
         
         if !notes.isEmpty {
             summary += "Notes: \(notes)"
@@ -108,7 +108,7 @@ final class Workout {
     }
     
     // Add a new set to the workout
-    func addSet(exercise: Exercise, weight: Double, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
+    func addSet(exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
         let newSet = ExerciseSet(
             weight: weight,
             reps: reps,
@@ -145,13 +145,14 @@ final class Workout {
                 
                 // For RPT, we only increase the first set, others follow the percentage drop
                 if index == 0 {
-                    // Increase first set weight
-                    let newWeight = previousSet.weight * (1 + percentageIncrease)
+                    // Increase first set weight (convert to double for calculation, then round back to int)
+                    let calculatedWeight = Double(previousSet.weight) * (1.0 + percentageIncrease)
+                    let roundedWeight = Int(round(calculatedWeight / 5.0) * 5.0) // Round to nearest 5
                     
                     // Create the first set
                     _ = followUp.addSet(
                         exercise: exercise,
-                        weight: newWeight,
+                        weight: roundedWeight,
                         reps: previousSet.reps,
                         isWarmup: false,
                         rpe: previousSet.rpe
@@ -162,16 +163,17 @@ final class Workout {
                           firstSetWeight > 0 else { continue }
                     
                     // Calculate the percentage drop from the first set in the original workout
-                    let originalDropPercentage = 1 - (previousSet.weight / firstSetWeight)
+                    let originalDropPercentage = 1.0 - (Double(previousSet.weight) / Double(firstSetWeight))
                     
                     // Apply the same percentage drop to the new first set weight
                     let newFirstSetWeight = followUp.exerciseGroups[exercise]?.first?.weight ?? 0
-                    let newWeight = newFirstSetWeight * (1 - originalDropPercentage)
+                    let calculatedWeight = Double(newFirstSetWeight) * (1.0 - originalDropPercentage)
+                    let roundedWeight = Int(round(calculatedWeight / 5.0) * 5.0) // Round to nearest 5
                     
                     // Create the set
                     _ = followUp.addSet(
                         exercise: exercise,
-                        weight: newWeight,
+                        weight: roundedWeight,
                         reps: previousSet.reps,
                         isWarmup: false,
                         rpe: previousSet.rpe
@@ -185,7 +187,8 @@ final class Workout {
     
     // Format total volume with lb unit
     func formattedTotalVolume() -> String {
-        return String(format: "%.1f lb", totalVolume)
+        let isWholeNumber = totalVolume.truncatingRemainder(dividingBy: 1) == 0
+        return isWholeNumber ? "\(Int(totalVolume)) lb" : String(format: "%.1f lb", totalVolume)
     }
     
     // Generate workout summary

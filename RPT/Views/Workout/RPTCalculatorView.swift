@@ -11,7 +11,7 @@ struct RPTCalculatorView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("defaultRPTPercentageDrops") private var savedPercentageDrops: Data = try! JSONEncoder().encode([0.0, 0.10, 0.15])
     
-    @State private var firstSetWeight = 225.0 // Default in pounds
+    @State private var firstSetWeight = 225 // Default in pounds (integer)
     @State private var targetReps = [6, 8, 10]
     @State private var percentageDrops = [0.0, 0.10, 0.20]
     
@@ -23,9 +23,13 @@ struct RPTCalculatorView: View {
                         Text("Weight")
                         Spacer()
                         TextField("Weight", value: $firstSetWeight, format: .number)
-                            .keyboardType(.decimalPad)
+                            .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 80)
+                            .onChange(of: firstSetWeight) { _, newValue in
+                                // Round to nearest 5
+                                firstSetWeight = WorkoutManager.shared.roundToNearest5(Double(newValue))
+                            }
                         Text("lb")
                     }
                     
@@ -48,7 +52,7 @@ struct RPTCalculatorView: View {
                             
                             Spacer()
                             
-                            Text("\(calculateWeight(for: index), specifier: "%.1f") lb × \(targetReps[safe: index] ?? 0)")
+                            Text("\(calculateWeight(for: index)) lb × \(targetReps[safe: index] ?? 0)")
                                 .fontWeight(index == 0 ? .bold : .regular)
                         }
                     }
@@ -105,8 +109,9 @@ struct RPTCalculatorView: View {
         }
     }
     
-    private func calculateWeight(for setIndex: Int) -> Double {
+    private func calculateWeight(for setIndex: Int) -> Int {
         guard setIndex < percentageDrops.count else { return 0 }
-        return firstSetWeight * (1 - percentageDrops[setIndex])
+        let calculatedWeight = Double(firstSetWeight) * (1 - percentageDrops[setIndex])
+        return WorkoutManager.shared.roundToNearest5(calculatedWeight)
     }
 }

@@ -10,7 +10,7 @@ import SwiftData
 
 @Model
 final class ExerciseSet {
-    var weight: Double
+    var weight: Int // Weight in pounds, rounded to nearest 5
     var reps: Int
     var completedAt: Date
     var isWarmup: Bool
@@ -23,7 +23,7 @@ final class ExerciseSet {
     @Relationship(deleteRule: .nullify)
     var workout: Workout?
     
-    init(weight: Double,
+    init(weight: Int,
          reps: Int,
          exercise: Exercise,
          workout: Workout? = nil,

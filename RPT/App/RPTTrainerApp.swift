@@ -32,6 +32,7 @@ struct RPTTrainerApp: App {
                 OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
             }
         }
-        .modelContainer(for: [Exercise.self, Workout.self, ExerciseSet.self, WorkoutTemplate.self, UserSettings.self, User.self])
+        // Use DataManager's modelContainer for the SwiftUI environment
+        .modelContainer(DataManager.shared.getSharedModelContainer())
     }
 }

@@ -45,10 +45,15 @@ class HomeViewModel: ObservableObject {
     func formatTotalVolume() -> String {
         guard let stats = userStats else { return "0" }
         
+        let isWholeNumber = stats.totalVolume.truncatingRemainder(dividingBy: 1) == 0
+        
         if stats.totalVolume > 1000 {
-            return String(format: "%.1f", stats.totalVolume / 1000) + "k"
+            let thousands = stats.totalVolume / 1000
+            return isWholeNumber ? 
+                "\(Int(thousands))k" : 
+                String(format: "%.1fk", thousands)
         } else {
-            return String(format: "%.0f", stats.totalVolume)
+            return "\(Int(stats.totalVolume))"
         }
     }
 }
