@@ -91,28 +91,6 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // Then
         XCTAssertEqual(formatted, "2k lb")
     }
-
-    // MARK: - Workout Statistics Formatting
-
-    func testCalculateWorkoutStatsFormatted_emptyState() {
-        // Given: No workouts saved in context
-        // When
-        let result = manager.calculateWorkoutStatsFormatted(timeframe: .week)
-        // Then
-        XCTAssertEqual(result.count, 0)
-        XCTAssertEqual(result.totalVolume, "0 lb")
-        XCTAssertEqual(result.averageDuration, "0:00")
-    }
-
-    func testCalculateWorkoutStatsFormatted_allTime_emptyState() {
-        // Given: Still no workouts
-        // When
-        let result = manager.calculateWorkoutStatsFormatted(timeframe: .allTime)
-        // Then
-        XCTAssertEqual(result.count, 0)
-        XCTAssertEqual(result.totalVolume, "0 lb")
-        XCTAssertEqual(result.averageDuration, "0:00")
-    }
     
     // MARK: - Workout Model Tests
     

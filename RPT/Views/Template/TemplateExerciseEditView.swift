@@ -29,6 +29,38 @@ struct TemplateExerciseEditView: View {
         _repRanges = State(initialValue: exercise.repRanges)
     }
     
+    private func updateRepRangesForSets(oldValue: Int, newValue: Int) {
+        // Sort current rep ranges by set number
+        let sortedRepRanges = repRanges.sorted(by: { $0.setNumber < $1.setNumber })
+        
+        if newValue > oldValue {
+            // Adding sets
+            for setNum in (oldValue + 1)...newValue {
+                // Create new rep ranges for added sets
+                let lastRange = sortedRepRanges.last ?? TemplateRepRange(setNumber: 0, minReps: 8, maxReps: 10, percentageOfFirstSet: 1.0)
+                
+                // Each new set gets 2 more reps than the previous
+                let newMinReps = min(lastRange.minReps + 2, 15)
+                let newMaxReps = min(lastRange.maxReps + 2, 20)
+                
+                // Calculate percentage of first set for RPT (decrease by 10% each set)
+                let percentageOfFirstSet = max(1.0 - (Double(setNum - 1) * 0.1), 0.5)
+                
+                let newRange = TemplateRepRange(
+                    setNumber: setNum,
+                    minReps: newMinReps,
+                    maxReps: newMaxReps,
+                    percentageOfFirstSet: percentageOfFirstSet
+                )
+                
+                repRanges.append(newRange)
+            }
+        } else if newValue < oldValue {
+            // Removing sets
+            repRanges.removeAll(where: { $0.setNumber > newValue })
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -46,6 +78,9 @@ struct TemplateExerciseEditView: View {
                     }
                     
                     Stepper("Sets: \(suggestedSets)", value: $suggestedSets, in: 1...5)
+                        .onChange(of: suggestedSets) { oldValue, newValue in
+                            updateRepRangesForSets(oldValue: oldValue, newValue: newValue)
+                        }
                     
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(5)
