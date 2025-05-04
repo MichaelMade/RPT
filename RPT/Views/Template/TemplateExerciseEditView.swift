@@ -94,11 +94,8 @@ struct TemplateExerciseEditView: View {
                             
                             if setNumber > 1 {
                                 HStack {
-                                    
-                                    Spacer()
-                                    
                                     Text("Weight:")
-                                    
+                                                                        
                                     let percentBinding = Binding<Double>(
                                         get: { repRanges[index].percentageOfFirstSet ?? 1.0 },
                                         set: { repRanges[index].percentageOfFirstSet = $0 }
@@ -106,15 +103,14 @@ struct TemplateExerciseEditView: View {
                                     
                                     Text("\(Int((percentBinding.wrappedValue) * 100))%")
                                     
+                                    Spacer()
+                                    
                                     Stepper("", value: percentBinding, in: 0.5...1.0, step: 0.05)
                                         .labelsHidden()
                                 }
                             }
                             
                             HStack {
-                                
-                                Spacer()
-                                
                                 Text("Rep Range:")
                                 
                                 Stepper("\(repRanges[index].minReps)-\(repRanges[index].maxReps)", onIncrement: {
@@ -126,7 +122,6 @@ struct TemplateExerciseEditView: View {
                                         repRanges[index].maxReps -= 1
                                     }
                                 })
-                                .labelsHidden()
                             }
                         }
                     }
