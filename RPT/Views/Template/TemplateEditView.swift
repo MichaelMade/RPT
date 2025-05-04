@@ -141,15 +141,6 @@ struct TemplateEditView: View {
 #Preview {
     let modelContainer = try! ModelContainer(for: WorkoutTemplate.self, Exercise.self)
     
-    // For new template preview
-    return NavigationStack {
-        TemplateEditView(isNewTemplate: true, existingTemplate: nil)
-            .modelContainer(modelContainer)
-    }
-    
-    // Uncomment for edit template preview
-    /*
-    // Create sample template for preview
     let template = WorkoutTemplate(
         name: "Upper Body Day",
         exercises: [
@@ -173,5 +164,4 @@ struct TemplateEditView: View {
         )
         .modelContainer(modelContainer)
     }
-    */
 }
