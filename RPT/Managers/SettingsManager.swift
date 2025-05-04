@@ -51,10 +51,21 @@ class SettingsManager: ObservableObject {
                 try dataManager.saveChanges()
                 self.settings = newSettings
             }
+            
+            // Sync settings with UserDefaults for @AppStorage compatibility
+            syncWithUserDefaults()
         } catch {
             print("Error initializing settings: \(error)")
             // Keep using the default settings created above
+            
+            // Sync default settings with UserDefaults
+            syncWithUserDefaults()
         }
+    }
+    
+    // Helper method to sync SwiftData settings with UserDefaults
+    private func syncWithUserDefaults() {
+        UserDefaults.standard.set(settings.showRPE, forKey: "showRPE")
     }
     
     // MARK: - Settings Operations
@@ -130,6 +141,10 @@ class SettingsManager: ObservableObject {
     
     func updateShowRPE(show: Bool) throws {
         settings.showRPE = show
+        
+        // Sync with UserDefaults for @AppStorage to work
+        UserDefaults.standard.set(show, forKey: "showRPE")
+        
         try updateSettings()
     }
     
@@ -163,6 +178,9 @@ class SettingsManager: ObservableObject {
         settings.defaultRPTPercentageDrops = [0.0, 0.10, 0.15]
         settings.showRPE = true
         settings.darkModePreference = .system
+        
+        // Sync RPE setting with UserDefaults for @AppStorage to work
+        UserDefaults.standard.set(true, forKey: "showRPE")
         
         try updateSettings()
     }

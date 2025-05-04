@@ -28,6 +28,10 @@ struct SettingsView: View {
                 // Workout Options Section
                 Section(header: Text("Workout Options")) {
                     Toggle("Show RPE Input", isOn: $viewModel.showRPE)
+                        .onChange(of: viewModel.showRPE) { _, newValue in 
+                            // Directly update UserDefaults for immediate effect in active views
+                            UserDefaults.standard.set(newValue, forKey: "showRPE")
+                        }
                     
                     Stepper(
                         "Rest Timer: \(viewModel.restTimerDuration) seconds",
@@ -100,6 +104,10 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                     }
                 }
+            }
+            .onAppear {
+                // Ensure UserDefaults is in sync with settings
+                UserDefaults.standard.set(viewModel.showRPE, forKey: "showRPE")
             }
             .navigationTitle("Settings")
             .alert("Reset Settings", isPresented: $showingResetConfirmation) {
