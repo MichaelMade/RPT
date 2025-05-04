@@ -19,19 +19,11 @@ struct WorkoutDetailView: View {
             VStack(spacing: 20) {
                 // Workout summary card
                 VStack(alignment: .leading, spacing: 8) {
-                    // Date and duration
+                    // Date
                     HStack {
                         Text(workout.date, style: .date)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                        
-                        Spacer()
-                        
-                        if workout.duration > 0 {
-                            Text(formatDuration(workout.duration))
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
                     }
                     
                     // Workout stats
@@ -197,7 +189,7 @@ struct ExerciseSection: View {
             .background(Color(UIColor.tertiarySystemBackground))
             .cornerRadius(8)
         }
-        .padding(.vertical, 8)
+        .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(UIColor.secondarySystemBackground))
         .cornerRadius(12)
