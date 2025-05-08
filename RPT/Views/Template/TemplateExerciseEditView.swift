@@ -10,11 +10,10 @@ import SwiftData
 
 struct TemplateExerciseEditView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var exerciseName: String
     @State private var suggestedSets: Int
     @State private var notes: String
-    @State private var repRanges: [TemplateRepRange]
     
+    // Store the exercise for reference
     let exercise: TemplateExercise
     let onSave: (TemplateExercise) -> Void
     
@@ -22,113 +21,79 @@ struct TemplateExerciseEditView: View {
         self.exercise = exercise
         self.onSave = onSave
         
-        // Initialize state
-        _exerciseName = State(initialValue: exercise.exerciseName)
+        // Initialize state with explicit values
         _suggestedSets = State(initialValue: exercise.suggestedSets)
         _notes = State(initialValue: exercise.notes)
-        _repRanges = State(initialValue: exercise.repRanges)
-    }
-    
-    private func updateRepRangesForSets(oldValue: Int, newValue: Int) {
-        // Sort current rep ranges by set number
-        let sortedRepRanges = repRanges.sorted(by: { $0.setNumber < $1.setNumber })
-        
-        if newValue > oldValue {
-            // Adding sets
-            for setNum in (oldValue + 1)...newValue {
-                // Create new rep ranges for added sets
-                let lastRange = sortedRepRanges.last ?? TemplateRepRange(setNumber: 0, minReps: 8, maxReps: 10, percentageOfFirstSet: 1.0)
-                
-                // Each new set gets 2 more reps than the previous
-                let newMinReps = min(lastRange.minReps + 2, 15)
-                let newMaxReps = min(lastRange.maxReps + 2, 20)
-                
-                // Calculate percentage of first set for RPT (decrease by 10% each set)
-                let percentageOfFirstSet = max(1.0 - (Double(setNum - 1) * 0.1), 0.5)
-                
-                let newRange = TemplateRepRange(
-                    setNumber: setNum,
-                    minReps: newMinReps,
-                    maxReps: newMaxReps,
-                    percentageOfFirstSet: percentageOfFirstSet
-                )
-                
-                repRanges.append(newRange)
-            }
-        } else if newValue < oldValue {
-            // Removing sets
-            repRanges.removeAll(where: { $0.setNumber > newValue })
-        }
     }
     
     var body: some View {
         NavigationStack {
             Form {
                 Section(header: Text("Exercise Details")) {
-                    HStack {
-                        Text(exerciseName)
-                            .font(.headline)
-                        
-                        Spacer()
-                    }
+                    Text(exercise.exerciseName)
+                        .font(.headline)
                     
-                    Stepper("Sets: \(suggestedSets)", value: $suggestedSets, in: 1...5)
-                        .onChange(of: suggestedSets) { oldValue, newValue in
-                            updateRepRangesForSets(oldValue: oldValue, newValue: newValue)
+                    VStack(alignment: .leading) {
+                        Text("Number of Sets")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                            .padding(.bottom, 4)
+                        
+                        HStack(spacing: 10) {
+                            ForEach([1, 2, 3, 4, 5], id: \.self) { num in
+                                Button(action: {
+                                    suggestedSets = num
+                                }) {
+                                    Text("\(num)")
+                                        .frame(width: 50, height: 50)
+                                        .background(suggestedSets == num ? Color.blue : Color.gray.opacity(0.2))
+                                        .foregroundColor(suggestedSets == num ? .white : .primary)
+                                        .cornerRadius(8)
+                                        .font(.headline)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .accessibilityLabel("\(num) sets")
+                            }
+                            Spacer()
                         }
+                    }
+                    .padding(.vertical, 4)
                     
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(5)
                 }
                 
-                Section(header: Text("Rep Ranges")) {
-                    ForEach(repRanges.indices.sorted(by: { repRanges[$0].setNumber < repRanges[$1].setNumber }), id: \.self) { index in
-                        let setNumber = repRanges[index].setNumber
+                Section {
+                    Text("This exercise will use \(suggestedSets) sets with the Reverse Pyramid Training pattern.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Sets will follow this pattern:")
+                            .font(.subheadline)
+                            .padding(.bottom, 4)
                         
-                        VStack {
+                        ForEach(1...suggestedSets, id: \.self) { setNum in
+                            let percentage = setNum == 1 ? 100 : Int((1.0 - (Double(setNum - 1) * 0.1)) * 100)
+                            let minReps = min(6 + ((setNum - 1) * 2), 15)
+                            let maxReps = min(8 + ((setNum - 1) * 2), 20)
+                            
                             HStack {
-                                Text("Set \(setNumber)")
-                                    .font(.headline)
+                                Text("Set \(setNum):")
+                                    .fontWeight(.medium)
+                                
+                                Text("\(minReps)-\(maxReps) reps")
+                                
+                                if setNum > 1 {
+                                    Text("(\(percentage)% of first set)")
+                                        .foregroundColor(.blue)
+                                }
+                                
                                 Spacer()
                             }
-                            
-                            if setNumber > 1 {
-                                HStack {
-                                    Text("Weight:")
-                                                                        
-                                    let percentBinding = Binding<Double>(
-                                        get: { repRanges[index].percentageOfFirstSet ?? 1.0 },
-                                        set: { repRanges[index].percentageOfFirstSet = $0 }
-                                    )
-                                    
-                                    Text("\(Int((percentBinding.wrappedValue) * 100))%")
-                                    
-                                    Spacer()
-                                    
-                                    Stepper("", value: percentBinding, in: 0.5...1.0, step: 0.05)
-                                        .labelsHidden()
-                                }
-                            }
-                            
-                            HStack {
-                                Text("Rep Range:")
-                                
-                                Stepper("\(repRanges[index].minReps)-\(repRanges[index].maxReps)", onIncrement: {
-                                    repRanges[index].minReps += 1
-                                    repRanges[index].maxReps += 1
-                                }, onDecrement: {
-                                    if repRanges[index].minReps > 1 {
-                                        repRanges[index].minReps -= 1
-                                        repRanges[index].maxReps -= 1
-                                    }
-                                })
-                            }
+                            .padding(.vertical, 2)
                         }
                     }
-                    
-                    Text("Note: For RPT, the first set is always 100% weight. Subsequent sets reduce weight by percentage.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
                 }
             }
             .navigationTitle("Configure Exercise")
@@ -142,12 +107,12 @@ struct TemplateExerciseEditView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        // Create updated exercise
+                        // Create a completely new exercise object with the updated values
                         let updatedExercise = TemplateExercise(
                             id: exercise.id,
-                            exerciseName: exerciseName,
-                            suggestedSets: suggestedSets,
-                            repRanges: repRanges,
+                            exerciseName: exercise.exerciseName,
+                            suggestedSets: suggestedSets,  // Use the updated set count
+                            repRanges: [],  // Empty array - the initializer will create proper rep ranges
                             notes: notes
                         )
                         

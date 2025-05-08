@@ -53,9 +53,31 @@ class TemplateManager {
     }
     
     func updateTemplate(_ template: WorkoutTemplate, name: String, exercises: [TemplateExercise], notes: String) {
+        // Update the template properties
         template.name = name
-        template.exercises = exercises
         template.notes = notes
+        
+        // Force SwiftData to recognize the change by completely replacing the exercises array
+        var updatedExercises: [TemplateExercise] = []
+        
+        // Create a fresh copy of each exercise to ensure all changes are captured
+        for exercise in exercises {
+            let newExercise = TemplateExercise(
+                id: exercise.id,
+                exerciseName: exercise.exerciseName,
+                suggestedSets: exercise.suggestedSets,
+                repRanges: exercise.repRanges,
+                notes: exercise.notes
+            )
+            
+            updatedExercises.append(newExercise)
+        }
+        
+        // Replace the entire array to force SwiftData to detect the change
+        template.exercises = []
+        template.exercises = updatedExercises
+        
+        // Save the changes
         try? modelContext.save()
     }
     

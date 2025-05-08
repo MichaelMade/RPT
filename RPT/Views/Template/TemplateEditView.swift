@@ -104,8 +104,11 @@ struct TemplateEditView: View {
                 TemplateExerciseEditView(
                     exercise: exercise,
                     onSave: { updatedExercise in
+                        // Find the exercise to update
                         if let index = exercises.firstIndex(where: { $0.id == updatedExercise.id }) {
-                            exercises[index] = updatedExercise
+                            // Remove the old exercise and insert the updated one at the same index
+                            exercises.remove(at: index)
+                            exercises.insert(updatedExercise, at: index)
                         }
                     }
                 )
