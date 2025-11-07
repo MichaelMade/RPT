@@ -40,9 +40,15 @@ struct AboutView: View {
             }
             
             Section(header: Text("Support")) {
-                Link("Send Feedback", destination: URL(string: "mailto:moore.m@me.com")!)
-                Link("Privacy Policy", destination: URL(string: "https://www.rpttrainer.com/privacy")!)
-                Link("Terms of Service", destination: URL(string: "https://www.rpttrainer.com/terms")!)
+                if let emailURL = URL(string: "mailto:moore.m@me.com") {
+                    Link("Send Feedback", destination: emailURL)
+                }
+                if let privacyURL = URL(string: "https://www.rpttrainer.com/privacy") {
+                    Link("Privacy Policy", destination: privacyURL)
+                }
+                if let termsURL = URL(string: "https://www.rpttrainer.com/terms") {
+                    Link("Terms of Service", destination: termsURL)
+                }
             }
             
             Section(header: Text("Credits")) {

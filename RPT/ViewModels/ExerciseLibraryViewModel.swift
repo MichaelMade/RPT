@@ -39,9 +39,13 @@ class ExerciseLibraryViewModel: ObservableObject {
                                   exercise.category == selectedCategory
             
             // Apply muscle group filter
-            let matchesMuscleGroup = selectedMuscleGroup == nil ||
-                                     exercise.primaryMuscleGroups.contains(selectedMuscleGroup!) ||
-                                     exercise.secondaryMuscleGroups.contains(selectedMuscleGroup!)
+            let matchesMuscleGroup: Bool
+            if let muscleGroup = selectedMuscleGroup {
+                matchesMuscleGroup = exercise.primaryMuscleGroups.contains(muscleGroup) ||
+                                    exercise.secondaryMuscleGroups.contains(muscleGroup)
+            } else {
+                matchesMuscleGroup = true
+            }
             
             return matchesSearch && matchesCategory && matchesMuscleGroup
         }

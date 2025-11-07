@@ -9,7 +9,7 @@ import SwiftUI
 
 struct RPTCalculatorView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("defaultRPTPercentageDrops") private var savedPercentageDrops: Data = try! JSONEncoder().encode([0.0, 0.10, 0.15])
+    @AppStorage("defaultRPTPercentageDrops") private var savedPercentageDrops: Data = (try? JSONEncoder().encode([0.0, 0.10, 0.15])) ?? Data()
     
     @State private var firstSetWeight = 225 // Default in pounds (integer)
     @State private var targetReps = [6, 8, 10]

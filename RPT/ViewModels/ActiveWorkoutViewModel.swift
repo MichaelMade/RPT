@@ -464,8 +464,12 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
     
     private func updateExerciseGroupsAndOrder(maintainOrder: Bool = false) {
-        // Rebuild exercise groups
-        let groups = Dictionary(grouping: workout.sets) { $0.exercise! }
+        // Rebuild exercise groups, filtering out sets without exercises
+        let setsWithExercise = workout.sets.compactMap { set -> (Exercise, ExerciseSet)? in
+            guard let exercise = set.exercise else { return nil }
+            return (exercise, set)
+        }
+        let groups = Dictionary(grouping: setsWithExercise, by: { $0.0 }).mapValues { $0.map { $0.1 } }
         self.exerciseGroups = groups
         
         if maintainOrder {
