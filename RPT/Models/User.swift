@@ -101,7 +101,7 @@ final class User {
     private func updateWorkoutStreak() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else { return }
         
         let latestWorkoutDay = calendar.startOfDay(for: workouts.map { $0.date }.max() ?? Date.distantPast)
         

@@ -246,11 +246,11 @@ class WorkoutManager: ObservableObject {
         
         switch timeframe {
         case .week:
-            startDate = Calendar.current.date(byAdding: .day, value: -7, to: now)!
+            startDate = Calendar.current.date(byAdding: .day, value: -7, to: now) ?? Date.distantPast
         case .month:
-            startDate = Calendar.current.date(byAdding: .month, value: -1, to: now)!
+            startDate = Calendar.current.date(byAdding: .month, value: -1, to: now) ?? Date.distantPast
         case .year:
-            startDate = Calendar.current.date(byAdding: .year, value: -1, to: now)!
+            startDate = Calendar.current.date(byAdding: .year, value: -1, to: now) ?? Date.distantPast
         case .allTime:
             startDate = Date.distantPast
         }

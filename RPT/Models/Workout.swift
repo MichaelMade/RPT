@@ -57,7 +57,12 @@ final class Workout {
     
     // Group sets by exercise
     var exerciseGroups: [Exercise: [ExerciseSet]] {
-        Dictionary(grouping: sets.sorted(by: { $0.completedAt < $1.completedAt }), by: { $0.exercise! })
+        let setsWithExercise = sets.compactMap { set -> (Exercise, ExerciseSet)? in
+            guard let exercise = set.exercise else { return nil }
+            return (exercise, set)
+        }
+        let sorted = setsWithExercise.sorted { $0.1.completedAt < $1.1.completedAt }
+        return Dictionary(grouping: sorted, by: { $0.0 }).mapValues { $0.map { $0.1 } }
     }
     
     // Calculate best set for each exercise
@@ -135,13 +140,11 @@ final class Workout {
             let workingSets = exerciseSets.filter { !$0.isWarmup }
             guard !workingSets.isEmpty else { continue }
             
-            // Find the best weight for each set number
-            let setsByNumber = Dictionary(grouping: workingSets) { $0.completedAt }
-            let sortedSets = setsByNumber.values.sorted { $0[0].completedAt < $1[0].completedAt }
-            
+            // Sort working sets by completion time
+            let sortedSets = workingSets.sorted { $0.completedAt < $1.completedAt }
+
             // Create new sets with increased weights
-            for (index, previousSets) in sortedSets.enumerated() {
-                guard let previousSet = previousSets.first else { continue }
+            for (index, previousSet) in sortedSets.enumerated() {
                 
                 // For RPT, we only increase the first set, others follow the percentage drop
                 if index == 0 {
@@ -159,7 +162,7 @@ final class Workout {
                     )
                 } else {
                     // For subsequent sets, maintain the same RPT percentage drop from the first set
-                    guard let firstSetWeight = sortedSets.first?.first?.weight,
+                    guard let firstSetWeight = sortedSets.first?.weight,
                           firstSetWeight > 0 else { continue }
                     
                     // Calculate the percentage drop from the first set in the original workout
