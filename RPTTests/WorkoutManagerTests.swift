@@ -91,6 +91,34 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // Then
         XCTAssertEqual(formatted, "2k lb")
     }
+
+    func testFormatVolume_aboveThreshold_fractionalThousands() {
+        // Given
+        let volume: Double = 1500.0
+        // When
+        let formatted = manager.formatVolume(volume)
+        // Then
+        XCTAssertEqual(formatted, "1.5k lb")
+    }
+
+    func testFormatVolume_exactlyThreshold() {
+        // Given
+        let volume: Double = 1000.0
+        // When
+        let formatted = manager.formatVolume(volume)
+        // Then
+        XCTAssertEqual(formatted, "1k lb")
+    }
+
+    func testFormatVolume_nonFiniteAndNegativeFallbackToZero() {
+        // Given/When
+        let nonFinite = manager.formatVolume(.infinity)
+        let negative = manager.formatVolume(-250.0)
+
+        // Then
+        XCTAssertEqual(nonFinite, "0 lb")
+        XCTAssertEqual(negative, "0 lb")
+    }
     
     // MARK: - Workout Model Tests
     

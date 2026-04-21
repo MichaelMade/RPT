@@ -277,18 +277,22 @@ class WorkoutManager: ObservableObject {
     
     // Get formatted volume
     func formatVolume(_ volume: Double) -> String {
-        let isWholeNumber = volume.truncatingRemainder(dividingBy: 1) == 0
-        
-        if volume > 1000 {
-            let thousands = volume / 1000
-            return isWholeNumber ? 
-                "\(Int(thousands))k lb" : 
-                String(format: "%.1fk lb", thousands)
-        } else {
-            return isWholeNumber ? 
-                "\(Int(volume)) lb" : 
-                String(format: "%.1f lb", volume)
+        let safeVolume = volume.isFinite ? max(0, volume) : 0
+
+        if safeVolume >= 1000 {
+            let thousands = safeVolume / 1000
+            let roundedThousands = (thousands * 10).rounded() / 10
+            let isWholeThousands = roundedThousands.truncatingRemainder(dividingBy: 1) == 0
+
+            return isWholeThousands ?
+                "\(Int(roundedThousands))k lb" :
+                String(format: "%.1fk lb", roundedThousands)
         }
+
+        let isWholeNumber = safeVolume.truncatingRemainder(dividingBy: 1) == 0
+        return isWholeNumber ?
+            "\(Int(safeVolume)) lb" :
+            String(format: "%.1f lb", safeVolume)
     }
     
     // Calculate workout statistics with proper formatting
