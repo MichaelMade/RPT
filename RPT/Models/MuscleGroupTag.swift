@@ -12,7 +12,7 @@ struct MuscleGroupTag: View {
     let isPrimary: Bool
     
     var body: some View {
-        Text(muscleGroup.rawValue.capitalized)
+        Text(muscleGroup.displayName)
             .font(.caption)
             .padding(.horizontal, 6)
             .padding(.vertical, 3)

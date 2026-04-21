@@ -11,6 +11,7 @@ import SwiftData
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showingRPTCalculator = false
+    @State private var showingPlateCalculator = false
     @State private var selectedWorkout: Workout?
     @StateObject private var workoutStateManager = WorkoutStateManager.shared
     
@@ -49,27 +50,19 @@ struct HomeView: View {
                     // Start/Continue workout button
                     Button(action: {
                         if workoutStateManager.wasAnyWorkoutDiscarded() {
-                            // If a workout was ever discarded, force creating a new one
                             viewModel.startNewWorkout()
-                            // Reset discard state
                             workoutStateManager.clearDiscardedState()
-                            // Set new workout
                             activeWorkoutBinding = viewModel.currentWorkout
                         } else if activeWorkoutBinding != nil {
-                            // Normal continue flow when we have an active workout
+                            // Continue existing active workout
+                        } else if viewModel.currentWorkout != nil {
+                            activeWorkoutBinding = viewModel.currentWorkout
                         } else {
-                            // Normal new workout flow
                             viewModel.startNewWorkout()
                             activeWorkoutBinding = viewModel.currentWorkout
                         }
-                        
-                        // Always show the sheet after handling all cases
+
                         showActiveWorkoutSheet = true
-                        
-                        // Use async to overcome any race conditions
-                        DispatchQueue.main.async {
-                            showActiveWorkoutSheet = true
-                        }
                     }) {
                         HStack {
                             // Check for active workout but not if it was discarded
@@ -97,28 +90,39 @@ struct HomeView: View {
                     }
                     .padding(.horizontal)
                     
-                    Button(action: {
-                        showingRPTCalculator = true
-                    }) {
-                        HStack {
-                            Image(systemName: "function")
-                                .font(.title2)
-                            
-                            Text("RPT Calculator")
-                                .font(.headline)
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
+                    HStack(spacing: 12) {
+                        Button(action: { showingRPTCalculator = true }) {
+                            VStack(spacing: 6) {
+                                Image(systemName: "function")
+                                    .font(.title2)
+                                Text("RPT Calculator")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.purple)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
                         }
-                        .padding()
-                        .background(Color.purple)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+
+                        Button(action: { showingPlateCalculator = true }) {
+                            VStack(spacing: 6) {
+                                Image(systemName: "scalemass")
+                                    .font(.title2)
+                                Text("Plate Calculator")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.indigo)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                        }
                     }
                     .padding(.horizontal)
-                    
+
                     // Recent workouts section
                     if !viewModel.recentWorkouts.isEmpty {
                         VStack(alignment: .leading) {
@@ -146,24 +150,22 @@ struct HomeView: View {
             .sheet(isPresented: $showingRPTCalculator) {
                 RPTCalculatorView()
             }
+            .sheet(isPresented: $showingPlateCalculator) {
+                PlateCalculatorView()
+            }
             .navigationDestination(item: $selectedWorkout) { workout in
                 WorkoutDetailView(workout: workout)
             }
             .onAppear {
-                // Reload data from workout manager, including any incomplete workouts
                 viewModel.loadRecentWorkouts()
-                
-                // If a workout was discarded, make sure it stays that way
+
                 if workoutStateManager.wasAnyWorkoutDiscarded() {
-                    DispatchQueue.main.async {
-                        activeWorkoutBinding = nil
-                        showActiveWorkoutSheet = false
-                    }
-                } 
-                // Handle the case where we have a current workout in the ViewModel but no active binding
-                else if viewModel.currentWorkout != nil {
-                    // This ensures "Continue Workout" shows properly when returning to HomeView
+                    activeWorkoutBinding = nil
+                    showActiveWorkoutSheet = false
+                } else if viewModel.currentWorkout != nil {
                     activeWorkoutBinding = viewModel.currentWorkout
+                } else {
+                    activeWorkoutBinding = nil
                 }
             }
         }
@@ -179,14 +181,12 @@ struct HomeView: View {
 
 // Preview with active workout
 #Preview("With Active Workout") {
-    let modelContainer = try! ModelContainer(for: Workout.self, ExerciseSet.self, Exercise.self)
     let workout = Workout(date: Date(), name: "Active Workout")
-    
-    NavigationStack {
+    return NavigationStack {
         HomeView(
             activeWorkoutBinding: .constant(workout),
             showActiveWorkoutSheet: .constant(false)
         )
-        .modelContainer(modelContainer)
+        .modelContainer(for: [Workout.self, ExerciseSet.self, Exercise.self])
     }
 }

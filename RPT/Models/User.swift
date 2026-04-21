@@ -81,47 +81,37 @@ final class User {
     
     // Update user stats after completing a workout
     func updateStats(with workout: Workout) {
-        // Update last active date
         lastActive = Date()
-        
-        // Update total workouts
         totalWorkouts += 1
-        
-        // Update total volume
         totalVolume += workout.totalVolume
-        
-        // Update workout streak
-        updateWorkoutStreak()
-        
-        // Update personal bests
+        updateWorkoutStreak(currentWorkout: workout)
         updatePersonalBests(with: workout)
     }
-    
-    // Check and update the workout streak
-    private func updateWorkoutStreak() {
+
+    // Check and update the workout streak, excluding the just-completed workout
+    private func updateWorkoutStreak(currentWorkout: Workout) {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else { return }
-        
-        let latestWorkoutDay = calendar.startOfDay(for: workouts.map { $0.date }.max() ?? Date.distantPast)
-        
-        if calendar.isDate(latestWorkoutDay, inSameDayAs: today) {
-            // Already counted for today
+
+        let previousDates = workouts.filter { $0 !== currentWorkout }.map { $0.date }
+        let latestPreviousDay = previousDates.max().map { calendar.startOfDay(for: $0) }
+
+        if latestPreviousDay == today {
+            // Another workout already counted today; streak unchanged
             return
-        } else if calendar.isDate(latestWorkoutDay, inSameDayAs: yesterday) {
-            // Consecutive day
+        } else if latestPreviousDay == yesterday {
             workoutStreak += 1
         } else {
-            // Streak broken
             workoutStreak = 1
         }
     }
-    
-    // Update personal bests based on the workout
+
+    // Update personal bests based on the workout (working sets only)
     private func updatePersonalBests(with workout: Workout) {
-        for set in workout.sets {
+        for set in workout.sets where !set.isWarmup {
             guard let exercise = set.exercise else { continue }
-            
+
             let currentBest = personalBests[exercise.name] ?? 0
             if set.weight > currentBest {
                 personalBests[exercise.name] = set.weight

@@ -17,7 +17,7 @@ class ExerciseManager {
     private init() {
         let dataManager = DataManager.shared
         self.modelContext = dataManager.getModelContext()
-        loadDefaultExercisesIfNeeded()
+        // Default exercises are seeded by DataManager at container init time.
     }
     
     // MARK: - Fetch Operations
@@ -116,54 +116,4 @@ class ExerciseManager {
             .map { $0 }
     }
     
-    // MARK: - Private Methods
-    
-    private func loadDefaultExercisesIfNeeded() {
-        var descriptor = FetchDescriptor<Exercise>()
-        descriptor.fetchLimit = 1
-        
-        // Check if any exercises exist
-        if let count = try? modelContext.fetchCount(descriptor), count > 0 {
-            return // Exercises already exist
-        }
-        
-        // Create default exercises
-        let defaultExercises: [(String, ExerciseCategory, [MuscleGroup], [MuscleGroup], String)] = [
-            // Compound exercises
-            ("Barbell Bench Press", .compound, [.chest], [.triceps, .shoulders], "Lie on a bench and press the barbell from chest to full extension."),
-            ("Barbell Squat", .compound, [.quadriceps], [.glutes, .hamstrings, .lowerBack], "Place bar on upper back, squat down until thighs are parallel to floor, then stand up."),
-            ("Deadlift", .compound, [.back, .hamstrings], [.glutes, .quadriceps, .traps, .forearms], "Bend at hips and knees to grab bar, then stand up straight while keeping back flat."),
-            ("Overhead Press", .compound, [.shoulders], [.triceps, .traps], "Press barbell from shoulders to overhead with straight arms."),
-            ("Pull-up", .compound, [.back], [.biceps, .shoulders], "Hang from bar and pull yourself up until chin is over the bar."),
-            ("Barbell Row", .compound, [.back], [.biceps, .shoulders, .traps], "Bend at hips with back flat, pull barbell to lower chest."),
-            ("Dip", .compound, [.chest, .triceps], [.shoulders], "Support yourself on parallel bars, lower body until upper arms are parallel to floor, then push up."),
-            
-            // Isolation exercises
-            ("Bicep Curl", .isolation, [.biceps], [.forearms], "Curl weight from full extension to full flexion."),
-            ("Tricep Extension", .isolation, [.triceps], [], "Extend arms from flexed position to straight position."),
-            ("Leg Extension", .isolation, [.quadriceps], [], "Extend knees from 90 degrees to full extension."),
-            ("Leg Curl", .isolation, [.hamstrings], [], "Curl legs from straight position to full flexion."),
-            ("Lateral Raise", .isolation, [.shoulders], [], "Raise arms out to sides until parallel with floor."),
-            ("Calf Raise", .isolation, [.calves], [], "Raise heels off ground by extending ankles."),
-            
-            // Bodyweight exercises
-            ("Push-up", .bodyweight, [.chest], [.triceps, .shoulders], "Lower body to ground and push back up with arms."),
-            ("Body Weight Squat", .bodyweight, [.quadriceps], [.glutes, .hamstrings], "Squat down until thighs are parallel to floor, then stand up."),
-            ("Lunge", .bodyweight, [.quadriceps], [.glutes, .hamstrings], "Step forward and lower body until both knees are at 90 degrees, then push back up.")
-        ]
-        
-        for (name, category, primary, secondary, instructions) in defaultExercises {
-            let exercise = Exercise(
-                name: name,
-                category: category,
-                primaryMuscleGroups: primary,
-                secondaryMuscleGroups: secondary,
-                instructions: instructions,
-                isCustom: false
-            )
-            modelContext.insert(exercise)
-        }
-        
-        try? modelContext.save()
-    }
 }

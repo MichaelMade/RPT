@@ -23,4 +23,11 @@ enum MuscleGroup: String, Codable, CaseIterable {
     case traps
     case lowerBack
     case other
+
+    var displayName: String {
+        switch self {
+        case .lowerBack: return "Lower Back"
+        default: return rawValue.capitalized
+        }
+    }
 }

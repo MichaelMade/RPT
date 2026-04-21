@@ -3,18 +3,25 @@ import SwiftUI
 import Combine
 import SwiftData
 
+@MainActor
 class WorkoutStateManager: ObservableObject {
     static let shared = WorkoutStateManager()
-    
+
+    private enum Keys {
+        static let discardedId = "workout_discarded_id"
+        static let discardedFlag = "workout_discarded_flag"
+        static let discardedTime = "workout_discarded_time"
+    }
+
     @Published var lastDiscardedWorkoutId: String? = nil
     @Published var workoutWasDiscarded = false
-    
+
     // Store when the workout was discarded
     var discardTimestamp: Date? = nil
-    
+
     // Keep track of whether we've loaded from UserDefaults
     private var hasLoadedFromDefaults = false
-    
+
     private init() {
         loadStateFromDefaults()
     }
@@ -76,30 +83,28 @@ class WorkoutStateManager: ObservableObject {
         workoutWasDiscarded = false
         lastDiscardedWorkoutId = nil
         discardTimestamp = nil
-        
-        // Clear from UserDefaults
-        UserDefaults.standard.removeObject(forKey: "workout_discarded_id")
-        UserDefaults.standard.removeObject(forKey: "workout_discarded_flag")
-        UserDefaults.standard.removeObject(forKey: "workout_discarded_time")
+
+        UserDefaults.standard.removeObject(forKey: Keys.discardedId)
+        UserDefaults.standard.removeObject(forKey: Keys.discardedFlag)
+        UserDefaults.standard.removeObject(forKey: Keys.discardedTime)
     }
-    
+
     // Mark a workout as explicitly saved (not discarded)
     func markWorkoutAsSaved(_ workoutId: Any? = nil) {
-        // Ensure we're not in discarded state
         clearDiscardedState()
     }
-    
+
     private func saveStateToDefaults() {
-        UserDefaults.standard.set(lastDiscardedWorkoutId, forKey: "workout_discarded_id")
-        UserDefaults.standard.set(workoutWasDiscarded, forKey: "workout_discarded_flag")
-        UserDefaults.standard.set(discardTimestamp, forKey: "workout_discarded_time")
+        UserDefaults.standard.set(lastDiscardedWorkoutId, forKey: Keys.discardedId)
+        UserDefaults.standard.set(workoutWasDiscarded, forKey: Keys.discardedFlag)
+        UserDefaults.standard.set(discardTimestamp, forKey: Keys.discardedTime)
     }
-    
+
     private func loadStateFromDefaults() {
-        lastDiscardedWorkoutId = UserDefaults.standard.string(forKey: "workout_discarded_id")
-        workoutWasDiscarded = UserDefaults.standard.bool(forKey: "workout_discarded_flag")
-        discardTimestamp = UserDefaults.standard.object(forKey: "workout_discarded_time") as? Date
-        
+        lastDiscardedWorkoutId = UserDefaults.standard.string(forKey: Keys.discardedId)
+        workoutWasDiscarded = UserDefaults.standard.bool(forKey: Keys.discardedFlag)
+        discardTimestamp = UserDefaults.standard.object(forKey: Keys.discardedTime) as? Date
+
         hasLoadedFromDefaults = true
     }
 }

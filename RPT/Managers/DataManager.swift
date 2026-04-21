@@ -217,16 +217,12 @@ class DataManager {
     
     enum DataError: Error {
         case saveFailed
-        case exportFailed
-        case importFailed
         case fetchFailed
         case invalidData
-        
+
         var description: String {
             switch self {
             case .saveFailed: return "Failed to save changes to database"
-            case .exportFailed: return "Failed to export data"
-            case .importFailed: return "Failed to import data"
             case .fetchFailed: return "Failed to fetch data"
             case .invalidData: return "Data is invalid or corrupted"
             }
@@ -249,28 +245,6 @@ class DataManager {
             return true
         } catch {
             return false
-        }
-    }
-    
-    // MARK: - Data Export/Import
-    
-    func exportData() throws -> Data {
-        // Implementation for data export functionality
-        do {
-            // Replace with actual implementation
-            throw DataError.exportFailed
-        } catch {
-            throw DataError.exportFailed
-        }
-    }
-    
-    func importData(from data: Data) throws -> Bool {
-        // Implementation for data import functionality
-        do {
-            // Replace with actual implementation
-            throw DataError.importFailed
-        } catch {
-            throw DataError.importFailed
         }
     }
     
@@ -323,25 +297,30 @@ class DataManager {
     }
     
     func fetchExerciseSets(for exercise: Exercise, timeFrame: DateInterval? = nil) throws -> [ExerciseSet] {
+        let exerciseId = exercise.id
+        let descriptor: FetchDescriptor<ExerciseSet>
+
+        if let interval = timeFrame {
+            let start = interval.start
+            let end = interval.end
+            descriptor = FetchDescriptor<ExerciseSet>(
+                predicate: #Predicate<ExerciseSet> {
+                    $0.exercise?.id == exerciseId &&
+                    $0.completedAt >= start &&
+                    $0.completedAt <= end
+                },
+                sortBy: [SortDescriptor(\.completedAt)]
+            )
+        } else {
+            descriptor = FetchDescriptor<ExerciseSet>(
+                predicate: #Predicate<ExerciseSet> { $0.exercise?.id == exerciseId },
+                sortBy: [SortDescriptor(\.completedAt)]
+            )
+        }
+
         do {
-            // Create basic descriptor and fetch all sets
-            let descriptor = FetchDescriptor<ExerciseSet>()
-            let allSets = try modelContext.fetch(descriptor)
-            
-            // Filter in memory
-            return allSets.filter { set in
-                // Check for exercise match
-                guard let setExercise = set.exercise, setExercise.id == exercise.id else { return false }
-                
-                // Apply timeframe filter if needed
-                if let interval = timeFrame {
-                    return set.completedAt >= interval.start && set.completedAt <= interval.end
-                }
-                
-                return true
-            }.sorted { $0.completedAt < $1.completedAt }
+            return try modelContext.fetch(descriptor)
         } catch {
-            print("Error fetching exercise sets: \(error)")
             throw DataError.fetchFailed
         }
     }

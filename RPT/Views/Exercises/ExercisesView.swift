@@ -67,7 +67,7 @@ struct ExercisesView: View {
                         
                         ForEach(MuscleGroup.allCases, id: \.self) { muscleGroup in
                             CategoryFilterButton(
-                                title: muscleGroup.rawValue.capitalized,
+                                title: muscleGroup.displayName,
                                 isSelected: selectedMuscleGroup == muscleGroup,
                                 action: {
                                     if selectedMuscleGroup == muscleGroup {
