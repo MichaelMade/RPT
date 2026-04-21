@@ -56,6 +56,17 @@ final class HomeViewModelTests: XCTestCase {
         // Then - should return "5k" (no decimal)
         XCTAssertEqual(formattedVolume, "5k", "Format should return whole number for round thousands")
     }
+
+    func testFormatTotalVolume_fractionalThousands() {
+        // Given - user stats with non-round thousands
+        viewModel.userStats = (totalWorkouts: 3, totalVolume: 1500.0, workoutStreak: 2)
+
+        // When - format total volume
+        let formattedVolume = viewModel.formatTotalVolume()
+
+        // Then - should keep one decimal place
+        XCTAssertEqual(formattedVolume, "1.5k", "Format should preserve fractional thousands")
+    }
     
     func testFormatTotalVolume_belowThreshold() {
         // Given - user stats with volume below 1000

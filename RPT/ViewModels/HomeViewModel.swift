@@ -66,8 +66,9 @@ class HomeViewModel: ObservableObject {
         
         if stats.totalVolume > 1000 {
             let thousands = stats.totalVolume / 1000
-            return isWholeNumber ? 
-                "\(Int(thousands))k" : 
+            let isWholeThousands = thousands.truncatingRemainder(dividingBy: 1) == 0
+            return isWholeThousands ?
+                "\(Int(thousands))k" :
                 String(format: "%.1fk", thousands)
         } else {
             return "\(Int(stats.totalVolume))"
