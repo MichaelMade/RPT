@@ -52,14 +52,16 @@ class HomeViewModel: ObservableObject {
     func formatTotalVolume() -> String {
         guard let stats = userStats else { return "0" }
 
-        if stats.totalVolume >= 1000 {
-            let thousands = stats.totalVolume / 1000
+        let safeVolume = stats.totalVolume.isFinite ? max(0, stats.totalVolume) : 0
+
+        if safeVolume >= 1000 {
+            let thousands = safeVolume / 1000
             let isWholeThousands = thousands.truncatingRemainder(dividingBy: 1) == 0
             return isWholeThousands ?
                 "\(Int(thousands))k" :
                 String(format: "%.1fk", thousands)
         } else {
-            return "\(Int(stats.totalVolume))"
+            return "\(Int(safeVolume))"
         }
     }
 }

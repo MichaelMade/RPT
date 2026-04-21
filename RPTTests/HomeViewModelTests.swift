@@ -89,6 +89,28 @@ final class HomeViewModelTests: XCTestCase {
         // Then - should return "950" (no decimal, no 'k')
         XCTAssertEqual(formattedVolume, "950", "Format should return integer without decimal for volume below 1000")
     }
+
+    func testFormatTotalVolume_negativeValue() {
+        // Given - corrupted negative persisted volume
+        viewModel.userStats = (totalWorkouts: 5, totalVolume: -250.0, workoutStreak: 3)
+
+        // When - format total volume
+        let formattedVolume = viewModel.formatTotalVolume()
+
+        // Then - should clamp to zero
+        XCTAssertEqual(formattedVolume, "0", "Format should clamp negative volume to zero")
+    }
+
+    func testFormatTotalVolume_nonFiniteValue() {
+        // Given - corrupted non-finite persisted volume
+        viewModel.userStats = (totalWorkouts: 5, totalVolume: .infinity, workoutStreak: 3)
+
+        // When - format total volume
+        let formattedVolume = viewModel.formatTotalVolume()
+
+        // Then - should fail safe to zero
+        XCTAssertEqual(formattedVolume, "0", "Format should fail safe for non-finite volume")
+    }
     
     // MARK: - Weekly Progress Tests
     
