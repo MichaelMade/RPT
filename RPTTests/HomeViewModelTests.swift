@@ -68,6 +68,17 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(formattedVolume, "1.5k", "Format should preserve fractional thousands")
     }
     
+    func testFormatTotalVolume_exactlyThreshold() {
+        // Given - user stats with volume exactly at 1000
+        viewModel.userStats = (totalWorkouts: 5, totalVolume: 1000.0, workoutStreak: 3)
+
+        // When - format total volume
+        let formattedVolume = viewModel.formatTotalVolume()
+
+        // Then - should return "1k"
+        XCTAssertEqual(formattedVolume, "1k", "Format should abbreviate exact 1000 volume")
+    }
+
     func testFormatTotalVolume_belowThreshold() {
         // Given - user stats with volume below 1000
         viewModel.userStats = (totalWorkouts: 5, totalVolume: 950.0, workoutStreak: 3)
