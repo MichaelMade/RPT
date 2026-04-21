@@ -187,13 +187,12 @@ struct ExerciseProgressView: View {
     }
 
     private func formatValue(_ value: Double) -> String {
-        let unit = metric == .volume ? " lb" : " lb"
         let isWhole = value.truncatingRemainder(dividingBy: 1) == 0
         if metric == .volume && abs(value) >= 1000 {
             let k = value / 1000
-            return String(format: "%.1fk%@", k, unit)
+            return String(format: "%.1fk lb", k)
         }
-        return isWhole ? "\(Int(value))\(unit)" : String(format: "%.1f%@", value, unit)
+        return isWhole ? "\(Int(value)) lb" : String(format: "%.1f lb", value)
     }
 }
 

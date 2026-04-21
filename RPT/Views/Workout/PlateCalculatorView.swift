@@ -143,12 +143,12 @@ struct PlateCalculatorView: View {
 
     private func plateColor(_ weight: Double) -> Color {
         switch weight {
-        case 45, 20: return .red
-        case 35, 15: return .blue
-        case 25, 10: return .green
-        case 10, 5:  return .yellow
-        case 5, 2.5: return .gray
-        default:     return .secondary
+        case 45, 20:    return .red
+        case 35, 15:    return .blue
+        case 25, 10:    return .green
+        case 5:         return .yellow
+        case 2.5, 1.25: return .gray
+        default:        return .secondary
         }
     }
 }
