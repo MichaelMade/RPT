@@ -56,10 +56,11 @@ class HomeViewModel: ObservableObject {
 
         if safeVolume >= 1000 {
             let thousands = safeVolume / 1000
-            let isWholeThousands = thousands.truncatingRemainder(dividingBy: 1) == 0
+            let roundedThousands = (thousands * 10).rounded() / 10
+            let isWholeThousands = roundedThousands.truncatingRemainder(dividingBy: 1) == 0
             return isWholeThousands ?
-                "\(Int(thousands))k" :
-                String(format: "%.1fk", thousands)
+                "\(Int(roundedThousands))k" :
+                String(format: "%.1fk", roundedThousands)
         } else {
             return "\(Int(safeVolume))"
         }

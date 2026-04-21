@@ -67,6 +67,17 @@ final class HomeViewModelTests: XCTestCase {
         // Then - should keep one decimal place
         XCTAssertEqual(formattedVolume, "1.5k", "Format should preserve fractional thousands")
     }
+
+    func testFormatTotalVolume_roundedFractionWithoutTrailingDecimal() {
+        // Given - user stats that round to a whole thousand at one decimal precision
+        viewModel.userStats = (totalWorkouts: 8, totalVolume: 1999.0, workoutStreak: 4)
+
+        // When - format total volume
+        let formattedVolume = viewModel.formatTotalVolume()
+
+        // Then - should avoid showing trailing .0
+        XCTAssertEqual(formattedVolume, "2k", "Format should not show trailing .0k after rounding")
+    }
     
     func testFormatTotalVolume_exactlyThreshold() {
         // Given - user stats with volume exactly at 1000
