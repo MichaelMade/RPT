@@ -1,0 +1,140 @@
+//
+//  StatsViewModel.swift
+//  RPT
+//
+
+import Foundation
+import SwiftData
+import SwiftUI
+
+@MainActor
+class StatsViewModel: ObservableObject {
+    struct WeeklyVolumePoint: Identifiable {
+        let id = UUID()
+        let weekStart: Date
+        let volume: Double
+    }
+
+    struct MuscleGroupShare: Identifiable {
+        let id = UUID()
+        let group: MuscleGroup
+        let setCount: Int
+    }
+
+    struct PersonalRecord: Identifiable {
+        let id = UUID()
+        let exerciseName: String
+        let weight: Int
+        let reps: Int
+        let date: Date
+    }
+
+    @Published var totalWorkouts: Int = 0
+    @Published var totalVolume: Double = 0
+    @Published var currentStreak: Int = 0
+    @Published var weeksActive: Int = 0
+    @Published var weeklyVolume: [WeeklyVolumePoint] = []
+    @Published var muscleGroupShare: [MuscleGroupShare] = []
+    @Published var recentPRs: [PersonalRecord] = []
+
+    private let workoutManager: WorkoutManager
+    private let userManager: UserManager
+
+    init(workoutManager: WorkoutManager? = nil, userManager: UserManager? = nil) {
+        self.workoutManager = workoutManager ?? WorkoutManager.shared
+        self.userManager = userManager ?? UserManager.shared
+    }
+
+    func reload() {
+        let stats = userManager.getUserStats()
+        totalWorkouts = stats.totalWorkouts
+        totalVolume = stats.totalVolume
+        currentStreak = stats.workoutStreak
+
+        let allWorkouts = workoutManager.getRecentWorkouts(limit: 500).filter { $0.isCompleted }
+
+        computeWeeklyVolume(from: allWorkouts)
+        computeMuscleGroupShare(from: allWorkouts)
+        computePRs(from: allWorkouts)
+        weeksActive = Set(allWorkouts.map { weekAnchor(for: $0.date) }).count
+    }
+
+    // MARK: - Calculations
+
+    private func computeWeeklyVolume(from workouts: [Workout]) {
+        let now = Date()
+        let cal = Calendar.current
+        guard let twelveWeeksAgo = cal.date(byAdding: .weekOfYear, value: -11, to: weekAnchor(for: now)) else {
+            weeklyVolume = []
+            return
+        }
+
+        let recent = workouts.filter { $0.date >= twelveWeeksAgo }
+        let grouped = Dictionary(grouping: recent) { weekAnchor(for: $0.date) }
+
+        var points: [WeeklyVolumePoint] = []
+        var cursor = twelveWeeksAgo
+        while cursor <= now {
+            let volume = (grouped[cursor] ?? []).reduce(0.0) { $0 + $1.totalVolume }
+            points.append(WeeklyVolumePoint(weekStart: cursor, volume: volume))
+            cursor = cal.date(byAdding: .weekOfYear, value: 1, to: cursor) ?? cursor.addingTimeInterval(604800)
+        }
+        weeklyVolume = points
+    }
+
+    private func computeMuscleGroupShare(from workouts: [Workout]) {
+        let cal = Calendar.current
+        guard let fourWeeksAgo = cal.date(byAdding: .weekOfYear, value: -4, to: Date()) else {
+            muscleGroupShare = []
+            return
+        }
+
+        let recent = workouts.filter { $0.date >= fourWeeksAgo }
+        var counts: [MuscleGroup: Int] = [:]
+
+        for workout in recent {
+            for set in workout.sets where !set.isWarmup {
+                guard let exercise = set.exercise else { continue }
+                for group in exercise.primaryMuscleGroups {
+                    counts[group, default: 0] += 1
+                }
+            }
+        }
+
+        muscleGroupShare = counts
+            .map { MuscleGroupShare(group: $0.key, setCount: $0.value) }
+            .sorted { $0.setCount > $1.setCount }
+    }
+
+    private func computePRs(from workouts: [Workout]) {
+        var best: [String: PersonalRecord] = [:]
+
+        for workout in workouts {
+            for set in workout.sets where !set.isWarmup && set.weight > 0 {
+                guard let name = set.exercise?.name else { continue }
+                if let existing = best[name], existing.weight >= set.weight {
+                    continue
+                }
+                best[name] = PersonalRecord(
+                    exerciseName: name,
+                    weight: set.weight,
+                    reps: set.reps,
+                    date: set.completedAt
+                )
+            }
+        }
+
+        recentPRs = best.values
+            .sorted { $0.date > $1.date }
+            .prefix(5)
+            .map { $0 }
+    }
+
+    // MARK: - Helpers
+
+    private func weekAnchor(for date: Date) -> Date {
+        let cal = Calendar.current
+        let components = cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+        return cal.date(from: components) ?? date
+    }
+}

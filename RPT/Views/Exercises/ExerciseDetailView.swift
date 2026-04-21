@@ -98,12 +98,30 @@ struct ExerciseDetailView: View {
                     .cornerRadius(12)
                 }
                 
+                // View progress charts
+                NavigationLink(destination: ExerciseProgressView(exercise: exercise)) {
+                    HStack {
+                        Image(systemName: "chart.xyaxis.line")
+                            .foregroundColor(.white)
+                        Text("View Progress")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(exercise.category.style.color)
+                    .cornerRadius(12)
+                }
+
                 // Recent history
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "clock.arrow.circlepath")
                             .foregroundColor(exercise.category.style.color)
-                        
+
                         Text("Exercise History")
                             .font(.headline)
                     }
