@@ -13,14 +13,18 @@ import SwiftData
 class ActiveWorkoutViewModel: ObservableObject {
     enum WorkoutError: Error {
         case saveFailure
+        case completeFailure
+        case deleteFailure
         case exerciseNotFound
         case invalidExerciseData
         case invalidSetData
         case operationFailed
-        
+
         var description: String {
             switch self {
             case .saveFailure: return "Failed to save workout"
+            case .completeFailure: return "Failed to complete workout"
+            case .deleteFailure: return "Failed to delete workout"
             case .exerciseNotFound: return "Exercise not found in workout"
             case .invalidExerciseData: return "Invalid exercise data"
             case .invalidSetData: return "Invalid set data"
@@ -146,30 +150,14 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
     }
     
-    // Error enum for WorkoutManager methods
-    enum WorkoutManagerError: Error {
-        case saveFailure
-        case completeFailure
-        case deleteFailure
-        
-        var description: String {
-            switch self {
-            case .saveFailure: return "Failed to save workout"
-            case .completeFailure: return "Failed to complete workout"
-            case .deleteFailure: return "Failed to delete workout"
-            }
-        }
-    }
-    
     func saveWorkout() throws {
         do {
             try workoutManager.saveWorkout(workout)
         } catch {
-            print("Error saving workout: \(error)")
             throw WorkoutError.saveFailure
         }
     }
-    
+
     // Safe version that doesn't throw
     func saveWorkoutSafely() -> Bool {
         do {
@@ -180,16 +168,15 @@ class ActiveWorkoutViewModel: ObservableObject {
             return false
         }
     }
-    
+
     func completeWorkout() throws {
         do {
             try workoutManager.completeWorkout(workout)
         } catch {
-            print("Error completing workout: \(error)")
-            throw WorkoutManagerError.completeFailure
+            throw WorkoutError.completeFailure
         }
     }
-    
+
     // Safe version that doesn't throw
     func completeWorkoutSafely() -> Bool {
         do {
@@ -200,13 +187,12 @@ class ActiveWorkoutViewModel: ObservableObject {
             return false
         }
     }
-    
+
     func discardWorkout() throws {
         do {
             try workoutManager.deleteWorkout(workout)
         } catch {
-            print("Error discarding workout: \(error)")
-            throw WorkoutManagerError.deleteFailure
+            throw WorkoutError.deleteFailure
         }
     }
     
@@ -317,25 +303,24 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
     
     func updateSet(_ set: ExerciseSet, weight: Int, reps: Int, rpe: Int?) throws {
-        // Validate input
-        guard weight >= 0, reps >= 0, rpe == nil || (rpe! >= 0 && rpe! <= 10) else {
+        guard weight >= 0, reps >= 0 else {
             throw WorkoutError.invalidSetData
         }
-        
-        // Update set details
+        if let rpeValue = rpe, !(0...10).contains(rpeValue) {
+            throw WorkoutError.invalidSetData
+        }
+
+        let wasEmpty = set.weight == 0
         set.weight = weight
         set.reps = reps
         set.rpe = rpe
-        
-        // If the set was never completed (weight is 0), mark it as completed now
-        if set.weight == 0 && weight > 0 {
-            // Only update completedAt if this is the first time the set is getting a weight
+
+        if wasEmpty && weight > 0 {
             set.completedAt = Date()
         }
-        
+
         try saveWorkout()
-        
-        // Refresh exercise groups but maintain order
+
         updateExerciseGroupsAndOrder(maintainOrder: true)
     }
     
@@ -473,14 +458,11 @@ class ActiveWorkoutViewModel: ObservableObject {
         self.exerciseGroups = groups
         
         if maintainOrder {
-            // Keep existing exercise order, just remove any that aren't in groups anymore
-            exerciseOrder.removeAll(where: { !groups.keys.contains($0) })
-            
-            // Add any new exercises that might have been added
-            for exercise in groups.keys {
-                if !exerciseOrder.contains(exercise) {
-                    exerciseOrder.append(exercise)
-                }
+            let groupKeyIds = Set(groups.keys.map { $0.id })
+            exerciseOrder.removeAll(where: { !groupKeyIds.contains($0.id) })
+
+            for exercise in groups.keys where !exerciseOrder.contains(where: { $0.id == exercise.id }) {
+                exerciseOrder.append(exercise)
             }
         } else {
             // Determine initial exercise order based on the first completedAt timestamp for each exercise

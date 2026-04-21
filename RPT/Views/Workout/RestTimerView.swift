@@ -11,12 +11,11 @@ import Combine
 struct RestTimerView: View {
     let defaultDuration: Int
     @Binding var isShowing: Bool
-    
+
     @State private var timeRemaining: Int
-    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 1, on: .main, in: .common)
-    @State private var timerConnector: Cancellable?
     @State private var isPaused = false
-        
+    @State private var timerCancellable = Set<AnyCancellable>()
+
     init(defaultDuration: Int, isShowing: Binding<Bool>) {
         self.defaultDuration = defaultDuration
         self._isShowing = isShowing
@@ -176,52 +175,39 @@ struct RestTimerView: View {
     // MARK: - Timer Methods
     
     private func startTimer() {
-        // Cancel any existing timer first to prevent duplicates
         stopTimer()
-        
-        timer = Timer.publish(every: 1, on: .main, in: .common)
-        timerConnector = timer.connect()
+
         isPaused = false
         HapticFeedbackManager.shared.medium()
-        
-        // Create a new publisher and subscribe to it
-        let timerPublisher = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-        
-        let cancellable = timerPublisher.sink { _ in
-            guard !isPaused else { return }
-            
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-                
-                // Play sound when almost done
-                if timeRemaining <= 3 && timeRemaining > 0 {
-                    HapticFeedbackManager.shared.medium()
-                }
-                
-                // Handle timer completion
-                if timeRemaining == 0 {
-                    HapticFeedbackManager.shared.success()
-                    
-                    // Auto-close after a delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        withAnimation {
-                            isShowing = false
-                        }
-                    }
+
+        Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                tick()
+            }
+            .store(in: &timerCancellable)
+    }
+
+    private func tick() {
+        guard !isPaused, timeRemaining > 0 else { return }
+
+        timeRemaining -= 1
+
+        if timeRemaining <= 3 && timeRemaining > 0 {
+            HapticFeedbackManager.shared.medium()
+        }
+
+        if timeRemaining == 0 {
+            HapticFeedbackManager.shared.success()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                withAnimation {
+                    isShowing = false
                 }
             }
         }
-        
-        // Store the cancellable
-        timerCancellable.insert(cancellable)
     }
-    
+
     private func stopTimer() {
-        // Cancel the connector
-        timerConnector?.cancel()
-        timerConnector = nil
-        
-        // Cancel all timer subscriptions
         timerCancellable.forEach { $0.cancel() }
         timerCancellable.removeAll()
     }
@@ -263,9 +249,6 @@ struct RestTimerView: View {
         }
         HapticFeedbackManager.shared.medium()
     }
-    
-    // Store cancellables
-    @State private var timerCancellable = Set<AnyCancellable>()
 }
 
 #Preview {

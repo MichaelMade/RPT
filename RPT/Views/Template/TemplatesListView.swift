@@ -85,30 +85,16 @@ struct TemplatesListView: View {
                     }
                     .swipeActions {
                         Button {
-                            // Check if there's an active workout before proceeding
-                            if activeWorkoutBinding != nil {
-                                // Show active workout confirmation
-                                showingActiveWorkoutAlert = true
-                            } else {
-                                // Proceed normally if no active workout
-                                selectedTemplate = template
-                                currentAction = .edit
-                            }
+                            selectedTemplate = template
+                            currentAction = .edit
                         } label: {
                             Label("Edit", systemImage: "pencil")
                         }
                         .tint(.blue)
-                        
+
                         Button(role: .destructive) {
-                            // Check if there's an active workout before proceeding
-                            if activeWorkoutBinding != nil {
-                                // Show active workout confirmation
-                                showingActiveWorkoutAlert = true
-                            } else {
-                                // Proceed normally if no active workout
-                                templateToDelete = template
-                                showingConfirmationDialog = true
-                            }
+                            templateToDelete = template
+                            showingConfirmationDialog = true
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
@@ -119,14 +105,7 @@ struct TemplatesListView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        // Check if there's an active workout before proceeding
-                        if activeWorkoutBinding != nil {
-                            // Show active workout confirmation
-                            showingActiveWorkoutAlert = true
-                        } else {
-                            // Proceed normally if no active workout
-                            showingCreateSheet = true
-                        }
+                        showingCreateSheet = true
                     }) {
                         Image(systemName: "plus")
                     }
@@ -167,59 +146,38 @@ struct TemplatesListView: View {
             .onAppear {
                 viewModel.refreshTemplates()
             }
-            // Alert for active workout
+            // Alert shown when user taps a template while an active workout is in progress.
             .alert("Active Workout In Progress", isPresented: $showingActiveWorkoutAlert) {
-                Button("Save & Continue Later", role: .none) {
-                    // Save the active workout
+                Button("Save & Continue Later") {
                     if let workout = activeWorkoutBinding {
-                        // Use the safe version that doesn't throw
                         _ = WorkoutManager.shared.saveWorkoutSafely(workout)
-                        
-                        // Clear active workout
                         activeWorkoutBinding = nil
-                        
-                        // Continue with the intended action
-                        if let template = templateToStartWorkout {
-                            selectedTemplate = template
-                            currentAction = .detail
-                            templateToStartWorkout = nil
-                        } else {
-                            // Fallback for other actions
-                            showingCreateSheet = true
-                        }
+                    }
+                    if let template = templateToStartWorkout {
+                        selectedTemplate = template
+                        currentAction = .detail
+                        templateToStartWorkout = nil
                     }
                 }
-                
+
                 Button("Discard Workout", role: .destructive) {
-                    // Discard the active workout
                     if let workout = activeWorkoutBinding {
-                        // Use the safe version that doesn't throw
                         _ = WorkoutManager.shared.deleteWorkoutSafely(workout)
-                        
-                        // Clear active workout
                         activeWorkoutBinding = nil
-                        
-                        // Continue with the intended action
-                        if let template = templateToStartWorkout {
-                            selectedTemplate = template
-                            currentAction = .detail
-                            templateToStartWorkout = nil
-                        } else {
-                            // Fallback for other actions
-                            showingCreateSheet = true
-                        }
+                    }
+                    if let template = templateToStartWorkout {
+                        selectedTemplate = template
+                        currentAction = .detail
+                        templateToStartWorkout = nil
                     }
                 }
-                
-                Button("Continue Workout", role: .none) {
-                    // Show the active workout
+
+                Button("Continue Workout") {
                     showActiveWorkoutSheet = true
-                    // Reset states
                     templateToStartWorkout = nil
                 }
-                
+
                 Button("Cancel", role: .cancel) {
-                    // Reset states
                     templateToStartWorkout = nil
                 }
             } message: {

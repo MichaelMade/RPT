@@ -37,11 +37,10 @@ class WorkoutManager: ObservableObject {
     
     // Save a workout
     func saveWorkout(_ workout: Workout) throws {
-        // Calculate workout duration if not already set
         if workout.duration == 0 {
             workout.duration = Date().timeIntervalSince(workout.date)
         }
-        
+
         try modelContext.save()
     }
     
@@ -59,10 +58,7 @@ class WorkoutManager: ObservableObject {
     // Complete a workout
     func completeWorkout(_ workout: Workout) throws {
         workout.complete()
-        
-        // Process for user stats and achievements
         userManager.processCompletedWorkout(workout)
-        
         try modelContext.save()
     }
     
@@ -130,15 +126,16 @@ class WorkoutManager: ObservableObject {
     
     // Update a set
     func updateSet(_ set: ExerciseSet, weight: Int, reps: Int, rpe: Int?) {
+        let wasEmpty = set.weight == 0
         set.weight = weight
         set.reps = reps
         set.rpe = rpe
-        
-        // Only update completedAt if this is the first time setting weight
-        if set.weight == 0 && weight > 0 {
+
+        // Only update completedAt when the set transitions from empty to having a weight
+        if wasEmpty && weight > 0 {
             set.completedAt = Date()
         }
-        
+
         try? modelContext.save()
     }
     
@@ -150,8 +147,12 @@ class WorkoutManager: ObservableObject {
     
     // Remove an exercise from a workout (removes all sets)
     func removeExercise(_ exercise: Exercise, from workout: Workout) {
-        // Find and delete all sets for this exercise in the workout
-        workout.sets.removeAll { $0.exercise?.id == exercise.id }
+        let exerciseId = exercise.id
+        let setsToRemove = workout.sets.filter { $0.exercise?.id == exerciseId }
+        for set in setsToRemove {
+            modelContext.delete(set)
+        }
+        workout.sets.removeAll { $0.exercise?.id == exerciseId }
         try? modelContext.save()
     }
     
@@ -173,10 +174,8 @@ class WorkoutManager: ObservableObject {
             predicate: #Predicate<Workout> { !$0.isCompleted },
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
-        
-        // Limit to most recent incomplete workout
         descriptor.fetchLimit = 1
-        
+
         return (try? modelContext.fetch(descriptor)) ?? []
     }
     

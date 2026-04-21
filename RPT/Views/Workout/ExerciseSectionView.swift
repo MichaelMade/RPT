@@ -33,15 +33,13 @@ struct ExerciseSectionView: View {
                 }
             )
             
-            // Only show sets if the exercise is expanded
+            // Sets are already sorted by the caller.
             if viewModel.expandedExercises.contains(exercise.id) {
-                // Sort sets by completion date to maintain set order
-                ForEach(sets.sorted(by: { $0.completedAt < $1.completedAt }), id: \.id) { set in
+                ForEach(Array(sets.enumerated()), id: \.element.id) { index, set in
                     ExerciseSetRowView(
                         set: set,
-                        isFirstSet: sets.firstIndex(where: { $0.id == set.id }) == 0, // Determine if this is the first set
+                        isFirstSet: index == 0,
                         onUpdate: { weight, reps, rpe in
-                            // Weight is already an int and we expect it to be rounded to the nearest 5
                             _ = viewModel.updateSetSafely(set, weight: weight, reps: reps, rpe: rpe)
                         },
                         onDelete: {
@@ -51,9 +49,7 @@ struct ExerciseSectionView: View {
                             viewModel.startRestTimer()
                         },
                         onUpdateDropSets: { firstSetWeight in
-                            // If this is the first set, update subsequent sets based on RPT drops
-                            let sortedSets = sets.sorted(by: { $0.completedAt < $1.completedAt })
-                            updateDropSets(exercise: exercise, firstSetWeight: firstSetWeight, sets: sortedSets)
+                            updateDropSets(exercise: exercise, firstSetWeight: firstSetWeight, sets: sets)
                         }
                     )
                 }

@@ -33,32 +33,33 @@ struct TemplateExercise: Codable, Hashable, Identifiable {
     
     // Custom initializer to ensure suggestedSets and repRanges are in sync
     init(id: UUID = UUID(), exerciseName: String, suggestedSets: Int, repRanges: [TemplateRepRange], notes: String = "") {
+        let normalizedSets = max(0, suggestedSets)
         self.id = id
         self.exerciseName = exerciseName
-        self.suggestedSets = suggestedSets
-        
-        // Filter rep ranges to match suggestedSets
-        var filteredRanges = repRanges.filter { $0.setNumber <= suggestedSets }
-        
-        // Add missing rep ranges if needed
-        for setNum in 1...suggestedSets {
-            if !filteredRanges.contains(where: { $0.setNumber == setNum }) {
-                // Create default rep range for the missing set
-                let percentageOfFirstSet = setNum == 1 ? 1.0 : max(1.0 - (Double(setNum - 1) * 0.1), 0.5)
-                let baseMinReps = 6 + ((setNum - 1) * 2)
-                let baseMaxReps = 8 + ((setNum - 1) * 2)
-                
-                filteredRanges.append(TemplateRepRange(
-                    setNumber: setNum,
-                    minReps: min(baseMinReps, 15),
-                    maxReps: min(baseMaxReps, 20),
-                    percentageOfFirstSet: percentageOfFirstSet
-                ))
-            }
-        }
-        
-        self.repRanges = filteredRanges
+        self.suggestedSets = normalizedSets
         self.notes = notes
+
+        guard normalizedSets > 0 else {
+            self.repRanges = []
+            return
+        }
+
+        var filteredRanges = repRanges.filter { $0.setNumber <= normalizedSets }
+
+        for setNum in 1...normalizedSets where !filteredRanges.contains(where: { $0.setNumber == setNum }) {
+            let percentageOfFirstSet = setNum == 1 ? 1.0 : max(1.0 - (Double(setNum - 1) * 0.1), 0.5)
+            let baseMinReps = 6 + ((setNum - 1) * 2)
+            let baseMaxReps = 8 + ((setNum - 1) * 2)
+
+            filteredRanges.append(TemplateRepRange(
+                setNumber: setNum,
+                minReps: min(baseMinReps, 15),
+                maxReps: min(baseMaxReps, 20),
+                percentageOfFirstSet: percentageOfFirstSet
+            ))
+        }
+
+        self.repRanges = filteredRanges
     }
     
     static func == (lhs: TemplateExercise, rhs: TemplateExercise) -> Bool {

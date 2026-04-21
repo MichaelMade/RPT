@@ -78,35 +78,10 @@ final class Workout {
         return result
     }
     
-    // Generate workout summary
-    func generateSummary() -> String {
-        let exerciseNames = Set(sets.compactMap { $0.exercise?.name })
-        let exerciseList = exerciseNames.joined(separator: ", ")
-        
-        let volumeFormatted = String(format: "%.1f", totalVolume)
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .medium
-        dateFormatter.timeStyle = .short
-        let dateString = dateFormatter.string(from: date)
-        
-        var summary = "\(name) - \(dateString)\n"
-        summary += "Exercises: \(exerciseList)\n"
-        summary += "Sets: \(workingSetsCount)\n"
-        summary += "Total Volume: \(volumeFormatted) lb\n"
-        
-        if !notes.isEmpty {
-            summary += "Notes: \(notes)"
-        }
-        
-        return summary
-    }
-    
     // Mark workout as completed
     func complete() {
         isCompleted = true
-        
-        // If duration hasn't been set, calculate it now
+
         if duration == 0 {
             duration = Date().timeIntervalSince(date)
         }
@@ -134,57 +109,37 @@ final class Workout {
             startedFromTemplate: startedFromTemplate
         )
         
-        // Group previous workout's sets by exercise and find the best set
         for (exercise, exerciseSets) in exerciseGroups {
-            // Skip warmup sets
             let workingSets = exerciseSets.filter { !$0.isWarmup }
             guard !workingSets.isEmpty else { continue }
-            
-            // Sort working sets by completion time
-            let sortedSets = workingSets.sorted { $0.completedAt < $1.completedAt }
 
-            // Create new sets with increased weights
+            let sortedSets = workingSets.sorted { $0.completedAt < $1.completedAt }
+            guard let originalFirstWeight = sortedSets.first?.weight, originalFirstWeight > 0 else { continue }
+
+            var newFirstSetWeight = 0
+
             for (index, previousSet) in sortedSets.enumerated() {
-                
-                // For RPT, we only increase the first set, others follow the percentage drop
+                let roundedWeight: Int
                 if index == 0 {
-                    // Increase first set weight (convert to double for calculation, then round back to int)
                     let calculatedWeight = Double(previousSet.weight) * (1.0 + percentageIncrease)
-                    let roundedWeight = Int(round(calculatedWeight / 5.0) * 5.0) // Round to nearest 5
-                    
-                    // Create the first set
-                    _ = followUp.addSet(
-                        exercise: exercise,
-                        weight: roundedWeight,
-                        reps: previousSet.reps,
-                        isWarmup: false,
-                        rpe: previousSet.rpe
-                    )
+                    roundedWeight = Int(round(calculatedWeight / 5.0) * 5.0)
+                    newFirstSetWeight = roundedWeight
                 } else {
-                    // For subsequent sets, maintain the same RPT percentage drop from the first set
-                    guard let firstSetWeight = sortedSets.first?.weight,
-                          firstSetWeight > 0 else { continue }
-                    
-                    // Calculate the percentage drop from the first set in the original workout
-                    let originalDropPercentage = 1.0 - (Double(previousSet.weight) / Double(firstSetWeight))
-                    
-                    // Apply the same percentage drop to the new first set weight
-                    let newFirstSetWeight = followUp.exerciseGroups[exercise]?.first?.weight ?? 0
-                    let calculatedWeight = Double(newFirstSetWeight) * (1.0 - originalDropPercentage)
-                    let roundedWeight = Int(round(calculatedWeight / 5.0) * 5.0) // Round to nearest 5
-                    
-                    // Create the set
-                    _ = followUp.addSet(
-                        exercise: exercise,
-                        weight: roundedWeight,
-                        reps: previousSet.reps,
-                        isWarmup: false,
-                        rpe: previousSet.rpe
-                    )
+                    let dropPercentage = 1.0 - (Double(previousSet.weight) / Double(originalFirstWeight))
+                    let calculatedWeight = Double(newFirstSetWeight) * (1.0 - dropPercentage)
+                    roundedWeight = Int(round(calculatedWeight / 5.0) * 5.0)
                 }
+
+                _ = followUp.addSet(
+                    exercise: exercise,
+                    weight: roundedWeight,
+                    reps: previousSet.reps,
+                    isWarmup: false,
+                    rpe: previousSet.rpe
+                )
             }
         }
-        
+
         return followUp
     }
     

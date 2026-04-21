@@ -23,7 +23,7 @@ struct MuscleGroupSelector: View {
                 }
             }) {
                 HStack {
-                    Text(muscle.rawValue.capitalized)
+                    Text(muscle.displayName)
                     Spacer()
                     if isSelected {
                         Image(systemName: "checkmark")
