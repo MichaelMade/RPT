@@ -154,7 +154,9 @@ final class Workout {
     // Generate workout summary
     func generateFormattedSummary() -> String {
         let exerciseNames = Set(sets.compactMap { $0.exercise?.name })
-        let exerciseList = exerciseNames.joined(separator: ", ")
+        let exerciseList = exerciseNames.isEmpty
+            ? "None"
+            : exerciseNames.sorted().joined(separator: ", ")
         
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium

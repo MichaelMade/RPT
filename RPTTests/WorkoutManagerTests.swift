@@ -434,4 +434,25 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(workout.isCompleted)
         XCTAssertGreaterThan(workout.duration, 0)
     }
+
+    func testGenerateFormattedSummary_sortsExerciseNamesAndFallsBackWhenEmpty() {
+        // Given
+        let workout = Workout(name: "Summary Workout")
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        // When empty
+        let emptySummary = workout.generateFormattedSummary()
+
+        // Then empty fallback
+        XCTAssertTrue(emptySummary.contains("Exercises: None"))
+
+        // When
+        _ = workout.addSet(exercise: squat, weight: 225, reps: 5)
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 5)
+        let summary = workout.generateFormattedSummary()
+
+        // Then sorted for stable, readable output
+        XCTAssertTrue(summary.contains("Exercises: Bench Press, Squat"))
+    }
 }
