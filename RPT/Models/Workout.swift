@@ -83,7 +83,8 @@ final class Workout {
         isCompleted = true
 
         if duration == 0 {
-            duration = Date().timeIntervalSince(date)
+            let rawDuration = Date().timeIntervalSince(date)
+            duration = rawDuration.isFinite ? max(0, rawDuration) : 0
         }
     }
     

@@ -379,4 +379,30 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // Then - formatted volume should fail safe to zero
         XCTAssertEqual(workout.formattedTotalVolume(), "0 lb")
     }
+
+    func testWorkoutComplete_clampsFutureStartDurationToZero() {
+        // Given
+        let futureDate = Date().addingTimeInterval(300)
+        let workout = Workout(date: futureDate, name: "Future Workout", duration: 0, isCompleted: false)
+
+        // When
+        workout.complete()
+
+        // Then
+        XCTAssertTrue(workout.isCompleted)
+        XCTAssertEqual(workout.duration, 0, accuracy: 0.0001)
+    }
+
+    func testWorkoutComplete_setsPositiveDurationForPastStart() {
+        // Given
+        let pastDate = Date().addingTimeInterval(-120)
+        let workout = Workout(date: pastDate, name: "Past Workout", duration: 0, isCompleted: false)
+
+        // When
+        workout.complete()
+
+        // Then
+        XCTAssertTrue(workout.isCompleted)
+        XCTAssertGreaterThan(workout.duration, 0)
+    }
 }
