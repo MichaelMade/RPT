@@ -237,6 +237,9 @@ struct ActiveWorkoutView: View {
             ) {
                 Button("Complete and Save") {
                     _ = viewModel.completeWorkoutSafely()
+
+                    // Explicitly clear discard state so this workout is treated as saved
+                    WorkoutStateManager.shared.markWorkoutAsSaved(viewModel.workout.id)
                     
                     // Call completion callback if provided
                     if let callback = onCompleteWorkout {
