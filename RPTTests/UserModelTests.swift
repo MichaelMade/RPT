@@ -112,4 +112,32 @@ final class UserModelTests: XCTestCase {
         // Then - verify total volume is cumulative
         XCTAssertEqual(user.totalVolume, 3835.0 + 1350.0, "Total volume should be cumulative")
     }
+
+    func testCreateFollowUpWorkout_sanitizesCorruptedSetValues() {
+        let workout = Workout(name: "Corrupted Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: exercise, weight: 200, reps: 6, isWarmup: false, rpe: 8)
+        _ = workout.addSet(exercise: exercise, weight: -50, reps: -3, isWarmup: false, rpe: 11)
+
+        let followUp = workout.createFollowUpWorkout(percentageIncrease: 0.025)
+        let followUpSets = followUp.sets.filter { $0.exercise?.id == exercise.id }
+
+        XCTAssertEqual(followUpSets.count, 2, "Follow-up should preserve working set count")
+        XCTAssertTrue(followUpSets.allSatisfy { $0.weight >= 0 }, "Follow-up should never create negative weights")
+        XCTAssertTrue(followUpSets.allSatisfy { $0.reps >= 0 }, "Follow-up should never create negative reps")
+        XCTAssertTrue(followUpSets.allSatisfy { $0.rpe == nil || (1...10).contains($0.rpe!) }, "Follow-up should keep only valid RPE values")
+    }
+
+    func testCreateFollowUpWorkout_nonFinitePercentageIncreaseDefaultsSafely() {
+        let workout = Workout(name: "Base Workout")
+        let exercise = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quads])
+
+        _ = workout.addSet(exercise: exercise, weight: 200, reps: 5)
+
+        let followUp = workout.createFollowUpWorkout(percentageIncrease: .infinity)
+        let followUpSet = followUp.sets.first
+
+        XCTAssertEqual(followUpSet?.weight, 200, "Non-finite percentage increase should fall back safely")
+    }
 }

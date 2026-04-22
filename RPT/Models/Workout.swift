@@ -112,7 +112,9 @@ final class Workout {
             name: "Follow-up: \(name)",
             startedFromTemplate: startedFromTemplate
         )
-        
+
+        let safePercentageIncrease = percentageIncrease.isFinite ? max(0, percentageIncrease) : 0
+
         for (exercise, exerciseSets) in exerciseGroups {
             let workingSets = exerciseSets.filter { !$0.isWarmup }
             guard !workingSets.isEmpty else { continue }
@@ -123,23 +125,29 @@ final class Workout {
             var newFirstSetWeight = 0
 
             for (index, previousSet) in sortedSets.enumerated() {
+                let safePreviousWeight = max(0, previousSet.weight)
                 let roundedWeight: Int
+
                 if index == 0 {
-                    let calculatedWeight = Double(previousSet.weight) * (1.0 + percentageIncrease)
-                    roundedWeight = Int(round(calculatedWeight / 5.0) * 5.0)
+                    let calculatedWeight = Double(safePreviousWeight) * (1.0 + safePercentageIncrease)
+                    roundedWeight = max(0, Int(round(calculatedWeight / 5.0) * 5.0))
                     newFirstSetWeight = roundedWeight
                 } else {
-                    let dropPercentage = 1.0 - (Double(previousSet.weight) / Double(originalFirstWeight))
-                    let calculatedWeight = Double(newFirstSetWeight) * (1.0 - dropPercentage)
-                    roundedWeight = Int(round(calculatedWeight / 5.0) * 5.0)
+                    let rawDropPercentage = 1.0 - (Double(safePreviousWeight) / Double(originalFirstWeight))
+                    let safeDropPercentage = min(max(rawDropPercentage, 0), 1)
+                    let calculatedWeight = Double(newFirstSetWeight) * (1.0 - safeDropPercentage)
+                    roundedWeight = max(0, Int(round(calculatedWeight / 5.0) * 5.0))
                 }
+
+                let safeReps = max(0, previousSet.reps)
+                let safeRPE = previousSet.rpe.flatMap { (1...10).contains($0) ? $0 : nil }
 
                 _ = followUp.addSet(
                     exercise: exercise,
                     weight: roundedWeight,
-                    reps: previousSet.reps,
+                    reps: safeReps,
                     isWarmup: false,
-                    rpe: previousSet.rpe
+                    rpe: safeRPE
                 )
             }
         }
