@@ -255,13 +255,19 @@ class WorkoutManager: ObservableObject {
         }
         
         let workouts = getWorkouts(from: startDate, to: now)
-        
-        let count = workouts.count
-        let totalVolume = workouts.reduce(0.0) { $0 + $1.totalVolume }
-        let totalDuration = workouts.reduce(0) { $0 + $1.duration }
-        
+        return aggregateCompletedWorkoutStats(from: workouts)
+    }
+
+    // Aggregate statistics from workouts, excluding in-progress sessions
+    func aggregateCompletedWorkoutStats(from workouts: [Workout]) -> (count: Int, totalVolume: Double, averageDuration: TimeInterval) {
+        let completedWorkouts = workouts.filter { $0.isCompleted }
+
+        let count = completedWorkouts.count
+        let totalVolume = completedWorkouts.reduce(0.0) { $0 + $1.totalVolume }
+        let totalDuration = completedWorkouts.reduce(0) { $0 + $1.duration }
+
         let averageDuration = count > 0 ? totalDuration / Double(count) : 0
-        
+
         return (count, totalVolume, averageDuration)
     }
     

@@ -149,6 +149,53 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(roundedDown, 180)
         XCTAssertEqual(roundedUp, 185)
     }
+
+    // MARK: - Workout Stats Aggregation
+
+    func testAggregateCompletedWorkoutStats_excludesIncompleteWorkouts() {
+        // Given
+        let completedWorkout = Workout(
+            date: Date(),
+            name: "Completed",
+            duration: 1800,
+            isCompleted: true
+        )
+        let inProgressWorkout = Workout(
+            date: Date(),
+            name: "In Progress",
+            duration: 1200,
+            isCompleted: false
+        )
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = completedWorkout.addSet(exercise: exercise, weight: 100, reps: 5) // 500
+        _ = inProgressWorkout.addSet(exercise: exercise, weight: 200, reps: 5) // 1000 (should be ignored)
+
+        // When
+        let stats = manager.aggregateCompletedWorkoutStats(from: [completedWorkout, inProgressWorkout])
+
+        // Then
+        XCTAssertEqual(stats.count, 1)
+        XCTAssertEqual(stats.totalVolume, 500, accuracy: 0.0001)
+        XCTAssertEqual(stats.averageDuration, 1800, accuracy: 0.0001)
+    }
+
+    func testAggregateCompletedWorkoutStats_emptyWhenOnlyIncompleteWorkouts() {
+        // Given
+        let inProgressWorkout = Workout(
+            date: Date(),
+            name: "In Progress",
+            duration: 1200,
+            isCompleted: false
+        )
+
+        // When
+        let stats = manager.aggregateCompletedWorkoutStats(from: [inProgressWorkout])
+
+        // Then
+        XCTAssertEqual(stats.count, 0)
+        XCTAssertEqual(stats.totalVolume, 0, accuracy: 0.0001)
+        XCTAssertEqual(stats.averageDuration, 0, accuracy: 0.0001)
+    }
     
     // MARK: - Workout Model Tests
     
