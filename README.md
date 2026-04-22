@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed a Settings UX copy bug where the RPT example sentence showed duplicated units (`lb lb`); the view now renders the example string once so users see clean output like `205 → 180 lb`.
 - Hardened `SettingsManager.formatWeight` (Int and Double overloads) against corrupted inputs by clamping negative and non-finite values to zero before formatting, preventing impossible values like `-45 lb` or `inf lb` from surfacing in settings/UI output; added regression tests in `FormattingTests`.
 - Fixed Home primary action UX so users now see `Continue Workout` whenever an incomplete workout exists, even if the parent binding is temporarily nil (for example after tab/navigation state resets). The button now consistently resumes `activeWorkoutBinding ?? viewModel.currentWorkout` and only shows `Start New Workout` when no resumable session exists.
 - Hardened follow-up workout generation against corrupted set data in `Workout.createFollowUpWorkout`: non-finite/negative percentage increases now sanitize safely, and generated follow-up sets clamp invalid negative weight/reps and out-of-range RPE values; added regression tests in `UserModelTests`.

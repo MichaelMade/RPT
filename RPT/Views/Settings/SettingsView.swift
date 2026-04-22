@@ -79,7 +79,7 @@ struct SettingsView: View {
                         }
                     }
                     
-                    Text("Example: For a first set of 225 lb, subsequent sets would be \(viewModel.calculateExample(firstWeight: 225)) lb")
+                    Text("Example: For a first set of 225 lb, subsequent sets would be \(viewModel.calculateExample(firstWeight: 225))")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .padding(.top, 4)
