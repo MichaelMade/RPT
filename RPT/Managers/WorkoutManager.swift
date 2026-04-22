@@ -273,7 +273,8 @@ class WorkoutManager: ObservableObject {
     
     // Round to nearest 5 pounds
     func roundToNearest5(_ weight: Double) -> Int {
-        return Int(round(weight / 5.0) * 5.0)
+        let safeWeight = weight.isFinite ? max(0, weight) : 0
+        return Int((safeWeight / 5.0).rounded() * 5.0)
     }
     
     // Get formatted volume

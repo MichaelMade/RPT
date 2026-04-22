@@ -129,6 +129,26 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(nonFinite, "0 lb")
         XCTAssertEqual(negative, "0 lb")
     }
+
+    func testRoundToNearest5_nonFiniteAndNegativeFallbackToZero() {
+        // Given/When
+        let nonFinite = manager.roundToNearest5(.infinity)
+        let negative = manager.roundToNearest5(-2.0)
+
+        // Then
+        XCTAssertEqual(nonFinite, 0)
+        XCTAssertEqual(negative, 0)
+    }
+
+    func testRoundToNearest5_roundsValidInput() {
+        // Given/When
+        let roundedDown = manager.roundToNearest5(182.0)
+        let roundedUp = manager.roundToNearest5(183.0)
+
+        // Then
+        XCTAssertEqual(roundedDown, 180)
+        XCTAssertEqual(roundedUp, 185)
+    }
     
     // MARK: - Workout Model Tests
     

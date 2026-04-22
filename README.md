@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened `WorkoutManager.roundToNearest5(_:)` against corrupted non-finite and negative inputs by clamping to `0` before rounding, preventing crash-prone numeric edge cases.
 - Hardened `WorkoutManager.formatWeight(_:)` to safely clamp corrupted negative or non-finite values to `0.0 lb`, matching the app's defensive volume-formatting behavior.
 
 ## Contributing
