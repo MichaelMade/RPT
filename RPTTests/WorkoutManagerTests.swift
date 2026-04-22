@@ -230,6 +230,35 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertNil(createdSet.rpe)
     }
 
+    // MARK: - Workout Name Sanitization
+
+    func testSanitizedWorkoutName_trimsWhitespace() {
+        // Given/When
+        let sanitized = manager.sanitizedWorkoutName("  Push Day  ")
+
+        // Then
+        XCTAssertEqual(sanitized, "Push Day")
+    }
+
+    func testSanitizedWorkoutName_emptyAfterTrimFallsBackToDefault() {
+        // Given/When
+        let sanitized = manager.sanitizedWorkoutName("   \n\t  ")
+
+        // Then
+        XCTAssertEqual(sanitized, "Workout")
+    }
+
+    func testSanitizedWorkoutName_clampsLengthToEightyCharacters() {
+        // Given
+        let longName = String(repeating: "A", count: 120)
+
+        // When
+        let sanitized = manager.sanitizedWorkoutName(longName)
+
+        // Then
+        XCTAssertEqual(sanitized.count, 80)
+    }
+
     // MARK: - Duration Sanitization
 
     func testSanitizedDurationSinceWorkoutStart_clampsFutureStartDateToZero() {

@@ -25,7 +25,7 @@ class WorkoutManager: ObservableObject {
     // Create a new workout
     func createWorkout(name: String = "Workout", fromTemplate templateName: String? = nil) -> Workout {
         let workout = Workout(
-            name: name,
+            name: sanitizedWorkoutName(name),
             startedFromTemplate: templateName
         )
         
@@ -47,6 +47,12 @@ class WorkoutManager: ObservableObject {
     func sanitizedDurationSinceWorkoutStart(_ startDate: Date, now: Date = Date()) -> TimeInterval {
         let rawDuration = now.timeIntervalSince(startDate)
         return rawDuration.isFinite ? max(0, rawDuration) : 0
+    }
+
+    func sanitizedWorkoutName(_ name: String) -> String {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return "Workout" }
+        return String(trimmedName.prefix(80))
     }
     
     // Non-throwing version for backward compatibility
