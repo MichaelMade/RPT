@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Home total-volume formatting near the thousand boundary by rounding before abbreviation logic, so values like `999.95` now correctly display as `1k` instead of truncating to `999`; added regression test coverage in `HomeViewModelTests`.
 - Polished settings UX for edge cases by improving `SettingsManager.calculateRPTExample`: when no back-off sets are configured (drops = `[0.0]`), the app now shows `Top set only` instead of an empty/awkward ` lb` string, with regression test coverage.
 - Hardened workout creation naming by sanitizing `WorkoutManager.createWorkout` input: names are now trimmed, blank names fall back to `"Workout"`, and excessively long names are capped to 80 characters, with regression tests for each case.
 - Hardened `Workout.complete()` duration capture to clamp future-dated/corrupted start times to `0` seconds instead of persisting negative durations when a workout is completed, with regression tests for future and past start-date behavior.

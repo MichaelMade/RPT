@@ -90,6 +90,17 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(formattedVolume, "1k", "Format should abbreviate exact 1000 volume")
     }
 
+    func testFormatTotalVolume_roundsNearThresholdIntoThousandsFormat() {
+        // Given - user stats just below threshold that round to 1000.0
+        viewModel.userStats = (totalWorkouts: 5, totalVolume: 999.95, workoutStreak: 3)
+
+        // When - format total volume
+        let formattedVolume = viewModel.formatTotalVolume()
+
+        // Then - should use thousands format after rounding
+        XCTAssertEqual(formattedVolume, "1k", "Format should round near-threshold totals into thousands format")
+    }
+
     func testFormatTotalVolume_belowThreshold() {
         // Given - user stats with volume below 1000
         viewModel.userStats = (totalWorkouts: 5, totalVolume: 950.0, workoutStreak: 3)
