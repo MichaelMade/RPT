@@ -68,7 +68,11 @@ class HomeViewModel: ObservableObject {
                 "\(Int(roundedThousands))k" :
                 String(format: "%.1fk", roundedThousands)
         } else {
-            return "\(Int(roundedVolume))"
+            let roundedWhole = Int(roundedVolume.rounded())
+            if roundedWhole >= 1000 {
+                return "1k"
+            }
+            return "\(roundedWhole)"
         }
     }
 }

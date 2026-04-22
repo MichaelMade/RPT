@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Home total-volume rounding for sub-thousand values by rounding to the nearest whole number instead of truncating (for example `123.6` now shows `124`), and ensured values like `999.6` consistently promote to `1k`; added regression tests in `HomeViewModelTests`.
 - Hardened `Workout.complete()` against corrupted persisted durations by sanitizing any existing non-finite or negative duration before completion logic runs, ensuring completed workouts never retain impossible negative/invalid time values; added regression tests for negative and `.infinity` duration inputs.
 - Polished workout summary UX by making exercise names deterministic and readable: `Workout.generateFormattedSummary()` now sorts exercise names alphabetically and shows `Exercises: None` when a workout has no logged sets; added regression coverage in `WorkoutManagerTests`.
 - Fixed Home total-volume formatting near the thousand boundary by rounding before abbreviation logic, so values like `999.95` now correctly display as `1k` instead of truncating to `999`; added regression test coverage in `HomeViewModelTests`.
