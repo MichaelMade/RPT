@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished settings UX for edge cases by improving `SettingsManager.calculateRPTExample`: when no back-off sets are configured (drops = `[0.0]`), the app now shows `Top set only` instead of an empty/awkward ` lb` string, with regression test coverage.
 - Hardened workout creation naming by sanitizing `WorkoutManager.createWorkout` input: names are now trimmed, blank names fall back to `"Workout"`, and excessively long names are capped to 80 characters, with regression tests for each case.
 - Hardened `Workout.complete()` duration capture to clamp future-dated/corrupted start times to `0` seconds instead of persisting negative durations when a workout is completed, with regression tests for future and past start-date behavior.
 - Hardened `Workout.formattedTotalVolume()` to clamp corrupted negative or non-finite totals to `0 lb`, preventing bad persisted set data from showing impossible negative volume in workout rows/details.

@@ -200,13 +200,17 @@ class SettingsManager: ObservableObject {
     func calculateRPTExample(firstSetWeight: Int = 100) -> String {
         let drops = settings.defaultRPTPercentageDrops
         let workoutManager = WorkoutManager.shared
-        
+
         // Convert each drop percentage to a rounded weight
         let weights = drops.dropFirst().map { dropPercentage -> Int in
             let calculatedWeight = Double(firstSetWeight) * (1.0 - dropPercentage)
             return workoutManager.roundToNearest5(calculatedWeight)
         }
-        
+
+        guard !weights.isEmpty else {
+            return "Top set only"
+        }
+
         return weights.map { "\($0)" }.joined(separator: " → ") + " lb"
     }
     

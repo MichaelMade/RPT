@@ -39,21 +39,37 @@ final class FormattingTests: XCTestCase {
     
     func testRPTCalculationExample() {
         let settingsManager = SettingsManager.shared
-        
+
         // Save current settings to restore later
         let originalDrops = settingsManager.settings.defaultRPTPercentageDrops
-        
+
         // Set test values
         _ = settingsManager.updateRPTPercentageDropsSafely(drops: [0.0, 0.1, 0.2])
-        
+
         // Test calculation with 200 lb
         let example = settingsManager.calculateRPTExample(firstSetWeight: 200)
         XCTAssertEqual(example, "180 → 160 lb", "RPT calculation example should format correctly")
-        
+
         // Test calculation with 225 lb
         let example2 = settingsManager.calculateRPTExample(firstSetWeight: 225)
         XCTAssertEqual(example2, "205 → 180 lb", "RPT calculation example should format correctly for 225 lb")
-        
+
+        // Restore original settings
+        _ = settingsManager.updateRPTPercentageDropsSafely(drops: originalDrops)
+    }
+
+    func testRPTCalculationExample_topSetOnlyFallback() {
+        let settingsManager = SettingsManager.shared
+
+        // Save current settings to restore later
+        let originalDrops = settingsManager.settings.defaultRPTPercentageDrops
+
+        // No back-off sets configured
+        _ = settingsManager.updateRPTPercentageDropsSafely(drops: [0.0])
+
+        let example = settingsManager.calculateRPTExample(firstSetWeight: 200)
+        XCTAssertEqual(example, "Top set only", "RPT calculation example should provide a helpful fallback when no back-off sets are configured")
+
         // Restore original settings
         _ = settingsManager.updateRPTPercentageDropsSafely(drops: originalDrops)
     }
