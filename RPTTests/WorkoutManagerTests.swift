@@ -150,6 +150,32 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(roundedUp, 185)
     }
 
+    // MARK: - Duration Sanitization
+
+    func testSanitizedDurationSinceWorkoutStart_clampsFutureStartDateToZero() {
+        // Given
+        let now = Date()
+        let futureStartDate = now.addingTimeInterval(300)
+
+        // When
+        let duration = manager.sanitizedDurationSinceWorkoutStart(futureStartDate, now: now)
+
+        // Then
+        XCTAssertEqual(duration, 0, accuracy: 0.0001)
+    }
+
+    func testSanitizedDurationSinceWorkoutStart_returnsElapsedTimeForPastStartDate() {
+        // Given
+        let now = Date()
+        let pastStartDate = now.addingTimeInterval(-125)
+
+        // When
+        let duration = manager.sanitizedDurationSinceWorkoutStart(pastStartDate, now: now)
+
+        // Then
+        XCTAssertEqual(duration, 125, accuracy: 0.0001)
+    }
+
     // MARK: - Workout Stats Aggregation
 
     func testAggregateCompletedWorkoutStats_excludesIncompleteWorkouts() {

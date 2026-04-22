@@ -38,10 +38,15 @@ class WorkoutManager: ObservableObject {
     // Save a workout
     func saveWorkout(_ workout: Workout) throws {
         if workout.duration == 0 {
-            workout.duration = Date().timeIntervalSince(workout.date)
+            workout.duration = sanitizedDurationSinceWorkoutStart(workout.date)
         }
 
         try modelContext.save()
+    }
+
+    func sanitizedDurationSinceWorkoutStart(_ startDate: Date, now: Date = Date()) -> TimeInterval {
+        let rawDuration = now.timeIntervalSince(startDate)
+        return rawDuration.isFinite ? max(0, rawDuration) : 0
     }
     
     // Non-throwing version for backward compatibility

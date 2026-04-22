@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened workout save behavior by sanitizing auto-computed duration so future-dated/corrupted workout start times clamp to `0` seconds instead of producing negative durations in persisted stats.
 - Hardened completed-workout stats aggregation to clamp corrupted negative or non-finite volume/duration values to zero, preventing bad persisted data from inflating or inverting Home/Stats metrics.
 - Fixed workout statistics integrity by excluding in-progress workouts from count, volume, and average-duration calculations, so Home/Stats summaries reflect only completed sessions.
 - Hardened `WorkoutManager.roundToNearest5(_:)` against corrupted non-finite and negative inputs by clamping to `0` before rounding, preventing crash-prone numeric edge cases.
