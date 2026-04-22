@@ -145,8 +145,9 @@ final class Workout {
     
     // Format total volume with lb unit
     func formattedTotalVolume() -> String {
-        let isWholeNumber = totalVolume.truncatingRemainder(dividingBy: 1) == 0
-        return isWholeNumber ? "\(Int(totalVolume)) lb" : String(format: "%.1f lb", totalVolume)
+        let safeTotalVolume = totalVolume.isFinite ? max(0, totalVolume) : 0
+        let isWholeNumber = safeTotalVolume.truncatingRemainder(dividingBy: 1) == 0
+        return isWholeNumber ? "\(Int(safeTotalVolume)) lb" : String(format: "%.1f lb", safeTotalVolume)
     }
     
     // Generate workout summary

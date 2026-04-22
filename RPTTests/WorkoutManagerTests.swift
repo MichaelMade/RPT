@@ -367,4 +367,16 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // Then - total should be 995
         XCTAssertEqual(workout.formattedTotalVolume(), "995 lb")
     }
+
+    func testWorkoutFormattedTotalVolume_clampsNegativeSetData() {
+        // Given
+        let workout = Workout(name: "Corrupted Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        // When - corrupted persisted set data contains negative weight
+        _ = workout.addSet(exercise: exercise, weight: -100, reps: 5)
+
+        // Then - formatted volume should fail safe to zero
+        XCTAssertEqual(workout.formattedTotalVolume(), "0 lb")
+    }
 }
