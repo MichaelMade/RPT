@@ -150,6 +150,32 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(roundedUp, 185)
     }
 
+    // MARK: - Set Input Sanitization
+
+    func testSanitizedSetInput_clampsNegativeValuesAndInvalidRPE() {
+        // Given/When
+        let sanitized = manager.sanitizedSetInput(weight: -135, reps: -8, rpe: 11)
+
+        // Then
+        XCTAssertEqual(sanitized.weight, 0)
+        XCTAssertEqual(sanitized.reps, 0)
+        XCTAssertNil(sanitized.rpe)
+    }
+
+    func testAddSet_sanitizesNegativeValuesBeforePersisting() {
+        // Given
+        let workout = Workout(name: "Test Workout")
+        let exercise = Exercise(name: "Deadlift", category: .compound, primaryMuscleGroups: [.lowerBack])
+
+        // When
+        let createdSet = manager.addSet(to: workout, for: exercise, weight: -225, reps: -5, rpe: 0)
+
+        // Then
+        XCTAssertEqual(createdSet.weight, 0)
+        XCTAssertEqual(createdSet.reps, 0)
+        XCTAssertNil(createdSet.rpe)
+    }
+
     // MARK: - Duration Sanitization
 
     func testSanitizedDurationSinceWorkoutStart_clampsFutureStartDateToZero() {

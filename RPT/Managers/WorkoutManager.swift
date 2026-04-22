@@ -114,13 +114,15 @@ class WorkoutManager: ObservableObject {
     
     // Add a set to an exercise in a workout
     func addSet(to workout: Workout, for exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
+        let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
+
         let newSet = ExerciseSet(
-            weight: weight,
-            reps: reps,
+            weight: sanitized.weight,
+            reps: sanitized.reps,
             exercise: exercise,
             workout: workout,
             isWarmup: isWarmup,
-            rpe: rpe
+            rpe: sanitized.rpe
         )
         
         workout.sets.append(newSet)
@@ -131,17 +133,33 @@ class WorkoutManager: ObservableObject {
     
     // Update a set
     func updateSet(_ set: ExerciseSet, weight: Int, reps: Int, rpe: Int?) {
-        let wasEmpty = set.weight == 0
-        set.weight = weight
-        set.reps = reps
-        set.rpe = rpe
+        let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
+        let wasEmpty = set.weight <= 0
+
+        set.weight = sanitized.weight
+        set.reps = sanitized.reps
+        set.rpe = sanitized.rpe
 
         // Only update completedAt when the set transitions from empty to having a weight
-        if wasEmpty && weight > 0 {
+        if wasEmpty && sanitized.weight > 0 {
             set.completedAt = Date()
         }
 
         try? modelContext.save()
+    }
+
+    func sanitizedSetInput(weight: Int, reps: Int, rpe: Int?) -> (weight: Int, reps: Int, rpe: Int?) {
+        let safeWeight = max(0, weight)
+        let safeReps = max(0, reps)
+
+        let safeRPE: Int?
+        if let rpe {
+            safeRPE = (1...10).contains(rpe) ? rpe : nil
+        } else {
+            safeRPE = nil
+        }
+
+        return (safeWeight, safeReps, safeRPE)
     }
     
     // Delete a set
