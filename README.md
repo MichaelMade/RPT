@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished Home/Stats volume formatting near the thousand boundary by rounding first and then applying abbreviation logic, so values like `999.95` now display consistently as `1k lb` instead of an awkward `1000.0 lb`.
 - Hardened RPT set generation by sanitizing `calculateRPTWeights` inputs: non-finite or negative top-set weights now clamp to `0`, and corrupted percentage drops are clamped into `0...1` so generated set weights can never go negative.
 - Hardened `WorkoutManager` set persistence by sanitizing set inputs on add/update: negative weight/reps now clamp to `0`, and out-of-range RPE values are discarded, preventing corrupted values from polluting workout logs and stats.
 - Hardened workout save behavior by sanitizing auto-computed duration so future-dated/corrupted workout start times clamp to `0` seconds instead of producing negative durations in persisted stats.
