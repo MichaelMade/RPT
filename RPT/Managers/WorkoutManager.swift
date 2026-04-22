@@ -250,7 +250,12 @@ class WorkoutManager: ObservableObject {
     
     // Calculate weights for reverse pyramid training
     func calculateRPTWeights(firstSetWeight: Double, percentageDrops: [Double]) -> [Double] {
-        percentageDrops.map { firstSetWeight * (1.0 - $0) }
+        let safeFirstSetWeight = firstSetWeight.isFinite ? max(0, firstSetWeight) : 0
+
+        return percentageDrops.map { drop in
+            let safeDrop = drop.isFinite ? min(max(drop, 0), 1) : 0
+            return safeFirstSetWeight * (1.0 - safeDrop)
+        }
     }
     
     // Get default RPT percentage drops

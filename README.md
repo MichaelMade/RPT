@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened RPT set generation by sanitizing `calculateRPTWeights` inputs: non-finite or negative top-set weights now clamp to `0`, and corrupted percentage drops are clamped into `0...1` so generated set weights can never go negative.
 - Hardened `WorkoutManager` set persistence by sanitizing set inputs on add/update: negative weight/reps now clamp to `0`, and out-of-range RPE values are discarded, preventing corrupted values from polluting workout logs and stats.
 - Hardened workout save behavior by sanitizing auto-computed duration so future-dated/corrupted workout start times clamp to `0` seconds instead of producing negative durations in persisted stats.
 - Hardened completed-workout stats aggregation to clamp corrupted negative or non-finite volume/duration values to zero, preventing bad persisted data from inflating or inverting Home/Stats metrics.

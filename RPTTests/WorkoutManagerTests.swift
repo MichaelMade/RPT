@@ -54,6 +54,38 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(weights.isEmpty)
     }
 
+    func testCalculateRPTWeights_sanitizesInvalidInputs() {
+        // Given
+        let firstSetWeight: Double = -.infinity
+        let drops: [Double] = [-0.1, .infinity, 0.25, 1.5]
+
+        // When
+        let weights = manager.calculateRPTWeights(
+            firstSetWeight: firstSetWeight,
+            percentageDrops: drops
+        )
+
+        // Then
+        XCTAssertEqual(weights, [0, 0, 0, 0])
+    }
+
+    func testCalculateRPTWeights_clampsDropRangeBetweenZeroAndOne() {
+        // Given
+        let firstSetWeight: Double = 200
+        let drops: [Double] = [-0.2, 0.1, 1.2]
+
+        // When
+        let weights = manager.calculateRPTWeights(
+            firstSetWeight: firstSetWeight,
+            percentageDrops: drops
+        )
+
+        // Then
+        XCTAssertEqual(weights[0], 200, accuracy: 1e-6) // clamped to 0 drop
+        XCTAssertEqual(weights[1], 180, accuracy: 1e-6)
+        XCTAssertEqual(weights[2], 0, accuracy: 1e-6)   // clamped to 1 drop
+    }
+
     // MARK: - Weight & Volume Formatting
 
     func testFormatWeight_displaysOneDecimal() {
