@@ -113,6 +113,22 @@ final class UserModelTests: XCTestCase {
         XCTAssertEqual(user.totalVolume, 3835.0 + 1350.0, "Total volume should be cumulative")
     }
 
+    func testUpdateStats_clampsCorruptedNegativeWorkoutVolume() {
+        // Given
+        let user = User(username: "TestUser", email: "test@example.com")
+        let workout = Workout(name: "Corrupted Workout")
+        let exercise = Exercise(name: "Deadlift", category: .compound, primaryMuscleGroups: [.lowerBack])
+
+        _ = workout.addSet(exercise: exercise, weight: -200, reps: 5) // -1000 corrupted volume
+
+        // When
+        user.updateStats(with: workout)
+
+        // Then
+        XCTAssertEqual(user.totalVolume, 0, "Corrupted negative workout volume should not reduce lifetime total volume")
+        XCTAssertEqual(user.totalWorkouts, 1, "Workout count should still increment")
+    }
+
     func testCreateFollowUpWorkout_sanitizesCorruptedSetValues() {
         let workout = Workout(name: "Corrupted Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

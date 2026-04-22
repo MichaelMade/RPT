@@ -83,7 +83,10 @@ final class User {
     func updateStats(with workout: Workout) {
         lastActive = Date()
         totalWorkouts += 1
-        totalVolume += workout.totalVolume
+
+        let safeWorkoutVolume = workout.totalVolume.isFinite ? max(0, workout.totalVolume) : 0
+        totalVolume += safeWorkoutVolume
+
         updateWorkoutStreak(currentWorkout: workout)
         updatePersonalBests(with: workout)
     }
