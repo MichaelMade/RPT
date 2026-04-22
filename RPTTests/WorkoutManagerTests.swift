@@ -196,6 +196,26 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(stats.totalVolume, 0, accuracy: 0.0001)
         XCTAssertEqual(stats.averageDuration, 0, accuracy: 0.0001)
     }
+
+    func testAggregateCompletedWorkoutStats_clampsCorruptedNegativeValues() {
+        // Given
+        let corruptedWorkout = Workout(
+            date: Date(),
+            name: "Corrupted",
+            duration: -300,
+            isCompleted: true
+        )
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = corruptedWorkout.addSet(exercise: exercise, weight: -100, reps: 5) // -500 (should clamp)
+
+        // When
+        let stats = manager.aggregateCompletedWorkoutStats(from: [corruptedWorkout])
+
+        // Then
+        XCTAssertEqual(stats.count, 1)
+        XCTAssertEqual(stats.totalVolume, 0, accuracy: 0.0001)
+        XCTAssertEqual(stats.averageDuration, 0, accuracy: 0.0001)
+    }
     
     // MARK: - Workout Model Tests
     

@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened completed-workout stats aggregation to clamp corrupted negative or non-finite volume/duration values to zero, preventing bad persisted data from inflating or inverting Home/Stats metrics.
 - Fixed workout statistics integrity by excluding in-progress workouts from count, volume, and average-duration calculations, so Home/Stats summaries reflect only completed sessions.
 - Hardened `WorkoutManager.roundToNearest5(_:)` against corrupted non-finite and negative inputs by clamping to `0` before rounding, preventing crash-prone numeric edge cases.
 - Hardened `WorkoutManager.formatWeight(_:)` to safely clamp corrupted negative or non-finite values to `0.0 lb`, matching the app's defensive volume-formatting behavior.

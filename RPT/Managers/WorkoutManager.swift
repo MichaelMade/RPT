@@ -263,8 +263,14 @@ class WorkoutManager: ObservableObject {
         let completedWorkouts = workouts.filter { $0.isCompleted }
 
         let count = completedWorkouts.count
-        let totalVolume = completedWorkouts.reduce(0.0) { $0 + $1.totalVolume }
-        let totalDuration = completedWorkouts.reduce(0) { $0 + $1.duration }
+        let totalVolume = completedWorkouts.reduce(0.0) { partial, workout in
+            let safeVolume = workout.totalVolume.isFinite ? max(0, workout.totalVolume) : 0
+            return partial + safeVolume
+        }
+        let totalDuration = completedWorkouts.reduce(0.0) { partial, workout in
+            let safeDuration = workout.duration.isFinite ? max(0, workout.duration) : 0
+            return partial + safeDuration
+        }
 
         let averageDuration = count > 0 ? totalDuration / Double(count) : 0
 
