@@ -59,6 +59,10 @@ RPT/
 3. **Start** a workout session to see your generated sets.
 4. **Log** your performance and review history in the History tab.
 
+## Recent Improvements
+
+- Hardened `WorkoutManager.formatWeight(_:)` to safely clamp corrupted negative or non-finite values to `0.0 lb`, matching the app's defensive volume-formatting behavior.
+
 ## Contributing
 
 Contributions are welcome! Please:

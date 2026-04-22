@@ -65,6 +65,16 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(formatted, "200.5 lb")
     }
 
+    func testFormatWeight_nonFiniteAndNegativeFallbackToZero() {
+        // Given/When
+        let nonFinite = manager.formatWeight(.infinity)
+        let negative = manager.formatWeight(-45.0)
+
+        // Then
+        XCTAssertEqual(nonFinite, "0.0 lb")
+        XCTAssertEqual(negative, "0.0 lb")
+    }
+
     func testFormatVolume_belowThreshold_wholeNumber() {
         // Given
         let volume: Double = 750.0

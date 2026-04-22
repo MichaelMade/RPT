@@ -267,7 +267,8 @@ class WorkoutManager: ObservableObject {
     
     // Get formatted weight value
     func formatWeight(_ weight: Double) -> String {
-        return String(format: "%.1f lb", weight)
+        let safeWeight = weight.isFinite ? max(0, weight) : 0
+        return String(format: "%.1f lb", safeWeight)
     }
     
     // Round to nearest 5 pounds
