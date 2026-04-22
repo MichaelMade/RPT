@@ -27,11 +27,14 @@ final class FormattingTests: XCTestCase {
         // Test integer weight formatting
         XCTAssertEqual(settingsManager.formatWeight(225), "225 lb", "Integer weight should format correctly")
         XCTAssertEqual(settingsManager.formatWeight(0), "0 lb", "Zero weight should format correctly")
+        XCTAssertEqual(settingsManager.formatWeight(-45), "0 lb", "Negative integer weight should clamp to zero")
         XCTAssertEqual(settingsManager.formatWeight(225, useUnit: false), "225", "Integer weight without unit should format correctly")
         
         // Test double weight formatting
         XCTAssertEqual(settingsManager.formatWeight(135.0), "135.0 lb", "Double weight should format correctly")
         XCTAssertEqual(settingsManager.formatWeight(135.5), "135.5 lb", "Double weight with decimal should format correctly")
+        XCTAssertEqual(settingsManager.formatWeight(-2.5), "0.0 lb", "Negative double weight should clamp to zero")
+        XCTAssertEqual(settingsManager.formatWeight(.infinity), "0.0 lb", "Non-finite double weight should fail safe to zero")
         XCTAssertEqual(settingsManager.formatWeight(135.5, useUnit: false), "135.5", "Double weight without unit should format correctly")
     }
     

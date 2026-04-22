@@ -216,13 +216,15 @@ class SettingsManager: ObservableObject {
     
     // Format weight with lb unit
     func formatWeight(_ weight: Int, useUnit: Bool = true) -> String {
-        let formatted = "\(weight)"
+        let safeWeight = max(0, weight)
+        let formatted = "\(safeWeight)"
         return useUnit ? "\(formatted) lb" : formatted
     }
     
     // Format weight with lb unit (Double version)
     func formatWeight(_ weight: Double, useUnit: Bool = true) -> String {
-        let formatted = String(format: "%.1f", weight)
+        let safeWeight = weight.isFinite ? max(0, weight) : 0
+        let formatted = String(format: "%.1f", safeWeight)
         return useUnit ? "\(formatted) lb" : formatted
     }
 }
