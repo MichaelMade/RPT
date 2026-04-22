@@ -126,12 +126,20 @@ final class HomeViewModelTests: XCTestCase {
     // MARK: - Weekly Progress Tests
     
     func testCalculateWeeklyProgress_noWorkouts() {
-        // This test requires a mock WorkoutManager to control the returned stats
-        // For now, we'll just verify the method exists and returns a valid value
-        let progress = viewModel.calculateWeeklyProgress()
-        
-        // Progress should be in range 0-1
-        XCTAssertGreaterThanOrEqual(progress, 0.0, "Progress should be at least 0")
-        XCTAssertLessThanOrEqual(progress, 1.0, "Progress should be at most 1.0")
+        let progress = viewModel.weeklyProgress(forWorkoutCount: 0)
+
+        XCTAssertEqual(progress, 0.0, "Progress should be zero when there are no workouts")
+    }
+
+    func testCalculateWeeklyProgress_capsAtOne() {
+        let progress = viewModel.weeklyProgress(forWorkoutCount: 10)
+
+        XCTAssertEqual(progress, 1.0, "Progress should cap at 1.0 when workouts exceed weekly target")
+    }
+
+    func testCalculateWeeklyProgress_partialWeek() {
+        let progress = viewModel.weeklyProgress(forWorkoutCount: 3)
+
+        XCTAssertEqual(progress, 3.0 / 7.0, accuracy: 0.0001, "Progress should scale linearly within the weekly target")
     }
 }

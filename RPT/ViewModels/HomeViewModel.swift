@@ -46,7 +46,12 @@ class HomeViewModel: ObservableObject {
     
     func calculateWeeklyProgress() -> Double {
         let stats = workoutManager.calculateWorkoutStats(timeframe: .week)
-        return stats.count > 0 ? Double(stats.count) / 7.0 : 0
+        return weeklyProgress(forWorkoutCount: stats.count)
+    }
+
+    func weeklyProgress(forWorkoutCount count: Int) -> Double {
+        guard count > 0 else { return 0 }
+        return min(1.0, Double(count) / 7.0)
     }
     
     func formatTotalVolume() -> String {
