@@ -177,13 +177,23 @@ struct StatsView: View {
 
     // MARK: - Helpers
 
-    private func formattedTotal(_ volume: Double) -> String {
-        if volume >= 1000 {
-            let k = volume / 1000
-            let whole = k.truncatingRemainder(dividingBy: 1) == 0
-            return whole ? "\(Int(k))k lb" : String(format: "%.1fk lb", k)
+    func formattedTotal(_ volume: Double) -> String {
+        let safeVolume = volume.isFinite ? max(0, volume) : 0
+        let roundedVolume = (safeVolume * 10).rounded() / 10
+
+        if roundedVolume >= 1000 {
+            let thousands = roundedVolume / 1000
+            let roundedThousands = (thousands * 10).rounded() / 10
+            let isWhole = roundedThousands.truncatingRemainder(dividingBy: 1) == 0
+            return isWhole ? "\(Int(roundedThousands))k lb" : String(format: "%.1fk lb", roundedThousands)
         }
-        return "\(Int(volume)) lb"
+
+        let roundedSubThousand = Int(roundedVolume.rounded())
+        if roundedSubThousand >= 1000 {
+            return "1k lb"
+        }
+
+        return "\(roundedSubThousand) lb"
     }
 }
 

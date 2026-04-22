@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Stats headline volume formatting to match Home behavior: `StatsView.formattedTotal(_:)` now clamps corrupted negative/non-finite input, rounds before thousand-abbreviation checks, avoids truncating sub-thousand decimals (for example `123.6 -> 124 lb`), and correctly promotes near-threshold values (for example `999.95 -> 1k lb`); added regression tests in `StatsViewFormattingTests`.
 - Hardened lifetime stats integrity in `User.updateStats(with:)` by clamping corrupted workout volume inputs (negative or non-finite) to zero before accumulating `totalVolume`, so bad legacy set data can no longer decrease a user’s all-time volume; added regression coverage in `UserModelTests`.
 - Fixed a Settings UX copy bug where the RPT example sentence showed duplicated units (`lb lb`); the view now renders the example string once so users see clean output like `205 → 180 lb`.
 - Hardened `SettingsManager.formatWeight` (Int and Double overloads) against corrupted inputs by clamping negative and non-finite values to zero before formatting, preventing impossible values like `-45 lb` or `inf lb` from surfacing in settings/UI output; added regression tests in `FormattingTests`.
