@@ -49,42 +49,36 @@ struct HomeView: View {
                     
                     // Start/Continue workout button
                     Button(action: {
-                        if workoutStateManager.wasAnyWorkoutDiscarded() {
-                            viewModel.startNewWorkout()
-                            workoutStateManager.clearDiscardedState()
-                            activeWorkoutBinding = viewModel.currentWorkout
-                        } else if activeWorkoutBinding != nil {
-                            // Continue existing active workout
-                        } else if viewModel.currentWorkout != nil {
-                            activeWorkoutBinding = viewModel.currentWorkout
+                        let wasDiscarded = workoutStateManager.wasAnyWorkoutDiscarded()
+                        let resumableWorkout = wasDiscarded ? nil : (activeWorkoutBinding ?? viewModel.currentWorkout)
+
+                        if let resumableWorkout {
+                            activeWorkoutBinding = resumableWorkout
                         } else {
                             viewModel.startNewWorkout()
+                            workoutStateManager.clearDiscardedState()
                             activeWorkoutBinding = viewModel.currentWorkout
                         }
 
                         showActiveWorkoutSheet = true
                     }) {
+                        let wasDiscarded = workoutStateManager.wasAnyWorkoutDiscarded()
+                        let canContinueWorkout = !wasDiscarded && (activeWorkoutBinding != nil || viewModel.currentWorkout != nil)
+
                         HStack {
-                            // Check for active workout but not if it was discarded
-                            let canContinueWorkout = activeWorkoutBinding != nil && 
-                                                    !workoutStateManager.wasAnyWorkoutDiscarded()
-                            
-                            // Use the appropriate icon and text based on whether we can continue
                             Image(systemName: canContinueWorkout ? "arrow.clockwise.circle.fill" : "plus.circle.fill")
                                 .font(.title2)
-                            
+
                             Text(canContinueWorkout ? "Continue Workout" : "Start New Workout")
                                 .font(.headline)
-                            
+
                             Spacer()
-                            
+
                             Image(systemName: "chevron.right")
                                 .foregroundColor(.secondary)
                         }
                         .padding()
-                        .background(activeWorkoutBinding != nil && 
-                                    !workoutStateManager.wasAnyWorkoutDiscarded() ? 
-                                     Color.green : Color.blue)
+                        .background(canContinueWorkout ? Color.green : Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(12)
                     }
