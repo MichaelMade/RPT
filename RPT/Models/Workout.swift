@@ -82,6 +82,9 @@ final class Workout {
     func complete() {
         isCompleted = true
 
+        let safeDuration = duration.isFinite ? max(0, duration) : 0
+        duration = safeDuration
+
         if duration == 0 {
             let rawDuration = Date().timeIntervalSince(date)
             duration = rawDuration.isFinite ? max(0, rawDuration) : 0

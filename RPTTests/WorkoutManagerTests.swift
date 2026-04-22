@@ -435,6 +435,30 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertGreaterThan(workout.duration, 0)
     }
 
+    func testWorkoutComplete_clampsCorruptedNegativePersistedDuration() {
+        // Given
+        let workout = Workout(name: "Corrupted Duration", duration: -45, isCompleted: false)
+
+        // When
+        workout.complete()
+
+        // Then
+        XCTAssertTrue(workout.isCompleted)
+        XCTAssertEqual(workout.duration, 0, accuracy: 0.0001)
+    }
+
+    func testWorkoutComplete_clampsCorruptedNonFinitePersistedDuration() {
+        // Given
+        let workout = Workout(name: "Corrupted Duration", duration: .infinity, isCompleted: false)
+
+        // When
+        workout.complete()
+
+        // Then
+        XCTAssertTrue(workout.isCompleted)
+        XCTAssertEqual(workout.duration, 0, accuracy: 0.0001)
+    }
+
     func testGenerateFormattedSummary_sortsExerciseNamesAndFallsBackWhenEmpty() {
         // Given
         let workout = Workout(name: "Summary Workout")
