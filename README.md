@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed working-set count integrity by updating `Workout.workingSetsCount` to include only completed non-warmup sets (`weight > 0` and `reps > 0`), so placeholders like `185 x 0` and warmup entries no longer inflate workout detail and summary set totals. Added regression coverage in `WorkoutManagerTests`.
 - Improved template save UX and data integrity by preventing duplicate template names across case/diacritic/whitespace variants (for example `Pull Dây` vs `pull day`) in `TemplateManager.createTemplate` and `TemplateManager.updateTemplate`, sanitizing saved template names (trim/collapse whitespace, max length 80), and showing a clear duplicate-name alert in `TemplateEditView` instead of silently dismissing on failed save. Added regression coverage in `ErrorHandlingTests`.
 - Fixed set creation completion-state integrity in `WorkoutManager.addSet`: new sets now only get a completion timestamp when both weight and reps are greater than zero, so partial placeholders like `185 x 0` correctly start as incomplete (`.distantPast`) instead of looking finished. Added regression coverage in `WorkoutManagerTests`.
 - Prevented duplicate exercise creation/renaming across accent/case/whitespace variants by enforcing normalized name collision checks in `ExerciseManager.addExercise` and `ExerciseManager.updateExercise` (for example `Café Row` vs `cafe row`), and added user-facing duplicate-name alerts in Add/Edit Exercise flows instead of silently dismissing. Added regression coverage in `ErrorHandlingTests`.

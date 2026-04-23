@@ -52,7 +52,7 @@ final class Workout {
     
     // Calculate total working sets (non-warmup)
     var workingSetsCount: Int {
-        sets.filter { !$0.isWarmup }.count
+        sets.filter { !$0.isWarmup && $0.weight > 0 && $0.reps > 0 }.count
     }
     
     // Group sets by exercise
