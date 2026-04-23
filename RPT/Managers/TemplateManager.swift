@@ -38,6 +38,14 @@ class TemplateManager {
     static func namesCollide(_ lhs: String, _ rhs: String) -> Bool {
         normalizedNameLookupKey(lhs) == normalizedNameLookupKey(rhs)
     }
+
+    static func initialCompletedAt(weight: Int, reps: Int, fallbackDate: Date) -> Date {
+        guard weight > 0, reps > 0 else {
+            return .distantPast
+        }
+
+        return fallbackDate
+    }
     
     private init() {
         let dataManager = DataManager.shared
@@ -156,16 +164,20 @@ func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout {
             // Use the middle of the rep range as the target
             let targetReps = (repRange.minReps + repRange.maxReps) / 2
             
-            // Create a set with a slightly offset completedAt time to maintain order
-            // This adds a small time offset for each exercise and each set within an exercise
+            // Preserve deterministic set ordering while ensuring unstarted sets remain incomplete.
             let completionTime = now.addingTimeInterval(Double(index) + (Double(setIndex) / 10.0))
-            
+            let initialWeight = 0
+
             let newSet = ExerciseSet(
-                weight: 0, // User will input actual weight during workout
+                weight: initialWeight, // User will input actual weight during workout
                 reps: targetReps,
                 exercise: exercise,
                 workout: workout,
-                completedAt: completionTime
+                completedAt: Self.initialCompletedAt(
+                    weight: initialWeight,
+                    reps: targetReps,
+                    fallbackDate: completionTime
+                )
             )
             
             workout.sets.append(newSet)

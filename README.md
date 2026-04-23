@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed template-start set integrity in `TemplateManager.createWorkoutFromTemplate`: generated template sets now initialize as incomplete (`.distantPast`) unless both weight and reps are already non-zero, preventing unstarted planned sets from carrying live timestamps into stats/progress flows. Added regression coverage in `TemplateManagerTests`.
 - Fixed workout model set-creation completion integrity by making `Workout.addSet` initialize sets as incomplete (`completedAt = .distantPast`) unless both weight and reps are greater than zero. This aligns model-level behavior with manager/view-model paths and prevents direct model usage from incorrectly treating placeholder sets (for example `185 x 0`) as completed work. Added regression coverage in `WorkoutManagerTests`.
 - Fixed Active Workout set-add completion integrity so newly inserted starter sets and auto-suggested follow-up sets are initialized as incomplete (`completedAt = .distantPast`) even when prefilled with suggested reps/weight, preventing fresh placeholders from being treated as already logged work. Added regression coverage in `ActiveWorkoutViewModelTests`.
 - Fixed working-set count integrity by updating `Workout.workingSetsCount` to include only completed non-warmup sets (`weight > 0` and `reps > 0`), so placeholders like `185 x 0` and warmup entries no longer inflate workout detail and summary set totals. Added regression coverage in `WorkoutManagerTests`.
