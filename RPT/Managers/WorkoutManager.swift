@@ -109,7 +109,8 @@ class WorkoutManager: ObservableObject {
             weight: 0,
             reps: 8,
             exercise: exercise,
-            workout: workout
+            workout: workout,
+            completedAt: .distantPast
         )
         
         workout.sets.append(newSet)
@@ -127,6 +128,7 @@ class WorkoutManager: ObservableObject {
             reps: sanitized.reps,
             exercise: exercise,
             workout: workout,
+            completedAt: sanitized.weight > 0 ? Date() : .distantPast,
             isWarmup: isWarmup,
             rpe: sanitized.rpe
         )
@@ -146,8 +148,10 @@ class WorkoutManager: ObservableObject {
         set.reps = sanitized.reps
         set.rpe = sanitized.rpe
 
-        // Only update completedAt when the set transitions from empty to having a weight
-        if wasEmpty && sanitized.weight > 0 {
+        // Keep completion timestamps aligned with completion state
+        if sanitized.weight <= 0 {
+            set.completedAt = .distantPast
+        } else if wasEmpty {
             set.completedAt = Date()
         }
 
