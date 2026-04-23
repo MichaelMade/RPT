@@ -51,21 +51,43 @@ final class ErrorHandlingTests: XCTestCase {
     func testSettingsManagerErrorHandling() throws {
         // Test that the error handling in SettingsManager works correctly
         let settingsManager = SettingsManager.shared
-        
+
         // Test successful operations
         let updateResult = settingsManager.updateSettingsSafely()
         XCTAssertTrue(updateResult, "updateSettingsSafely should return true on successful update")
-        
+
         // Test validation
         let validDrops = settingsManager.updateRPTPercentageDropsSafely(drops: [0.0, 0.1, 0.2])
         XCTAssertTrue(validDrops, "Valid percentage drops should be accepted")
-        
+
         let invalidDrops = settingsManager.updateRPTPercentageDropsSafely(drops: [0.1, 0.2]) // First element not 0.0
         XCTAssertFalse(invalidDrops, "Invalid percentage drops should be rejected")
-        
+
         // Test reset to defaults
         let resetResult = settingsManager.resetToDefaultsSafely()
         XCTAssertTrue(resetResult, "resetToDefaultsSafely should return true on successful reset")
+    }
+
+    func testUserSettingsDefaultRPTDrops_fallsBackWhenPersistedStringIsInvalid() {
+        let settings = UserSettings()
+        settings.defaultRPTPercentageDropsString = "not-a-number, , ,"
+
+        XCTAssertEqual(
+            settings.defaultRPTPercentageDrops,
+            [0.0, 0.10, 0.15],
+            "Invalid persisted RPT drops should fail safe to app defaults"
+        )
+    }
+
+    func testUserSettingsDefaultRPTDrops_prependsTopSetWhenMissing() {
+        let settings = UserSettings()
+        settings.defaultRPTPercentageDropsString = "0.10,0.15"
+
+        XCTAssertEqual(
+            settings.defaultRPTPercentageDrops,
+            [0.0, 0.10, 0.15],
+            "Persisted RPT drops missing top set should be normalized to include 0.0 first"
+        )
     }
     
     // MARK: - ActiveWorkoutViewModel Tests

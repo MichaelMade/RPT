@@ -18,9 +18,19 @@ final class UserSettings {
     // Computed property to access as array
     var defaultRPTPercentageDrops: [Double] {
         get {
-            return defaultRPTPercentageDropsString.split(separator: ",")
-                .compactMap { Double($0.trimmingCharacters(in: .whitespaces)) } 
+            let parsedDrops = defaultRPTPercentageDropsString.split(separator: ",")
+                .compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
                 .filter { $0 >= 0 && $0 <= 1.0 }
+
+            guard !parsedDrops.isEmpty else {
+                return [0.0, 0.10, 0.15]
+            }
+
+            if parsedDrops.first == 0.0 {
+                return parsedDrops
+            }
+
+            return [0.0] + parsedDrops
         }
         set {
             defaultRPTPercentageDropsString = newValue

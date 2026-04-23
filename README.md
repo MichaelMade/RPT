@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened persisted RPT drop recovery in `UserSettings.defaultRPTPercentageDrops` so corrupted/legacy values now fail safe to defaults (`[0.0, 0.10, 0.15]`) and automatically prepend a missing top-set `0.0` entry when needed, preventing blank/invalid drop arrays from degrading Settings examples or workout generation; added regression tests in `ErrorHandlingTests`.
 - Fixed Home primary action consistency with discard-state recency logic by routing button state and resume selection through `HomeViewModel` (`resumableWorkout` / `canContinueWorkout`) instead of the raw `wasAnyWorkoutDiscarded` flag. This prevents stale discard flags from hiding `Continue Workout` when a newer resumable session exists; added regression tests in `HomeViewModelTests`.
 - Fixed a Home resume edge case caused by coarse timestamp precision: `HomeViewModel.shouldResumeIncompleteWorkout` now treats workouts created at the exact discard timestamp as resumable (`>=` instead of `>`), so valid sessions are not incorrectly hidden when persisted dates share the same second; added regression coverage in `HomeViewModelTests`.
 - Fixed a Home resume-state regression where discarding any workout could hide `Continue Workout` for later incomplete sessions. `HomeViewModel.loadRecentWorkouts()` now resumes an incomplete workout only when it is newer than the discard timestamp, preventing stale discarded sessions from resurfacing without suppressing legitimately resumable workouts; added regression coverage in `HomeViewModelTests`.
