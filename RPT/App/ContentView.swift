@@ -21,12 +21,9 @@ struct ContentView: View {
         TabView(selection: $selectedTab) {
             HomeView(
                 activeWorkoutBinding: Binding(
-                    get: { 
-                        // If a workout was discarded, don't show it
-                        if workoutStateManager.wasAnyWorkoutDiscarded() {
-                            return nil
-                        }
-                        return activeWorkout
+                    get: {
+                        guard let workout = activeWorkout else { return nil }
+                        return shouldResumeIncompleteWorkout(for: workout) ? workout : nil
                     },
                     set: { newWorkout in
                         if newWorkout != nil {
@@ -44,10 +41,13 @@ struct ContentView: View {
                 ),
                 showActiveWorkoutSheet: Binding(
                     get: {
-                        !workoutStateManager.wasAnyWorkoutDiscarded() && showingActiveWorkoutSheet
+                        if let workout = activeWorkout, !shouldResumeIncompleteWorkout(for: workout) {
+                            return false
+                        }
+                        return showingActiveWorkoutSheet
                     },
                     set: { newValue in
-                        if workoutStateManager.wasAnyWorkoutDiscarded() && newValue {
+                        if newValue, let workout = activeWorkout, !shouldResumeIncompleteWorkout(for: workout) {
                             showingActiveWorkoutSheet = false
                         } else {
                             showingActiveWorkoutSheet = newValue
@@ -74,12 +74,9 @@ struct ContentView: View {
 
             TemplatesListView(
                 activeWorkoutBinding: Binding(
-                    get: { 
-                        // If a workout was discarded, don't show it
-                        if workoutStateManager.wasAnyWorkoutDiscarded() {
-                            return nil
-                        }
-                        return activeWorkout
+                    get: {
+                        guard let workout = activeWorkout else { return nil }
+                        return shouldResumeIncompleteWorkout(for: workout) ? workout : nil
                     },
                     set: { newWorkout in
                         if newWorkout != nil {
@@ -97,10 +94,13 @@ struct ContentView: View {
                 ),
                 showActiveWorkoutSheet: Binding(
                     get: {
-                        !workoutStateManager.wasAnyWorkoutDiscarded() && showingActiveWorkoutSheet
+                        if let workout = activeWorkout, !shouldResumeIncompleteWorkout(for: workout) {
+                            return false
+                        }
+                        return showingActiveWorkoutSheet
                     },
                     set: { newValue in
-                        if workoutStateManager.wasAnyWorkoutDiscarded() && newValue {
+                        if newValue, let workout = activeWorkout, !shouldResumeIncompleteWorkout(for: workout) {
                             showingActiveWorkoutSheet = false
                         } else {
                             showingActiveWorkoutSheet = newValue
@@ -148,24 +148,11 @@ struct ContentView: View {
             }
         }
         .onChange(of: selectedTab) { _, _ in
-            if workoutStateManager.wasAnyWorkoutDiscarded() {
-                showingActiveWorkoutSheet = false
-            } else if activeWorkout == nil {
-                if let lastIncomplete = WorkoutManager.shared.getIncompleteWorkouts().first {
-                    activeWorkout = lastIncomplete
-                }
-            }
+            restoreResumableWorkoutIfAvailable()
         }
         // Initial setup when ContentView appears
         .onAppear {
-            if workoutStateManager.wasAnyWorkoutDiscarded() {
-                showingActiveWorkoutSheet = false
-                activeWorkout = nil
-            } else if activeWorkout == nil {
-                if let lastIncomplete = WorkoutManager.shared.getIncompleteWorkouts().first {
-                    activeWorkout = lastIncomplete
-                }
-            }
+            restoreResumableWorkoutIfAvailable()
         }
         .onChange(of: workoutStateManager.workoutWasDiscarded) { _, isDiscarded in
             if isDiscarded {
@@ -183,6 +170,42 @@ struct ContentView: View {
             return .dark
         case .system:
             return nil
+        }
+    }
+
+    private func shouldResumeIncompleteWorkout(for workout: Workout) -> Bool {
+        let wasAnyWorkoutDiscarded = workoutStateManager.wasAnyWorkoutDiscarded()
+
+        guard wasAnyWorkoutDiscarded else {
+            return true
+        }
+
+        guard let discardTimestamp = workoutStateManager.discardTimestamp else {
+            // Fail open for legacy/corrupted discard state.
+            return true
+        }
+
+        return workout.date >= discardTimestamp
+    }
+
+    private func restoreResumableWorkoutIfAvailable() {
+        guard activeWorkout == nil else {
+            if let workout = activeWorkout, !shouldResumeIncompleteWorkout(for: workout) {
+                showingActiveWorkoutSheet = false
+                activeWorkout = nil
+            }
+            return
+        }
+
+        guard let lastIncomplete = WorkoutManager.shared.getIncompleteWorkouts().first else {
+            return
+        }
+
+        if shouldResumeIncompleteWorkout(for: lastIncomplete) {
+            activeWorkout = lastIncomplete
+        } else {
+            showingActiveWorkoutSheet = false
+            activeWorkout = nil
         }
     }
 }
