@@ -216,6 +216,19 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertTrue(shouldResume, "Should resume incomplete workouts created after a discard event")
     }
 
+    func testShouldResumeIncompleteWorkout_withWorkoutAtDiscardTimestamp() {
+        let discardTime = Date()
+        let workoutDate = discardTime
+
+        let shouldResume = viewModel.shouldResumeIncompleteWorkout(
+            workoutDate: workoutDate,
+            discardTimestamp: discardTime,
+            wasAnyWorkoutDiscarded: true
+        )
+
+        XCTAssertTrue(shouldResume, "Should resume incomplete workout when timestamps are equal to avoid false negatives from coarse timestamp precision")
+    }
+
     func testShouldResumeIncompleteWorkout_withDiscardFlagButNoTimestamp() {
         let workoutDate = Date()
 

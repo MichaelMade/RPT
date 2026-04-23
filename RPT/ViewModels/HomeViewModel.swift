@@ -68,7 +68,7 @@ class HomeViewModel: ObservableObject {
             return false
         }
 
-        return workoutDate > discardTimestamp
+        return workoutDate >= discardTimestamp
     }
     
     func formatTotalVolume() -> String {
