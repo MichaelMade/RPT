@@ -10,6 +10,8 @@ import SwiftData
 
 @Model
 final class UserSettings {
+    private static let defaultDrops: [Double] = [0.0, 0.10, 0.15]
+
     var restTimerDuration: Int // in seconds
     var defaultRPTPercentageDropsString: String = "0.000,0.100,0.150" // Stored as a comma-separated string with default
     var showRPE: Bool
@@ -20,23 +22,40 @@ final class UserSettings {
         get {
             let parsedDrops = defaultRPTPercentageDropsString.split(separator: ",")
                 .compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
-                .filter { $0 >= 0 && $0 <= 1.0 }
 
-            guard !parsedDrops.isEmpty else {
-                return [0.0, 0.10, 0.15]
-            }
-
-            if parsedDrops.first == 0.0 {
-                return parsedDrops
-            }
-
-            return [0.0] + parsedDrops
+            return Self.normalizedRPTPercentageDrops(parsedDrops)
         }
         set {
-            defaultRPTPercentageDropsString = newValue
+            let normalizedDrops = Self.normalizedRPTPercentageDrops(newValue)
+            defaultRPTPercentageDropsString = normalizedDrops
                 .map { String(format: "%.3f", $0) }
                 .joined(separator: ",")
         }
+    }
+
+    static func normalizedRPTPercentageDrops(_ drops: [Double]) -> [Double] {
+        let validDrops = drops
+            .filter { $0.isFinite && $0 >= 0 && $0 <= 1.0 }
+
+        guard !validDrops.isEmpty else {
+            return defaultDrops
+        }
+
+        let hasTopSet = validDrops.contains(0.0)
+        let sortedBackoffDrops = validDrops
+            .filter { $0 > 0 }
+            .sorted()
+
+        let normalizedDrops = (hasTopSet ? [0.0] : [0.0]) + sortedBackoffDrops
+
+        var dedupedDrops: [Double] = []
+        dedupedDrops.reserveCapacity(normalizedDrops.count)
+
+        for drop in normalizedDrops where dedupedDrops.last != drop {
+            dedupedDrops.append(drop)
+        }
+
+        return dedupedDrops.isEmpty ? defaultDrops : dedupedDrops
     }
     
     init(
@@ -45,7 +64,7 @@ final class UserSettings {
          showRPE: Bool = true,
          darkModePreference: DarkModePreference = .system) {
         self.restTimerDuration = restTimerDuration
-        self.defaultRPTPercentageDropsString = defaultRPTPercentageDrops
+        self.defaultRPTPercentageDropsString = Self.normalizedRPTPercentageDrops(defaultRPTPercentageDrops)
             .map { String(format: "%.3f", $0) }
             .joined(separator: ",")
         self.showRPE = showRPE

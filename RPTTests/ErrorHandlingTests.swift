@@ -89,6 +89,28 @@ final class ErrorHandlingTests: XCTestCase {
             "Persisted RPT drops missing top set should be normalized to include 0.0 first"
         )
     }
+
+    func testUserSettingsDefaultRPTDrops_normalizesOutOfOrderAndDuplicateDrops() {
+        let settings = UserSettings()
+        settings.defaultRPTPercentageDropsString = "0.20,0.10,0.10,0.00,0.30"
+
+        XCTAssertEqual(
+            settings.defaultRPTPercentageDrops,
+            [0.0, 0.10, 0.20, 0.30],
+            "Persisted RPT drops should be normalized to deterministic ascending unique values"
+        )
+    }
+
+    func testSettingsManagerUpdateRPTPercentageDrops_rejectsNonMonotonicDrops() {
+        let settingsManager = SettingsManager.shared
+
+        let didAcceptInvalid = settingsManager.updateRPTPercentageDropsSafely(drops: [0.0, 0.20, 0.10])
+
+        XCTAssertFalse(
+            didAcceptInvalid,
+            "RPT percentage drops should reject non-monotonic backoff values that would increase later set weights"
+        )
+    }
     
     // MARK: - ActiveWorkoutViewModel Tests
     

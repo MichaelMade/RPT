@@ -118,13 +118,18 @@ class SettingsManager: ObservableObject {
     }
     
     func updateRPTPercentageDrops(drops: [Double]) throws {
-        // Validate that drops are between 0.0 and 1.0 and at least the first element is 0.0
-        guard !drops.isEmpty, 
+        // Validate top set first, valid range, and non-decreasing backoff percentages
+        let isNonDecreasing = zip(drops, drops.dropFirst()).allSatisfy { current, next in
+            next >= current
+        }
+
+        guard !drops.isEmpty,
               drops.first == 0.0,
-              drops.allSatisfy({ $0 >= 0.0 && $0 <= 1.0 }) else {
+              drops.allSatisfy({ $0.isFinite && $0 >= 0.0 && $0 <= 1.0 }),
+              isNonDecreasing else {
             throw SettingsError.invalidValue
         }
-        
+
         settings.defaultRPTPercentageDrops = drops
         try updateSettings()
     }
