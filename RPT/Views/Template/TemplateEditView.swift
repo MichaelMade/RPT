@@ -15,6 +15,7 @@ struct TemplateEditView: View {
     @State private var exercises: [TemplateExercise] = []
     @State private var showingExerciseSelector = false
     @State private var showingExerciseEditor: TemplateExercise?
+    @State private var showingDuplicateTemplateAlert = false
     
     let isNewTemplate: Bool
     let existingTemplate: WorkoutTemplate?
@@ -82,10 +83,13 @@ struct TemplateEditView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        saveTemplate()
-                        dismiss()
+                        if saveTemplate() {
+                            dismiss()
+                        } else {
+                            showingDuplicateTemplateAlert = true
+                        }
                     }
-                    .disabled(templateName.isEmpty || exercises.isEmpty)
+                    .disabled(templateName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || exercises.isEmpty)
                 }
             }
             .onAppear {
@@ -113,15 +117,22 @@ struct TemplateEditView: View {
                     }
                 )
             }
+            .alert("Duplicate Template Name", isPresented: $showingDuplicateTemplateAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("A template with this name already exists. Please choose a unique name.")
+            }
         }
     }
     
-    private func saveTemplate() {
+    private func saveTemplate() -> Bool {
         if isNewTemplate {
-            _ = templateManager.createTemplate(name: templateName, exercises: exercises, notes: templateNotes)
+            return templateManager.createTemplate(name: templateName, exercises: exercises, notes: templateNotes)
         } else if let template = existingTemplate {
-            templateManager.updateTemplate(template, name: templateName, exercises: exercises, notes: templateNotes)
+            return templateManager.updateTemplate(template, name: templateName, exercises: exercises, notes: templateNotes)
         }
+
+        return false
     }
     
     private func addExerciseToTemplate(_ exerciseName: String) {

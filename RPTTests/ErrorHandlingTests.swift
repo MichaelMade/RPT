@@ -173,6 +173,41 @@ final class ErrorHandlingTests: XCTestCase {
             "Exercise duplicate checks should still allow distinct exercise names"
         )
     }
+
+    func testTemplateManagerSanitizeTemplateName_normalizesWhitespaceAndLength() {
+        let raw = "   Push   Day\n\n"
+
+        XCTAssertEqual(
+            TemplateManager.sanitizeTemplateName(raw),
+            "Push Day",
+            "Template names should trim and normalize repeated whitespace"
+        )
+
+        let longName = String(repeating: "A", count: 200)
+        XCTAssertEqual(
+            TemplateManager.sanitizeTemplateName(longName).count,
+            80,
+            "Template names should cap length to the app-safe limit"
+        )
+
+        XCTAssertEqual(
+            TemplateManager.sanitizeTemplateName(" \n\t "),
+            "Template",
+            "Blank template names should fail safe to a sensible default"
+        )
+    }
+
+    func testTemplateManagerNamesCollide_detectsWhitespaceCaseAndDiacriticVariants() {
+        XCTAssertTrue(
+            TemplateManager.namesCollide("  Pull   Dây  ", "pull day"),
+            "Template duplicate checks should treat whitespace/case/diacritic variants as the same name"
+        )
+
+        XCTAssertFalse(
+            TemplateManager.namesCollide("Push Day", "Leg Day"),
+            "Template duplicate checks should still allow distinct template names"
+        )
+    }
     
     // MARK: - ActiveWorkoutViewModel Tests
     

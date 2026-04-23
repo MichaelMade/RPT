@@ -14,6 +14,30 @@ class TemplateManager {
     private let modelContext: ModelContext
     private let exerciseManager: ExerciseManager
     static let shared = TemplateManager()
+
+    static func sanitizeTemplateName(_ name: String) -> String {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let collapsedWhitespace = trimmed.replacingOccurrences(
+            of: #"\s+"#,
+            with: " ",
+            options: .regularExpression
+        )
+
+        if collapsedWhitespace.isEmpty {
+            return "Template"
+        }
+
+        return String(collapsedWhitespace.prefix(80))
+    }
+
+    static func normalizedNameLookupKey(_ name: String) -> String {
+        sanitizeTemplateName(name)
+            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+    }
+
+    static func namesCollide(_ lhs: String, _ rhs: String) -> Bool {
+        normalizedNameLookupKey(lhs) == normalizedNameLookupKey(rhs)
+    }
     
     private init() {
         let dataManager = DataManager.shared
@@ -45,16 +69,38 @@ class TemplateManager {
     
     // MARK: - Mutation Operations
     
-    func createTemplate(name: String, exercises: [TemplateExercise], notes: String = "") -> WorkoutTemplate {
-        let template = WorkoutTemplate(name: name, exercises: exercises, notes: notes)
+    @discardableResult
+    func createTemplate(name: String, exercises: [TemplateExercise], notes: String = "") -> Bool {
+        let sanitizedName = Self.sanitizeTemplateName(name)
+
+        let duplicateExists = fetchAllTemplates().contains {
+            Self.namesCollide($0.name, sanitizedName)
+        }
+
+        guard !duplicateExists else {
+            return false
+        }
+
+        let template = WorkoutTemplate(name: sanitizedName, exercises: exercises, notes: notes)
         modelContext.insert(template)
         try? modelContext.save()
-        return template
+        return true
     }
     
-    func updateTemplate(_ template: WorkoutTemplate, name: String, exercises: [TemplateExercise], notes: String) {
+    @discardableResult
+    func updateTemplate(_ template: WorkoutTemplate, name: String, exercises: [TemplateExercise], notes: String) -> Bool {
+        let sanitizedName = Self.sanitizeTemplateName(name)
+
+        let duplicateExists = fetchAllTemplates().contains {
+            $0.id != template.id && Self.namesCollide($0.name, sanitizedName)
+        }
+
+        guard !duplicateExists else {
+            return false
+        }
+
         // Update the template properties
-        template.name = name
+        template.name = sanitizedName
         template.notes = notes
         
         // Force SwiftData to recognize the change by completely replacing the exercises array
@@ -79,6 +125,7 @@ class TemplateManager {
         
         // Save the changes
         try? modelContext.save()
+        return true
     }
     
     func deleteTemplate(_ template: WorkoutTemplate) {

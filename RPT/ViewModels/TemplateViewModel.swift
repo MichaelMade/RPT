@@ -29,14 +29,22 @@ class TemplateViewModel: ObservableObject {
         return templates
     }
     
-    func createTemplate(name: String, exercises: [TemplateExercise], notes: String = "") {
-        _ = templateManager.createTemplate(name: name, exercises: exercises, notes: notes)
-        refreshTemplates()
+    @discardableResult
+    func createTemplate(name: String, exercises: [TemplateExercise], notes: String = "") -> Bool {
+        let didCreate = templateManager.createTemplate(name: name, exercises: exercises, notes: notes)
+        if didCreate {
+            refreshTemplates()
+        }
+        return didCreate
     }
     
-    func updateTemplate(_ template: WorkoutTemplate, name: String, exercises: [TemplateExercise], notes: String) {
-        templateManager.updateTemplate(template, name: name, exercises: exercises, notes: notes)
-        refreshTemplates()
+    @discardableResult
+    func updateTemplate(_ template: WorkoutTemplate, name: String, exercises: [TemplateExercise], notes: String) -> Bool {
+        let didUpdate = templateManager.updateTemplate(template, name: name, exercises: exercises, notes: notes)
+        if didUpdate {
+            refreshTemplates()
+        }
+        return didUpdate
     }
     
     func deleteTemplate(_ template: WorkoutTemplate) {
