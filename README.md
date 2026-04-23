@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened exercise-name data integrity and lookup resilience in `ExerciseManager`: add/update paths now sanitize names (trim/collapse whitespace, cap length to 80, fail-safe default for blank input), and `fetchExercise(withName:)` now falls back to case/diacritic-insensitive matching to avoid false misses from keyboard/autocorrect variants. Added regression tests in `ErrorHandlingTests`.
 - Fixed Active Workout set-state integrity by aligning `ActiveWorkoutViewModel.updateSet` with `WorkoutManager` completion semantics: clearing a set back to `0` now resets `completedAt` to `.distantPast` (incomplete), and RPE validation now enforces the documented `1...10` range. Added regression tests in `ActiveWorkoutViewModelTests` for both behaviors.
 
 - Hardened settings integrity for rest timer recovery by normalizing `UserSettings.restTimerDuration` to safe bounds (`1...3600`) at model init and startup sanitation in `SettingsManager`, so corrupted/legacy persisted values cannot create impossible timer durations in the UI. Added regression tests in `ErrorHandlingTests` for low/high out-of-range inputs.

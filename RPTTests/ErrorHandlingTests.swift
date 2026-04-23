@@ -127,6 +127,40 @@ final class ErrorHandlingTests: XCTestCase {
             "Rest timer duration should clamp invalid high values to the maximum supported bound"
         )
     }
+
+    func testExerciseManagerSanitizeExerciseName_normalizesWhitespaceAndLength() {
+        let raw = "   Bulgarian   Split   Squat\n\n"
+
+        XCTAssertEqual(
+            ExerciseManager.sanitizeExerciseName(raw),
+            "Bulgarian Split Squat",
+            "Exercise names should trim and normalize repeated whitespace"
+        )
+
+        let longName = String(repeating: "A", count: 200)
+        XCTAssertEqual(
+            ExerciseManager.sanitizeExerciseName(longName).count,
+            80,
+            "Exercise names should cap length to the app-safe limit"
+        )
+
+        XCTAssertEqual(
+            ExerciseManager.sanitizeExerciseName(" \n\t "),
+            "Exercise",
+            "Blank exercise names should fail safe to a sensible default"
+        )
+    }
+
+    func testExerciseManagerNormalizedNameLookupKey_isCaseAndDiacriticInsensitive() {
+        let a = ExerciseManager.normalizedNameLookupKey("  Café Row ")
+        let b = ExerciseManager.normalizedNameLookupKey("cafe row")
+
+        XCTAssertEqual(
+            a,
+            b,
+            "Exercise lookup keys should ignore case and diacritics"
+        )
+    }
     
     // MARK: - ActiveWorkoutViewModel Tests
     

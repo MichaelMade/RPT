@@ -13,6 +13,26 @@ import SwiftData
 class ExerciseManager {
     private let modelContext: ModelContext
     static let shared = ExerciseManager()
+
+    static func sanitizeExerciseName(_ name: String) -> String {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let collapsedWhitespace = trimmed.replacingOccurrences(
+            of: #"\s+"#,
+            with: " ",
+            options: .regularExpression
+        )
+
+        if collapsedWhitespace.isEmpty {
+            return "Exercise"
+        }
+
+        return String(collapsedWhitespace.prefix(80))
+    }
+
+    static func normalizedNameLookupKey(_ name: String) -> String {
+        sanitizeExerciseName(name)
+            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+    }
     
     private init() {
         let dataManager = DataManager.shared
@@ -28,10 +48,19 @@ class ExerciseManager {
     }
     
     func fetchExercise(withName name: String) -> Exercise? {
+        let sanitizedName = Self.sanitizeExerciseName(name)
         let descriptor = FetchDescriptor<Exercise>(
-            predicate: #Predicate<Exercise> { $0.name == name }
+            predicate: #Predicate<Exercise> { $0.name == sanitizedName }
         )
-        return try? modelContext.fetch(descriptor).first
+
+        if let exactMatch = try? modelContext.fetch(descriptor).first {
+            return exactMatch
+        }
+
+        let normalizedLookup = Self.normalizedNameLookupKey(sanitizedName)
+        return fetchAllExercises().first {
+            Self.normalizedNameLookupKey($0.name) == normalizedLookup
+        }
     }
     
     func fetchExercise(byId id: PersistentIdentifier) -> Exercise? {
@@ -58,8 +87,10 @@ class ExerciseManager {
     // MARK: - Mutation Operations
     
     func addExercise(name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) {
+        let sanitizedName = Self.sanitizeExerciseName(name)
+
         let exercise = Exercise(
-            name: name,
+            name: sanitizedName,
             category: category,
             primaryMuscleGroups: primaryMuscleGroups,
             secondaryMuscleGroups: secondaryMuscleGroups,
@@ -72,7 +103,7 @@ class ExerciseManager {
     }
     
     func updateExercise(_ exercise: Exercise, name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) {
-        exercise.name = name
+        exercise.name = Self.sanitizeExerciseName(name)
         exercise.category = category
         exercise.primaryMuscleGroups = primaryMuscleGroups
         exercise.secondaryMuscleGroups = secondaryMuscleGroups
