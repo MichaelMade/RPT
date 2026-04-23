@@ -53,4 +53,18 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         // Then
         XCTAssertEqual(set.completedAt, .distantPast)
     }
+
+    func testUpdateWorkoutName_trimsWhitespaceAndFallsBackWhenEmpty() throws {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Original")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // When
+        viewModel.workoutName = "   \n\t  "
+        try viewModel.updateWorkoutName()
+
+        // Then
+        XCTAssertEqual(workout.name, "Workout")
+    }
 }
+

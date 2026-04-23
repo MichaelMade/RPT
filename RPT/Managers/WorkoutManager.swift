@@ -37,6 +37,8 @@ class WorkoutManager: ObservableObject {
     
     // Save a workout
     func saveWorkout(_ workout: Workout) throws {
+        workout.name = sanitizedWorkoutName(workout.name)
+
         if workout.duration == 0 {
             workout.duration = sanitizedDurationSinceWorkoutStart(workout.date)
         }
