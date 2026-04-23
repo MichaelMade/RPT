@@ -33,6 +33,10 @@ class ExerciseManager {
         sanitizeExerciseName(name)
             .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
     }
+
+    static func namesCollide(_ lhs: String, _ rhs: String) -> Bool {
+        normalizedNameLookupKey(lhs) == normalizedNameLookupKey(rhs)
+    }
     
     private init() {
         let dataManager = DataManager.shared
@@ -86,8 +90,17 @@ class ExerciseManager {
     
     // MARK: - Mutation Operations
     
-    func addExercise(name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) {
+    @discardableResult
+    func addExercise(name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) -> Bool {
         let sanitizedName = Self.sanitizeExerciseName(name)
+
+        let duplicateExists = fetchAllExercises().contains {
+            Self.namesCollide($0.name, sanitizedName)
+        }
+
+        guard !duplicateExists else {
+            return false
+        }
 
         let exercise = Exercise(
             name: sanitizedName,
@@ -100,16 +113,29 @@ class ExerciseManager {
         
         modelContext.insert(exercise)
         try? modelContext.save()
+        return true
     }
     
-    func updateExercise(_ exercise: Exercise, name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) {
-        exercise.name = Self.sanitizeExerciseName(name)
+    @discardableResult
+    func updateExercise(_ exercise: Exercise, name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) -> Bool {
+        let sanitizedName = Self.sanitizeExerciseName(name)
+
+        let duplicateExists = fetchAllExercises().contains {
+            $0.id != exercise.id && Self.namesCollide($0.name, sanitizedName)
+        }
+
+        guard !duplicateExists else {
+            return false
+        }
+
+        exercise.name = sanitizedName
         exercise.category = category
         exercise.primaryMuscleGroups = primaryMuscleGroups
         exercise.secondaryMuscleGroups = secondaryMuscleGroups
         exercise.instructions = instructions
         
         try? modelContext.save()
+        return true
     }
     
     func deleteExercise(_ exercise: Exercise) {

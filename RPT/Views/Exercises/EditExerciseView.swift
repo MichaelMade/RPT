@@ -17,6 +17,7 @@ struct EditExerciseView: View {
     @State private var selectedPrimaryMuscles: [MuscleGroup]
     @State private var selectedSecondaryMuscles: [MuscleGroup]
     @State private var instructions: String
+    @State private var showDuplicateNameAlert = false
     
     private let exerciseManager = ExerciseManager.shared
     
@@ -66,6 +67,11 @@ struct EditExerciseView: View {
             }
             .navigationTitle("Edit Exercise")
             .navigationBarTitleDisplayMode(.inline)
+            .alert("Exercise Already Exists", isPresented: $showDuplicateNameAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("An exercise with this name already exists. Please choose a different name.")
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
@@ -84,7 +90,7 @@ struct EditExerciseView: View {
     }
     
     private func saveExercise() {
-        exerciseManager.updateExercise(
+        let didSave = exerciseManager.updateExercise(
             exercise,
             name: exerciseName,
             category: selectedCategory,
@@ -92,6 +98,11 @@ struct EditExerciseView: View {
             secondaryMuscleGroups: selectedSecondaryMuscles,
             instructions: instructions
         )
-        dismiss()
+
+        if didSave {
+            dismiss()
+        } else {
+            showDuplicateNameAlert = true
+        }
     }
 }

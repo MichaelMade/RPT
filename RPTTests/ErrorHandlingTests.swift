@@ -161,6 +161,18 @@ final class ErrorHandlingTests: XCTestCase {
             "Exercise lookup keys should ignore case and diacritics"
         )
     }
+
+    func testExerciseManagerNamesCollide_detectsWhitespaceCaseAndDiacriticVariants() {
+        XCTAssertTrue(
+            ExerciseManager.namesCollide("  Café   Row  ", "cafe row"),
+            "Exercise duplicate checks should treat whitespace/case/diacritic variants as the same name"
+        )
+
+        XCTAssertFalse(
+            ExerciseManager.namesCollide("Barbell Row", "Dumbbell Row"),
+            "Exercise duplicate checks should still allow distinct exercise names"
+        )
+    }
     
     // MARK: - ActiveWorkoutViewModel Tests
     
