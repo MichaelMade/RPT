@@ -12,8 +12,12 @@ struct WorkoutProgressView: View {
     let totalExercises: Int
     
     var progress: Double {
-        if totalExercises == 0 { return 0 }
-        return Double(completedExercises) / Double(totalExercises)
+        let safeTotalExercises = max(0, totalExercises)
+        guard safeTotalExercises > 0 else { return 0 }
+
+        let safeCompletedExercises = max(0, completedExercises)
+        let rawProgress = Double(safeCompletedExercises) / Double(safeTotalExercises)
+        return min(max(rawProgress, 0), 1)
     }
     
     var body: some View {
