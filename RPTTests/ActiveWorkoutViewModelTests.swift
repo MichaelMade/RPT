@@ -66,5 +66,35 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         // Then
         XCTAssertEqual(workout.name, "Workout")
     }
-}
 
+    func testAddExerciseToWorkout_createsIncompleteStarterSet() throws {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Overhead Press", category: .compound, primaryMuscleGroups: [.shoulders])
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // When
+        try viewModel.addExerciseToWorkout(exercise)
+
+        // Then
+        let createdSet = workout.sets.first { $0.exercise?.id == exercise.id }
+        XCTAssertNotNil(createdSet)
+        XCTAssertEqual(createdSet?.completedAt, .distantPast, "New starter set should begin incomplete")
+    }
+
+    func testAddSetToExercise_keepsAutoSuggestedSetIncomplete() throws {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let existingSet = workout.addSet(exercise: exercise, weight: 225, reps: 5)
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // When
+        try viewModel.addSetToExercise(exercise)
+
+        // Then
+        let addedSet = workout.sets.first { $0.id != existingSet.id && $0.exercise?.id == exercise.id }
+        XCTAssertNotNil(addedSet)
+        XCTAssertEqual(addedSet?.completedAt, .distantPast, "Auto-suggested set should not be marked complete until user logs it")
+    }
+}

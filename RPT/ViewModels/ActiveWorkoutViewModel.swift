@@ -217,6 +217,8 @@ class ActiveWorkoutViewModel: ObservableObject {
             weight: 0,
             reps: 8
         )
+        // Newly inserted sets should start incomplete until explicitly logged.
+        newSet.completedAt = .distantPast
         
         // Update exercise groups and order
         if exerciseGroups[exercise] != nil {
@@ -276,6 +278,8 @@ class ActiveWorkoutViewModel: ObservableObject {
             weight: newWeight,
             reps: newReps
         )
+        // Auto-generated set suggestions should remain incomplete until user confirms/logs them.
+        newSet.completedAt = .distantPast
         
         // Update our local exercise groups
         if exerciseGroups[exercise] != nil {
