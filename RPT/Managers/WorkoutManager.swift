@@ -123,12 +123,14 @@ class WorkoutManager: ObservableObject {
     func addSet(to workout: Workout, for exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
         let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
 
+        let isComplete = sanitized.weight > 0 && sanitized.reps > 0
+
         let newSet = ExerciseSet(
             weight: sanitized.weight,
             reps: sanitized.reps,
             exercise: exercise,
             workout: workout,
-            completedAt: sanitized.weight > 0 ? Date() : .distantPast,
+            completedAt: isComplete ? Date() : .distantPast,
             isWarmup: isWarmup,
             rpe: sanitized.rpe
         )
