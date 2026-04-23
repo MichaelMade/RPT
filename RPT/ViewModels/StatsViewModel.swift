@@ -93,7 +93,7 @@ class StatsViewModel: ObservableObject {
         var counts: [MuscleGroup: Int] = [:]
 
         for workout in recent {
-            for set in workout.sets where !set.isWarmup {
+            for set in workout.sets where isCompletedWorkingSet(set) {
                 guard let exercise = set.exercise else { continue }
                 for group in exercise.primaryMuscleGroups {
                     counts[group, default: 0] += 1
@@ -110,7 +110,7 @@ class StatsViewModel: ObservableObject {
         var best: [String: PersonalRecord] = [:]
 
         for workout in workouts {
-            for set in workout.sets where !set.isWarmup && set.weight > 0 {
+            for set in workout.sets where isCompletedWorkingSet(set) {
                 guard let name = set.exercise?.name else { continue }
                 if let existing = best[name], existing.weight >= set.weight {
                     continue
@@ -128,6 +128,10 @@ class StatsViewModel: ObservableObject {
             .sorted { $0.date > $1.date }
             .prefix(5)
             .map { $0 }
+    }
+
+    private func isCompletedWorkingSet(_ set: ExerciseSet) -> Bool {
+        !set.isWarmup && set.weight > 0 && set.reps > 0 && set.completedAt != .distantPast
     }
 
     // MARK: - Helpers
