@@ -176,6 +176,37 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(progress, 3.0 / 7.0, accuracy: 0.0001, "Progress should scale linearly within the weekly target")
     }
 
+    // MARK: - Continue Workout Resolution
+
+    func testCanContinueWorkout_withCurrentWorkoutAndNoActiveBinding() {
+        let storedWorkout = Workout(name: "Stored Incomplete")
+        viewModel.currentWorkout = storedWorkout
+
+        let canContinue = viewModel.canContinueWorkout(activeWorkout: nil)
+        let resumable = viewModel.resumableWorkout(activeWorkout: nil)
+
+        XCTAssertTrue(canContinue, "Should continue when a resumable workout exists in Home state")
+        XCTAssertTrue(resumable === storedWorkout, "Should prefer currentWorkout when active binding is nil")
+    }
+
+    func testCanContinueWorkout_prefersActiveBindingWhenPresent() {
+        let storedWorkout = Workout(name: "Stored Incomplete")
+        let activeWorkout = Workout(name: "Active Binding")
+        viewModel.currentWorkout = storedWorkout
+
+        let resumable = viewModel.resumableWorkout(activeWorkout: activeWorkout)
+
+        XCTAssertTrue(resumable === activeWorkout, "Should prefer active binding workout when both are available")
+    }
+
+    func testCanContinueWorkout_withoutAnyWorkout() {
+        viewModel.currentWorkout = nil
+
+        let canContinue = viewModel.canContinueWorkout(activeWorkout: nil)
+
+        XCTAssertFalse(canContinue, "Should not continue when no active or stored incomplete workout exists")
+    }
+
     // MARK: - Incomplete Workout Resume Logic
 
     func testShouldResumeIncompleteWorkout_withoutDiscardState() {

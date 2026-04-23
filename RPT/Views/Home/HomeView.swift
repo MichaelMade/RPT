@@ -49,8 +49,7 @@ struct HomeView: View {
                     
                     // Start/Continue workout button
                     Button(action: {
-                        let wasDiscarded = workoutStateManager.wasAnyWorkoutDiscarded()
-                        let resumableWorkout = wasDiscarded ? nil : (activeWorkoutBinding ?? viewModel.currentWorkout)
+                        let resumableWorkout = viewModel.resumableWorkout(activeWorkout: activeWorkoutBinding)
 
                         if let resumableWorkout {
                             activeWorkoutBinding = resumableWorkout
@@ -62,8 +61,7 @@ struct HomeView: View {
 
                         showActiveWorkoutSheet = true
                     }) {
-                        let wasDiscarded = workoutStateManager.wasAnyWorkoutDiscarded()
-                        let canContinueWorkout = !wasDiscarded && (activeWorkoutBinding != nil || viewModel.currentWorkout != nil)
+                        let canContinueWorkout = viewModel.canContinueWorkout(activeWorkout: activeWorkoutBinding)
 
                         HStack {
                             Image(systemName: canContinueWorkout ? "arrow.clockwise.circle.fill" : "plus.circle.fill")
@@ -152,15 +150,7 @@ struct HomeView: View {
             }
             .onAppear {
                 viewModel.loadRecentWorkouts()
-
-                if workoutStateManager.wasAnyWorkoutDiscarded() {
-                    activeWorkoutBinding = nil
-                    showActiveWorkoutSheet = false
-                } else if viewModel.currentWorkout != nil {
-                    activeWorkoutBinding = viewModel.currentWorkout
-                } else {
-                    activeWorkoutBinding = nil
-                }
+                activeWorkoutBinding = viewModel.currentWorkout
             }
         }
     }

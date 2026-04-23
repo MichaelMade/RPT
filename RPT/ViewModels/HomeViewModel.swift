@@ -46,6 +46,14 @@ class HomeViewModel: ObservableObject {
     func resumeWorkout(_ workout: Workout) {
         currentWorkout = workout
     }
+
+    func resumableWorkout(activeWorkout: Workout?) -> Workout? {
+        activeWorkout ?? currentWorkout
+    }
+
+    func canContinueWorkout(activeWorkout: Workout?) -> Bool {
+        resumableWorkout(activeWorkout: activeWorkout) != nil
+    }
     
     func calculateWeeklyProgress() -> Double {
         let stats = workoutManager.calculateWorkoutStats(timeframe: .week)
