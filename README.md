@@ -61,6 +61,8 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Active Workout set-state integrity by aligning `ActiveWorkoutViewModel.updateSet` with `WorkoutManager` completion semantics: clearing a set back to `0` now resets `completedAt` to `.distantPast` (incomplete), and RPE validation now enforces the documented `1...10` range. Added regression tests in `ActiveWorkoutViewModelTests` for both behaviors.
+
 - Hardened settings integrity for rest timer recovery by normalizing `UserSettings.restTimerDuration` to safe bounds (`1...3600`) at model init and startup sanitation in `SettingsManager`, so corrupted/legacy persisted values cannot create impossible timer durations in the UI. Added regression tests in `ErrorHandlingTests` for low/high out-of-range inputs.
 
 - Fixed a discard-state recency mismatch in `ContentView` so Home/Templates bindings and workout sheet restoration now use workout date vs discard timestamp (fail-open when discard metadata is incomplete), matching `HomeViewModel` behavior. This prevents a stale discard flag from suppressing resume/sheet restoration when a newer incomplete workout exists.
