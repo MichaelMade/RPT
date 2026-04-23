@@ -73,7 +73,9 @@ class HomeViewModel: ObservableObject {
         }
 
         guard let discardTimestamp else {
-            return false
+            // Fail open for legacy/corrupted discard state that is missing timestamp.
+            // Hiding a valid resumable workout is worse UX than allowing resume.
+            return true
         }
 
         return workoutDate >= discardTimestamp

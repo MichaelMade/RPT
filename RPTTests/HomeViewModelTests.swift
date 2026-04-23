@@ -269,7 +269,7 @@ final class HomeViewModelTests: XCTestCase {
             wasAnyWorkoutDiscarded: true
         )
 
-        XCTAssertFalse(shouldResume, "Should fail safe when discard flag exists without timestamp")
+        XCTAssertTrue(shouldResume, "Should still resume when discard flag exists without timestamp to avoid hiding valid incomplete workouts")
     }
 
     func testShouldResumeIncompleteWorkout_withoutWorkout() {
