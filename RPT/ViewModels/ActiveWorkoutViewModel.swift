@@ -310,14 +310,15 @@ class ActiveWorkoutViewModel: ObservableObject {
             throw WorkoutError.invalidSetData
         }
 
-        let wasEmpty = set.weight <= 0
+        let wasIncomplete = set.weight <= 0 || set.reps <= 0
         set.weight = weight
         set.reps = reps
         set.rpe = rpe
 
-        if weight <= 0 {
+        let isComplete = weight > 0 && reps > 0
+        if !isComplete {
             set.completedAt = .distantPast
-        } else if wasEmpty {
+        } else if wasIncomplete {
             set.completedAt = Date()
         }
 

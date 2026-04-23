@@ -256,6 +256,19 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(set.completedAt, .distantPast)
     }
 
+    func testUpdateSet_clearingRepsResetsCompletionDate() {
+        // Given
+        let workout = Workout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
+
+        // When
+        manager.updateSet(set, weight: 185, reps: 0, rpe: nil)
+
+        // Then
+        XCTAssertEqual(set.completedAt, .distantPast)
+    }
+
     // MARK: - Workout Name Sanitization
 
     func testSanitizedWorkoutName_trimsWhitespace() {

@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed set completion-state consistency when reps are cleared: `ActiveWorkoutViewModel.updateSet` and `WorkoutManager.updateSet` now treat a set as incomplete unless both weight and reps are greater than zero, so changing reps to `0` correctly resets `completedAt` to `.distantPast` instead of leaving a stale completed timestamp. Added regression coverage in `ActiveWorkoutViewModelTests` and `WorkoutManagerTests`.
 - Fixed workout progress-bar safety and accuracy in `WorkoutProgressView` by sanitizing invalid counts and clamping computed progress to `0...1`, so corrupted state (negative counts or completed > total) cannot render negative-width bars or overflow the progress track. Added regression coverage in `WorkoutProgressViewTests`.
 - Hardened exercise-name data integrity and lookup resilience in `ExerciseManager`: add/update paths now sanitize names (trim/collapse whitespace, cap length to 80, fail-safe default for blank input), and `fetchExercise(withName:)` now falls back to case/diacritic-insensitive matching to avoid false misses from keyboard/autocorrect variants. Added regression tests in `ErrorHandlingTests`.
 - Fixed Active Workout set-state integrity by aligning `ActiveWorkoutViewModel.updateSet` with `WorkoutManager` completion semantics: clearing a set back to `0` now resets `completedAt` to `.distantPast` (incomplete), and RPE validation now enforces the documented `1...10` range. Added regression tests in `ActiveWorkoutViewModelTests` for both behaviors.

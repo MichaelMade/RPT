@@ -39,4 +39,18 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         // When / Then
         XCTAssertThrowsError(try viewModel.updateSet(set, weight: 185, reps: 5, rpe: 0))
     }
+
+    func testUpdateSet_clearingRepsResetsCompletionDate() throws {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = workout.addSet(exercise: exercise, weight: 185, reps: 5)
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // When
+        try viewModel.updateSet(set, weight: 185, reps: 0, rpe: nil)
+
+        // Then
+        XCTAssertEqual(set.completedAt, .distantPast)
+    }
 }
