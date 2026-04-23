@@ -111,6 +111,22 @@ final class ErrorHandlingTests: XCTestCase {
             "RPT percentage drops should reject non-monotonic backoff values that would increase later set weights"
         )
     }
+
+    func testUserSettingsRestTimerDuration_normalizesInvalidValues() {
+        let belowRange = UserSettings(restTimerDuration: -45)
+        XCTAssertEqual(
+            belowRange.restTimerDuration,
+            1,
+            "Rest timer duration should clamp invalid low values to the minimum safe bound"
+        )
+
+        let aboveRange = UserSettings(restTimerDuration: 5000)
+        XCTAssertEqual(
+            aboveRange.restTimerDuration,
+            3600,
+            "Rest timer duration should clamp invalid high values to the maximum supported bound"
+        )
+    }
     
     // MARK: - ActiveWorkoutViewModel Tests
     

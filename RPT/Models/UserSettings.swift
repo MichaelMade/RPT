@@ -11,6 +11,7 @@ import SwiftData
 @Model
 final class UserSettings {
     private static let defaultDrops: [Double] = [0.0, 0.10, 0.15]
+    static let defaultRestTimerDuration: Int = 180
 
     var restTimerDuration: Int // in seconds
     var defaultRPTPercentageDropsString: String = "0.000,0.100,0.150" // Stored as a comma-separated string with default
@@ -57,13 +58,17 @@ final class UserSettings {
 
         return dedupedDrops.isEmpty ? defaultDrops : dedupedDrops
     }
+
+    static func normalizedRestTimerDuration(_ duration: Int) -> Int {
+        min(max(duration, 1), 3600)
+    }
     
     init(
-         restTimerDuration: Int = 180,
+         restTimerDuration: Int = defaultRestTimerDuration,
          defaultRPTPercentageDrops: [Double] = [0.0, 0.10, 0.15],
          showRPE: Bool = true,
          darkModePreference: DarkModePreference = .system) {
-        self.restTimerDuration = restTimerDuration
+        self.restTimerDuration = Self.normalizedRestTimerDuration(restTimerDuration)
         self.defaultRPTPercentageDropsString = Self.normalizedRPTPercentageDrops(defaultRPTPercentageDrops)
             .map { String(format: "%.3f", $0) }
             .joined(separator: ",")

@@ -61,6 +61,8 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened settings integrity for rest timer recovery by normalizing `UserSettings.restTimerDuration` to safe bounds (`1...3600`) at model init and startup sanitation in `SettingsManager`, so corrupted/legacy persisted values cannot create impossible timer durations in the UI. Added regression tests in `ErrorHandlingTests` for low/high out-of-range inputs.
+
 - Fixed a discard-state recency mismatch in `ContentView` so Home/Templates bindings and workout sheet restoration now use workout date vs discard timestamp (fail-open when discard metadata is incomplete), matching `HomeViewModel` behavior. This prevents a stale discard flag from suppressing resume/sheet restoration when a newer incomplete workout exists.
 - Fixed a Home resume fail-closed edge case for legacy/corrupted discard state: when `wasAnyWorkoutDiscarded` is true but `discardTimestamp` is missing, `HomeViewModel.shouldResumeIncompleteWorkout` now fails open and allows resume instead of hiding `Continue Workout`. This prevents valid incomplete workouts from getting stranded by incomplete discard metadata; updated regression coverage in `HomeViewModelTests`.
 - Fixed set completion-state integrity in `WorkoutManager` so newly added placeholder sets (`addExercise`) are now initialized as incomplete (`completedAt = .distantPast`), sanitized zero-weight sets no longer get fresh completion timestamps, and clearing a previously completed set back to `0` resets it to incomplete. This keeps completion ordering/history signals aligned with actual logged work; added regression tests in `WorkoutManagerTests`.

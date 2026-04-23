@@ -51,6 +51,8 @@ class SettingsManager: ObservableObject {
                 try dataManager.saveChanges()
                 self.settings = newSettings
             }
+
+            try sanitizePersistedSettingsIfNeeded()
             
             // Sync settings with UserDefaults for @AppStorage compatibility
             syncWithUserDefaults()
@@ -61,6 +63,23 @@ class SettingsManager: ObservableObject {
             // Sync default settings with UserDefaults
             syncWithUserDefaults()
         }
+    }
+
+    private func sanitizePersistedSettingsIfNeeded() throws {
+        let normalizedRestTimer = UserSettings.normalizedRestTimerDuration(settings.restTimerDuration)
+        let normalizedDrops = UserSettings.normalizedRPTPercentageDrops(settings.defaultRPTPercentageDrops)
+        let normalizedDropsString = normalizedDrops
+            .map { String(format: "%.3f", $0) }
+            .joined(separator: ",")
+
+        let didChange = normalizedRestTimer != settings.restTimerDuration ||
+            normalizedDropsString != settings.defaultRPTPercentageDropsString
+
+        guard didChange else { return }
+
+        settings.restTimerDuration = normalizedRestTimer
+        settings.defaultRPTPercentageDrops = normalizedDrops
+        try dataManager.saveChanges()
     }
     
     // Helper method to sync SwiftData settings with UserDefaults
@@ -179,7 +198,7 @@ class SettingsManager: ObservableObject {
     }
     
     func resetToDefaults() throws {
-        settings.restTimerDuration = 180
+        settings.restTimerDuration = UserSettings.defaultRestTimerDuration
         settings.defaultRPTPercentageDrops = [0.0, 0.10, 0.15]
         settings.showRPE = true
         settings.darkModePreference = .system
