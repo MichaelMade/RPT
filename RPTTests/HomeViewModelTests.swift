@@ -175,4 +175,66 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(progress, 3.0 / 7.0, accuracy: 0.0001, "Progress should scale linearly within the weekly target")
     }
+
+    // MARK: - Incomplete Workout Resume Logic
+
+    func testShouldResumeIncompleteWorkout_withoutDiscardState() {
+        let workoutDate = Date()
+
+        let shouldResume = viewModel.shouldResumeIncompleteWorkout(
+            workoutDate: workoutDate,
+            discardTimestamp: nil,
+            wasAnyWorkoutDiscarded: false
+        )
+
+        XCTAssertTrue(shouldResume, "Should resume incomplete workout when no discard state exists")
+    }
+
+    func testShouldResumeIncompleteWorkout_withDiscardedOlderWorkout() {
+        let discardTime = Date()
+        let workoutDate = discardTime.addingTimeInterval(-60)
+
+        let shouldResume = viewModel.shouldResumeIncompleteWorkout(
+            workoutDate: workoutDate,
+            discardTimestamp: discardTime,
+            wasAnyWorkoutDiscarded: true
+        )
+
+        XCTAssertFalse(shouldResume, "Should not resume an incomplete workout that predates discard time")
+    }
+
+    func testShouldResumeIncompleteWorkout_withDiscardedNewerWorkout() {
+        let discardTime = Date()
+        let workoutDate = discardTime.addingTimeInterval(60)
+
+        let shouldResume = viewModel.shouldResumeIncompleteWorkout(
+            workoutDate: workoutDate,
+            discardTimestamp: discardTime,
+            wasAnyWorkoutDiscarded: true
+        )
+
+        XCTAssertTrue(shouldResume, "Should resume incomplete workouts created after a discard event")
+    }
+
+    func testShouldResumeIncompleteWorkout_withDiscardFlagButNoTimestamp() {
+        let workoutDate = Date()
+
+        let shouldResume = viewModel.shouldResumeIncompleteWorkout(
+            workoutDate: workoutDate,
+            discardTimestamp: nil,
+            wasAnyWorkoutDiscarded: true
+        )
+
+        XCTAssertFalse(shouldResume, "Should fail safe when discard flag exists without timestamp")
+    }
+
+    func testShouldResumeIncompleteWorkout_withoutWorkout() {
+        let shouldResume = viewModel.shouldResumeIncompleteWorkout(
+            workoutDate: nil,
+            discardTimestamp: Date(),
+            wasAnyWorkoutDiscarded: false
+        )
+
+        XCTAssertFalse(shouldResume, "Should not resume when there is no incomplete workout")
+    }
 }

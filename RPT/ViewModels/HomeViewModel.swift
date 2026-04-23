@@ -28,12 +28,15 @@ class HomeViewModel: ObservableObject {
         recentWorkouts = workoutManager.getRecentWorkouts(limit: 5)
         userStats = userManager.getUserStats()
 
-        if WorkoutStateManager.shared.wasAnyWorkoutDiscarded() {
-            currentWorkout = nil
-            return
-        }
+        let incompleteWorkout = workoutManager.getIncompleteWorkouts().first
+        let workoutStateManager = WorkoutStateManager.shared
+        let shouldResume = shouldResumeIncompleteWorkout(
+            workoutDate: incompleteWorkout?.date,
+            discardTimestamp: workoutStateManager.discardTimestamp,
+            wasAnyWorkoutDiscarded: workoutStateManager.wasAnyWorkoutDiscarded()
+        )
 
-        currentWorkout = workoutManager.getIncompleteWorkouts().first
+        currentWorkout = shouldResume ? incompleteWorkout : nil
     }
     
     func startNewWorkout() {
@@ -52,6 +55,20 @@ class HomeViewModel: ObservableObject {
     func weeklyProgress(forWorkoutCount count: Int) -> Double {
         guard count > 0 else { return 0 }
         return min(1.0, Double(count) / 7.0)
+    }
+
+    func shouldResumeIncompleteWorkout(workoutDate: Date?, discardTimestamp: Date?, wasAnyWorkoutDiscarded: Bool) -> Bool {
+        guard let workoutDate else { return false }
+
+        guard wasAnyWorkoutDiscarded else {
+            return true
+        }
+
+        guard let discardTimestamp else {
+            return false
+        }
+
+        return workoutDate > discardTimestamp
     }
     
     func formatTotalVolume() -> String {

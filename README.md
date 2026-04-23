@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed a Home resume-state regression where discarding any workout could hide `Continue Workout` for later incomplete sessions. `HomeViewModel.loadRecentWorkouts()` now resumes an incomplete workout only when it is newer than the discard timestamp, preventing stale discarded sessions from resurfacing without suppressing legitimately resumable workouts; added regression coverage in `HomeViewModelTests`.
 - Fixed Stats headline volume formatting to match Home behavior: `StatsView.formattedTotal(_:)` now clamps corrupted negative/non-finite input, rounds before thousand-abbreviation checks, avoids truncating sub-thousand decimals (for example `123.6 -> 124 lb`), and correctly promotes near-threshold values (for example `999.95 -> 1k lb`); added regression tests in `StatsViewFormattingTests`.
 - Hardened lifetime stats integrity in `User.updateStats(with:)` by clamping corrupted workout volume inputs (negative or non-finite) to zero before accumulating `totalVolume`, so bad legacy set data can no longer decrease a user’s all-time volume; added regression coverage in `UserModelTests`.
 - Fixed a Settings UX copy bug where the RPT example sentence showed duplicated units (`lb lb`); the view now renders the example string once so users see clean output like `205 → 180 lb`.
