@@ -93,11 +93,14 @@ final class Workout {
     
     // Add a new set to the workout
     func addSet(exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
+        let isComplete = weight > 0 && reps > 0
+
         let newSet = ExerciseSet(
             weight: weight,
             reps: reps,
             exercise: exercise,
             workout: self,
+            completedAt: isComplete ? Date() : .distantPast,
             isWarmup: isWarmup,
             rpe: rpe
         )
