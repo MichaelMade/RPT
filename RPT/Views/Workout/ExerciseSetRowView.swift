@@ -266,7 +266,7 @@ struct ExerciseSetRowView: View {
             // Update the set
             onUpdate(weight, validatedReps, validatedRPE)
             
-            if isFirstSet && weight > 0 {
+            if isFirstSet && ExerciseSetRowView.shouldUpdateDropSets(weight: weight, reps: validatedReps, isWarmup: set.isWarmup) {
                 onUpdateDropSets?(weight)
             }
             
@@ -287,8 +287,12 @@ struct ExerciseSetRowView: View {
         }
     }
 
+    static func shouldUpdateDropSets(weight: Int, reps: Int, isWarmup: Bool) -> Bool {
+        !isWarmup && ExerciseSet.hasCompletedValues(weight: weight, reps: reps)
+    }
+
     static func shouldStartRestTimer(weight: Int, reps: Int, isWarmup: Bool, wasCompletedWorkingSet: Bool = false) -> Bool {
-        !wasCompletedWorkingSet && !isWarmup && ExerciseSet.hasCompletedValues(weight: weight, reps: reps)
+        !wasCompletedWorkingSet && shouldUpdateDropSets(weight: weight, reps: reps, isWarmup: isWarmup)
     }
 
     // MARK: - Quick Adjust Button Component

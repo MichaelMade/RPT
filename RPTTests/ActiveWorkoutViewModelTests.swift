@@ -228,4 +228,11 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
     func testShouldStartRestTimer_doesNotRestartWhenSetWasAlreadyCompleted() {
         XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 5, isWarmup: false, wasCompletedWorkingSet: true))
     }
+
+    func testShouldUpdateDropSets_requiresCompletedNonWarmupFirstSet() {
+        XCTAssertTrue(ExerciseSetRowView.shouldUpdateDropSets(weight: 225, reps: 5, isWarmup: false))
+        XCTAssertFalse(ExerciseSetRowView.shouldUpdateDropSets(weight: 225, reps: 0, isWarmup: false))
+        XCTAssertFalse(ExerciseSetRowView.shouldUpdateDropSets(weight: 0, reps: 5, isWarmup: false))
+        XCTAssertFalse(ExerciseSetRowView.shouldUpdateDropSets(weight: 225, reps: 5, isWarmup: true))
+    }
 }
