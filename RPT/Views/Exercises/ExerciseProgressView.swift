@@ -53,7 +53,7 @@ struct ExerciseProgressView: View {
     private var sets: [ExerciseSet] {
         let interval = DateInterval(start: timeRange.startDate(), end: Date())
         return DataManager.shared.fetchExerciseSetsSafely(for: exercise, timeFrame: interval)
-            .filter { !$0.isWarmup }
+            .filter { $0.isCompletedWorkingSet }
     }
 
     private var dataPoints: [Point] {

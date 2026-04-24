@@ -40,4 +40,8 @@ final class ExerciseSet {
         self.rpe = rpe
         self.notes = notes
     }
+
+    var isCompletedWorkingSet: Bool {
+        !isWarmup && weight > 0 && reps > 0 && completedAt != .distantPast
+    }
 }

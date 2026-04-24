@@ -192,7 +192,9 @@ struct ExerciseDetailView: View {
         // Collect best sets from each workout
         var bestSets: [ExerciseSet] = []
         for (_, sets) in history {
-            if let bestSet = sets.max(by: { $0.weight < $1.weight }) {
+            let completedWorkingSets = sets.filter { $0.isCompletedWorkingSet }
+
+            if let bestSet = completedWorkingSets.max(by: { $0.weight < $1.weight }) {
                 bestSets.append(bestSet)
             }
         }

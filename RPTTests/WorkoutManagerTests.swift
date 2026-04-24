@@ -582,4 +582,24 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // Then
         XCTAssertEqual(workout.totalVolume, 2205, "Workout total volume should exclude warmups and incomplete sets")
     }
+
+    func testExerciseSetIsCompletedWorkingSet_requiresNonWarmupWeightRepsAndCompletionTimestamp() {
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Set Predicate")
+
+        let completedWorkingSet = ExerciseSet(weight: 225, reps: 5, exercise: exercise, workout: workout, completedAt: Date(), isWarmup: false)
+        XCTAssertTrue(completedWorkingSet.isCompletedWorkingSet)
+
+        let warmupSet = ExerciseSet(weight: 135, reps: 8, exercise: exercise, workout: workout, completedAt: Date(), isWarmup: true)
+        XCTAssertFalse(warmupSet.isCompletedWorkingSet)
+
+        let zeroWeightSet = ExerciseSet(weight: 0, reps: 8, exercise: exercise, workout: workout, completedAt: Date(), isWarmup: false)
+        XCTAssertFalse(zeroWeightSet.isCompletedWorkingSet)
+
+        let zeroRepsSet = ExerciseSet(weight: 185, reps: 0, exercise: exercise, workout: workout, completedAt: Date(), isWarmup: false)
+        XCTAssertFalse(zeroRepsSet.isCompletedWorkingSet)
+
+        let incompleteTimestampSet = ExerciseSet(weight: 185, reps: 5, exercise: exercise, workout: workout, completedAt: .distantPast, isWarmup: false)
+        XCTAssertFalse(incompleteTimestampSet.isCompletedWorkingSet)
+    }
 }
