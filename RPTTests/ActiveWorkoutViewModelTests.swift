@@ -123,6 +123,28 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(addedSet?.reps, 12, "Progression should use the most recently added set number, not completion time")
     }
 
+    func testAddSetToExercise_warmupDoesNotShiftWorkingSetDropProgression() throws {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: exercise, weight: 135, reps: 8, isWarmup: true)
+        let workingSet = workout.addSet(exercise: exercise, weight: 200, reps: 6)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // When
+        try viewModel.addSetToExercise(exercise)
+
+        // Then
+        let addedSet = workout.sets.first {
+            $0.id != workingSet.id && $0.exercise?.id == exercise.id && !$0.isWarmup
+        }
+        XCTAssertNotNil(addedSet)
+        XCTAssertEqual(addedSet?.weight, 180, "Warmup sets should not shift working-set drop progression")
+        XCTAssertEqual(addedSet?.reps, 8, "Working-set progression should build from the last completed working set")
+    }
+
     func testViewModelPreservesExerciseInsertionOrderWhenTimestampsMatch() {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")

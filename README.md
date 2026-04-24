@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Active Workout RPT progression quality in `ActiveWorkoutViewModel.addSetToExercise` by calculating drop-index progression from completed working sets only (while preserving canonical insertion order), so logged warmup sets no longer over-reduce newly suggested working-set weights; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Fixed Stats PR ranking quality in `StatsViewModel.computePRs` by replacing weight-only promotion with a shared tie-break (`weight → reps → recency`) via `isBetterPRCandidate`. This prevents equal-weight lower-rep sets from overwriting stronger performances and keeps Stats PRs aligned with the app’s best-set ranking behavior; added regression coverage in new `StatsViewModelTests`.
 - Improved per-workout "best set" selection quality by adding `ExerciseSet.isBetterPerformance(than:)` (weight → reps → recency tie-break) and reusing it in both `Workout.bestSets` and `ExerciseDetailView` history summaries. This prevents arbitrary low-rep ties from being shown as the best effort when an equal-weight higher-rep set exists; added regression coverage in `WorkoutManagerTests`.
 - Fixed follow-up workout exercise-order drift by iterating `Workout.createFollowUpWorkout` from `orderedExerciseGroups` (canonical insertion order) instead of dictionary-grouped exercise order. This keeps generated follow-up sessions in the same exercise sequence users logged originally, preventing random section reordering across runs; added regression coverage in `WorkoutManagerTests`.

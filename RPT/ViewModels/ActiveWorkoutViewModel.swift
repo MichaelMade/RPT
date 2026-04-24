@@ -251,17 +251,18 @@ class ActiveWorkoutViewModel: ObservableObject {
     func addSetToExercise(_ exercise: Exercise) throws {
         // Get existing sets for this exercise in the current workout
         let existingSets = workout.sets.filter { $0.exercise?.id == exercise.id }
+        let orderedExistingSets = orderSetsForDisplay(existingSets)
+        let completedWorkingSets = orderedExistingSets.filter(\.isCompletedWorkingSet)
         
         var newWeight = 0
         var newReps = 8
         
-        // Keep set-number progression tied to canonical workout insertion order,
-        // not completion timestamps (which can change when users edit sets).
-        let sortedSets = orderSetsForDisplay(existingSets)
-        
-        if let lastSet = sortedSets.last {
+        // Keep progression tied to canonical insertion order, but only count
+        // completed working sets for drop-index math so warmups/incomplete
+        // placeholders never shift top/back-off progression.
+        if let lastSet = completedWorkingSets.last ?? orderedExistingSets.last {
             // For RPT, reduce weight by default percentage
-            let reductionPercentage = getReductionPercentage(forSetNumber: existingSets.count)
+            let reductionPercentage = getReductionPercentage(forSetNumber: completedWorkingSets.count)
             let calculatedWeight = Double(lastSet.weight) * (1.0 - reductionPercentage)
             // Round to nearest 5
             newWeight = workoutManager.roundToNearest5(calculatedWeight)
