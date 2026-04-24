@@ -25,7 +25,8 @@ class HomeViewModel: ObservableObject {
     }
     
     func loadRecentWorkouts() {
-        recentWorkouts = workoutManager.getRecentWorkouts(limit: 5)
+        let fetchedRecentWorkouts = workoutManager.getRecentWorkouts(limit: 25)
+        recentWorkouts = completedRecentWorkouts(from: fetchedRecentWorkouts, limit: 5)
         userStats = userManager.getUserStats()
 
         let incompleteWorkout = workoutManager.getIncompleteWorkouts().first
@@ -63,6 +64,16 @@ class HomeViewModel: ObservableObject {
     func weeklyProgress(forWorkoutCount count: Int) -> Double {
         guard count > 0 else { return 0 }
         return min(1.0, Double(count) / 7.0)
+    }
+
+    func completedRecentWorkouts(from workouts: [Workout], limit: Int) -> [Workout] {
+        guard limit > 0 else { return [] }
+
+        return workouts
+            .filter { $0.isCompleted }
+            .sorted(by: { $0.date > $1.date })
+            .prefix(limit)
+            .map { $0 }
     }
 
     func shouldResumeIncompleteWorkout(workoutDate: Date?, discardTimestamp: Date?, wasAnyWorkoutDiscarded: Bool) -> Bool {

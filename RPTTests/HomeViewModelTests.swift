@@ -176,6 +176,36 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(progress, 3.0 / 7.0, accuracy: 0.0001, "Progress should scale linearly within the weekly target")
     }
 
+    // MARK: - Recent Workout Filtering
+
+    func testCompletedRecentWorkouts_excludesIncompleteAndRespectsLimit() {
+        let now = Date()
+
+        let newestIncomplete = Workout(date: now, name: "In Progress", isCompleted: false)
+        let newestCompleted = Workout(date: now.addingTimeInterval(-60), name: "Completed 1", isCompleted: true)
+        let olderCompleted = Workout(date: now.addingTimeInterval(-120), name: "Completed 2", isCompleted: true)
+        let oldestCompleted = Workout(date: now.addingTimeInterval(-180), name: "Completed 3", isCompleted: true)
+
+        let recent = viewModel.completedRecentWorkouts(
+            from: [olderCompleted, newestIncomplete, oldestCompleted, newestCompleted],
+            limit: 2
+        )
+
+        XCTAssertEqual(recent.count, 2, "Should cap to requested recent workout limit")
+        XCTAssertTrue(recent.allSatisfy(\.isCompleted), "Should exclude in-progress workouts from Recent Workouts list")
+        XCTAssertTrue(recent[0] === newestCompleted, "Should keep most-recent completed workout first")
+        XCTAssertTrue(recent[1] === olderCompleted, "Should include the next most-recent completed workout")
+    }
+
+    func testCompletedRecentWorkouts_withNonPositiveLimitReturnsEmpty() {
+        let workout = Workout(date: Date(), name: "Completed", isCompleted: true)
+
+        XCTAssertTrue(
+            viewModel.completedRecentWorkouts(from: [workout], limit: 0).isEmpty,
+            "Should return no workouts when limit is zero"
+        )
+    }
+
     // MARK: - Continue Workout Resolution
 
     func testCanContinueWorkout_withCurrentWorkoutAndNoActiveBinding() {
