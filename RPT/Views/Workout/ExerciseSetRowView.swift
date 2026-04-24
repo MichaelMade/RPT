@@ -270,8 +270,9 @@ struct ExerciseSetRowView: View {
             
             isEditing = false
             
-            // Start rest timer if callback is available and set has weight
-            if weight > 0, let startTimer = onStartRestTimer {
+            // Start rest timer only for completed working sets
+            if ExerciseSetRowView.shouldStartRestTimer(weight: weight, reps: validatedReps, isWarmup: set.isWarmup),
+               let startTimer = onStartRestTimer {
                 // Small delay to allow the keyboard to dismiss
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     startTimer()
@@ -279,9 +280,12 @@ struct ExerciseSetRowView: View {
             }
         }
     }
-    
+
+    static func shouldStartRestTimer(weight: Int, reps: Int, isWarmup: Bool) -> Bool {
+        !isWarmup && weight > 0 && reps > 0
+    }
+
     // MARK: - Quick Adjust Button Component
-    
     struct QuickAdjustButton: View {
         let label: String
         let action: () -> Void
