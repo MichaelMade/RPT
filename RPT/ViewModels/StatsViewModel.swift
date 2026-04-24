@@ -112,9 +112,11 @@ class StatsViewModel: ObservableObject {
         for workout in workouts {
             for set in workout.sets where set.isCompletedWorkingSet {
                 guard let name = set.exercise?.name else { continue }
-                if let existing = best[name], existing.weight >= set.weight {
+
+                if let existing = best[name], !isBetterPRCandidate(set, than: existing) {
                     continue
                 }
+
                 best[name] = PersonalRecord(
                     exerciseName: name,
                     weight: set.weight,
@@ -128,6 +130,18 @@ class StatsViewModel: ObservableObject {
             .sorted { $0.date > $1.date }
             .prefix(5)
             .map { $0 }
+    }
+
+    func isBetterPRCandidate(_ set: ExerciseSet, than existing: PersonalRecord) -> Bool {
+        if set.weight != existing.weight {
+            return set.weight > existing.weight
+        }
+
+        if set.reps != existing.reps {
+            return set.reps > existing.reps
+        }
+
+        return set.completedAt > existing.date
     }
 
     // MARK: - Helpers
