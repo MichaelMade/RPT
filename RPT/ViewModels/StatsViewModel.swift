@@ -51,7 +51,11 @@ class StatsViewModel: ObservableObject {
         totalVolume = stats.totalVolume
         currentStreak = stats.workoutStreak
 
-        let allWorkouts = workoutManager.getRecentWorkouts(limit: 500).filter { $0.isCompleted }
+        // Use full history so long-time users don't lose older PRs/weekly activity
+        // once they pass an arbitrary recent-workout cap.
+        let allWorkouts = workoutManager
+            .getWorkouts(from: .distantPast, to: Date())
+            .filter { $0.isCompleted }
 
         computeWeeklyVolume(from: allWorkouts)
         computeMuscleGroupShare(from: allWorkouts)
