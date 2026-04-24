@@ -129,6 +129,24 @@ final class UserModelTests: XCTestCase {
         XCTAssertEqual(user.totalWorkouts, 1, "Workout count should still increment")
     }
 
+    func testUpdateStats_usesOnlyCompletedWorkingSetsForVolumeAndPersonalBests() {
+        // Given
+        let user = User(username: "TestUser", email: "test@example.com")
+        let workout = Workout(name: "Mixed Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: bench, weight: 135, reps: 8, isWarmup: true)  // warmup: excluded
+        _ = workout.addSet(exercise: bench, weight: 225, reps: 0, isWarmup: false) // incomplete: excluded
+        _ = workout.addSet(exercise: bench, weight: 205, reps: 5, isWarmup: false) // completed: included
+
+        // When
+        user.updateStats(with: workout)
+
+        // Then
+        XCTAssertEqual(user.totalVolume, 1025, "Only completed working sets should contribute to lifetime volume")
+        XCTAssertEqual(user.personalBests["Bench Press"], 205, "Personal best should ignore warmup and incomplete sets")
+    }
+
     func testCreateFollowUpWorkout_sanitizesCorruptedSetValues() {
         let workout = Workout(name: "Corrupted Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
