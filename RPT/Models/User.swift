@@ -85,7 +85,7 @@ final class User {
         totalWorkouts += 1
 
         let completedWorkingVolume = workout.sets
-            .filter(Self.isCompletedWorkingSet)
+            .filter(\.isCompletedWorkingSet)
             .reduce(0.0) { $0 + (Double($1.weight) * Double($1.reps)) }
         let safeWorkoutVolume = completedWorkingVolume.isFinite ? max(0, completedWorkingVolume) : 0
         totalVolume += safeWorkoutVolume
@@ -115,7 +115,7 @@ final class User {
 
     // Update personal bests based on the workout (working sets only)
     private func updatePersonalBests(with workout: Workout) {
-        for set in workout.sets where Self.isCompletedWorkingSet(set) {
+        for set in workout.sets where set.isCompletedWorkingSet {
             guard let exercise = set.exercise else { continue }
 
             let currentBest = personalBests[exercise.name] ?? 0
@@ -123,9 +123,5 @@ final class User {
                 personalBests[exercise.name] = set.weight
             }
         }
-    }
-
-    private static func isCompletedWorkingSet(_ set: ExerciseSet) -> Bool {
-        !set.isWarmup && set.weight > 0 && set.reps > 0 && set.completedAt != .distantPast
     }
 }

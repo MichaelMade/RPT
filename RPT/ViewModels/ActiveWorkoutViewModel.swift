@@ -445,7 +445,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     // MARK: - Helper Methods
 
     private static func shouldUseForTemplateAutofill(_ set: ExerciseSet) -> Bool {
-        !set.isWarmup && set.weight > 0 && set.reps > 0 && set.completedAt != .distantPast
+        set.isCompletedWorkingSet
     }
     
     private func getReductionPercentage(forSetNumber setNumber: Int) -> Double {
