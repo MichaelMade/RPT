@@ -145,7 +145,7 @@ final class Workout {
 
         let safePercentageIncrease = percentageIncrease.isFinite ? max(0, percentageIncrease) : 0
 
-        for (exercise, exerciseSets) in exerciseGroups {
+        for (exercise, exerciseSets) in orderedExerciseGroups {
             let workingSets = exerciseSets.filter(\.isCompletedWorkingSet)
             guard !workingSets.isEmpty else { continue }
 

@@ -678,4 +678,25 @@ final class WorkoutManagerLogicTests: XCTestCase {
             "Follow-up progression should use canonical logged set order, not completion timestamp sorting"
         )
     }
+
+    func testCreateFollowUpWorkout_preservesExerciseInsertionOrderAcrossMultipleExercises() {
+        // Given
+        let workout = Workout(name: "Exercise Order Integrity")
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        // Logged order: squat first, then bench.
+        _ = workout.addSet(exercise: squat, weight: 200, reps: 5)
+        _ = workout.addSet(exercise: bench, weight: 150, reps: 8)
+
+        // When
+        let followUp = workout.createFollowUpWorkout(percentageIncrease: 0.10)
+
+        // Then
+        XCTAssertEqual(
+            followUp.orderedExerciseGroups.map(\.exercise.name),
+            ["Squat", "Bench Press"],
+            "Follow-up workout should preserve original exercise sequence for stable UI/logging order"
+        )
+    }
 }
