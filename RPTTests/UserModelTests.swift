@@ -147,20 +147,21 @@ final class UserModelTests: XCTestCase {
         XCTAssertEqual(user.personalBests["Bench Press"], 205, "Personal best should ignore warmup and incomplete sets")
     }
 
-    func testCreateFollowUpWorkout_sanitizesCorruptedSetValues() {
+    func testCreateFollowUpWorkout_usesOnlyCompletedWorkingSets() {
         let workout = Workout(name: "Corrupted Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
 
-        _ = workout.addSet(exercise: exercise, weight: 200, reps: 6, isWarmup: false, rpe: 8)
-        _ = workout.addSet(exercise: exercise, weight: -50, reps: -3, isWarmup: false, rpe: 11)
+        _ = workout.addSet(exercise: exercise, weight: 45, reps: 10, isWarmup: true, rpe: 6)   // warmup: excluded
+        _ = workout.addSet(exercise: exercise, weight: -50, reps: -3, isWarmup: false, rpe: 11) // incomplete: excluded
+        _ = workout.addSet(exercise: exercise, weight: 200, reps: 6, isWarmup: false, rpe: 8)   // completed: included
 
         let followUp = workout.createFollowUpWorkout(percentageIncrease: 0.025)
         let followUpSets = followUp.sets.filter { $0.exercise?.id == exercise.id }
 
-        XCTAssertEqual(followUpSets.count, 2, "Follow-up should preserve working set count")
-        XCTAssertTrue(followUpSets.allSatisfy { $0.weight >= 0 }, "Follow-up should never create negative weights")
-        XCTAssertTrue(followUpSets.allSatisfy { $0.reps >= 0 }, "Follow-up should never create negative reps")
-        XCTAssertTrue(followUpSets.allSatisfy { $0.rpe == nil || (1...10).contains($0.rpe!) }, "Follow-up should keep only valid RPE values")
+        XCTAssertEqual(followUpSets.count, 1, "Follow-up should only include completed working sets")
+        XCTAssertEqual(followUpSets.first?.weight, 205, "Top set should progress from the latest completed working set")
+        XCTAssertEqual(followUpSets.first?.reps, 6, "Reps should be copied from completed working sets")
+        XCTAssertEqual(followUpSets.first?.rpe, 8, "Valid RPE should be preserved")
     }
 
     func testCreateFollowUpWorkout_nonFinitePercentageIncreaseDefaultsSafely() {
