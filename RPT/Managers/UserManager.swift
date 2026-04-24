@@ -82,13 +82,9 @@ class UserManager {
     // Process a completed workout
     func processCompletedWorkout(_ workout: Workout) {
         guard let user = getCurrentUser() else { return }
-        
-        // Associate workout with user
-        workout.user = user
-        user.workouts.append(workout)
-        
-        // Update user stats
-        user.updateStats(with: workout)
+
+        // Idempotent registration prevents duplicate lifetime stats if completion is retriggered.
+        _ = user.registerCompletedWorkoutIfNeeded(workout)
         
         try? modelContext.save()
     }

@@ -94,6 +94,24 @@ final class User {
         updatePersonalBests(with: workout)
     }
 
+    // Register a completed workout exactly once to prevent duplicate lifetime stats.
+    // Returns true when the workout was newly registered, false when it was already linked.
+    @discardableResult
+    func registerCompletedWorkoutIfNeeded(_ workout: Workout) -> Bool {
+        if workout.user?.id != id {
+            workout.user = self
+        }
+
+        let isAlreadyRegistered = workouts.contains { $0.id == workout.id }
+        guard !isAlreadyRegistered else {
+            return false
+        }
+
+        workouts.append(workout)
+        updateStats(with: workout)
+        return true
+    }
+
     // Check and update the workout streak, excluding the just-completed workout
     private func updateWorkoutStreak(currentWorkout: Workout) {
         let calendar = Calendar.current

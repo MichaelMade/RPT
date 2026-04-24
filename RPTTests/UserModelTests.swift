@@ -147,6 +147,26 @@ final class UserModelTests: XCTestCase {
         XCTAssertEqual(user.personalBests["Bench Press"], 205, "Personal best should ignore warmup and incomplete sets")
     }
 
+    func testRegisterCompletedWorkoutIfNeeded_isIdempotentForSameWorkout() {
+        // Given
+        let user = User(username: "TestUser", email: "test@example.com")
+        let workout = Workout(name: "Idempotent Completion")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: bench, weight: 205, reps: 5)
+
+        // When
+        let firstRegistration = user.registerCompletedWorkoutIfNeeded(workout)
+        let secondRegistration = user.registerCompletedWorkoutIfNeeded(workout)
+
+        // Then
+        XCTAssertTrue(firstRegistration, "First registration should be counted")
+        XCTAssertFalse(secondRegistration, "Second registration of the same workout should be ignored")
+        XCTAssertEqual(user.workouts.count, 1, "Workout should only be linked once")
+        XCTAssertEqual(user.totalWorkouts, 1, "Total workouts should not double-count retriggered completion")
+        XCTAssertEqual(user.totalVolume, 1025, "Total volume should not double-count retriggered completion")
+    }
+
     func testCreateFollowUpWorkout_usesOnlyCompletedWorkingSets() {
         let workout = Workout(name: "Corrupted Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
