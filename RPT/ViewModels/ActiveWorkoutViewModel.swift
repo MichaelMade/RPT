@@ -103,12 +103,12 @@ class ActiveWorkoutViewModel: ObservableObject {
                     
                     if let mostRecent = recentWorkouts.first {
                         // Use completed working sets only (exclude warmups/placeholders)
-                        let sortedSets = mostRecent.sets
-                            .filter(Self.shouldUseForTemplateAutofill)
-                            .sorted(by: { $0.completedAt < $1.completedAt })
+                        let sortedSets = orderSetsForDisplay(
+                            mostRecent.sets.filter(Self.shouldUseForTemplateAutofill)
+                        )
                         
                         // Get current sets for this exercise in the current workout
-                        if let currentSets = exerciseGroups[exercise]?.sorted(by: { $0.completedAt < $1.completedAt }) {
+                        if let currentSets = exerciseGroups[exercise].map(orderSetsForDisplay) {
                             // Apply previous weights to the new sets
                             for (index, currentSet) in currentSets.enumerated() {
                                 if let previousSet = sortedSets[safe: index] {
@@ -255,10 +255,9 @@ class ActiveWorkoutViewModel: ObservableObject {
         var newWeight = 0
         var newReps = 8
         
-        // Sort by set order (we'll use completedAt as a proxy)
-        let sortedSets = existingSets.sorted { set1, set2 in
-            return set1.completedAt < set2.completedAt
-        }
+        // Keep set-number progression tied to canonical workout insertion order,
+        // not completion timestamps (which can change when users edit sets).
+        let sortedSets = orderSetsForDisplay(existingSets)
         
         if let lastSet = sortedSets.last {
             // For RPT, reduce weight by default percentage
@@ -478,20 +477,41 @@ class ActiveWorkoutViewModel: ObservableObject {
                 exerciseOrder.append(exercise)
             }
         } else {
-            // Determine initial exercise order based on the first completedAt timestamp for each exercise
-            var exerciseFirstTimestamp: [(Exercise, Date)] = []
-            
-            for (exercise, sets) in groups {
-                if let firstSet = sets.min(by: { $0.completedAt < $1.completedAt }) {
-                    exerciseFirstTimestamp.append((exercise, firstSet.completedAt))
+            // Determine initial exercise order from canonical workout insertion order.
+            // This avoids unstable ordering when multiple sets share `.distantPast`.
+            var orderedExercises: [Exercise] = []
+
+            for set in workout.sets {
+                guard let exercise = set.exercise else { continue }
+                if !orderedExercises.contains(where: { $0.id == exercise.id }) {
+                    orderedExercises.append(exercise)
                 }
             }
-            
-            // Sort exercises by their first set's timestamp
-            exerciseOrder = exerciseFirstTimestamp
-                .sorted(by: { $0.1 < $1.1 })
-                .map { $0.0 }
+
+            // Keep any group keys that may not be represented in `workout.sets` yet.
+            for exercise in groups.keys where !orderedExercises.contains(where: { $0.id == exercise.id }) {
+                orderedExercises.append(exercise)
+            }
+
+            exerciseOrder = orderedExercises
         }
+    }
+
+    private func orderSetsForDisplay(_ sets: [ExerciseSet]) -> [ExerciseSet] {
+        sets.sorted { lhs, rhs in
+            let lhsOrder = setOrderIndex(lhs)
+            let rhsOrder = setOrderIndex(rhs)
+
+            if lhsOrder != rhsOrder {
+                return lhsOrder < rhsOrder
+            }
+
+            return lhs.completedAt < rhs.completedAt
+        }
+    }
+
+    private func setOrderIndex(_ set: ExerciseSet) -> Int {
+        set.workout?.sets.firstIndex(where: { $0.id == set.id }) ?? Int.max
     }
     
     // Start rest timer after completing a set

@@ -98,6 +98,49 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(addedSet?.completedAt, .distantPast, "Auto-suggested set should not be marked complete until user logs it")
     }
 
+    func testAddSetToExercise_usesLastSetNumberNotLatestCompletionTimestamp() throws {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        let firstSet = workout.addSet(exercise: exercise, weight: 225, reps: 8)
+        let secondSet = workout.addSet(exercise: exercise, weight: 205, reps: 10)
+
+        // Simulate out-of-order completion timestamps from edits.
+        firstSet.completedAt = Date().addingTimeInterval(120)
+        secondSet.completedAt = Date().addingTimeInterval(-120)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // When
+        try viewModel.addSetToExercise(exercise)
+
+        // Then
+        let addedSet = workout.sets.first {
+            $0.id != firstSet.id && $0.id != secondSet.id && $0.exercise?.id == exercise.id
+        }
+        XCTAssertNotNil(addedSet)
+        XCTAssertEqual(addedSet?.reps, 12, "Progression should use the most recently added set number, not completion time")
+    }
+
+    func testViewModelPreservesExerciseInsertionOrderWhenTimestampsMatch() {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        let squatSet = workout.addSet(exercise: squat, weight: 0, reps: 8)
+        let benchSet = workout.addSet(exercise: bench, weight: 0, reps: 8)
+        squatSet.completedAt = .distantPast
+        benchSet.completedAt = .distantPast
+
+        // When
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // Then
+        XCTAssertEqual(viewModel.exerciseOrder.map(\.name), ["Squat", "Bench Press"])
+    }
+
     func testTemplateAutofill_usesCompletedWorkingSetNotWarmup() {
         // Given
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

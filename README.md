@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Active Workout set-order stability by replacing completion-time proxy sorting in `ActiveWorkoutViewModel` with canonical workout insertion order for set progression/autofill mapping, and by initializing exercise order from workout insertion sequence instead of timestamp ties. This prevents set-number drift when completion timestamps are edited or multiple sets share `.distantPast`; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Fixed `Workout.bestSets` data integrity so it now selects per-exercise bests from completed working sets only (`ExerciseSet.isCompletedWorkingSet`) instead of all logged sets. This prevents warmup or incomplete placeholder entries from surfacing as "best" results in any consumer of `bestSets`; added regression coverage in `WorkoutManagerTests`.
 - Fixed rest-timer trigger accuracy in `ExerciseSetRowView`: the timer now starts only after a completed non-warmup set (`weight > 0`, `reps > 0`, `!isWarmup`) instead of any non-zero-weight edit, preventing timer popups when logging warmups or partial/incomplete sets; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Reduced completion-rule drift risk by standardizing completed-working-set checks on `ExerciseSet.isCompletedWorkingSet` in `StatsViewModel`, `User.updateStats(with:)`, and template autofill filtering in `ActiveWorkoutViewModel`. This removes duplicate predicate logic so future rule changes only need one model-level update.
