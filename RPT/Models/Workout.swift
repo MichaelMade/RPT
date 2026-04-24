@@ -45,14 +45,16 @@ final class Workout {
         Set(sets.compactMap { $0.exercise }).count
     }
     
-    // Calculate total volume
+    // Calculate total volume from completed working sets only
     var totalVolume: Double {
-        sets.reduce(0.0) { $0 + (Double($1.weight) * Double($1.reps)) }
+        sets
+            .filter(Self.isCompletedWorkingSet)
+            .reduce(0.0) { $0 + (Double($1.weight) * Double($1.reps)) }
     }
     
-    // Calculate total working sets (non-warmup)
+    // Calculate total working sets (completed, non-warmup)
     var workingSetsCount: Int {
-        sets.filter { !$0.isWarmup && $0.weight > 0 && $0.reps > 0 }.count
+        sets.filter(Self.isCompletedWorkingSet).count
     }
     
     // Group sets by exercise
@@ -165,6 +167,10 @@ final class Workout {
         return isWholeNumber ? "\(Int(safeTotalVolume)) lb" : String(format: "%.1f lb", safeTotalVolume)
     }
     
+    private static func isCompletedWorkingSet(_ set: ExerciseSet) -> Bool {
+        !set.isWarmup && set.weight > 0 && set.reps > 0 && set.completedAt != .distantPast
+    }
+
     // Generate workout summary
     func generateFormattedSummary() -> String {
         let exerciseNames = Set(sets.compactMap { $0.exercise?.name })

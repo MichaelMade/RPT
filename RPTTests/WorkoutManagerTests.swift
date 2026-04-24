@@ -568,4 +568,18 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // Then
         XCTAssertEqual(workout.workingSetsCount, 1, "Only completed non-warmup sets should count as working sets")
     }
+
+    func testWorkoutTotalVolume_usesOnlyCompletedWorkingSets() {
+        // Given
+        let workout = Workout(name: "Volume Integrity")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: exercise, weight: 45, reps: 10, isWarmup: true)   // warmup: excluded
+        _ = workout.addSet(exercise: exercise, weight: 225, reps: 5, isWarmup: false)   // completed: included (1125)
+        _ = workout.addSet(exercise: exercise, weight: 185, reps: 0, isWarmup: false)   // incomplete: excluded
+        _ = workout.addSet(exercise: exercise, weight: 135, reps: 8, isWarmup: false)   // completed: included (1080)
+
+        // Then
+        XCTAssertEqual(workout.totalVolume, 2205, "Workout total volume should exclude warmups and incomplete sets")
+    }
 }
