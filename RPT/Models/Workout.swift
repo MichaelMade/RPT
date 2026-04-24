@@ -65,6 +65,30 @@ final class Workout {
         }
         return Dictionary(grouping: setsWithExercise, by: { $0.0 }).mapValues { $0.map { $0.1 } }
     }
+
+    // Group sets by exercise while preserving canonical logged order.
+    // - Exercise order: first appearance in workout.sets.
+    // - Set order: insertion order inside each exercise.
+    var orderedExerciseGroups: [(exercise: Exercise, sets: [ExerciseSet])] {
+        var grouped: [Exercise: [ExerciseSet]] = [:]
+        var exerciseOrder: [Exercise] = []
+
+        for set in sets {
+            guard let exercise = set.exercise else { continue }
+
+            if grouped[exercise] == nil {
+                grouped[exercise] = []
+                exerciseOrder.append(exercise)
+            }
+
+            grouped[exercise]?.append(set)
+        }
+
+        return exerciseOrder.compactMap { exercise in
+            guard let sets = grouped[exercise], !sets.isEmpty else { return nil }
+            return (exercise: exercise, sets: sets)
+        }
+    }
     
     // Calculate best set for each exercise
     var bestSets: [Exercise: ExerciseSet] {

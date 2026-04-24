@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Workout Detail ordering drift by rendering exercise sections/sets from new `Workout.orderedExerciseGroups` (canonical logged insertion order) instead of sorting by exercise name/completion timestamps. This keeps history readable and stable even when `completedAt` values are edited/corrupted; added regression coverage in `WorkoutManagerTests`.
 - Fixed follow-up workout progression order drift by preserving canonical logged set order in `Workout.exerciseGroups`/`createFollowUpWorkout` instead of re-sorting by `completedAt`. This prevents edited/corrupted completion timestamps from reshuffling set sequence and generating incorrect top-set/back-off weight progression; added regression coverage in `WorkoutManagerTests`.
 - Fixed Active Workout rest-timer UX so editing an already-completed set no longer re-triggers the timer. `ExerciseSetRowView.saveSet` now starts rest only when a set transitions from not-completed to completed working-set state, preventing noisy timer popups during post-set edits (for example adjusting RPE/notes/weight after logging); added regression coverage in `ActiveWorkoutViewModelTests`.
 - Fixed Active Workout display ordering drift by routing `ActiveWorkoutView` set rendering through `ActiveWorkoutViewModel.orderedSetsForDisplay(in:)`, which uses canonical workout insertion order instead of completion timestamps. This keeps visible set order stable even when completion times are edited or multiple sets share placeholder timestamps; added regression coverage in `ActiveWorkoutViewModelTests`.

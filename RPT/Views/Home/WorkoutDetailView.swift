@@ -10,10 +10,7 @@ import SwiftData
 
 struct WorkoutDetailView: View {
     let workout: Workout
-    private let workoutManager = WorkoutManager.shared
-    
-    @State private var exerciseGroups: [Exercise: [ExerciseSet]] = [:]
-    
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -62,35 +59,18 @@ struct WorkoutDetailView: View {
                 .padding(.horizontal)
                 
                 // Exercise sections
-                ForEach(Array(exerciseGroups.keys.sorted(by: { $0.name < $1.name })), id: \.self) { exercise in
-                    if let sets = exerciseGroups[exercise] {
-                        ExerciseSection(
-                            exercise: exercise,
-                            sets: sets.sorted(by: { $0.completedAt < $1.completedAt })
-                        )
-                        .padding(.horizontal)
-                    }
+                ForEach(workout.orderedExerciseGroups, id: \.exercise) { group in
+                    ExerciseSection(
+                        exercise: group.exercise,
+                        sets: group.sets
+                    )
+                    .padding(.horizontal)
                 }
             }
             .padding(.vertical)
         }
         .navigationTitle(workout.name)
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            // Load exercise groups when view appears
-            exerciseGroups = workout.exerciseGroups
-        }
-    }
-    
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let minutes = Int(duration / 60)
-        let seconds = Int(duration.truncatingRemainder(dividingBy: 60))
-        
-        if minutes > 0 {
-            return String(format: "%d:%02d", minutes, seconds)
-        } else {
-            return String(format: "%d sec", seconds)
-        }
     }
 }
 

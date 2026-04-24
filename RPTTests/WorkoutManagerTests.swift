@@ -619,6 +619,38 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(bestSetWeight, 205, "Best set should ignore warmup and incomplete sets")
     }
 
+    func testOrderedExerciseGroups_preservesLoggedExerciseAndSetOrderWhenTimestampsDrift() {
+        // Given
+        let workout = Workout(name: "Detail Ordering")
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        // Log squat first, then bench, then squat again to verify grouped ordering by first appearance.
+        let squatSet1 = workout.addSet(exercise: squat, weight: 225, reps: 5)
+        let benchSet1 = workout.addSet(exercise: bench, weight: 185, reps: 6)
+        let squatSet2 = workout.addSet(exercise: squat, weight: 205, reps: 7)
+
+        // Simulate edited timestamps that would incorrectly reorder if the UI sorted by completedAt.
+        squatSet1.completedAt = Date(timeIntervalSinceReferenceDate: 300)
+        benchSet1.completedAt = Date(timeIntervalSinceReferenceDate: 100)
+        squatSet2.completedAt = Date(timeIntervalSinceReferenceDate: 200)
+
+        // When
+        let orderedGroups = workout.orderedExerciseGroups
+
+        // Then
+        XCTAssertEqual(
+            orderedGroups.map(\.exercise.name),
+            ["Squat", "Bench Press"],
+            "Exercise sections should follow logged workout order, not alphabetical/completion-time ordering"
+        )
+        XCTAssertEqual(
+            orderedGroups.first?.sets.map(\.weight),
+            [225, 205],
+            "Sets inside each section should stay in canonical logged order"
+        )
+    }
+
     func testCreateFollowUpWorkout_preservesLoggedSetOrderWhenCompletionTimestampsDrift() {
         // Given
         let workout = Workout(name: "Order Integrity")
