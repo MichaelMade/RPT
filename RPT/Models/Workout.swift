@@ -63,8 +63,7 @@ final class Workout {
             guard let exercise = set.exercise else { return nil }
             return (exercise, set)
         }
-        let sorted = setsWithExercise.sorted { $0.1.completedAt < $1.1.completedAt }
-        return Dictionary(grouping: sorted, by: { $0.0 }).mapValues { $0.map { $0.1 } }
+        return Dictionary(grouping: setsWithExercise, by: { $0.0 }).mapValues { $0.map { $0.1 } }
     }
     
     // Calculate best set for each exercise
@@ -126,12 +125,11 @@ final class Workout {
             let workingSets = exerciseSets.filter(\.isCompletedWorkingSet)
             guard !workingSets.isEmpty else { continue }
 
-            let sortedSets = workingSets.sorted { $0.completedAt < $1.completedAt }
-            guard let originalFirstWeight = sortedSets.first?.weight, originalFirstWeight > 0 else { continue }
+            guard let originalFirstWeight = workingSets.first?.weight, originalFirstWeight > 0 else { continue }
 
             var newFirstSetWeight = 0
 
-            for (index, previousSet) in sortedSets.enumerated() {
+            for (index, previousSet) in workingSets.enumerated() {
                 let safePreviousWeight = max(0, previousSet.weight)
                 let roundedWeight: Int
 

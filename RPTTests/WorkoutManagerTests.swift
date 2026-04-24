@@ -618,4 +618,32 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // Then
         XCTAssertEqual(bestSetWeight, 205, "Best set should ignore warmup and incomplete sets")
     }
+
+    func testCreateFollowUpWorkout_preservesLoggedSetOrderWhenCompletionTimestampsDrift() {
+        // Given
+        let workout = Workout(name: "Order Integrity")
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        let first = workout.addSet(exercise: squat, weight: 200, reps: 5)
+        let second = workout.addSet(exercise: squat, weight: 180, reps: 6)
+        let third = workout.addSet(exercise: squat, weight: 160, reps: 8)
+
+        // Simulate edited/corrupted completion timestamps that no longer reflect true set sequence.
+        first.completedAt = Date(timeIntervalSinceReferenceDate: 300)
+        second.completedAt = Date(timeIntervalSinceReferenceDate: 100)
+        third.completedAt = Date(timeIntervalSinceReferenceDate: 200)
+
+        // When
+        let followUp = workout.createFollowUpWorkout(percentageIncrease: 0.10)
+        let followUpWeights = followUp
+            .exerciseGroups[squat]?
+            .map(\.weight)
+
+        // Then
+        XCTAssertEqual(
+            followUpWeights,
+            [220, 198, 176],
+            "Follow-up progression should use canonical logged set order, not completion timestamp sorting"
+        )
+    }
 }
