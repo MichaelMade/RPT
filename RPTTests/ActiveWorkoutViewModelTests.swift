@@ -218,6 +218,28 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(autofilledSet?.reps, 8, "Template-set target reps should remain unchanged when already configured")
     }
 
+    func testTemplateAutofill_ignoresIncompleteRecentWorkout() {
+        // Given
+        let exercise = Exercise(name: "Incline Bench", category: .compound, primaryMuscleGroups: [.chest])
+
+        let completedWorkout = workoutManager.createWorkout(name: "Completed Workout")
+        _ = completedWorkout.addSet(exercise: exercise, weight: 200, reps: 6)
+        completedWorkout.isCompleted = true
+
+        let newerIncompleteWorkout = workoutManager.createWorkout(name: "In Progress")
+        _ = newerIncompleteWorkout.addSet(exercise: exercise, weight: 235, reps: 4)
+
+        let templateWorkout = workoutManager.createWorkout(name: "Template Workout", fromTemplate: "Push Day")
+        _ = templateWorkout.addSet(exercise: exercise, weight: 0, reps: 8)
+
+        // When
+        _ = ActiveWorkoutViewModel(workout: templateWorkout)
+
+        // Then
+        let autofilledSet = templateWorkout.sets.first { $0.exercise?.id == exercise.id }
+        XCTAssertEqual(autofilledSet?.weight, 200, "Autofill should ignore newer in-progress workouts and use the most recent completed workout")
+    }
+
     func testShouldStartRestTimer_requiresCompletedWorkingSet() {
         XCTAssertTrue(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 5, isWarmup: false, wasCompletedWorkingSet: false))
         XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 0, isWarmup: false, wasCompletedWorkingSet: false))

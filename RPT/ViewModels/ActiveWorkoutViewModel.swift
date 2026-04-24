@@ -97,8 +97,8 @@ class ActiveWorkoutViewModel: ObservableObject {
                 // If there's previous workout data
                 if !history.isEmpty {
                     // Find the most recent workout that has completed working sets
-                    let recentWorkouts = history.filter { _, sets in
-                        sets.contains(where: Self.shouldUseForTemplateAutofill)
+                    let recentWorkouts = history.filter { workout, sets in
+                        workout.isCompleted && sets.contains(where: Self.shouldUseForTemplateAutofill)
                     }
                     
                     if let mostRecent = recentWorkouts.first {
