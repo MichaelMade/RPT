@@ -141,6 +141,27 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.exerciseOrder.map(\.name), ["Squat", "Bench Press"])
     }
 
+    func testOrderedSetsForDisplay_prefersInsertionOrderOverCompletionTimestamp() {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        let firstSet = workout.addSet(exercise: exercise, weight: 225, reps: 8)
+        let secondSet = workout.addSet(exercise: exercise, weight: 205, reps: 10)
+
+        // Simulate out-of-order timestamps from edits.
+        firstSet.completedAt = Date().addingTimeInterval(120)
+        secondSet.completedAt = Date().addingTimeInterval(-120)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // When
+        let orderedSets = viewModel.orderedSetsForDisplay(in: exercise)
+
+        // Then
+        XCTAssertEqual(orderedSets.map(\.id), [firstSet.id, secondSet.id])
+    }
+
     func testTemplateAutofill_usesCompletedWorkingSetNotWarmup() {
         // Given
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

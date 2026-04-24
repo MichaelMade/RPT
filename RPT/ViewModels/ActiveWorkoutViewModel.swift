@@ -510,6 +510,10 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
     }
 
+    func orderedSetsForDisplay(in exercise: Exercise) -> [ExerciseSet] {
+        orderSetsForDisplay(exerciseGroups[exercise] ?? [])
+    }
+
     private func setOrderIndex(_ set: ExerciseSet) -> Int {
         set.workout?.sets.firstIndex(where: { $0.id == set.id }) ?? Int.max
     }

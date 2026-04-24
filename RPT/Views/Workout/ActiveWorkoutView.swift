@@ -48,15 +48,12 @@ struct ActiveWorkoutView: View {
                         List {
                             // Use exerciseOrder to display exercises in their added order
                             ForEach(viewModel.exerciseOrder, id: \.self) { exercise in
-                                if let sets = viewModel.exerciseGroups[exercise] {
-                                    // Sort sets by completion date to maintain set order
-                                    let sortedSets = sets.sorted(by: { $0.completedAt < $1.completedAt })
-                                    
+                                if viewModel.exerciseGroups[exercise] != nil {
                                     // Use the new ExerciseSectionView component
                                     ExerciseSectionView(
                                         viewModel: viewModel,
                                         exercise: exercise,
-                                        sets: sortedSets
+                                        sets: viewModel.orderedSetsForDisplay(in: exercise)
                                     )
                                 }
                             }
@@ -287,4 +284,3 @@ struct ActiveWorkoutView: View {
     )
     .modelContainer(modelContainer)
 }
-

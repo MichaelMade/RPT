@@ -123,8 +123,8 @@ struct ExerciseSectionView: View {
     // Add the exercise to the expanded set
     viewModel.expandedExercises.insert(benchPress.id)
     
-    // Apply sorting to the sets for proper preview
-    let sortedSets = [set1, set2, set3].sorted(by: { $0.completedAt < $1.completedAt })
+    // Keep preview in canonical insertion order, matching ActiveWorkoutViewModel ordering.
+    let sortedSets = [set1, set2, set3]
     
     return List {
         ExerciseSectionView(
