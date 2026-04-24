@@ -194,7 +194,9 @@ struct ExerciseDetailView: View {
         for (_, sets) in history {
             let completedWorkingSets = sets.filter { $0.isCompletedWorkingSet }
 
-            if let bestSet = completedWorkingSets.max(by: { $0.weight < $1.weight }) {
+            if let bestSet = completedWorkingSets.max(by: { lhs, rhs in
+                rhs.isBetterPerformance(than: lhs)
+            }) {
                 bestSets.append(bestSet)
             }
         }

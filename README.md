@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved per-workout "best set" selection quality by adding `ExerciseSet.isBetterPerformance(than:)` (weight → reps → recency tie-break) and reusing it in both `Workout.bestSets` and `ExerciseDetailView` history summaries. This prevents arbitrary low-rep ties from being shown as the best effort when an equal-weight higher-rep set exists; added regression coverage in `WorkoutManagerTests`.
 - Fixed follow-up workout exercise-order drift by iterating `Workout.createFollowUpWorkout` from `orderedExerciseGroups` (canonical insertion order) instead of dictionary-grouped exercise order. This keeps generated follow-up sessions in the same exercise sequence users logged originally, preventing random section reordering across runs; added regression coverage in `WorkoutManagerTests`.
 - Fixed Workout Detail ordering drift by rendering exercise sections/sets from new `Workout.orderedExerciseGroups` (canonical logged insertion order) instead of sorting by exercise name/completion timestamps. This keeps history readable and stable even when `completedAt` values are edited/corrupted; added regression coverage in `WorkoutManagerTests`.
 - Fixed follow-up workout progression order drift by preserving canonical logged set order in `Workout.exerciseGroups`/`createFollowUpWorkout` instead of re-sorting by `completedAt`. This prevents edited/corrupted completion timestamps from reshuffling set sequence and generating incorrect top-set/back-off weight progression; added regression coverage in `WorkoutManagerTests`.

@@ -619,6 +619,24 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(bestSetWeight, 205, "Best set should ignore warmup and incomplete sets")
     }
 
+    func testWorkoutBestSets_prefersHigherRepsWhenWeightTies() {
+        // Given
+        let workout = Workout(name: "Best Sets Tie Break")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        let lowerRepSet = workout.addSet(exercise: bench, weight: 225, reps: 5, isWarmup: false)
+        let higherRepSet = workout.addSet(exercise: bench, weight: 225, reps: 7, isWarmup: false)
+        lowerRepSet.completedAt = Date(timeIntervalSinceReferenceDate: 200)
+        higherRepSet.completedAt = Date(timeIntervalSinceReferenceDate: 100)
+
+        // When
+        let bestSet = workout.bestSets[bench]
+
+        // Then
+        XCTAssertEqual(bestSet?.weight, 225)
+        XCTAssertEqual(bestSet?.reps, 7, "When top weight ties, best set should prefer the higher rep performance")
+    }
+
     func testOrderedExerciseGroups_preservesLoggedExerciseAndSetOrderWhenTimestampsDrift() {
         // Given
         let workout = Workout(name: "Detail Ordering")

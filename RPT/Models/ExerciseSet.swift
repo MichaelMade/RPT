@@ -44,4 +44,18 @@ final class ExerciseSet {
     var isCompletedWorkingSet: Bool {
         !isWarmup && weight > 0 && reps > 0 && completedAt != .distantPast
     }
+
+    /// Returns true when this set should rank above another set for "best set" selection.
+    /// Priority: heavier weight, then higher reps, then more recent completion.
+    func isBetterPerformance(than other: ExerciseSet) -> Bool {
+        if weight != other.weight {
+            return weight > other.weight
+        }
+
+        if reps != other.reps {
+            return reps > other.reps
+        }
+
+        return completedAt > other.completedAt
+    }
 }
