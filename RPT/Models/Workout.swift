@@ -72,7 +72,9 @@ final class Workout {
         var result: [Exercise: ExerciseSet] = [:]
         
         for (exercise, sets) in exerciseGroups {
-            if let bestSet = sets.max(by: { $0.weight < $1.weight }) {
+            let completedWorkingSets = sets.filter(\.isCompletedWorkingSet)
+
+            if let bestSet = completedWorkingSets.max(by: { $0.weight < $1.weight }) {
                 result[exercise] = bestSet
             }
         }

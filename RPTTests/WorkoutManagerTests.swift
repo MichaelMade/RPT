@@ -602,4 +602,20 @@ final class WorkoutManagerLogicTests: XCTestCase {
         let incompleteTimestampSet = ExerciseSet(weight: 185, reps: 5, exercise: exercise, workout: workout, completedAt: .distantPast, isWarmup: false)
         XCTAssertFalse(incompleteTimestampSet.isCompletedWorkingSet)
     }
+
+    func testWorkoutBestSets_usesOnlyCompletedWorkingSets() {
+        // Given
+        let workout = Workout(name: "Best Sets Integrity")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: bench, weight: 135, reps: 8, isWarmup: true)   // warmup: excluded
+        _ = workout.addSet(exercise: bench, weight: 205, reps: 5, isWarmup: false)  // completed: included
+        _ = workout.addSet(exercise: bench, weight: 225, reps: 0, isWarmup: false)  // incomplete: excluded
+
+        // When
+        let bestSetWeight = workout.bestSets[bench]?.weight
+
+        // Then
+        XCTAssertEqual(bestSetWeight, 205, "Best set should ignore warmup and incomplete sets")
+    }
 }
