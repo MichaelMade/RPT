@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed template workout autofill quality in `ActiveWorkoutViewModel.populateWithPreviousWeights`: previous-set carry-forward now uses only completed working sets (`!isWarmup`, `weight > 0`, `reps > 0`, `completedAt != .distantPast`) when choosing source history. This prevents warmup or placeholder sets from being copied into new template sessions; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Fixed Stats data accuracy by counting only completed working sets in `StatsViewModel` for muscle-group distribution and PR detection (`weight > 0`, `reps > 0`, non-warmup, and `completedAt != .distantPast`). This prevents placeholder/planned sets from inflating training-balance charts or surfacing premature PRs.
 - Fixed template-start set integrity in `TemplateManager.createWorkoutFromTemplate`: generated template sets now initialize as incomplete (`.distantPast`) unless both weight and reps are already non-zero, preventing unstarted planned sets from carrying live timestamps into stats/progress flows. Added regression coverage in `TemplateManagerTests`.
 - Fixed workout model set-creation completion integrity by making `Workout.addSet` initialize sets as incomplete (`completedAt = .distantPast`) unless both weight and reps are greater than zero. This aligns model-level behavior with manager/view-model paths and prevents direct model usage from incorrectly treating placeholder sets (for example `185 x 0`) as completed work. Added regression coverage in `WorkoutManagerTests`.

@@ -97,4 +97,23 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertNotNil(addedSet)
         XCTAssertEqual(addedSet?.completedAt, .distantPast, "Auto-suggested set should not be marked complete until user logs it")
     }
+
+    func testTemplateAutofill_usesCompletedWorkingSetNotWarmup() {
+        // Given
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let priorWorkout = workoutManager.createWorkout(name: "Prior Workout")
+        _ = priorWorkout.addSet(exercise: exercise, weight: 45, reps: 12, isWarmup: true)
+        _ = priorWorkout.addSet(exercise: exercise, weight: 205, reps: 6)
+
+        let templateWorkout = workoutManager.createWorkout(name: "Template Workout", fromTemplate: "Push Day")
+        _ = templateWorkout.addSet(exercise: exercise, weight: 0, reps: 8)
+
+        // When
+        _ = ActiveWorkoutViewModel(workout: templateWorkout)
+
+        // Then
+        let autofilledSet = templateWorkout.sets.first { $0.exercise?.id == exercise.id }
+        XCTAssertEqual(autofilledSet?.weight, 205, "Autofill should ignore warmups and use prior completed working sets")
+        XCTAssertEqual(autofilledSet?.reps, 8, "Template-set target reps should remain unchanged when already configured")
+    }
 }

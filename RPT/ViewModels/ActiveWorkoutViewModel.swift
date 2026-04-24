@@ -96,14 +96,16 @@ class ActiveWorkoutViewModel: ObservableObject {
                 
                 // If there's previous workout data
                 if !history.isEmpty {
-                    // Find the most recent workout that has sets with weight > 0
-                    let recentWorkouts = history.filter { workout, sets in
-                        sets.contains(where: { $0.weight > 0 })
+                    // Find the most recent workout that has completed working sets
+                    let recentWorkouts = history.filter { _, sets in
+                        sets.contains(where: Self.shouldUseForTemplateAutofill)
                     }
                     
                     if let mostRecent = recentWorkouts.first {
-                        // Get the sets for the most recent workout, ordered by completion time
-                        let sortedSets = mostRecent.sets.sorted(by: { $0.completedAt < $1.completedAt })
+                        // Use completed working sets only (exclude warmups/placeholders)
+                        let sortedSets = mostRecent.sets
+                            .filter(Self.shouldUseForTemplateAutofill)
+                            .sorted(by: { $0.completedAt < $1.completedAt })
                         
                         // Get current sets for this exercise in the current workout
                         if let currentSets = exerciseGroups[exercise]?.sorted(by: { $0.completedAt < $1.completedAt }) {
@@ -441,6 +443,10 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
     
     // MARK: - Helper Methods
+
+    private static func shouldUseForTemplateAutofill(_ set: ExerciseSet) -> Bool {
+        !set.isWarmup && set.weight > 0 && set.reps > 0 && set.completedAt != .distantPast
+    }
     
     private func getReductionPercentage(forSetNumber setNumber: Int) -> Double {
         // Get reduction percentages from settings
