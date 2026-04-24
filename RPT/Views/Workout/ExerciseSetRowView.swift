@@ -261,6 +261,8 @@ struct ExerciseSetRowView: View {
             let validatedReps = max(0, reps)
             let validatedRPE = rpe.map { min(10, max(1, $0)) }
             
+            let wasCompletedWorkingSet = set.isCompletedWorkingSet
+
             // Update the set
             onUpdate(weight, validatedReps, validatedRPE)
             
@@ -270,9 +272,13 @@ struct ExerciseSetRowView: View {
             
             isEditing = false
             
-            // Start rest timer only for completed working sets
-            if ExerciseSetRowView.shouldStartRestTimer(weight: weight, reps: validatedReps, isWarmup: set.isWarmup),
-               let startTimer = onStartRestTimer {
+            // Start rest timer only when a set transitions into a completed working set.
+            if ExerciseSetRowView.shouldStartRestTimer(
+                weight: weight,
+                reps: validatedReps,
+                isWarmup: set.isWarmup,
+                wasCompletedWorkingSet: wasCompletedWorkingSet
+            ), let startTimer = onStartRestTimer {
                 // Small delay to allow the keyboard to dismiss
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     startTimer()
@@ -281,8 +287,8 @@ struct ExerciseSetRowView: View {
         }
     }
 
-    static func shouldStartRestTimer(weight: Int, reps: Int, isWarmup: Bool) -> Bool {
-        !isWarmup && weight > 0 && reps > 0
+    static func shouldStartRestTimer(weight: Int, reps: Int, isWarmup: Bool, wasCompletedWorkingSet: Bool = false) -> Bool {
+        !wasCompletedWorkingSet && !isWarmup && weight > 0 && reps > 0
     }
 
     // MARK: - Quick Adjust Button Component

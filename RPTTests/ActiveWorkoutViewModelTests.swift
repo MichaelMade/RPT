@@ -182,9 +182,13 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
     }
 
     func testShouldStartRestTimer_requiresCompletedWorkingSet() {
-        XCTAssertTrue(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 5, isWarmup: false))
-        XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 0, isWarmup: false))
-        XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 0, reps: 5, isWarmup: false))
-        XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 5, isWarmup: true))
+        XCTAssertTrue(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 5, isWarmup: false, wasCompletedWorkingSet: false))
+        XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 0, isWarmup: false, wasCompletedWorkingSet: false))
+        XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 0, reps: 5, isWarmup: false, wasCompletedWorkingSet: false))
+        XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 5, isWarmup: true, wasCompletedWorkingSet: false))
+    }
+
+    func testShouldStartRestTimer_doesNotRestartWhenSetWasAlreadyCompleted() {
+        XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 5, isWarmup: false, wasCompletedWorkingSet: true))
     }
 }
