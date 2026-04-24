@@ -731,4 +731,10 @@ final class WorkoutManagerLogicTests: XCTestCase {
             "Follow-up workout should preserve original exercise sequence for stable UI/logging order"
         )
     }
+
+    func testExerciseSetHasCompletedValues_requiresPositiveWeightAndReps() {
+        XCTAssertTrue(ExerciseSet.hasCompletedValues(weight: 185, reps: 5))
+        XCTAssertFalse(ExerciseSet.hasCompletedValues(weight: 185, reps: 0))
+        XCTAssertFalse(ExerciseSet.hasCompletedValues(weight: 0, reps: 5))
+    }
 }

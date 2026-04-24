@@ -41,8 +41,16 @@ final class ExerciseSet {
         self.notes = notes
     }
 
+    static func hasCompletedValues(weight: Int, reps: Int) -> Bool {
+        weight > 0 && reps > 0
+    }
+
+    var hasCompletedValues: Bool {
+        Self.hasCompletedValues(weight: weight, reps: reps)
+    }
+
     var isCompletedWorkingSet: Bool {
-        !isWarmup && weight > 0 && reps > 0 && completedAt != .distantPast
+        !isWarmup && hasCompletedValues && completedAt != .distantPast
     }
 
     /// Returns true when this set should rank above another set for "best set" selection.

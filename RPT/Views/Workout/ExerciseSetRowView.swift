@@ -288,7 +288,7 @@ struct ExerciseSetRowView: View {
     }
 
     static func shouldStartRestTimer(weight: Int, reps: Int, isWarmup: Bool, wasCompletedWorkingSet: Bool = false) -> Bool {
-        !wasCompletedWorkingSet && !isWarmup && weight > 0 && reps > 0
+        !wasCompletedWorkingSet && !isWarmup && ExerciseSet.hasCompletedValues(weight: weight, reps: reps)
     }
 
     // MARK: - Quick Adjust Button Component
