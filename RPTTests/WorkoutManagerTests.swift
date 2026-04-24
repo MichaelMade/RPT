@@ -281,6 +281,20 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(set.completedAt, .distantPast)
     }
 
+    func testUpdateSet_marksNonZeroSetCompleteWhenTimestampWasIncomplete() {
+        // Given
+        let workout = Workout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 8)
+        set.completedAt = .distantPast
+
+        // When
+        manager.updateSet(set, weight: 185, reps: 8, rpe: nil)
+
+        // Then
+        XCTAssertNotEqual(set.completedAt, .distantPast)
+    }
+
     func testWorkoutAddSet_withZeroRepsStartsIncomplete() {
         // Given
         let workout = Workout(name: "Test Workout")

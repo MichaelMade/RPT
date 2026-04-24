@@ -146,7 +146,7 @@ class WorkoutManager: ObservableObject {
     // Update a set
     func updateSet(_ set: ExerciseSet, weight: Int, reps: Int, rpe: Int?) {
         let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
-        let wasIncomplete = set.weight <= 0 || set.reps <= 0
+        let wasIncomplete = set.weight <= 0 || set.reps <= 0 || set.completedAt == .distantPast
 
         set.weight = sanitized.weight
         set.reps = sanitized.reps

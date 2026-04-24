@@ -54,6 +54,21 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(set.completedAt, .distantPast)
     }
 
+    func testUpdateSet_marksTemplateAutofilledSetCompleteWhenSaved() throws {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Template Workout", fromTemplate: "Push Day")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = workout.addSet(exercise: exercise, weight: 185, reps: 8)
+        set.completedAt = .distantPast // Simulates prefilled-but-not-yet-logged template set
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // When
+        try viewModel.updateSet(set, weight: 185, reps: 8, rpe: nil)
+
+        // Then
+        XCTAssertNotEqual(set.completedAt, .distantPast, "Saving a valid autofilled set should mark it complete")
+    }
+
     func testUpdateWorkoutName_trimsWhitespaceAndFallsBackWhenEmpty() throws {
         // Given
         let workout = workoutManager.createWorkout(name: "Original")

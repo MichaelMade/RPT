@@ -316,7 +316,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             throw WorkoutError.invalidSetData
         }
 
-        let wasIncomplete = set.weight <= 0 || set.reps <= 0
+        let wasIncomplete = set.weight <= 0 || set.reps <= 0 || set.completedAt == .distantPast
         set.weight = weight
         set.reps = reps
         set.rpe = rpe
