@@ -215,4 +215,19 @@ final class UserModelTests: XCTestCase {
 
         XCTAssertEqual(followUpSet?.weight, 200, "Non-finite percentage increase should fall back safely")
     }
+
+    func testCreateFollowUpWorkout_includesBodyweightWorkingSets() {
+        let workout = Workout(name: "Bodyweight Workout")
+        let pullUps = Exercise(name: "Pull-Ups", category: .bodyweight, primaryMuscleGroups: [.back])
+
+        _ = workout.addSet(exercise: pullUps, weight: 0, reps: 8)
+        _ = workout.addSet(exercise: pullUps, weight: 0, reps: 6)
+
+        let followUp = workout.createFollowUpWorkout(percentageIncrease: 0.025)
+        let followUpSets = followUp.sets.filter { $0.exercise?.id == pullUps.id }
+
+        XCTAssertEqual(followUpSets.count, 2, "Bodyweight completed working sets should carry into follow-up workouts")
+        XCTAssertEqual(followUpSets.map(\.weight), [0, 0], "Bodyweight follow-up sets should preserve zero external load")
+        XCTAssertEqual(followUpSets.map(\.reps), [8, 6], "Bodyweight follow-up reps should be preserved")
+    }
 }

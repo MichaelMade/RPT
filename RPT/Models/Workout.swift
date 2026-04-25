@@ -155,7 +155,10 @@ final class Workout {
             let workingSets = exerciseSets.filter(\.isCompletedWorkingSet)
             guard !workingSets.isEmpty else { continue }
 
-            guard let originalFirstWeight = workingSets.first?.weight, originalFirstWeight > 0 else { continue }
+            guard let originalFirstWeight = workingSets.first?.weight else { continue }
+
+            let shouldPreserveBodyweightLoads = originalFirstWeight == 0 && exercise.category == .bodyweight
+            guard shouldPreserveBodyweightLoads || originalFirstWeight > 0 else { continue }
 
             var newFirstSetWeight = 0
 
@@ -163,7 +166,9 @@ final class Workout {
                 let safePreviousWeight = max(0, previousSet.weight)
                 let roundedWeight: Int
 
-                if index == 0 {
+                if shouldPreserveBodyweightLoads {
+                    roundedWeight = safePreviousWeight
+                } else if index == 0 {
                     let calculatedWeight = Double(safePreviousWeight) * (1.0 + safePercentageIncrease)
                     roundedWeight = max(0, Int(round(calculatedWeight / 5.0) * 5.0))
                     newFirstSetWeight = roundedWeight
