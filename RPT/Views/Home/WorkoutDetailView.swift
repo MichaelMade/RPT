@@ -128,6 +128,10 @@ struct StatBox: View {
 struct ExerciseSection: View {
     let exercise: Exercise
     let sets: [ExerciseSet]
+
+    static func setDisplayText(for set: ExerciseSet) -> String {
+        set.formattedWeightReps
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -149,7 +153,7 @@ struct ExerciseSection: View {
                         
                         Spacer()
                         
-                        Text("\(set.weight) lb × \(set.reps) reps")
+                        Text(Self.setDisplayText(for: set))
                             .font(.subheadline)
                         
                         if let rpe = set.rpe {

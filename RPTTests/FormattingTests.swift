@@ -102,6 +102,17 @@ final class FormattingTests: XCTestCase {
     }
     
     // MARK: - Units Consistency Tests
+
+    func testWorkoutDetailSetDisplayText_usesBodyweightAwareFormatting() {
+        let bodyweightExercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+        let weightedExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        let bodyweightSet = ExerciseSet(weight: 0, reps: 12, exercise: bodyweightExercise)
+        let weightedSet = ExerciseSet(weight: 185, reps: 8, exercise: weightedExercise)
+
+        XCTAssertEqual(ExerciseSection.setDisplayText(for: bodyweightSet), "BW × 12")
+        XCTAssertEqual(ExerciseSection.setDisplayText(for: weightedSet), "185 lb × 8")
+    }
     
     func testWeightUnitsConsistency() {
         let workoutManager = WorkoutManager.shared
