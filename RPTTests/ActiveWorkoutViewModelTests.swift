@@ -244,6 +244,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertTrue(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 5, isWarmup: false, wasCompletedWorkingSet: false))
         XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 0, isWarmup: false, wasCompletedWorkingSet: false))
         XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 0, reps: 5, isWarmup: false, wasCompletedWorkingSet: false))
+        XCTAssertTrue(ExerciseSetRowView.shouldStartRestTimer(weight: 0, reps: 5, isWarmup: false, exerciseCategory: .bodyweight, wasCompletedWorkingSet: false))
         XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 5, isWarmup: true, wasCompletedWorkingSet: false))
     }
 
@@ -255,6 +256,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertTrue(ExerciseSetRowView.shouldUpdateDropSets(weight: 225, reps: 5, isWarmup: false))
         XCTAssertFalse(ExerciseSetRowView.shouldUpdateDropSets(weight: 225, reps: 0, isWarmup: false))
         XCTAssertFalse(ExerciseSetRowView.shouldUpdateDropSets(weight: 0, reps: 5, isWarmup: false))
+        XCTAssertTrue(ExerciseSetRowView.shouldUpdateDropSets(weight: 0, reps: 5, isWarmup: false, exerciseCategory: .bodyweight))
         XCTAssertFalse(ExerciseSetRowView.shouldUpdateDropSets(weight: 225, reps: 5, isWarmup: true))
     }
 

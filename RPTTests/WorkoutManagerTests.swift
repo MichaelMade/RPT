@@ -295,6 +295,20 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertNotEqual(set.completedAt, .distantPast)
     }
 
+    func testUpdateSet_bodyweightSetWithZeroWeightAndRepsMarksComplete() {
+        // Given
+        let workout = Workout(name: "Test Workout")
+        let exercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+        let set = manager.addSet(to: workout, for: exercise, weight: 0, reps: 0)
+
+        // When
+        manager.updateSet(set, weight: 0, reps: 8, rpe: nil)
+
+        // Then
+        XCTAssertNotEqual(set.completedAt, .distantPast)
+        XCTAssertTrue(set.isCompletedWorkingSet)
+    }
+
     func testWorkoutAddSet_withZeroRepsStartsIncomplete() {
         // Given
         let workout = Workout(name: "Test Workout")
@@ -597,8 +611,9 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(workout.totalVolume, 2205, "Workout total volume should exclude warmups and incomplete sets")
     }
 
-    func testExerciseSetIsCompletedWorkingSet_requiresNonWarmupWeightRepsAndCompletionTimestamp() {
+    func testExerciseSetIsCompletedWorkingSet_handlesBodyweightCompletionRules() {
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let bodyweightExercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
         let workout = Workout(name: "Set Predicate")
 
         let completedWorkingSet = ExerciseSet(weight: 225, reps: 5, exercise: exercise, workout: workout, completedAt: Date(), isWarmup: false)
@@ -609,6 +624,9 @@ final class WorkoutManagerLogicTests: XCTestCase {
 
         let zeroWeightSet = ExerciseSet(weight: 0, reps: 8, exercise: exercise, workout: workout, completedAt: Date(), isWarmup: false)
         XCTAssertFalse(zeroWeightSet.isCompletedWorkingSet)
+
+        let bodyweightSet = ExerciseSet(weight: 0, reps: 8, exercise: bodyweightExercise, workout: workout, completedAt: Date(), isWarmup: false)
+        XCTAssertTrue(bodyweightSet.isCompletedWorkingSet)
 
         let zeroRepsSet = ExerciseSet(weight: 185, reps: 0, exercise: exercise, workout: workout, completedAt: Date(), isWarmup: false)
         XCTAssertFalse(zeroRepsSet.isCompletedWorkingSet)
@@ -732,10 +750,11 @@ final class WorkoutManagerLogicTests: XCTestCase {
         )
     }
 
-    func testExerciseSetHasCompletedValues_requiresPositiveWeightAndReps() {
+    func testExerciseSetHasCompletedValues_allowsZeroWeightForBodyweightExercises() {
         XCTAssertTrue(ExerciseSet.hasCompletedValues(weight: 185, reps: 5))
         XCTAssertFalse(ExerciseSet.hasCompletedValues(weight: 185, reps: 0))
         XCTAssertFalse(ExerciseSet.hasCompletedValues(weight: 0, reps: 5))
+        XCTAssertTrue(ExerciseSet.hasCompletedValues(weight: 0, reps: 5, exerciseCategory: .bodyweight))
     }
 
     func testExerciseSetFormattedWeightReps_usesIntegerWeightAndRepCount() {

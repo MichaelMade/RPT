@@ -321,7 +321,11 @@ class ActiveWorkoutViewModel: ObservableObject {
         set.reps = reps
         set.rpe = rpe
 
-        let isComplete = ExerciseSet.hasCompletedValues(weight: weight, reps: reps)
+        let isComplete = ExerciseSet.hasCompletedValues(
+            weight: weight,
+            reps: reps,
+            exerciseCategory: set.exercise?.category
+        )
         if !isComplete {
             set.completedAt = .distantPast
         } else if wasIncomplete {

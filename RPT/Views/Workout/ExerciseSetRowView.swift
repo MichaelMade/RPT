@@ -266,7 +266,12 @@ struct ExerciseSetRowView: View {
             // Update the set
             onUpdate(weight, validatedReps, validatedRPE)
             
-            if isFirstSet && ExerciseSetRowView.shouldUpdateDropSets(weight: weight, reps: validatedReps, isWarmup: set.isWarmup) {
+            if isFirstSet && ExerciseSetRowView.shouldUpdateDropSets(
+                weight: weight,
+                reps: validatedReps,
+                isWarmup: set.isWarmup,
+                exerciseCategory: set.exercise?.category
+            ) {
                 onUpdateDropSets?(weight)
             }
             
@@ -277,6 +282,7 @@ struct ExerciseSetRowView: View {
                 weight: weight,
                 reps: validatedReps,
                 isWarmup: set.isWarmup,
+                exerciseCategory: set.exercise?.category,
                 wasCompletedWorkingSet: wasCompletedWorkingSet
             ), let startTimer = onStartRestTimer {
                 // Small delay to allow the keyboard to dismiss
@@ -287,12 +293,12 @@ struct ExerciseSetRowView: View {
         }
     }
 
-    static func shouldUpdateDropSets(weight: Int, reps: Int, isWarmup: Bool) -> Bool {
-        !isWarmup && ExerciseSet.hasCompletedValues(weight: weight, reps: reps)
+    static func shouldUpdateDropSets(weight: Int, reps: Int, isWarmup: Bool, exerciseCategory: ExerciseCategory? = nil) -> Bool {
+        !isWarmup && ExerciseSet.hasCompletedValues(weight: weight, reps: reps, exerciseCategory: exerciseCategory)
     }
 
-    static func shouldStartRestTimer(weight: Int, reps: Int, isWarmup: Bool, wasCompletedWorkingSet: Bool = false) -> Bool {
-        !wasCompletedWorkingSet && shouldUpdateDropSets(weight: weight, reps: reps, isWarmup: isWarmup)
+    static func shouldStartRestTimer(weight: Int, reps: Int, isWarmup: Bool, exerciseCategory: ExerciseCategory? = nil, wasCompletedWorkingSet: Bool = false) -> Bool {
+        !wasCompletedWorkingSet && shouldUpdateDropSets(weight: weight, reps: reps, isWarmup: isWarmup, exerciseCategory: exerciseCategory)
     }
 
     // MARK: - Quick Adjust Button Component

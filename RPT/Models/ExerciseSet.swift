@@ -41,12 +41,20 @@ final class ExerciseSet {
         self.notes = notes
     }
 
-    static func hasCompletedValues(weight: Int, reps: Int) -> Bool {
-        weight > 0 && reps > 0
+    static func hasCompletedValues(weight: Int, reps: Int, exerciseCategory: ExerciseCategory? = nil) -> Bool {
+        guard reps > 0 else {
+            return false
+        }
+
+        if weight > 0 {
+            return true
+        }
+
+        return exerciseCategory == .bodyweight
     }
 
     var hasCompletedValues: Bool {
-        Self.hasCompletedValues(weight: weight, reps: reps)
+        Self.hasCompletedValues(weight: weight, reps: reps, exerciseCategory: exercise?.category)
     }
 
     var isCompletedWorkingSet: Bool {

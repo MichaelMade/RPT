@@ -125,7 +125,11 @@ class WorkoutManager: ObservableObject {
     func addSet(to workout: Workout, for exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
         let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
 
-        let isComplete = ExerciseSet.hasCompletedValues(weight: sanitized.weight, reps: sanitized.reps)
+        let isComplete = ExerciseSet.hasCompletedValues(
+            weight: sanitized.weight,
+            reps: sanitized.reps,
+            exerciseCategory: exercise.category
+        )
 
         let newSet = ExerciseSet(
             weight: sanitized.weight,
@@ -153,7 +157,11 @@ class WorkoutManager: ObservableObject {
         set.rpe = sanitized.rpe
 
         // Keep completion timestamps aligned with completion state
-        let isComplete = ExerciseSet.hasCompletedValues(weight: sanitized.weight, reps: sanitized.reps)
+        let isComplete = ExerciseSet.hasCompletedValues(
+            weight: sanitized.weight,
+            reps: sanitized.reps,
+            exerciseCategory: set.exercise?.category
+        )
         if !isComplete {
             set.completedAt = .distantPast
         } else if wasIncomplete {
