@@ -13,6 +13,7 @@ import SwiftData
 class ExerciseManager {
     private let modelContext: ModelContext
     static let shared = ExerciseManager()
+    private static let stableComparisonLocale = Locale(identifier: "en_US_POSIX")
 
     static func sanitizeExerciseName(_ name: String) -> String {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -29,9 +30,9 @@ class ExerciseManager {
         return String(collapsedWhitespace.prefix(80))
     }
 
-    static func normalizedNameLookupKey(_ name: String) -> String {
+    static func normalizedNameLookupKey(_ name: String, locale: Locale = stableComparisonLocale) -> String {
         sanitizeExerciseName(name)
-            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+            .folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: locale)
     }
 
     static func namesCollide(_ lhs: String, _ rhs: String) -> Bool {

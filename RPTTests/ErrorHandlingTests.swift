@@ -168,6 +168,11 @@ final class ErrorHandlingTests: XCTestCase {
             "Exercise duplicate checks should treat whitespace/case/diacritic variants as the same name"
         )
 
+        XCTAssertTrue(
+            ExerciseManager.namesCollide("ＴＥＳＴ　ＲＯＷ", "test row"),
+            "Exercise duplicate checks should treat full-width keyboard variants as the same normalized name"
+        )
+
         XCTAssertFalse(
             ExerciseManager.namesCollide("Barbell Row", "Dumbbell Row"),
             "Exercise duplicate checks should still allow distinct exercise names"
