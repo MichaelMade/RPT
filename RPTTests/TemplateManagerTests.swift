@@ -20,4 +20,17 @@ final class TemplateManagerTests: XCTestCase {
             now
         )
     }
+
+    func testNamesCollide_ignoresCaseWhitespaceAndWidthVariants() {
+        XCTAssertTrue(TemplateManager.namesCollide("  ＴＥＭＰＬＡＴＥ   A ", "template a"))
+    }
+
+    func testNormalizedNameLookupKey_defaultsToStablePOSIXLocale() {
+        let value = "İstanbul"
+
+        XCTAssertEqual(
+            TemplateManager.normalizedNameLookupKey(value),
+            TemplateManager.normalizedNameLookupKey(value, locale: Locale(identifier: "en_US_POSIX"))
+        )
+    }
 }

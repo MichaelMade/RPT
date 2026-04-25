@@ -30,9 +30,11 @@ class TemplateManager {
         return String(collapsedWhitespace.prefix(80))
     }
 
-    static func normalizedNameLookupKey(_ name: String) -> String {
+    private static let stableComparisonLocale = Locale(identifier: "en_US_POSIX")
+
+    static func normalizedNameLookupKey(_ name: String, locale: Locale = stableComparisonLocale) -> String {
         sanitizeTemplateName(name)
-            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+            .folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: locale)
     }
 
     static func namesCollide(_ lhs: String, _ rhs: String) -> Bool {
