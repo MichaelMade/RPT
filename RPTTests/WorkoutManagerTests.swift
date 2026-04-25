@@ -764,4 +764,16 @@ final class WorkoutManagerLogicTests: XCTestCase {
 
         XCTAssertEqual(set.formattedWeightReps, "185 lb × 8")
     }
+
+    func testExerciseSetFormattedWeightReps_usesBodyweightLabelForZeroWeightBodyweightSets() {
+        let bodyweightExercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+        let weightedExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Formatting")
+
+        let bodyweightSet = ExerciseSet(weight: 0, reps: 10, exercise: bodyweightExercise, workout: workout)
+        let weightedSet = ExerciseSet(weight: 0, reps: 10, exercise: weightedExercise, workout: workout)
+
+        XCTAssertEqual(bodyweightSet.formattedWeightReps, "BW × 10")
+        XCTAssertEqual(weightedSet.formattedWeightReps, "0 lb × 10")
+    }
 }

@@ -76,6 +76,10 @@ final class ExerciseSet {
     }
 
     var formattedWeightReps: String {
-        "\(weight) lb × \(reps)"
+        if weight == 0, exercise?.category == .bodyweight {
+            return "BW × \(reps)"
+        }
+
+        return "\(weight) lb × \(reps)"
     }
 }
