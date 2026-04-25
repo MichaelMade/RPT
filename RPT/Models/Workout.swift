@@ -242,6 +242,12 @@ final class Workout {
         let reps = max(0, totalBodyweightReps)
         return "\(reps) \(reps == 1 ? "rep" : "reps")"
     }
+
+    /// Backward-compatible summary API used by existing tests/callers.
+    /// Returns the same output as `generateFormattedSummary()`.
+    func generateSummary() -> String {
+        generateFormattedSummary()
+    }
     
     // Generate workout summary
     func generateFormattedSummary() -> String {
