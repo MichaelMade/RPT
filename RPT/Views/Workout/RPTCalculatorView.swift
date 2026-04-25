@@ -71,8 +71,11 @@ struct RPTCalculatorView: View {
                             TextField("", value: Binding(
                                 get: { Int(percentageDrops[index] * 100) },
                                 set: {
-                                    let boundedPercentage = min(max($0, 0), 100)
-                                    percentageDrops[index] = Double(boundedPercentage) / 100.0
+                                    percentageDrops = Self.updatedPercentageDrops(
+                                        percentageDrops,
+                                        editing: index,
+                                        rawPercent: $0
+                                    )
                                 }
                             ), format: .number)
                             .keyboardType(.numberPad)
@@ -132,6 +135,28 @@ struct RPTCalculatorView: View {
         }
 
         return fixedDrops
+    }
+
+    static func updatedPercentageDrops(_ drops: [Double], editing index: Int, rawPercent: Int) -> [Double] {
+        var updatedDrops = normalizedPercentageDrops(drops)
+
+        guard updatedDrops.indices.contains(index) else {
+            return updatedDrops
+        }
+
+        let boundedPercentage = min(max(rawPercent, 0), 100)
+        updatedDrops[index] = Double(boundedPercentage) / 100.0
+        updatedDrops[0] = 0.0
+
+        guard updatedDrops.count > 1 else {
+            return updatedDrops
+        }
+
+        for dropIndex in 1..<updatedDrops.count where updatedDrops[dropIndex] < updatedDrops[dropIndex - 1] {
+            updatedDrops[dropIndex] = updatedDrops[dropIndex - 1]
+        }
+
+        return updatedDrops
     }
     
     private func calculateWeight(for setIndex: Int) -> Int {

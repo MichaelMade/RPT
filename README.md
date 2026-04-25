@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved `RPTCalculatorView` weight-reduction editing safety by enforcing monotonic back-off drops during input (`Set 3` cannot become lighter than `Set 2`) while clamping invalid percentages and keeping the top-set drop fixed at `0%`. This prevents accidental heavier-later-set configurations in the live calculator and keeps set progression aligned with RPT expectations; added regression coverage in `RPTCalculatorViewTests`.
 - Hardened `RPTCalculatorView` against corrupted/legacy saved drop arrays by normalizing loaded `defaultRPTPercentageDrops` to exactly three safe values before rendering/editing, preventing index-out-of-range crashes in the Weight Reductions section and keeping persisted calculator defaults stable; added regression coverage in new `RPTCalculatorViewTests`.
 - Polished set-label readability across Workout Detail, Exercise History, and Stats PR cards by centralizing `ExerciseSet` weight/rep formatting and adding singular/plural rep grammar (`1 rep` vs `n reps`) while preserving bodyweight labels (`BW × reps`); added regression coverage in `WorkoutManagerTests`, `FormattingTests`, and `StatsViewModelTests`.
 - Fixed follow-up workout completion-state integrity by forcing `Workout.createFollowUpWorkout` output sets to remain planned (`completedAt = .distantPast`) instead of pre-marked complete. This prevents generated follow-up sessions from counting as logged working sets before the user actually performs them; added regression coverage in `UserModelTests`.
