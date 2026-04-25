@@ -147,6 +147,25 @@ final class UserModelTests: XCTestCase {
         XCTAssertEqual(user.personalBests["Bench Press"], 205, "Personal best should ignore warmup and incomplete sets")
     }
 
+    func testRegisterCompletedWorkoutIfNeeded_requiresCompletedWorkout() {
+        // Given
+        let user = User(username: "TestUser", email: "test@example.com")
+        let workout = Workout(name: "Incomplete Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: bench, weight: 205, reps: 5)
+        XCTAssertFalse(workout.isCompleted, "Sanity check: fresh workout should start incomplete")
+
+        // When
+        let registrationAttempt = user.registerCompletedWorkoutIfNeeded(workout)
+
+        // Then
+        XCTAssertFalse(registrationAttempt, "Incomplete workouts should not be counted in lifetime stats")
+        XCTAssertEqual(user.workouts.count, 0, "Incomplete workouts should not be linked as completed history")
+        XCTAssertEqual(user.totalWorkouts, 0, "Incomplete workouts should not increment total workouts")
+        XCTAssertEqual(user.totalVolume, 0, "Incomplete workouts should not change total volume")
+    }
+
     func testRegisterCompletedWorkoutIfNeeded_isIdempotentForSameWorkout() {
         // Given
         let user = User(username: "TestUser", email: "test@example.com")
@@ -154,6 +173,7 @@ final class UserModelTests: XCTestCase {
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
 
         _ = workout.addSet(exercise: bench, weight: 205, reps: 5)
+        workout.complete()
 
         // When
         let firstRegistration = user.registerCompletedWorkoutIfNeeded(workout)

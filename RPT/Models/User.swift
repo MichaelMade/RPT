@@ -95,9 +95,14 @@ final class User {
     }
 
     // Register a completed workout exactly once to prevent duplicate lifetime stats.
-    // Returns true when the workout was newly registered, false when it was already linked.
+    // Returns true when the workout was newly registered, false when it was already linked
+    // or when the workout is not actually completed.
     @discardableResult
     func registerCompletedWorkoutIfNeeded(_ workout: Workout) -> Bool {
+        guard workout.isCompleted else {
+            return false
+        }
+
         if workout.user?.id != id {
             workout.user = self
         }

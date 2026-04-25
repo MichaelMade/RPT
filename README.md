@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened lifetime-stat integrity by requiring `User.registerCompletedWorkoutIfNeeded(_:)` to ignore incomplete workouts (`isCompleted == false`), preventing accidental registration of in-progress sessions from inflating completed-workout history and totals; added regression coverage in `UserModelTests`.
 - Improved Home `Recent Workouts` summary accuracy by updating `WorkoutRow` to prefer completed working-set counts (with safe fallback to legacy totals) and singular/plural grammar, so warmup/incomplete placeholder sets no longer inflate the row’s default set/exercise labels; added regression coverage in `FormattingTests`.
 - Polished Active Workout set-row readability for bodyweight lifts by making `ExerciseSetRowView` render zero-weight bodyweight sets as `BW × reps` (instead of `0 lb × reps`) and improving rep grammar (`1 rep` vs `n reps`), keeping the live logging UI consistent with Workout Detail/History/Stats formatting; added regression coverage in `FormattingTests`.
 - Polished Workout Detail set labels to use shared `ExerciseSet.formattedWeightReps` formatting via `ExerciseSection.setDisplayText(for:)`, so bodyweight sets now render consistently as `BW × reps` instead of misleading `0 lb × reps`; added regression coverage in `FormattingTests`.
