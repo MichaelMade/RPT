@@ -616,6 +616,26 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(summary.contains("Bodyweight Reps: 10 reps"))
     }
 
+    func testGenerateFormattedSummary_exerciseListUsesCompletedWorkingSetsOnly() {
+        // Given
+        let workout = Workout(name: "Summary Completed Sets Only")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+        let deadlift = Exercise(name: "Deadlift", category: .compound, primaryMuscleGroups: [.back])
+
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 5, isWarmup: false) // completed working set
+        _ = workout.addSet(exercise: squat, weight: 225, reps: 0, isWarmup: false) // incomplete
+        _ = workout.addSet(exercise: deadlift, weight: 135, reps: 5, isWarmup: true) // warmup
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: Bench Press"))
+        XCTAssertFalse(summary.contains("Squat"))
+        XCTAssertFalse(summary.contains("Deadlift"))
+    }
+
     func testWorkingSetsCount_excludesWarmupAndIncompleteSets() {
         // Given
         let workout = Workout(name: "Set Count Integrity")

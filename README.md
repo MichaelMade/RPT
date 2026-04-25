@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved workout summary exercise-list integrity by making `Workout.generateFormattedSummary()` include only exercises with completed working sets in the `Exercises:` line. This prevents warmup-only or incomplete placeholder sets from appearing in share/export summaries as if they were completed work; added regression coverage in `WorkoutManagerTests`.
 - Improved workout summary completeness for mixed sessions by updating `Workout.generateFormattedSummary()` to include a dedicated `Bodyweight Reps` line whenever a workout contains both weighted volume and completed bodyweight work. This prevents bodyweight effort from being omitted in share/export summaries of mixed workouts; added regression coverage in `WorkoutManagerTests`.
 - Restored source compatibility for workout summary callers by reintroducing `Workout.generateSummary()` as a backward-compatible wrapper around `generateFormattedSummary()`. This prevents build/test breakage in existing call sites that still reference the legacy method while keeping summary output unchanged.
 - Improved bodyweight-only workout summaries across Home and Workout Detail by adding a reps-based fallback metric when weight volume is zero. `Workout` now computes `totalBodyweightReps` from completed working sets and surfaces a preferred metric (`Volume` or `Reps`) so bodyweight sessions show meaningful progress (for example `Total Reps: 18 reps`) instead of misleading `0 lb` volume. Added regression coverage in `FormattingTests` and `WorkoutManagerTests`.
