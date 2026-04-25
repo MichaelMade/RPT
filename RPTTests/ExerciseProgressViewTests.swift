@@ -2,10 +2,25 @@ import XCTest
 @testable import RPT
 
 final class ExerciseProgressViewTests: XCTestCase {
-    func testMetricDisplayName_usesTopRepsForBodyweightTopSet() {
+    func testAvailableMetrics_forBodyweightHidesEstimatedOneRM() {
+        XCTAssertEqual(
+            ExerciseProgressView.availableMetrics(for: .bodyweight),
+            [.topSet, .volume]
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.availableMetrics(for: .compound),
+            ExerciseProgressView.Metric.allCases
+        )
+    }
+
+    func testMetricDisplayName_usesBodyweightSpecificMetricNames() {
         XCTAssertEqual(
             ExerciseProgressView.metricDisplayName(for: .topSet, exerciseCategory: .bodyweight),
             "Top Reps"
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.metricDisplayName(for: .volume, exerciseCategory: .bodyweight),
+            "Total Reps"
         )
         XCTAssertEqual(
             ExerciseProgressView.metricDisplayName(for: .topSet, exerciseCategory: .compound),
@@ -41,7 +56,21 @@ final class ExerciseProgressViewTests: XCTestCase {
         )
     }
 
-    func testFormatMetricValue_forBodyweightTopSetUsesRepUnits() {
+    func testVolumeMetricValue_forBodyweightUsesTotalReps() {
+        let exercise = Exercise(name: "Push-up", category: .bodyweight, primaryMuscleGroups: [.chest])
+        let sets = [
+            ExerciseSet(weight: 0, reps: 12, exercise: exercise),
+            ExerciseSet(weight: 0, reps: 10, exercise: exercise),
+            ExerciseSet(weight: 0, reps: 8, exercise: exercise)
+        ]
+
+        XCTAssertEqual(
+            ExerciseProgressView.volumeMetricValue(from: sets, exerciseCategory: .bodyweight),
+            30
+        )
+    }
+
+    func testFormatMetricValue_forBodyweightUsesRepUnitsForTopSetAndVolume() {
         XCTAssertEqual(
             ExerciseProgressView.formatMetricValue(1, metric: .topSet, exerciseCategory: .bodyweight),
             "1 rep"
@@ -49,6 +78,10 @@ final class ExerciseProgressViewTests: XCTestCase {
         XCTAssertEqual(
             ExerciseProgressView.formatMetricValue(12, metric: .topSet, exerciseCategory: .bodyweight),
             "12 reps"
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricValue(15, metric: .volume, exerciseCategory: .bodyweight),
+            "15 reps"
         )
     }
 }

@@ -42,10 +42,21 @@ struct ExerciseProgressView: View {
         var id: String { rawValue }
     }
 
+    static func availableMetrics(for exerciseCategory: ExerciseCategory) -> [Metric] {
+        switch exerciseCategory {
+        case .bodyweight:
+            return [.topSet, .volume]
+        default:
+            return Metric.allCases
+        }
+    }
+
     static func metricDisplayName(for metric: Metric, exerciseCategory: ExerciseCategory) -> String {
         switch (metric, exerciseCategory) {
         case (.topSet, .bodyweight):
             return "Top Reps"
+        case (.volume, .bodyweight):
+            return "Total Reps"
         default:
             return metric.rawValue
         }
@@ -60,8 +71,17 @@ struct ExerciseProgressView: View {
         }
     }
 
+    static func volumeMetricValue(from sets: [ExerciseSet], exerciseCategory: ExerciseCategory) -> Double {
+        switch exerciseCategory {
+        case .bodyweight:
+            return Double(sets.reduce(0) { $0 + $1.reps })
+        default:
+            return sets.reduce(0.0) { $0 + Double($1.weight) * Double($1.reps) }
+        }
+    }
+
     static func formatMetricValue(_ value: Double, metric: Metric, exerciseCategory: ExerciseCategory) -> String {
-        if exerciseCategory == .bodyweight, metric == .topSet {
+        if exerciseCategory == .bodyweight, metric == .topSet || metric == .volume {
             let roundedReps = Int(value.rounded())
             return "\(roundedReps) \(roundedReps == 1 ? \"rep\" : \"reps\")"
         }
@@ -96,7 +116,7 @@ struct ExerciseProgressView: View {
                 let top = Self.topSetMetricValue(from: daySets, exerciseCategory: exercise.category)
                 return Point(date: day, value: top)
             case .volume:
-                let vol = daySets.reduce(0.0) { $0 + Double($1.weight) * Double($1.reps) }
+                let vol = Self.volumeMetricValue(from: daySets, exerciseCategory: exercise.category)
                 return Point(date: day, value: vol)
             case .estimatedOneRM:
                 // Brzycki formula, capped at 10 reps for accuracy
@@ -122,7 +142,7 @@ struct ExerciseProgressView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 Picker("Metric", selection: $metric) {
-                    ForEach(Metric.allCases) { m in
+                    ForEach(Self.availableMetrics(for: exercise.category)) { m in
                         Text(Self.metricDisplayName(for: m, exerciseCategory: exercise.category)).tag(m)
                     }
                 }
@@ -154,6 +174,11 @@ struct ExerciseProgressView: View {
         }
         .navigationTitle("Progress")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            if !Self.availableMetrics(for: exercise.category).contains(metric) {
+                metric = .topSet
+            }
+        }
     }
 
     @ViewBuilder
