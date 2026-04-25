@@ -4,6 +4,11 @@ import XCTest
 @MainActor
 final class RPTCalculatorViewTests: XCTestCase {
 
+    func testCalculatorDefaults_matchSharedUserSettingsDefaults() {
+        XCTAssertEqual(RPTCalculatorView.supportedSetCount, UserSettings.supportedRPTSetCount)
+        XCTAssertEqual(RPTCalculatorView.defaultPercentageDrops, UserSettings.defaultRPTPercentageDrops)
+    }
+
     func testNormalizedPercentageDrops_padsMissingValuesToSupportedSetCount() {
         let normalized = RPTCalculatorView.normalizedPercentageDrops([0.0, 0.1])
 

@@ -9,10 +9,10 @@ import SwiftUI
 
 struct RPTCalculatorView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("defaultRPTPercentageDrops") private var savedPercentageDrops: Data = (try? JSONEncoder().encode(defaultPercentageDrops)) ?? Data()
+    @ObservedObject private var settingsManager = SettingsManager.shared
 
-    static let supportedSetCount = 3
-    static let defaultPercentageDrops = [0.0, 0.10, 0.15]
+    static let supportedSetCount = UserSettings.supportedRPTSetCount
+    static let defaultPercentageDrops = UserSettings.defaultRPTPercentageDrops
     
     @State private var firstSetWeight = 225 // Default in pounds (integer)
     @State private var targetReps = [6, 8, 10]
@@ -48,7 +48,7 @@ struct RPTCalculatorView: View {
                 
                 // Sets display
                 Section(header: Text("RPT Sets")) {
-                    ForEach(0..<3) { index in
+                    ForEach(0..<Self.supportedSetCount) { index in
                         HStack {
                             Text("Set \(index + 1)")
                                 .fontWeight(.medium)
@@ -63,7 +63,7 @@ struct RPTCalculatorView: View {
                 
                 // Customize percentages
                 Section(header: Text("Weight Reductions")) {
-                    ForEach(1..<3) { index in
+                    ForEach(1..<Self.supportedSetCount) { index in
                         HStack {
                             Text("Set \(index + 1)")
                             Spacer()
@@ -98,26 +98,20 @@ struct RPTCalculatorView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         // Save percentage drops for future use
-                        percentageDrops = Self.normalizedPercentageDrops(percentageDrops)
+                        let normalizedDrops = Self.normalizedPercentageDrops(percentageDrops)
+                        percentageDrops = normalizedDrops
 
-                        do {
-                            savedPercentageDrops = try JSONEncoder().encode(percentageDrops)
-                        } catch {
-                            print("Failed to save percentage drops: \(error)")
+                        if !settingsManager.updateRPTPercentageDropsSafely(drops: normalizedDrops) {
+                            percentageDrops = Self.normalizedPercentageDrops(settingsManager.settings.defaultRPTPercentageDrops)
                         }
+
                         dismiss()
                     }
                 }
             }
             .onAppear {
-                // Load saved percentage drops
-                do {
-                    let loadedDrops = try JSONDecoder().decode([Double].self, from: savedPercentageDrops)
-                    percentageDrops = Self.normalizedPercentageDrops(loadedDrops)
-                } catch {
-                    percentageDrops = Self.normalizedPercentageDrops([])
-                    print("Failed to load percentage drops: \(error)")
-                }
+                // Load drops from shared settings so calculator and workout defaults stay in sync
+                percentageDrops = Self.normalizedPercentageDrops(settingsManager.settings.defaultRPTPercentageDrops)
             }
         }
     }
