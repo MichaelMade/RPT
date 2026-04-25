@@ -137,15 +137,10 @@ class SettingsManager: ObservableObject {
     }
     
     func updateRPTPercentageDrops(drops: [Double]) throws {
-        // Validate top set first, valid range, and non-decreasing backoff percentages
-        let isNonDecreasing = zip(drops, drops.dropFirst()).allSatisfy { current, next in
-            next >= current
-        }
+        let normalizedDrops = UserSettings.normalizedRPTPercentageDrops(drops)
 
-        guard !drops.isEmpty,
-              drops.first == 0.0,
-              drops.allSatisfy({ $0.isFinite && $0 >= 0.0 && $0 <= 1.0 }),
-              isNonDecreasing else {
+        guard drops.count == UserSettings.supportedRPTSetCount,
+              normalizedDrops == drops else {
             throw SettingsError.invalidValue
         }
 
@@ -199,7 +194,7 @@ class SettingsManager: ObservableObject {
     
     func resetToDefaults() throws {
         settings.restTimerDuration = UserSettings.defaultRestTimerDuration
-        settings.defaultRPTPercentageDrops = [0.0, 0.10, 0.15]
+        settings.defaultRPTPercentageDrops = UserSettings.defaultRPTPercentageDrops
         settings.showRPE = true
         settings.darkModePreference = .system
         

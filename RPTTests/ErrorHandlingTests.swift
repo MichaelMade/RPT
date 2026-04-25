@@ -96,8 +96,19 @@ final class ErrorHandlingTests: XCTestCase {
 
         XCTAssertEqual(
             settings.defaultRPTPercentageDrops,
-            [0.0, 0.10, 0.20, 0.30],
-            "Persisted RPT drops should be normalized to deterministic ascending unique values"
+            [0.0, 0.10, 0.20],
+            "Persisted RPT drops should normalize to deterministic ascending unique values within supported set count"
+        )
+    }
+
+    func testUserSettingsDefaultRPTDrops_padsMissingBackoffDrops() {
+        let settings = UserSettings()
+        settings.defaultRPTPercentageDropsString = "0.00"
+
+        XCTAssertEqual(
+            settings.defaultRPTPercentageDrops,
+            [0.0, 0.10, 0.15],
+            "Persisted RPT drops should always recover to exactly three safe values"
         )
     }
 
@@ -109,6 +120,20 @@ final class ErrorHandlingTests: XCTestCase {
         XCTAssertFalse(
             didAcceptInvalid,
             "RPT percentage drops should reject non-monotonic backoff values that would increase later set weights"
+        )
+    }
+
+    func testSettingsManagerUpdateRPTPercentageDrops_rejectsUnsupportedSetCounts() {
+        let settingsManager = SettingsManager.shared
+
+        XCTAssertFalse(
+            settingsManager.updateRPTPercentageDropsSafely(drops: [0.0, 0.10]),
+            "RPT percentage drops should reject arrays shorter than the supported three-set schema"
+        )
+
+        XCTAssertFalse(
+            settingsManager.updateRPTPercentageDropsSafely(drops: [0.0, 0.10, 0.15, 0.20]),
+            "RPT percentage drops should reject arrays longer than the supported three-set schema"
         )
     }
 

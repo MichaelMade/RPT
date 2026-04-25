@@ -10,7 +10,8 @@ import SwiftData
 
 @Model
 final class UserSettings {
-    private static let defaultDrops: [Double] = [0.0, 0.10, 0.15]
+    static let defaultRPTPercentageDrops: [Double] = [0.0, 0.10, 0.15]
+    static let supportedRPTSetCount: Int = 3
     static let defaultRestTimerDuration: Int = 180
 
     var restTimerDuration: Int // in seconds
@@ -39,15 +40,14 @@ final class UserSettings {
             .filter { $0.isFinite && $0 >= 0 && $0 <= 1.0 }
 
         guard !validDrops.isEmpty else {
-            return defaultDrops
+            return defaultRPTPercentageDrops
         }
 
-        let hasTopSet = validDrops.contains(0.0)
         let sortedBackoffDrops = validDrops
             .filter { $0 > 0 }
             .sorted()
 
-        let normalizedDrops = (hasTopSet ? [0.0] : [0.0]) + sortedBackoffDrops
+        let normalizedDrops = [0.0] + sortedBackoffDrops
 
         var dedupedDrops: [Double] = []
         dedupedDrops.reserveCapacity(normalizedDrops.count)
@@ -56,7 +56,15 @@ final class UserSettings {
             dedupedDrops.append(drop)
         }
 
-        return dedupedDrops.isEmpty ? defaultDrops : dedupedDrops
+        var fixedDrops = Array(dedupedDrops.prefix(supportedRPTSetCount))
+
+        while fixedDrops.count < supportedRPTSetCount {
+            let fallback = defaultRPTPercentageDrops[fixedDrops.count]
+            let previous = fixedDrops.last ?? 0.0
+            fixedDrops.append(max(previous, fallback))
+        }
+
+        return fixedDrops
     }
 
     static func normalizedRestTimerDuration(_ duration: Int) -> Int {
@@ -65,7 +73,7 @@ final class UserSettings {
     
     init(
          restTimerDuration: Int = defaultRestTimerDuration,
-         defaultRPTPercentageDrops: [Double] = [0.0, 0.10, 0.15],
+         defaultRPTPercentageDrops: [Double] = UserSettings.defaultRPTPercentageDrops,
          showRPE: Bool = true,
          darkModePreference: DarkModePreference = .system) {
         self.restTimerDuration = Self.normalizedRestTimerDuration(restTimerDuration)
