@@ -51,6 +51,41 @@ final class Workout {
             .filter(\.isCompletedWorkingSet)
             .reduce(0.0) { $0 + (Double($1.weight) * Double($1.reps)) }
     }
+
+    // Calculate completed reps for bodyweight working sets
+    var totalBodyweightReps: Int {
+        sets
+            .filter { $0.isCompletedWorkingSet && $0.exercise?.category == .bodyweight }
+            .reduce(0) { $0 + $1.reps }
+    }
+
+    var hasPreferredWorkMetric: Bool {
+        totalVolume > 0 || totalBodyweightReps > 0
+    }
+
+    var preferredWorkMetricTitle: String {
+        if totalVolume > 0 {
+            return "Volume"
+        }
+
+        if totalBodyweightReps > 0 {
+            return "Reps"
+        }
+
+        return "Volume"
+    }
+
+    var preferredWorkMetricValue: String {
+        if totalVolume > 0 {
+            return formattedTotalVolume()
+        }
+
+        if totalBodyweightReps > 0 {
+            return formattedTotalBodyweightReps()
+        }
+
+        return formattedTotalVolume()
+    }
     
     // Calculate total working sets (completed, non-warmup)
     var workingSetsCount: Int {
@@ -202,6 +237,11 @@ final class Workout {
         let isWholeNumber = safeTotalVolume.truncatingRemainder(dividingBy: 1) == 0
         return isWholeNumber ? "\(Int(safeTotalVolume)) lb" : String(format: "%.1f lb", safeTotalVolume)
     }
+
+    func formattedTotalBodyweightReps() -> String {
+        let reps = max(0, totalBodyweightReps)
+        return "\(reps) \(reps == 1 ? "rep" : "reps")"
+    }
     
     // Generate workout summary
     func generateFormattedSummary() -> String {
@@ -218,7 +258,13 @@ final class Workout {
         var summary = "\(name) - \(dateString)\n"
         summary += "Exercises: \(exerciseList)\n"
         summary += "Sets: \(workingSetsCount)\n"
-        summary += "Total Volume: \(formattedTotalVolume())\n"
+        if totalVolume > 0 {
+            summary += "Total Volume: \(formattedTotalVolume())\n"
+        } else if totalBodyweightReps > 0 {
+            summary += "Total Reps: \(formattedTotalBodyweightReps())\n"
+        } else {
+            summary += "Total Volume: \(formattedTotalVolume())\n"
+        }
         
         if !notes.isEmpty {
             summary += "Notes: \(notes)"

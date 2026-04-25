@@ -36,8 +36,8 @@ struct WorkoutDetailView: View {
                         )
                         
                         StatBox(
-                            title: "Volume",
-                            value: workout.formattedTotalVolume()
+                            title: workout.preferredWorkMetricTitle,
+                            value: workout.preferredWorkMetricValue
                         )
                     }
                     .padding(.vertical, 8)

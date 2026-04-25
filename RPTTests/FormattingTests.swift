@@ -169,6 +169,33 @@ final class FormattingTests: XCTestCase {
 
         XCTAssertEqual(WorkoutRow.exerciseCountText(for: fallbackWorkout), "2 exercises")
     }
+
+    func testWorkoutRowSecondaryMetric_prefersBodyweightRepsWhenVolumeIsZero() {
+        let workout = Workout(name: "Bodyweight Workout")
+        let pullUp = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+
+        _ = workout.addSet(exercise: pullUp, weight: 0, reps: 8)
+        _ = workout.addSet(exercise: pullUp, weight: 0, reps: 6)
+
+        let metric = WorkoutRow.secondaryMetric(for: workout)
+
+        XCTAssertEqual(metric?.label, "Total Reps")
+        XCTAssertEqual(metric?.value, "14 reps")
+    }
+
+    func testWorkoutRowSecondaryMetric_prefersVolumeWhenWeightedWorkExists() {
+        let workout = Workout(name: "Mixed Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let pullUp = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 5)
+        _ = workout.addSet(exercise: pullUp, weight: 0, reps: 10)
+
+        let metric = WorkoutRow.secondaryMetric(for: workout)
+
+        XCTAssertEqual(metric?.label, "Total Volume")
+        XCTAssertEqual(metric?.value, "925 lb")
+    }
     
     func testWeightUnitsConsistency() {
         let workoutManager = WorkoutManager.shared

@@ -583,6 +583,22 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(summary.contains("Exercises: Bench Press, Squat"))
     }
 
+    func testGenerateFormattedSummary_usesTotalRepsForBodyweightOnlyWorkout() {
+        // Given
+        let workout = Workout(name: "Bodyweight Summary")
+        let pullUp = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+
+        _ = workout.addSet(exercise: pullUp, weight: 0, reps: 10)
+        _ = workout.addSet(exercise: pullUp, weight: 0, reps: 8)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Total Reps: 18 reps"))
+        XCTAssertFalse(summary.contains("Total Volume: 0 lb"))
+    }
+
     func testWorkingSetsCount_excludesWarmupAndIncompleteSets() {
         // Given
         let workout = Workout(name: "Set Count Integrity")

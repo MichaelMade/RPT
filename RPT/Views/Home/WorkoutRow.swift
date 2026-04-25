@@ -30,6 +30,17 @@ struct WorkoutRow: View {
         let count = workout.workingSetsCount > 0 ? workout.workingSetsCount : workout.sets.count
         return "\(count) \(count == 1 ? "set" : "sets")"
     }
+
+    static func secondaryMetric(for workout: Workout) -> (label: String, value: String)? {
+        guard workout.hasPreferredWorkMetric else {
+            return nil
+        }
+
+        return (
+            label: "Total \(workout.preferredWorkMetricTitle)",
+            value: workout.preferredWorkMetricValue
+        )
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -52,16 +63,15 @@ struct WorkoutRow: View {
                     .font(.caption)
             }
             
-            // Add volume display
-            if workout.totalVolume > 0 {
+            if let secondaryMetric = Self.secondaryMetric(for: workout) {
                 HStack {
-                    Text("Total Volume:")
+                    Text("\(secondaryMetric.label):")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
                     Spacer()
                     
-                    Text(workout.formattedTotalVolume())
+                    Text(secondaryMetric.value)
                         .font(.caption)
                         .fontWeight(.medium)
                 }
