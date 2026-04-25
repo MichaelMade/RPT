@@ -75,11 +75,17 @@ final class ExerciseSet {
         return completedAt > other.completedAt
     }
 
-    var formattedWeightReps: String {
-        if weight == 0, exercise?.category == .bodyweight {
-            return "BW × \(reps)"
+    static func formattedWeightReps(weight: Int, reps: Int, exerciseCategory: ExerciseCategory? = nil) -> String {
+        let repsText = reps == 1 ? "1 rep" : "\(reps) reps"
+
+        if weight == 0, exerciseCategory == .bodyweight {
+            return "BW × \(repsText)"
         }
 
-        return "\(weight) lb × \(reps)"
+        return "\(weight) lb × \(repsText)"
+    }
+
+    var formattedWeightReps: String {
+        Self.formattedWeightReps(weight: weight, reps: reps, exerciseCategory: exercise?.category)
     }
 }

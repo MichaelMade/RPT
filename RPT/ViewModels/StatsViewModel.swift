@@ -30,11 +30,7 @@ class StatsViewModel: ObservableObject {
         let exerciseCategory: ExerciseCategory? = nil
 
         var formattedWeightReps: String {
-            if exerciseCategory == .bodyweight && weight == 0 {
-                return "BW × \(reps)"
-            }
-
-            return "\(weight) lb × \(reps)"
+            ExerciseSet.formattedWeightReps(weight: weight, reps: reps, exerciseCategory: exerciseCategory)
         }
     }
 

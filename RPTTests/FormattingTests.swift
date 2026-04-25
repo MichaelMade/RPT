@@ -110,8 +110,8 @@ final class FormattingTests: XCTestCase {
         let bodyweightSet = ExerciseSet(weight: 0, reps: 12, exercise: bodyweightExercise)
         let weightedSet = ExerciseSet(weight: 185, reps: 8, exercise: weightedExercise)
 
-        XCTAssertEqual(ExerciseSection.setDisplayText(for: bodyweightSet), "BW × 12")
-        XCTAssertEqual(ExerciseSection.setDisplayText(for: weightedSet), "185 lb × 8")
+        XCTAssertEqual(ExerciseSection.setDisplayText(for: bodyweightSet), "BW × 12 reps")
+        XCTAssertEqual(ExerciseSection.setDisplayText(for: weightedSet), "185 lb × 8 reps")
     }
 
     func testExerciseSetRowDisplayWeightText_usesBodyweightLabelForZeroWeightBodyweightSets() {

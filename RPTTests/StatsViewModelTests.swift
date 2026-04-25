@@ -107,7 +107,7 @@ final class StatsViewModelTests: XCTestCase {
             exerciseCategory: .bodyweight
         )
 
-        XCTAssertEqual(bodyweightPR.formattedWeightReps, "BW × 12")
-        XCTAssertEqual(weightedPR.formattedWeightReps, "45 lb × 8")
+        XCTAssertEqual(bodyweightPR.formattedWeightReps, "BW × 12 reps")
+        XCTAssertEqual(weightedPR.formattedWeightReps, "45 lb × 8 reps")
     }
 }
