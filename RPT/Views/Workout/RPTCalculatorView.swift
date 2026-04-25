@@ -9,11 +9,14 @@ import SwiftUI
 
 struct RPTCalculatorView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("defaultRPTPercentageDrops") private var savedPercentageDrops: Data = (try? JSONEncoder().encode([0.0, 0.10, 0.15])) ?? Data()
+    @AppStorage("defaultRPTPercentageDrops") private var savedPercentageDrops: Data = (try? JSONEncoder().encode(defaultPercentageDrops)) ?? Data()
+
+    static let supportedSetCount = 3
+    static let defaultPercentageDrops = [0.0, 0.10, 0.15]
     
     @State private var firstSetWeight = 225 // Default in pounds (integer)
     @State private var targetReps = [6, 8, 10]
-    @State private var percentageDrops = [0.0, 0.10, 0.20]
+    @State private var percentageDrops = defaultPercentageDrops
     
     var body: some View {
         NavigationStack {
@@ -67,7 +70,10 @@ struct RPTCalculatorView: View {
                             Text("-")
                             TextField("", value: Binding(
                                 get: { Int(percentageDrops[index] * 100) },
-                                set: { percentageDrops[index] = Double($0) / 100.0 }
+                                set: {
+                                    let boundedPercentage = min(max($0, 0), 100)
+                                    percentageDrops[index] = Double(boundedPercentage) / 100.0
+                                }
                             ), format: .number)
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
@@ -89,6 +95,8 @@ struct RPTCalculatorView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         // Save percentage drops for future use
+                        percentageDrops = Self.normalizedPercentageDrops(percentageDrops)
+
                         do {
                             savedPercentageDrops = try JSONEncoder().encode(percentageDrops)
                         } catch {
@@ -101,12 +109,29 @@ struct RPTCalculatorView: View {
             .onAppear {
                 // Load saved percentage drops
                 do {
-                    percentageDrops = try JSONDecoder().decode([Double].self, from: savedPercentageDrops)
+                    let loadedDrops = try JSONDecoder().decode([Double].self, from: savedPercentageDrops)
+                    percentageDrops = Self.normalizedPercentageDrops(loadedDrops)
                 } catch {
+                    percentageDrops = Self.normalizedPercentageDrops([])
                     print("Failed to load percentage drops: \(error)")
                 }
             }
         }
+    }
+
+    static func normalizedPercentageDrops(_ drops: [Double]) -> [Double] {
+        let normalizedDrops = Array(UserSettings.normalizedRPTPercentageDrops(drops).prefix(supportedSetCount))
+
+        if normalizedDrops.count == supportedSetCount {
+            return normalizedDrops
+        }
+
+        var fixedDrops = normalizedDrops
+        while fixedDrops.count < supportedSetCount {
+            fixedDrops.append(defaultPercentageDrops[fixedDrops.count])
+        }
+
+        return fixedDrops
     }
     
     private func calculateWeight(for setIndex: Int) -> Int {
