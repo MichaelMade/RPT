@@ -27,6 +27,15 @@ class StatsViewModel: ObservableObject {
         let weight: Int
         let reps: Int
         let date: Date
+        let exerciseCategory: ExerciseCategory? = nil
+
+        var formattedWeightReps: String {
+            if exerciseCategory == .bodyweight && weight == 0 {
+                return "BW × \(reps)"
+            }
+
+            return "\(weight) lb × \(reps)"
+        }
     }
 
     @Published var totalWorkouts: Int = 0
@@ -125,7 +134,8 @@ class StatsViewModel: ObservableObject {
                     exerciseName: name,
                     weight: set.weight,
                     reps: set.reps,
-                    date: set.completedAt
+                    date: set.completedAt,
+                    exerciseCategory: set.exercise?.category
                 )
             }
         }

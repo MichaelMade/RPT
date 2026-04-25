@@ -162,7 +162,7 @@ struct StatsView: View {
                                 .foregroundColor(.secondary)
                         }
                         Spacer()
-                        Text("\(pr.weight) lb × \(pr.reps)")
+                        Text(pr.formattedWeightReps)
                             .font(.headline.monospacedDigit())
                     }
                     .padding(.vertical, 6)

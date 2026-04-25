@@ -89,4 +89,25 @@ final class StatsViewModelTests: XCTestCase {
             "Lower-rep ties should not replace an existing PR"
         )
     }
+
+    func testPersonalRecordFormattedWeightReps_usesBodyweightLabelForZeroWeightBodyweightPR() {
+        let bodyweightPR = StatsViewModel.PersonalRecord(
+            exerciseName: "Pull-up",
+            weight: 0,
+            reps: 12,
+            date: Date(),
+            exerciseCategory: .bodyweight
+        )
+
+        let weightedPR = StatsViewModel.PersonalRecord(
+            exerciseName: "Dip",
+            weight: 45,
+            reps: 8,
+            date: Date(),
+            exerciseCategory: .bodyweight
+        )
+
+        XCTAssertEqual(bodyweightPR.formattedWeightReps, "BW × 12")
+        XCTAssertEqual(weightedPR.formattedWeightReps, "45 lb × 8")
+    }
 }
