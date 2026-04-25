@@ -42,6 +42,38 @@ struct ExerciseProgressView: View {
         var id: String { rawValue }
     }
 
+    static func metricDisplayName(for metric: Metric, exerciseCategory: ExerciseCategory) -> String {
+        switch (metric, exerciseCategory) {
+        case (.topSet, .bodyweight):
+            return "Top Reps"
+        default:
+            return metric.rawValue
+        }
+    }
+
+    static func topSetMetricValue(from sets: [ExerciseSet], exerciseCategory: ExerciseCategory) -> Double {
+        switch exerciseCategory {
+        case .bodyweight:
+            return Double(sets.map(\.reps).max() ?? 0)
+        default:
+            return Double(sets.map(\.weight).max() ?? 0)
+        }
+    }
+
+    static func formatMetricValue(_ value: Double, metric: Metric, exerciseCategory: ExerciseCategory) -> String {
+        if exerciseCategory == .bodyweight, metric == .topSet {
+            let roundedReps = Int(value.rounded())
+            return "\(roundedReps) \(roundedReps == 1 ? \"rep\" : \"reps\")"
+        }
+
+        let isWhole = value.truncatingRemainder(dividingBy: 1) == 0
+        if metric == .volume && abs(value) >= 1000 {
+            let k = value / 1000
+            return String(format: "%.1fk lb", k)
+        }
+        return isWhole ? "\(Int(value)) lb" : String(format: "%.1f lb", value)
+    }
+
     private struct Point: Identifiable {
         let id = UUID()
         let date: Date
@@ -61,8 +93,8 @@ struct ExerciseProgressView: View {
         return grouped.map { (day, daySets) -> Point in
             switch metric {
             case .topSet:
-                let top = daySets.map { $0.weight }.max() ?? 0
-                return Point(date: day, value: Double(top))
+                let top = Self.topSetMetricValue(from: daySets, exerciseCategory: exercise.category)
+                return Point(date: day, value: top)
             case .volume:
                 let vol = daySets.reduce(0.0) { $0 + Double($1.weight) * Double($1.reps) }
                 return Point(date: day, value: vol)
@@ -91,7 +123,7 @@ struct ExerciseProgressView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Picker("Metric", selection: $metric) {
                     ForEach(Metric.allCases) { m in
-                        Text(m.rawValue).tag(m)
+                        Text(Self.metricDisplayName(for: m, exerciseCategory: exercise.category)).tag(m)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -130,20 +162,20 @@ struct ExerciseProgressView: View {
             if metric == .volume {
                 BarMark(
                     x: .value("Date", point.date, unit: .day),
-                    y: .value(metric.rawValue, point.value)
+                    y: .value(Self.metricDisplayName(for: metric, exerciseCategory: exercise.category), point.value)
                 )
                 .foregroundStyle(exercise.category.style.color)
             } else {
                 LineMark(
                     x: .value("Date", point.date),
-                    y: .value(metric.rawValue, point.value)
+                    y: .value(Self.metricDisplayName(for: metric, exerciseCategory: exercise.category), point.value)
                 )
                 .foregroundStyle(exercise.category.style.color)
                 .interpolationMethod(.monotone)
 
                 PointMark(
                     x: .value("Date", point.date),
-                    y: .value(metric.rawValue, point.value)
+                    y: .value(Self.metricDisplayName(for: metric, exerciseCategory: exercise.category), point.value)
                 )
                 .foregroundStyle(exercise.category.style.color)
                 .symbolSize(40)
@@ -187,12 +219,7 @@ struct ExerciseProgressView: View {
     }
 
     private func formatValue(_ value: Double) -> String {
-        let isWhole = value.truncatingRemainder(dividingBy: 1) == 0
-        if metric == .volume && abs(value) >= 1000 {
-            let k = value / 1000
-            return String(format: "%.1fk lb", k)
-        }
-        return isWhole ? "\(Int(value)) lb" : String(format: "%.1f lb", value)
+        Self.formatMetricValue(value, metric: metric, exerciseCategory: exercise.category)
     }
 }
 
