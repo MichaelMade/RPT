@@ -175,14 +175,14 @@ struct ExerciseSetRowView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("\(set.weight) lb")
+                        Text(ExerciseSetRowView.displayWeightText(weight: set.weight, exerciseCategory: set.exercise?.category))
                             .font(.title3)
                             .fontWeight(.medium)
                         
                         Text("×")
                             .font(.headline)
                         
-                        Text("\(set.reps) reps")
+                        Text(ExerciseSetRowView.displayRepsText(set.reps))
                             .font(.title3)
                             .fontWeight(.medium)
                     }
@@ -299,6 +299,18 @@ struct ExerciseSetRowView: View {
 
     static func shouldStartRestTimer(weight: Int, reps: Int, isWarmup: Bool, exerciseCategory: ExerciseCategory? = nil, wasCompletedWorkingSet: Bool = false) -> Bool {
         !wasCompletedWorkingSet && shouldUpdateDropSets(weight: weight, reps: reps, isWarmup: isWarmup, exerciseCategory: exerciseCategory)
+    }
+
+    static func displayWeightText(weight: Int, exerciseCategory: ExerciseCategory? = nil) -> String {
+        if exerciseCategory == .bodyweight && weight == 0 {
+            return "BW"
+        }
+
+        return "\(weight) lb"
+    }
+
+    static func displayRepsText(_ reps: Int) -> String {
+        "\(reps) \(reps == 1 ? "rep" : "reps")"
     }
 
     // MARK: - Quick Adjust Button Component

@@ -113,6 +113,26 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(ExerciseSection.setDisplayText(for: bodyweightSet), "BW × 12")
         XCTAssertEqual(ExerciseSection.setDisplayText(for: weightedSet), "185 lb × 8")
     }
+
+    func testExerciseSetRowDisplayWeightText_usesBodyweightLabelForZeroWeightBodyweightSets() {
+        XCTAssertEqual(
+            ExerciseSetRowView.displayWeightText(weight: 0, exerciseCategory: .bodyweight),
+            "BW"
+        )
+        XCTAssertEqual(
+            ExerciseSetRowView.displayWeightText(weight: 45, exerciseCategory: .bodyweight),
+            "45 lb"
+        )
+        XCTAssertEqual(
+            ExerciseSetRowView.displayWeightText(weight: 0, exerciseCategory: .compound),
+            "0 lb"
+        )
+    }
+
+    func testExerciseSetRowDisplayRepsText_handlesSingularAndPlural() {
+        XCTAssertEqual(ExerciseSetRowView.displayRepsText(1), "1 rep")
+        XCTAssertEqual(ExerciseSetRowView.displayRepsText(8), "8 reps")
+    }
     
     func testWeightUnitsConsistency() {
         let workoutManager = WorkoutManager.shared

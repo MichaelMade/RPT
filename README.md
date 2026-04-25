@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished Active Workout set-row readability for bodyweight lifts by making `ExerciseSetRowView` render zero-weight bodyweight sets as `BW × reps` (instead of `0 lb × reps`) and improving rep grammar (`1 rep` vs `n reps`), keeping the live logging UI consistent with Workout Detail/History/Stats formatting; added regression coverage in `FormattingTests`.
 - Polished Workout Detail set labels to use shared `ExerciseSet.formattedWeightReps` formatting via `ExerciseSection.setDisplayText(for:)`, so bodyweight sets now render consistently as `BW × reps` instead of misleading `0 lb × reps`; added regression coverage in `FormattingTests`.
 - Polished Stats PR readability for bodyweight lifts by adding `StatsViewModel.PersonalRecord.formattedWeightReps` and carrying exercise category through PR computation, so zero-weight bodyweight PRs now render as `BW × reps` (while weighted bodyweight PRs still show load like `45 lb × 8`) instead of misleading `0 lb × reps`; added regression coverage in `StatsViewModelTests`.
 - Polished bodyweight history readability by updating `ExerciseSet.formattedWeightReps` to show `BW × reps` for zero-weight bodyweight sets (while preserving `0 lb × reps` for non-bodyweight zero-load entries), so pull-ups/push-ups no longer appear as misleading `0 lb` records in Exercise History; added regression coverage in `WorkoutManagerTests`.
