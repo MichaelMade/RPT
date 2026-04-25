@@ -230,4 +230,18 @@ final class UserModelTests: XCTestCase {
         XCTAssertEqual(followUpSets.map(\.weight), [0, 0], "Bodyweight follow-up sets should preserve zero external load")
         XCTAssertEqual(followUpSets.map(\.reps), [8, 6], "Bodyweight follow-up reps should be preserved")
     }
+
+    func testCreateFollowUpWorkout_setsStartIncompleteForLogging() {
+        let workout = Workout(name: "Base Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: bench, weight: 200, reps: 5)
+        _ = workout.addSet(exercise: bench, weight: 180, reps: 8)
+
+        let followUp = workout.createFollowUpWorkout(percentageIncrease: 0.025)
+
+        XCTAssertFalse(followUp.isCompleted, "Follow-up workout should start incomplete")
+        XCTAssertTrue(followUp.sets.allSatisfy { $0.completedAt == .distantPast }, "Follow-up sets should remain planned until the user logs completion")
+        XCTAssertEqual(followUp.workingSetsCount, 0, "Planned follow-up sets should not be counted as completed working sets")
+    }
 }

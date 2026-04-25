@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed follow-up workout completion-state integrity by forcing `Workout.createFollowUpWorkout` output sets to remain planned (`completedAt = .distantPast`) instead of pre-marked complete. This prevents generated follow-up sessions from counting as logged working sets before the user actually performs them; added regression coverage in `UserModelTests`.
 - Fixed follow-up workout continuity for bodyweight training by updating `Workout.createFollowUpWorkout` to keep completed bodyweight zero-load sets (`0 lb`) in generated follow-up sessions instead of dropping those exercises entirely. This preserves pull-up/push-up style progression plans when no external load is used; added regression coverage in `UserModelTests`.
 - Hardened lifetime-stat integrity by requiring `User.registerCompletedWorkoutIfNeeded(_:)` to ignore incomplete workouts (`isCompleted == false`), preventing accidental registration of in-progress sessions from inflating completed-workout history and totals; added regression coverage in `UserModelTests`.
 - Improved Home `Recent Workouts` summary accuracy by updating `WorkoutRow` to prefer completed working-set counts (with safe fallback to legacy totals) and singular/plural grammar, so warmup/incomplete placeholder sets no longer inflate the row’s default set/exercise labels; added regression coverage in `FormattingTests`.

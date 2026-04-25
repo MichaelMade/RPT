@@ -182,13 +182,14 @@ final class Workout {
                 let safeReps = max(0, previousSet.reps)
                 let safeRPE = previousSet.rpe.flatMap { (1...10).contains($0) ? $0 : nil }
 
-                _ = followUp.addSet(
+                let followUpSet = followUp.addSet(
                     exercise: exercise,
                     weight: roundedWeight,
                     reps: safeReps,
                     isWarmup: false,
                     rpe: safeRPE
                 )
+                followUpSet.completedAt = .distantPast
             }
         }
 
