@@ -145,7 +145,7 @@ struct ExerciseDetailView: View {
                                 
                                 Spacer()
                                 
-                                Text("\(set.weight, specifier: "%.1f") lb × \(set.reps)")
+                                Text(set.formattedWeightReps)
                                     .font(.headline)
                             }
                             .padding(.vertical, 8)

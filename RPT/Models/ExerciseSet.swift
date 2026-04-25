@@ -66,4 +66,8 @@ final class ExerciseSet {
 
         return completedAt > other.completedAt
     }
+
+    var formattedWeightReps: String {
+        "\(weight) lb × \(reps)"
+    }
 }

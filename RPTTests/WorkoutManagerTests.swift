@@ -737,4 +737,12 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertFalse(ExerciseSet.hasCompletedValues(weight: 185, reps: 0))
         XCTAssertFalse(ExerciseSet.hasCompletedValues(weight: 0, reps: 5))
     }
+
+    func testExerciseSetFormattedWeightReps_usesIntegerWeightAndRepCount() {
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Formatting")
+        let set = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout)
+
+        XCTAssertEqual(set.formattedWeightReps, "185 lb × 8")
+    }
 }
