@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Active Workout deletion data integrity by routing `ActiveWorkoutViewModel.deleteSet` and `deleteExerciseFromWorkout` through `WorkoutManager` delete paths instead of only mutating `workout.sets`. This prevents orphaned `ExerciseSet` records from lingering in exercise relationships/history after in-workout deletes; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Stabilized exercise-name duplicate detection in `ExerciseManager` by switching normalization to a fixed `en_US_POSIX` locale and adding `.widthInsensitive` folding in `normalizedNameLookupKey`, preventing locale/keyboard-width drift (for example full-width variants like `ＴＥＳＴ　ＲＯＷ`) from bypassing duplicate checks; added regression coverage in `ErrorHandlingTests`.
 - Fixed Exercise History row formatting to use integer weight display (`185 lb × 8`) instead of floating-point specifier formatting on integer values, preventing misleading/unstable weight text in `ExerciseDetailView`; added regression coverage via new `ExerciseSet.formattedWeightReps` test in `WorkoutManagerTests`.
 - Hardened template-name duplicate detection against locale and keyboard-width drift by switching `TemplateManager.normalizedNameLookupKey` to a stable `en_US_POSIX` fold and adding `.widthInsensitive` normalization (while preserving existing trim/collapse behavior). This keeps duplicate checks deterministic across region/language changes and catches full-width variants like `ＴＥＭＰＬＡＴＥ`; added regression coverage in `TemplateManagerTests`.

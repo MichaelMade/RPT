@@ -349,30 +349,17 @@ class ActiveWorkoutViewModel: ObservableObject {
         guard let exercise = set.exercise else {
             throw WorkoutError.invalidSetData
         }
-        
-        // Remove the set from the workout
-        if let index = workout.sets.firstIndex(where: { $0.id == set.id }) {
-            workout.sets.remove(at: index)
-        } else {
-            throw WorkoutError.invalidSetData
-        }
-        
-        // Remove from our tracked exercise groups
-        exerciseGroups[exercise]?.removeAll(where: { $0.id == set.id })
-        
-        // If that was the last set for this exercise, remove the exercise from our groups and order
-        if exerciseGroups[exercise]?.isEmpty ?? true {
-            exerciseGroups.removeValue(forKey: exercise)
-            if let index = exerciseOrder.firstIndex(where: { $0.id == exercise.id }) {
-                exerciseOrder.remove(at: index)
-            }
-            
-            // Also remove from expanded exercises and completed
+
+        // Delete through manager so SwiftData does not keep orphaned sets
+        // linked to exercises after workout-only removal.
+        workoutManager.deleteSet(set)
+        updateExerciseGroupsAndOrder(maintainOrder: true)
+
+        // If that was the last set for this exercise, clear UI state too.
+        if !exerciseGroups.keys.contains(where: { $0.id == exercise.id }) {
             expandedExercises.remove(exercise.id)
             completedExercises.remove(exercise.id)
         }
-        
-        try saveWorkout()
     }
     
     // Safe version that doesn't throw
@@ -391,21 +378,15 @@ class ActiveWorkoutViewModel: ObservableObject {
         guard exerciseGroups.keys.contains(where: { $0.id == exercise.id }) else {
             throw WorkoutError.exerciseNotFound
         }
-        
-        // Remove all sets for this exercise
-        workout.sets.removeAll(where: { $0.exercise?.id == exercise.id })
-        
-        // Remove from our tracked exercise groups and order
-        exerciseGroups.removeValue(forKey: exercise)
-        if let index = exerciseOrder.firstIndex(where: { $0.id == exercise.id }) {
-            exerciseOrder.remove(at: index)
-        }
-        
+
+        // Delete through manager so backing ExerciseSet records are removed,
+        // not just detached from this workout.
+        workoutManager.removeExercise(exercise, from: workout)
+        updateExerciseGroupsAndOrder(maintainOrder: true)
+
         // Also remove from expanded exercises and completed
         expandedExercises.remove(exercise.id)
         completedExercises.remove(exercise.id)
-        
-        try saveWorkout()
     }
     
     // Safe version that doesn't throw
