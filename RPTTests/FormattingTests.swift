@@ -133,6 +133,42 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(ExerciseSetRowView.displayRepsText(1), "1 rep")
         XCTAssertEqual(ExerciseSetRowView.displayRepsText(8), "8 reps")
     }
+
+    func testWorkoutRowSetCountText_prefersCompletedWorkingSetsAndUsesSingularPluralGrammar() {
+        let workout = Workout(name: "Workout Row Set Count")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: exercise, weight: 45, reps: 10, isWarmup: true)
+        _ = workout.addSet(exercise: exercise, weight: 225, reps: 5)
+        _ = workout.addSet(exercise: exercise, weight: 185, reps: 0)
+
+        XCTAssertEqual(WorkoutRow.setCountText(for: workout), "1 set")
+
+        _ = workout.addSet(exercise: exercise, weight: 205, reps: 6)
+
+        XCTAssertEqual(WorkoutRow.setCountText(for: workout), "2 sets")
+    }
+
+    func testWorkoutRowExerciseCountText_prefersCompletedWorkingSetExercisesWithFallback() {
+        let workout = Workout(name: "Workout Row Exercise Count")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        _ = workout.addSet(exercise: bench, weight: 225, reps: 5)
+        _ = workout.addSet(exercise: squat, weight: 95, reps: 8, isWarmup: true)
+
+        XCTAssertEqual(WorkoutRow.exerciseCountText(for: workout), "1 exercise")
+
+        _ = workout.addSet(exercise: squat, weight: 185, reps: 5)
+
+        XCTAssertEqual(WorkoutRow.exerciseCountText(for: workout), "2 exercises")
+
+        let fallbackWorkout = Workout(name: "Workout Row Fallback")
+        _ = fallbackWorkout.addSet(exercise: bench, weight: 135, reps: 0)
+        _ = fallbackWorkout.addSet(exercise: squat, weight: 185, reps: 0)
+
+        XCTAssertEqual(WorkoutRow.exerciseCountText(for: fallbackWorkout), "2 exercises")
+    }
     
     func testWeightUnitsConsistency() {
         let workoutManager = WorkoutManager.shared

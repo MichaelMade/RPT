@@ -10,6 +10,26 @@ import SwiftData
 
 struct WorkoutRow: View {
     let workout: Workout
+
+    static func displayExerciseCount(for workout: Workout) -> Int {
+        let completedExercises = Set(
+            workout.sets
+                .filter(\.isCompletedWorkingSet)
+                .compactMap { $0.exercise }
+        ).count
+
+        return completedExercises > 0 ? completedExercises : workout.exerciseCount
+    }
+
+    static func exerciseCountText(for workout: Workout) -> String {
+        let count = displayExerciseCount(for: workout)
+        return "\(count) \(count == 1 ? "exercise" : "exercises")"
+    }
+
+    static func setCountText(for workout: Workout) -> String {
+        let count = workout.workingSetsCount > 0 ? workout.workingSetsCount : workout.sets.count
+        return "\(count) \(count == 1 ? "set" : "sets")"
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -22,14 +42,13 @@ struct WorkoutRow: View {
             
             HStack {
                 if !workout.sets.isEmpty {
-                    let exercises = Set(workout.sets.compactMap { $0.exercise?.name })
-                    Text("\(exercises.count) exercises")
+                    Text(Self.exerciseCountText(for: workout))
                         .font(.caption)
                 }
                 
                 Spacer()
                 
-                Text("\(workout.sets.count) sets")
+                Text(Self.setCountText(for: workout))
                     .font(.caption)
             }
             
