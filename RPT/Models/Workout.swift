@@ -266,6 +266,10 @@ final class Workout {
         summary += "Sets: \(workingSetsCount)\n"
         if totalVolume > 0 {
             summary += "Total Volume: \(formattedTotalVolume())\n"
+
+            if totalBodyweightReps > 0 {
+                summary += "Bodyweight Reps: \(formattedTotalBodyweightReps())\n"
+            }
         } else if totalBodyweightReps > 0 {
             summary += "Total Reps: \(formattedTotalBodyweightReps())\n"
         } else {
