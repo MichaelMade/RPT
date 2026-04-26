@@ -134,6 +134,21 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(ExerciseSetRowView.displayRepsText(8), "8 reps")
     }
 
+    func testWorkoutRowDisplayName_fallsBackForBlankAndNormalizesWhitespace() {
+        let blankNameWorkout = Workout(name: "   \n   ")
+        XCTAssertEqual(WorkoutRow.displayName(for: blankNameWorkout), "Workout")
+
+        let spacedNameWorkout = Workout(name: "  Upper   Body\nSession  ")
+        XCTAssertEqual(WorkoutRow.displayName(for: spacedNameWorkout), "Upper Body Session")
+    }
+
+    func testWorkoutRowDisplayName_clampsVeryLongNames() {
+        let longName = String(repeating: "A", count: 120)
+        let workout = Workout(name: longName)
+
+        XCTAssertEqual(WorkoutRow.displayName(for: workout).count, 80)
+    }
+
     func testWorkoutRowSetCountText_prefersCompletedWorkingSetsAndUsesSingularPluralGrammar() {
         let workout = Workout(name: "Workout Row Set Count")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

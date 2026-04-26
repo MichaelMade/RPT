@@ -11,6 +11,19 @@ import SwiftData
 struct WorkoutRow: View {
     let workout: Workout
 
+    static func displayName(for workout: Workout) -> String {
+        let collapsedName = workout.name
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedName.isEmpty else {
+            return "Workout"
+        }
+
+        return String(collapsedName.prefix(80))
+    }
+
     static func displayExerciseCount(for workout: Workout) -> Int {
         let completedExercises = Set(
             workout.sets
@@ -55,7 +68,7 @@ struct WorkoutRow: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(workout.name)
+            Text(Self.displayName(for: workout))
                 .font(.headline)
             
             Text(workout.date, style: .date)

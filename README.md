@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Home `Recent Workouts` title resilience by adding `WorkoutRow.displayName(for:)`, which normalizes whitespace, falls back to `Workout` for blank/corrupted names, and clamps very long names to 80 characters. This keeps Home rows readable and consistent with summary/export title hardening; added regression coverage in `FormattingTests`.
 - Improved weighted progress-chart metric honesty in `ExerciseProgressView.formatMetricValue(...)` by switching volume abbreviations to truncation-first formatting (so `1999` now shows `1.9k lb` instead of rounding to `2.0k lb`) and adding million-scale abbreviations (`1M lb`, `1.9M lb`) for large totals; added regression coverage in `ExerciseProgressViewTests`.
 - Improved Home `Recent Workouts` metric completeness for mixed sessions by adding a second metric row in `WorkoutRow` that surfaces `Bodyweight Reps` whenever a workout includes both weighted volume and completed bodyweight sets. This keeps bodyweight effort visible on the Home list instead of being hidden behind `Total Volume` alone; added regression coverage in `FormattingTests`.
 - Improved volume-format consistency in `WorkoutManager.formatVolume(_:)` by switching to truncation-first threshold handling (so `999.95` now stays `999.9 lb` instead of prematurely displaying `1k lb`) and adding million-scale abbreviations (`1M lb`, `1.9M lb`) to match headline formatting behavior; added regression coverage in `WorkoutManagerTests`.
