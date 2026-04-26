@@ -290,6 +290,19 @@ final class Workout {
         return (display: collapsedName, key: normalizedKey)
     }
 
+    private func normalizedSummaryWorkoutName() -> String {
+        let collapsedName = name
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedName.isEmpty else {
+            return "Workout"
+        }
+
+        return String(collapsedName.prefix(80))
+    }
+
     private func normalizedSummaryNotes() -> String? {
         let collapsedNotes = notes
             .components(separatedBy: .whitespacesAndNewlines)
@@ -328,7 +341,9 @@ final class Workout {
         dateFormatter.timeStyle = .short
         let dateString = dateFormatter.string(from: date)
         
-        var summary = "\(name) - \(dateString)\n"
+        let summaryWorkoutName = normalizedSummaryWorkoutName()
+
+        var summary = "\(summaryWorkoutName) - \(dateString)\n"
         summary += "Exercises: \(exerciseList)\n"
         summary += "Sets: \(workingSetsCount)\n"
         summary += "Duration: \(formattedDurationForSummary())\n"

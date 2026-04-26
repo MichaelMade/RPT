@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened workout share/export title integrity in `Workout.generateFormattedSummary()` by normalizing workout names (`trim + collapse whitespace`) with a safe fallback to `Workout` for blank/corrupted names and an 80-character cap for overly long titles. This prevents malformed summary headers like ` - Apr 26, 2026` and keeps exported text readable; added regression coverage in `WorkoutManagerTests`.
 - Improved workout share/export duration fidelity for long sessions by updating `Workout.formattedDurationForSummary()` to include seconds when duration exceeds one hour and has leftover seconds (for example `1h 1m 1s` instead of truncating to `1h 1m`). This preserves short-interval accuracy in copied summaries without changing exact-hour formatting; added regression coverage in `WorkoutManagerTests`.
 - Polished workout share/export summary notes in `Workout.generateFormattedSummary()` by normalizing notes whitespace before rendering (`trim + collapse`), so blank/whitespace-only notes are omitted and multiline notes are exported as clean single-line text instead of injecting awkward empty lines. Added regression coverage in `WorkoutManagerTests`.
 - Fixed Home screen `Continue Workout` state integrity by making `HomeViewModel.resumableWorkout` ignore completed workouts in both the active binding and stored fallback. This prevents stale completed sessions from incorrectly surfacing as resumable and ensures the primary action only resumes genuinely in-progress workouts. Added regression coverage in `HomeViewModelTests`.

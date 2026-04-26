@@ -725,6 +725,32 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(summary.contains("Exercises: None"))
     }
 
+    func testGenerateFormattedSummary_fallsBackToDefaultNameWhenNameIsWhitespaceOnly() {
+        // Given
+        let workout = Workout(name: "   \n\t  ")
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.hasPrefix("Workout - "))
+    }
+
+    func testGenerateFormattedSummary_normalizesAndClampsWorkoutName() {
+        // Given
+        let longName = "  Upper   Body\nSession\t" + String(repeating: "A", count: 120)
+        let workout = Workout(name: longName)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        let firstLine = summary.components(separatedBy: "\n").first ?? ""
+        let renderedName = String(firstLine.split(separator: "-").first?.trimmingCharacters(in: .whitespaces) ?? "")
+        XCTAssertTrue(renderedName.hasPrefix("Upper Body Session"))
+        XCTAssertLessThanOrEqual(renderedName.count, 80)
+    }
+
     func testGenerateFormattedSummary_omitsNotesWhenTheyAreWhitespaceOnly() {
         // Given
         let workout = Workout(name: "Summary Notes", notes: "  \n\t   ")
