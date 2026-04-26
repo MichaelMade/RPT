@@ -619,6 +619,17 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertFalse(summary.contains("Duration: 1h 0m"))
     }
 
+    func testGenerateFormattedSummary_includesSecondsWhenDurationExceedsAnHour() {
+        // Given
+        let workout = Workout(name: "Long Duration", duration: 3661.9)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Duration: 1h 1m 1s"))
+    }
+
     func testGenerateFormattedSummary_clampsCorruptedDurationDisplayToSafeZero() {
         // Given
         let workout = Workout(name: "Corrupted Duration Summary", duration: -.infinity)

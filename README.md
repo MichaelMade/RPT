@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved workout share/export duration fidelity for long sessions by updating `Workout.formattedDurationForSummary()` to include seconds when duration exceeds one hour and has leftover seconds (for example `1h 1m 1s` instead of truncating to `1h 1m`). This preserves short-interval accuracy in copied summaries without changing exact-hour formatting; added regression coverage in `WorkoutManagerTests`.
 - Polished workout share/export summary notes in `Workout.generateFormattedSummary()` by normalizing notes whitespace before rendering (`trim + collapse`), so blank/whitespace-only notes are omitted and multiline notes are exported as clean single-line text instead of injecting awkward empty lines. Added regression coverage in `WorkoutManagerTests`.
 - Fixed Home screen `Continue Workout` state integrity by making `HomeViewModel.resumableWorkout` ignore completed workouts in both the active binding and stored fallback. This prevents stale completed sessions from incorrectly surfacing as resumable and ensures the primary action only resumes genuinely in-progress workouts. Added regression coverage in `HomeViewModelTests`.
 - Hardened set-label rendering against corrupted negative data by clamping `ExerciseSet.formattedWeightReps` inputs to safe non-negative values before display, so the UI no longer shows nonsensical values like `-45 lb × -3 reps` and instead falls back to `0 lb × 0 reps` (or `BW × 0 reps` for bodyweight exercises). Added regression coverage in `WorkoutManagerTests`.

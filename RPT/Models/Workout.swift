@@ -252,6 +252,10 @@ final class Workout {
         let seconds = totalSeconds % 60
 
         if hours > 0 {
+            if seconds > 0 {
+                return "\(hours)h \(minutes)m \(seconds)s"
+            }
+
             return "\(hours)h \(minutes)m"
         }
 
