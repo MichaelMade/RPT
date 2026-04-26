@@ -179,21 +179,27 @@ struct StatsView: View {
 
     func formattedTotal(_ volume: Double) -> String {
         let safeVolume = volume.isFinite ? max(0, volume) : 0
-        let roundedVolume = (safeVolume * 10).rounded() / 10
+        let truncatedVolume = floor(safeVolume * 10) / 10
 
-        if roundedVolume >= 1000 {
-            let thousands = roundedVolume / 1000
-            let roundedThousands = (thousands * 10).rounded() / 10
-            let isWhole = roundedThousands.truncatingRemainder(dividingBy: 1) == 0
-            return isWhole ? "\(Int(roundedThousands))k lb" : String(format: "%.1fk lb", roundedThousands)
+        if truncatedVolume >= 1_000_000 {
+            let millions = truncatedVolume / 1_000_000
+            let truncatedMillions = floor(millions * 10) / 10
+            let isWhole = truncatedMillions.truncatingRemainder(dividingBy: 1) == 0
+            return isWhole
+                ? "\(Int(truncatedMillions))M lb"
+                : String(format: "%.1fM lb", truncatedMillions)
         }
 
-        let roundedSubThousand = Int(roundedVolume.rounded())
-        if roundedSubThousand >= 1000 {
-            return "1k lb"
+        if truncatedVolume >= 1000 {
+            let thousands = truncatedVolume / 1000
+            let truncatedThousands = floor(thousands * 10) / 10
+            let isWhole = truncatedThousands.truncatingRemainder(dividingBy: 1) == 0
+            return isWhole
+                ? "\(Int(truncatedThousands))k lb"
+                : String(format: "%.1fk lb", truncatedThousands)
         }
 
-        return "\(roundedSubThousand) lb"
+        return "\(Int(floor(truncatedVolume))) lb"
     }
 }
 

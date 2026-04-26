@@ -15,16 +15,25 @@ final class StatsViewFormattingTests: XCTestCase {
         super.tearDown()
     }
 
-    func testFormattedTotal_roundsNearThresholdIntoThousandsFormat() {
-        XCTAssertEqual(sut.formattedTotal(999.95), "1k lb")
+    func testFormattedTotal_doesNotPromoteSubThousandNearThreshold() {
+        XCTAssertEqual(sut.formattedTotal(999.95), "999 lb")
     }
 
-    func testFormattedTotal_roundsSubThousandInsteadOfTruncating() {
-        XCTAssertEqual(sut.formattedTotal(123.6), "124 lb")
+    func testFormattedTotal_truncatesSubThousandValues() {
+        XCTAssertEqual(sut.formattedTotal(123.6), "123 lb")
     }
 
     func testFormattedTotal_clampsInvalidValuesToZero() {
         XCTAssertEqual(sut.formattedTotal(-10), "0 lb")
         XCTAssertEqual(sut.formattedTotal(.infinity), "0 lb")
+    }
+
+    func testFormattedTotal_truncatesThousandsWithoutOverstating() {
+        XCTAssertEqual(sut.formattedTotal(1999.0), "1.9k lb")
+    }
+
+    func testFormattedTotal_supportsMillionScaleAbbreviation() {
+        XCTAssertEqual(sut.formattedTotal(1_000_000.0), "1M lb")
+        XCTAssertEqual(sut.formattedTotal(1_999_999.0), "1.9M lb")
     }
 }
