@@ -106,6 +106,16 @@ class HomeViewModel: ObservableObject {
         let safeVolume = stats.totalVolume.isFinite ? max(0, stats.totalVolume) : 0
         let truncatedVolume = floor(safeVolume * 10) / 10
 
+        if truncatedVolume >= 1_000_000 {
+            let millions = truncatedVolume / 1_000_000
+            let truncatedMillions = floor(millions * 10) / 10
+            let isWholeMillions = truncatedMillions.truncatingRemainder(dividingBy: 1) == 0
+
+            return isWholeMillions
+                ? "\(Int(truncatedMillions))M"
+                : String(format: "%.1fM", truncatedMillions)
+        }
+
         if truncatedVolume >= 1000 {
             let thousands = truncatedVolume / 1000
             let truncatedThousands = floor(thousands * 10) / 10

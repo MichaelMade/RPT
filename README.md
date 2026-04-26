@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Home lifetime-volume readability for advanced users by extending `HomeViewModel.formatTotalVolume()` with million-scale abbreviations (`1M`, `1.9M`) while preserving the existing truncation-first anti-overstatement behavior. This keeps large totals compact without prematurely rounding up at million boundaries; added regression coverage in `HomeViewModelTests`.
 - Hardened set-completion integrity for corrupted bodyweight data by updating `ExerciseSet.hasCompletedValues` to reject negative weight values before applying bodyweight completion rules. This prevents invalid entries like `-10 lb × 8` from being treated as completed working sets and polluting workout progress/stats flows; added regression coverage in `WorkoutManagerTests`.
 - Improved Home total-volume display integrity by updating `HomeViewModel.formatTotalVolume()` to truncate instead of round at both sub-thousand and thousands boundaries, preventing inflated labels like `1k`/`2k` from values that are still below those thresholds (`999.95` → `999`, `1999` → `1.9k`). Added regression coverage in `HomeViewModelTests`.
 - Hardened workout share/export title integrity in `Workout.generateFormattedSummary()` by normalizing workout names (`trim + collapse whitespace`) with a safe fallback to `Workout` for blank/corrupted names and an 80-character cap for overly long titles. This prevents malformed summary headers like ` - Apr 26, 2026` and keeps exported text readable; added regression coverage in `WorkoutManagerTests`.

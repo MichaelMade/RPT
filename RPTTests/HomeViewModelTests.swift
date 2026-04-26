@@ -78,6 +78,28 @@ final class HomeViewModelTests: XCTestCase {
         // Then - should not round up to an inflated thousand value
         XCTAssertEqual(formattedVolume, "1.9k", "Format should truncate thousands to avoid overstating progress")
     }
+
+    func testFormatTotalVolume_millionsFormattingUsesSuffix() {
+        // Given - user stats with a whole-number million value
+        viewModel.userStats = (totalWorkouts: 12, totalVolume: 1_000_000.0, workoutStreak: 6)
+
+        // When - format total volume
+        let formattedVolume = viewModel.formatTotalVolume()
+
+        // Then - should abbreviate to millions
+        XCTAssertEqual(formattedVolume, "1M", "Format should abbreviate million-scale totals with an M suffix")
+    }
+
+    func testFormatTotalVolume_millionsFormattingTruncatesWithoutOverstating() {
+        // Given - user stats near the next million boundary
+        viewModel.userStats = (totalWorkouts: 12, totalVolume: 1_999_999.0, workoutStreak: 6)
+
+        // When - format total volume
+        let formattedVolume = viewModel.formatTotalVolume()
+
+        // Then - should truncate instead of rounding up to 2M
+        XCTAssertEqual(formattedVolume, "1.9M", "Format should truncate million-scale totals to avoid overstating progress")
+    }
     
     func testFormatTotalVolume_exactlyThreshold() {
         // Given - user stats with volume exactly at 1000
