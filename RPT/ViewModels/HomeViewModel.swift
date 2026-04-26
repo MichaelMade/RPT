@@ -104,21 +104,18 @@ class HomeViewModel: ObservableObject {
         guard let stats = userStats else { return "0" }
 
         let safeVolume = stats.totalVolume.isFinite ? max(0, stats.totalVolume) : 0
-        let roundedVolume = (safeVolume * 10).rounded() / 10
+        let truncatedVolume = floor(safeVolume * 10) / 10
 
-        if roundedVolume >= 1000 {
-            let thousands = roundedVolume / 1000
-            let roundedThousands = (thousands * 10).rounded() / 10
-            let isWholeThousands = roundedThousands.truncatingRemainder(dividingBy: 1) == 0
-            return isWholeThousands ?
-                "\(Int(roundedThousands))k" :
-                String(format: "%.1fk", roundedThousands)
-        } else {
-            let roundedWhole = Int(roundedVolume.rounded())
-            if roundedWhole >= 1000 {
-                return "1k"
-            }
-            return "\(roundedWhole)"
+        if truncatedVolume >= 1000 {
+            let thousands = truncatedVolume / 1000
+            let truncatedThousands = floor(thousands * 10) / 10
+            let isWholeThousands = truncatedThousands.truncatingRemainder(dividingBy: 1) == 0
+
+            return isWholeThousands
+                ? "\(Int(truncatedThousands))k"
+                : String(format: "%.1fk", truncatedThousands)
         }
+
+        return "\(Int(floor(truncatedVolume)))"
     }
 }

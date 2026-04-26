@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Home total-volume display integrity by updating `HomeViewModel.formatTotalVolume()` to truncate instead of round at both sub-thousand and thousands boundaries, preventing inflated labels like `1k`/`2k` from values that are still below those thresholds (`999.95` → `999`, `1999` → `1.9k`). Added regression coverage in `HomeViewModelTests`.
 - Hardened workout share/export title integrity in `Workout.generateFormattedSummary()` by normalizing workout names (`trim + collapse whitespace`) with a safe fallback to `Workout` for blank/corrupted names and an 80-character cap for overly long titles. This prevents malformed summary headers like ` - Apr 26, 2026` and keeps exported text readable; added regression coverage in `WorkoutManagerTests`.
 - Improved workout share/export duration fidelity for long sessions by updating `Workout.formattedDurationForSummary()` to include seconds when duration exceeds one hour and has leftover seconds (for example `1h 1m 1s` instead of truncating to `1h 1m`). This preserves short-interval accuracy in copied summaries without changing exact-hour formatting; added regression coverage in `WorkoutManagerTests`.
 - Polished workout share/export summary notes in `Workout.generateFormattedSummary()` by normalizing notes whitespace before rendering (`trim + collapse`), so blank/whitespace-only notes are omitted and multiline notes are exported as clean single-line text instead of injecting awkward empty lines. Added regression coverage in `WorkoutManagerTests`.

@@ -68,15 +68,15 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(formattedVolume, "1.5k", "Format should preserve fractional thousands")
     }
 
-    func testFormatTotalVolume_roundedFractionWithoutTrailingDecimal() {
-        // Given - user stats that round to a whole thousand at one decimal precision
+    func testFormatTotalVolume_thousandsFormattingTruncatesWithoutOverstating() {
+        // Given - user stats near the next thousand boundary
         viewModel.userStats = (totalWorkouts: 8, totalVolume: 1999.0, workoutStreak: 4)
 
         // When - format total volume
         let formattedVolume = viewModel.formatTotalVolume()
 
-        // Then - should avoid showing trailing .0
-        XCTAssertEqual(formattedVolume, "2k", "Format should not show trailing .0k after rounding")
+        // Then - should not round up to an inflated thousand value
+        XCTAssertEqual(formattedVolume, "1.9k", "Format should truncate thousands to avoid overstating progress")
     }
     
     func testFormatTotalVolume_exactlyThreshold() {
@@ -90,15 +90,15 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(formattedVolume, "1k", "Format should abbreviate exact 1000 volume")
     }
 
-    func testFormatTotalVolume_roundsNearThresholdIntoThousandsFormat() {
-        // Given - user stats just below threshold that round to 1000.0
+    func testFormatTotalVolume_doesNotPromoteSubThousandValuesIntoThousandsFormat() {
+        // Given - user stats just below threshold
         viewModel.userStats = (totalWorkouts: 5, totalVolume: 999.95, workoutStreak: 3)
 
         // When - format total volume
         let formattedVolume = viewModel.formatTotalVolume()
 
-        // Then - should use thousands format after rounding
-        XCTAssertEqual(formattedVolume, "1k", "Format should round near-threshold totals into thousands format")
+        // Then - should avoid inflating into thousands format
+        XCTAssertEqual(formattedVolume, "999", "Format should keep sub-thousand totals below 1k")
     }
 
     func testFormatTotalVolume_belowThreshold() {
@@ -112,26 +112,26 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(formattedVolume, "950", "Format should return integer without decimal for volume below 1000")
     }
 
-    func testFormatTotalVolume_roundsSubThousandInsteadOfTruncating() {
+    func testFormatTotalVolume_truncatesSubThousandFractionsToAvoidOverstatement() {
         // Given - user stats with a fractional value below 1000
         viewModel.userStats = (totalWorkouts: 5, totalVolume: 123.6, workoutStreak: 3)
 
         // When - format total volume
         let formattedVolume = viewModel.formatTotalVolume()
 
-        // Then - should round to nearest whole number, not floor
-        XCTAssertEqual(formattedVolume, "124", "Format should round sub-thousand totals to nearest integer")
+        // Then - should truncate instead of rounding up
+        XCTAssertEqual(formattedVolume, "123", "Format should truncate sub-thousand totals")
     }
 
-    func testFormatTotalVolume_subThousandRoundedWholeBoundaryPromotesToThousands() {
-        // Given - user stats below 1000 that round to 1000
+    func testFormatTotalVolume_subThousandBoundaryDoesNotPromoteToThousands() {
+        // Given - user stats below 1000 near the boundary
         viewModel.userStats = (totalWorkouts: 5, totalVolume: 999.6, workoutStreak: 3)
 
         // When - format total volume
         let formattedVolume = viewModel.formatTotalVolume()
 
-        // Then - should stay consistent with thousands abbreviation
-        XCTAssertEqual(formattedVolume, "1k", "Format should promote rounded 1000 values to thousands format")
+        // Then - should remain sub-thousand
+        XCTAssertEqual(formattedVolume, "999", "Format should not promote sub-thousand totals to 1k")
     }
 
     func testFormatTotalVolume_negativeValue() {
