@@ -343,22 +343,32 @@ class WorkoutManager: ObservableObject {
     // Get formatted volume
     func formatVolume(_ volume: Double) -> String {
         let safeVolume = volume.isFinite ? max(0, volume) : 0
-        let roundedVolume = (safeVolume * 10).rounded() / 10
+        let truncatedVolume = floor(safeVolume * 10) / 10
 
-        if roundedVolume >= 1000 {
-            let thousands = roundedVolume / 1000
-            let roundedThousands = (thousands * 10).rounded() / 10
-            let isWholeThousands = roundedThousands.truncatingRemainder(dividingBy: 1) == 0
+        if truncatedVolume >= 1_000_000 {
+            let millions = truncatedVolume / 1_000_000
+            let truncatedMillions = floor(millions * 10) / 10
+            let isWholeMillions = truncatedMillions.truncatingRemainder(dividingBy: 1) == 0
 
-            return isWholeThousands ?
-                "\(Int(roundedThousands))k lb" :
-                String(format: "%.1fk lb", roundedThousands)
+            return isWholeMillions
+                ? "\(Int(truncatedMillions))M lb"
+                : String(format: "%.1fM lb", truncatedMillions)
         }
 
-        let isWholeNumber = roundedVolume.truncatingRemainder(dividingBy: 1) == 0
-        return isWholeNumber ?
-            "\(Int(roundedVolume)) lb" :
-            String(format: "%.1f lb", roundedVolume)
+        if truncatedVolume >= 1000 {
+            let thousands = truncatedVolume / 1000
+            let truncatedThousands = floor(thousands * 10) / 10
+            let isWholeThousands = truncatedThousands.truncatingRemainder(dividingBy: 1) == 0
+
+            return isWholeThousands
+                ? "\(Int(truncatedThousands))k lb"
+                : String(format: "%.1fk lb", truncatedThousands)
+        }
+
+        let isWholeNumber = truncatedVolume.truncatingRemainder(dividingBy: 1) == 0
+        return isWholeNumber
+            ? "\(Int(truncatedVolume)) lb"
+            : String(format: "%.1f lb", truncatedVolume)
     }
     
     // Calculate workout statistics with proper formatting
