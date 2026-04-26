@@ -583,6 +583,28 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(summary.contains("Exercises: Bench Press, Squat"))
     }
 
+    func testGenerateFormattedSummary_includesHumanReadableDuration() {
+        // Given
+        let workout = Workout(name: "Duration Summary", duration: 125)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Duration: 2m 5s"))
+    }
+
+    func testGenerateFormattedSummary_clampsCorruptedDurationDisplayToSafeZero() {
+        // Given
+        let workout = Workout(name: "Corrupted Duration Summary", duration: -.infinity)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Duration: 0s"))
+    }
+
     func testGenerateFormattedSummary_usesTotalRepsForBodyweightOnlyWorkout() {
         // Given
         let workout = Workout(name: "Bodyweight Summary")

@@ -243,6 +243,25 @@ final class Workout {
         return "\(reps) \(reps == 1 ? "rep" : "reps")"
     }
 
+    func formattedDurationForSummary() -> String {
+        let safeDuration = duration.isFinite ? max(0, duration) : 0
+        let totalSeconds = Int(safeDuration.rounded())
+
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        }
+
+        if minutes > 0 {
+            return "\(minutes)m \(seconds)s"
+        }
+
+        return "\(seconds)s"
+    }
+
     /// Backward-compatible summary API used by existing tests/callers.
     /// Returns the same output as `generateFormattedSummary()`.
     func generateSummary() -> String {
@@ -268,6 +287,7 @@ final class Workout {
         var summary = "\(name) - \(dateString)\n"
         summary += "Exercises: \(exerciseList)\n"
         summary += "Sets: \(workingSetsCount)\n"
+        summary += "Duration: \(formattedDurationForSummary())\n"
         if totalVolume > 0 {
             summary += "Total Volume: \(formattedTotalVolume())\n"
 
