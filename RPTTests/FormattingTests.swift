@@ -196,7 +196,35 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(metric?.label, "Total Volume")
         XCTAssertEqual(metric?.value, "925 lb")
     }
-    
+
+    func testWorkoutRowSupplementalMetric_surfacesBodyweightRepsForMixedWorkout() {
+        let workout = Workout(name: "Mixed Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let pullUp = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 5)
+        _ = workout.addSet(exercise: pullUp, weight: 0, reps: 10)
+
+        let metric = WorkoutRow.supplementalMetric(for: workout)
+
+        XCTAssertEqual(metric?.label, "Bodyweight Reps")
+        XCTAssertEqual(metric?.value, "10 reps")
+    }
+
+    func testWorkoutRowSupplementalMetric_hiddenForNonMixedWorkouts() {
+        let weightedWorkout = Workout(name: "Weighted Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = weightedWorkout.addSet(exercise: bench, weight: 225, reps: 5)
+
+        XCTAssertNil(WorkoutRow.supplementalMetric(for: weightedWorkout))
+
+        let bodyweightWorkout = Workout(name: "Bodyweight Workout")
+        let pullUp = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+        _ = bodyweightWorkout.addSet(exercise: pullUp, weight: 0, reps: 8)
+
+        XCTAssertNil(WorkoutRow.supplementalMetric(for: bodyweightWorkout))
+    }
+
     func testWeightUnitsConsistency() {
         let workoutManager = WorkoutManager.shared
         let settingsManager = SettingsManager.shared

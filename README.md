@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Home `Recent Workouts` metric completeness for mixed sessions by adding a second metric row in `WorkoutRow` that surfaces `Bodyweight Reps` whenever a workout includes both weighted volume and completed bodyweight sets. This keeps bodyweight effort visible on the Home list instead of being hidden behind `Total Volume` alone; added regression coverage in `FormattingTests`.
 - Improved volume-format consistency in `WorkoutManager.formatVolume(_:)` by switching to truncation-first threshold handling (so `999.95` now stays `999.9 lb` instead of prematurely displaying `1k lb`) and adding million-scale abbreviations (`1M lb`, `1.9M lb`) to match headline formatting behavior; added regression coverage in `WorkoutManagerTests`.
 - Improved Stats headline volume integrity in `StatsView.formattedTotal(_:)` by switching to truncation-first formatting (matching Home), preventing near-threshold overstatement (`999.95` now stays `999 lb`, `1999` shows `1.9k lb`) and adding million-scale abbreviations (`1M lb`, `1.9M lb`) for large totals; added regression coverage in `StatsViewFormattingTests`.
 - Improved Home lifetime-volume readability for advanced users by extending `HomeViewModel.formatTotalVolume()` with million-scale abbreviations (`1M`, `1.9M`) while preserving the existing truncation-first anti-overstatement behavior. This keeps large totals compact without prematurely rounding up at million boundaries; added regression coverage in `HomeViewModelTests`.

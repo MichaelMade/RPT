@@ -41,6 +41,17 @@ struct WorkoutRow: View {
             value: workout.preferredWorkMetricValue
         )
     }
+
+    static func supplementalMetric(for workout: Workout) -> (label: String, value: String)? {
+        guard workout.totalVolume > 0, workout.totalBodyweightReps > 0 else {
+            return nil
+        }
+
+        return (
+            label: "Bodyweight Reps",
+            value: workout.formattedTotalBodyweightReps()
+        )
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -72,6 +83,20 @@ struct WorkoutRow: View {
                     Spacer()
                     
                     Text(secondaryMetric.value)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                }
+            }
+
+            if let supplementalMetric = Self.supplementalMetric(for: workout) {
+                HStack {
+                    Text("\(supplementalMetric.label):")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Spacer()
+
+                    Text(supplementalMetric.value)
                         .font(.caption)
                         .fontWeight(.medium)
                 }
