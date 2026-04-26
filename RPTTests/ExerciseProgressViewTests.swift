@@ -128,4 +128,26 @@ final class ExerciseProgressViewTests: XCTestCase {
             "0 lb"
         )
     }
+
+    func testFormatMetricDeltaValue_includesSignForPositiveAndNegativeChanges() {
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricDeltaValue(12, metric: .topSet, exerciseCategory: .compound),
+            "+12 lb"
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricDeltaValue(-12, metric: .topSet, exerciseCategory: .compound),
+            "-12 lb"
+        )
+    }
+
+    func testFormatMetricDeltaValue_forBodyweightUsesRepUnitsAndSign() {
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricDeltaValue(1.9, metric: .topSet, exerciseCategory: .bodyweight),
+            "+1 rep"
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricDeltaValue(-3.9, metric: .volume, exerciseCategory: .bodyweight),
+            "-3 reps"
+        )
+    }
 }

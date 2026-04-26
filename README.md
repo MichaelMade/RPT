@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Exercise Progress summary-card change accuracy by adding signed delta formatting (`ExerciseProgressView.formatMetricDeltaValue(...)`) and wiring the Change card to use it. Negative progress is now shown correctly (for example `-5 lb`, `-3 reps`) instead of being clamped to zero, while positive deltas keep explicit `+` prefixes; added regression coverage in `ExerciseProgressViewTests`.
 - Improved repo hygiene for ongoing iOS asset iteration by ignoring local AppIcon backup files (`RPT.backup-*.jpg`) in `.gitignore`. This prevents accidental commits and noisy dirty working trees when preserving temporary icon variants during design experiments.
 - Hardened `ExerciseProgressView` metric text against corrupted values by sanitizing non-finite/negative inputs to safe zero and switching bodyweight rep formatting to truncation-first output (so `1.9` now displays as `1 rep` instead of rounding up). This prevents `nan`/negative metric labels and keeps progress summaries from overstating rep counts; added regression coverage in `ExerciseProgressViewTests`.
 - Improved Home `Recent Workouts` title resilience by adding `WorkoutRow.displayName(for:)`, which normalizes whitespace, falls back to `Workout` for blank/corrupted names, and clamps very long names to 80 characters. This keeps Home rows readable and consistent with summary/export title hardening; added regression coverage in `FormattingTests`.

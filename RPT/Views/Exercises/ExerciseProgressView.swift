@@ -132,6 +132,20 @@ struct ExerciseProgressView: View {
         return isWhole ? "\(Int(safeValue)) lb" : String(format: "%.1f lb", safeValue)
     }
 
+    static func formatMetricDeltaValue(_ value: Double, metric: Metric, exerciseCategory: ExerciseCategory) -> String {
+        guard value.isFinite else {
+            return formatMetricValue(0, metric: metric, exerciseCategory: exerciseCategory)
+        }
+
+        if value == 0 {
+            return formatMetricValue(0, metric: metric, exerciseCategory: exerciseCategory)
+        }
+
+        let signPrefix = value > 0 ? "+" : "-"
+        let magnitudeText = formatMetricValue(abs(value), metric: metric, exerciseCategory: exerciseCategory)
+        return "\(signPrefix)\(magnitudeText)"
+    }
+
     private struct Point: Identifiable {
         let id = UUID()
         let date: Date
@@ -258,7 +272,7 @@ struct ExerciseProgressView: View {
                 statCard(title: "Best", value: formatValue(summary.best))
                 statCard(
                     title: "Change",
-                    value: (summary.delta >= 0 ? "+" : "") + formatValue(summary.delta),
+                    value: Self.formatMetricDeltaValue(summary.delta, metric: metric, exerciseCategory: exercise.category),
                     tint: summary.delta >= 0 ? .green : .red
                 )
             }
