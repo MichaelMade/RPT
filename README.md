@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved repo hygiene for ongoing iOS asset iteration by ignoring local AppIcon backup files (`RPT.backup-*.jpg`) in `.gitignore`. This prevents accidental commits and noisy dirty working trees when preserving temporary icon variants during design experiments.
 - Hardened `ExerciseProgressView` metric text against corrupted values by sanitizing non-finite/negative inputs to safe zero and switching bodyweight rep formatting to truncation-first output (so `1.9` now displays as `1 rep` instead of rounding up). This prevents `nan`/negative metric labels and keeps progress summaries from overstating rep counts; added regression coverage in `ExerciseProgressViewTests`.
 - Improved Home `Recent Workouts` title resilience by adding `WorkoutRow.displayName(for:)`, which normalizes whitespace, falls back to `Workout` for blank/corrupted names, and clamps very long names to 80 characters. This keeps Home rows readable and consistent with summary/export title hardening; added regression coverage in `FormattingTests`.
 - Improved weighted progress-chart metric honesty in `ExerciseProgressView.formatMetricValue(...)` by switching volume abbreviations to truncation-first formatting (so `1999` now shows `1.9k lb` instead of rounding to `2.0k lb`) and adding million-scale abbreviations (`1M lb`, `1.9M lb`) for large totals; added regression coverage in `ExerciseProgressViewTests`.

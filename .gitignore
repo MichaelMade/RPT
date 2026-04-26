@@ -101,3 +101,6 @@ xcuserdata
 /*.gcno
 **/xcshareddata/WorkspaceSettings.xcsettings
 **/.claude/settings.local.json
+
+# Local AppIcon experiment backups (keep out of repo history)
+RPT/Assets.xcassets/AppIcon.appiconset/RPT.backup-*.jpg
