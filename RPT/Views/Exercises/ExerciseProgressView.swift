@@ -86,11 +86,42 @@ struct ExerciseProgressView: View {
             return "\(roundedReps) \(roundedReps == 1 ? \"rep\" : \"reps\")"
         }
 
-        let isWhole = value.truncatingRemainder(dividingBy: 1) == 0
-        if metric == .volume && abs(value) >= 1000 {
-            let k = value / 1000
-            return String(format: "%.1fk lb", k)
+        func truncatedTowardZero(_ input: Double, decimals: Int) -> Double {
+            let factor = pow(10.0, Double(decimals))
+            let scaled = input * factor
+            let truncated = input >= 0 ? floor(scaled) : ceil(scaled)
+            return truncated / factor
         }
+
+        if metric == .volume {
+            let magnitude = abs(value)
+
+            if magnitude >= 1_000_000 {
+                let signedMillions = value / 1_000_000
+                let truncatedMillions = truncatedTowardZero(signedMillions, decimals: 1)
+                let isWholeMillion = truncatedMillions.truncatingRemainder(dividingBy: 1) == 0
+                return isWholeMillion
+                    ? "\(Int(truncatedMillions))M lb"
+                    : String(format: "%.1fM lb", truncatedMillions)
+            }
+
+            if magnitude >= 1000 {
+                let signedThousands = value / 1000
+                let truncatedThousands = truncatedTowardZero(signedThousands, decimals: 1)
+                let isWholeThousand = truncatedThousands.truncatingRemainder(dividingBy: 1) == 0
+                return isWholeThousand
+                    ? "\(Int(truncatedThousands))k lb"
+                    : String(format: "%.1fk lb", truncatedThousands)
+            }
+
+            let truncatedVolume = truncatedTowardZero(value, decimals: 1)
+            let isWholeVolume = truncatedVolume.truncatingRemainder(dividingBy: 1) == 0
+            return isWholeVolume
+                ? "\(Int(truncatedVolume)) lb"
+                : String(format: "%.1f lb", truncatedVolume)
+        }
+
+        let isWhole = value.truncatingRemainder(dividingBy: 1) == 0
         return isWhole ? "\(Int(value)) lb" : String(format: "%.1f lb", value)
     }
 

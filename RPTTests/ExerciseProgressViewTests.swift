@@ -84,4 +84,22 @@ final class ExerciseProgressViewTests: XCTestCase {
             "15 reps"
         )
     }
+
+    func testFormatMetricValue_forWeightedVolumeTruncatesThousandsInsteadOfRoundingUp() {
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricValue(1999, metric: .volume, exerciseCategory: .compound),
+            "1.9k lb"
+        )
+    }
+
+    func testFormatMetricValue_forWeightedVolumeSupportsMillionsWithTruncation() {
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricValue(1_000_000, metric: .volume, exerciseCategory: .compound),
+            "1M lb"
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricValue(1_999_999, metric: .volume, exerciseCategory: .compound),
+            "1.9M lb"
+        )
+    }
 }
