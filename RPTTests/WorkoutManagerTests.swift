@@ -818,6 +818,9 @@ final class WorkoutManagerLogicTests: XCTestCase {
         let bodyweightSet = ExerciseSet(weight: 0, reps: 8, exercise: bodyweightExercise, workout: workout, completedAt: Date(), isWarmup: false)
         XCTAssertTrue(bodyweightSet.isCompletedWorkingSet)
 
+        let corruptedNegativeBodyweightSet = ExerciseSet(weight: -10, reps: 8, exercise: bodyweightExercise, workout: workout, completedAt: Date(), isWarmup: false)
+        XCTAssertFalse(corruptedNegativeBodyweightSet.isCompletedWorkingSet)
+
         let zeroRepsSet = ExerciseSet(weight: 185, reps: 0, exercise: exercise, workout: workout, completedAt: Date(), isWarmup: false)
         XCTAssertFalse(zeroRepsSet.isCompletedWorkingSet)
 

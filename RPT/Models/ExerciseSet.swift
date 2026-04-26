@@ -46,6 +46,10 @@ final class ExerciseSet {
             return false
         }
 
+        guard weight >= 0 else {
+            return false
+        }
+
         if weight > 0 {
             return true
         }
