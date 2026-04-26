@@ -714,6 +714,28 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(summary.contains("Exercises: None"))
     }
 
+    func testGenerateFormattedSummary_omitsNotesWhenTheyAreWhitespaceOnly() {
+        // Given
+        let workout = Workout(name: "Summary Notes", notes: "  \n\t   ")
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertFalse(summary.contains("Notes:"))
+    }
+
+    func testGenerateFormattedSummary_collapsesMultilineNotesToSingleLine() {
+        // Given
+        let workout = Workout(name: "Summary Notes", notes: "  Felt strong\n\nAdded back-off set\t ")
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Notes: Felt strong Added back-off set"))
+    }
+
     func testWorkingSetsCount_excludesWarmupAndIncompleteSets() {
         // Given
         let workout = Workout(name: "Set Count Integrity")

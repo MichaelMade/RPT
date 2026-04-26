@@ -286,6 +286,19 @@ final class Workout {
         return (display: collapsedName, key: normalizedKey)
     }
 
+    private func normalizedSummaryNotes() -> String? {
+        let collapsedNotes = notes
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedNotes.isEmpty else {
+            return nil
+        }
+
+        return collapsedNotes
+    }
+
     // Generate workout summary
     func generateFormattedSummary() -> String {
         var seenExerciseNames: Set<String> = []
@@ -327,8 +340,8 @@ final class Workout {
             summary += "Total Volume: \(formattedTotalVolume())\n"
         }
         
-        if !notes.isEmpty {
-            summary += "Notes: \(notes)"
+        if let normalizedNotes = normalizedSummaryNotes() {
+            summary += "Notes: \(normalizedNotes)"
         }
         
         return summary

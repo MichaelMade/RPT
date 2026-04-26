@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished workout share/export summary notes in `Workout.generateFormattedSummary()` by normalizing notes whitespace before rendering (`trim + collapse`), so blank/whitespace-only notes are omitted and multiline notes are exported as clean single-line text instead of injecting awkward empty lines. Added regression coverage in `WorkoutManagerTests`.
 - Fixed Home screen `Continue Workout` state integrity by making `HomeViewModel.resumableWorkout` ignore completed workouts in both the active binding and stored fallback. This prevents stale completed sessions from incorrectly surfacing as resumable and ensures the primary action only resumes genuinely in-progress workouts. Added regression coverage in `HomeViewModelTests`.
 - Hardened set-label rendering against corrupted negative data by clamping `ExerciseSet.formattedWeightReps` inputs to safe non-negative values before display, so the UI no longer shows nonsensical values like `-45 lb × -3 reps` and instead falls back to `0 lb × 0 reps` (or `BW × 0 reps` for bodyweight exercises). Added regression coverage in `WorkoutManagerTests`.
 - Improved Active Workout empty-state clarity in `WorkoutProgressView` by replacing ambiguous `0/0 Exercises` copy with `No exercises yet` when no exercises are in the workout, and added accessibility label/value/hint metadata for the progress bar so VoiceOver users hear meaningful status text. Added regression coverage in `WorkoutProgressViewTests` for the new empty-state label behavior.
