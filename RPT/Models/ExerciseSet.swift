@@ -76,13 +76,15 @@ final class ExerciseSet {
     }
 
     static func formattedWeightReps(weight: Int, reps: Int, exerciseCategory: ExerciseCategory? = nil) -> String {
-        let repsText = reps == 1 ? "1 rep" : "\(reps) reps"
+        let safeWeight = max(0, weight)
+        let safeReps = max(0, reps)
+        let repsText = safeReps == 1 ? "1 rep" : "\(safeReps) reps"
 
-        if weight == 0, exerciseCategory == .bodyweight {
+        if safeWeight == 0, exerciseCategory == .bodyweight {
             return "BW × \(repsText)"
         }
 
-        return "\(weight) lb × \(repsText)"
+        return "\(safeWeight) lb × \(repsText)"
     }
 
     var formattedWeightReps: String {

@@ -921,4 +921,15 @@ final class WorkoutManagerLogicTests: XCTestCase {
             "185 lb × 1 rep"
         )
     }
+
+    func testExerciseSetFormattedWeightReps_clampsNegativeValuesToSafeDisplay() {
+        XCTAssertEqual(
+            ExerciseSet.formattedWeightReps(weight: -45, reps: -3, exerciseCategory: .compound),
+            "0 lb × 0 reps"
+        )
+        XCTAssertEqual(
+            ExerciseSet.formattedWeightReps(weight: -10, reps: -1, exerciseCategory: .bodyweight),
+            "BW × 0 reps"
+        )
+    }
 }
