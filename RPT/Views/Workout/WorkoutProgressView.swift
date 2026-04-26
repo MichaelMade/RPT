@@ -10,12 +10,23 @@ import SwiftUI
 struct WorkoutProgressView: View {
     let completedExercises: Int
     let totalExercises: Int
+
+    var safeTotalExercises: Int {
+        max(0, totalExercises)
+    }
+
+    var safeCompletedExercises: Int {
+        min(max(0, completedExercises), safeTotalExercises)
+    }
+
+    var progressLabel: String {
+        let exerciseNoun = safeTotalExercises == 1 ? "Exercise" : "Exercises"
+        return "\(safeCompletedExercises)/\(safeTotalExercises) \(exerciseNoun)"
+    }
     
     var progress: Double {
-        let safeTotalExercises = max(0, totalExercises)
         guard safeTotalExercises > 0 else { return 0 }
 
-        let safeCompletedExercises = max(0, completedExercises)
         let rawProgress = Double(safeCompletedExercises) / Double(safeTotalExercises)
         return min(max(rawProgress, 0), 1)
     }
@@ -30,7 +41,7 @@ struct WorkoutProgressView: View {
                 
                 Spacer()
                 
-                Text("\(completedExercises)/\(totalExercises) Exercises")
+                Text(progressLabel)
                     .font(.caption)
                     .fontWeight(.medium)
             }

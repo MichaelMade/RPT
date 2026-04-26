@@ -31,4 +31,19 @@ final class WorkoutProgressViewTests: XCTestCase {
         let view = WorkoutProgressView(completedExercises: 2, totalExercises: -4)
         XCTAssertEqual(view.progress, 0)
     }
+
+    func testProgressLabel_whenInputsAreNegative_showsSafeZeroValues() {
+        let view = WorkoutProgressView(completedExercises: -2, totalExercises: -4)
+        XCTAssertEqual(view.progressLabel, "0/0 Exercises")
+    }
+
+    func testProgressLabel_whenCompletedExceedsTotal_clampsDisplayToTotal() {
+        let view = WorkoutProgressView(completedExercises: 6, totalExercises: 4)
+        XCTAssertEqual(view.progressLabel, "4/4 Exercises")
+    }
+
+    func testProgressLabel_whenTotalIsOne_usesSingularGrammar() {
+        let view = WorkoutProgressView(completedExercises: 1, totalExercises: 1)
+        XCTAssertEqual(view.progressLabel, "1/1 Exercise")
+    }
 }
