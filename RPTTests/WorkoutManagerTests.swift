@@ -595,6 +595,30 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(summary.contains("Duration: 2m 5s"))
     }
 
+    func testGenerateFormattedSummary_durationDoesNotRoundUpNearMinuteBoundary() {
+        // Given
+        let workout = Workout(name: "Boundary Duration", duration: 59.9)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Duration: 59s"))
+        XCTAssertFalse(summary.contains("Duration: 1m 0s"))
+    }
+
+    func testGenerateFormattedSummary_durationDoesNotRoundUpNearHourBoundary() {
+        // Given
+        let workout = Workout(name: "Hour Boundary Duration", duration: 3599.9)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Duration: 59m 59s"))
+        XCTAssertFalse(summary.contains("Duration: 1h 0m"))
+    }
+
     func testGenerateFormattedSummary_clampsCorruptedDurationDisplayToSafeZero() {
         // Given
         let workout = Workout(name: "Corrupted Duration Summary", duration: -.infinity)

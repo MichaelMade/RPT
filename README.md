@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved workout share/export duration accuracy by changing `Workout.formattedDurationForSummary()` to floor elapsed seconds instead of rounding, so near-boundary values no longer over-report time (for example `59.9s` now shows `59s`, not `1m 0s`; `3599.9s` shows `59m 59s`, not `1h 0m`). Added regression coverage in `WorkoutManagerTests` for minute/hour boundary behavior.
 - Hardened workout share/export summaries against messy legacy exercise names by normalizing whitespace/case/width in `Workout.generateFormattedSummary()` before de-duplication and dropping blank exercise names from the `Exercises:` line. This prevents duplicates like `Bench   Press` + `bench press` and avoids empty-name artifacts in copied summaries; added regression coverage in `WorkoutManagerTests`.
 - Improved workout share/export readability by preserving the user’s logged exercise order in `Workout.generateFormattedSummary()` (while still de-duplicating names and keeping the `Exercises: None` fallback). This keeps summary text aligned with the actual workout flow instead of reordering exercises alphabetically; added regression coverage in `WorkoutManagerTests`.
 - Improved share/export summary usefulness by adding a human-readable `Duration:` line in `Workout.generateFormattedSummary()` (for example `2m 5s`, `1h 12m`) with safe clamping for corrupted persisted values, so copied summaries now include time spent without leaking invalid duration data; added regression coverage in `WorkoutManagerTests`.

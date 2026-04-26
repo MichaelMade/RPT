@@ -245,7 +245,7 @@ final class Workout {
 
     func formattedDurationForSummary() -> String {
         let safeDuration = duration.isFinite ? max(0, duration) : 0
-        let totalSeconds = Int(safeDuration.rounded())
+        let totalSeconds = Int(floor(safeDuration))
 
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
