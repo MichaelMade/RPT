@@ -20,6 +20,10 @@ struct WorkoutProgressView: View {
     }
 
     var progressLabel: String {
+        guard safeTotalExercises > 0 else {
+            return "No exercises yet"
+        }
+
         let exerciseNoun = safeTotalExercises == 1 ? "Exercise" : "Exercises"
         return "\(safeCompletedExercises)/\(safeTotalExercises) \(exerciseNoun)"
     }
@@ -61,6 +65,10 @@ struct WorkoutProgressView: View {
                         .frame(width: geometry.size.width * progress)
                         .animation(.spring(response: 0.4), value: progress)
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Workout progress")
+                .accessibilityValue(progressLabel)
+                .accessibilityHint("Shows completed exercises out of total exercises")
             }
             .frame(height: 10)
         }
