@@ -81,9 +81,16 @@ struct ExerciseProgressView: View {
     }
 
     static func formatMetricValue(_ value: Double, metric: Metric, exerciseCategory: ExerciseCategory) -> String {
+        let safeValue: Double
+        if value.isFinite {
+            safeValue = max(0, value)
+        } else {
+            safeValue = 0
+        }
+
         if exerciseCategory == .bodyweight, metric == .topSet || metric == .volume {
-            let roundedReps = Int(value.rounded())
-            return "\(roundedReps) \(roundedReps == 1 ? \"rep\" : \"reps\")"
+            let truncatedReps = Int(safeValue.rounded(.towardZero))
+            return "\(truncatedReps) \(truncatedReps == 1 ? \"rep\" : \"reps\")"
         }
 
         func truncatedTowardZero(_ input: Double, decimals: Int) -> Double {
@@ -94,10 +101,10 @@ struct ExerciseProgressView: View {
         }
 
         if metric == .volume {
-            let magnitude = abs(value)
+            let magnitude = abs(safeValue)
 
             if magnitude >= 1_000_000 {
-                let signedMillions = value / 1_000_000
+                let signedMillions = safeValue / 1_000_000
                 let truncatedMillions = truncatedTowardZero(signedMillions, decimals: 1)
                 let isWholeMillion = truncatedMillions.truncatingRemainder(dividingBy: 1) == 0
                 return isWholeMillion
@@ -106,7 +113,7 @@ struct ExerciseProgressView: View {
             }
 
             if magnitude >= 1000 {
-                let signedThousands = value / 1000
+                let signedThousands = safeValue / 1000
                 let truncatedThousands = truncatedTowardZero(signedThousands, decimals: 1)
                 let isWholeThousand = truncatedThousands.truncatingRemainder(dividingBy: 1) == 0
                 return isWholeThousand
@@ -114,15 +121,15 @@ struct ExerciseProgressView: View {
                     : String(format: "%.1fk lb", truncatedThousands)
             }
 
-            let truncatedVolume = truncatedTowardZero(value, decimals: 1)
+            let truncatedVolume = truncatedTowardZero(safeValue, decimals: 1)
             let isWholeVolume = truncatedVolume.truncatingRemainder(dividingBy: 1) == 0
             return isWholeVolume
                 ? "\(Int(truncatedVolume)) lb"
                 : String(format: "%.1f lb", truncatedVolume)
         }
 
-        let isWhole = value.truncatingRemainder(dividingBy: 1) == 0
-        return isWhole ? "\(Int(value)) lb" : String(format: "%.1f lb", value)
+        let isWhole = safeValue.truncatingRemainder(dividingBy: 1) == 0
+        return isWhole ? "\(Int(safeValue)) lb" : String(format: "%.1f lb", safeValue)
     }
 
     private struct Point: Identifiable {

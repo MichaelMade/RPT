@@ -85,6 +85,21 @@ final class ExerciseProgressViewTests: XCTestCase {
         )
     }
 
+    func testFormatMetricValue_forBodyweightTruncatesAndSanitizesCorruptedValues() {
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricValue(1.9, metric: .topSet, exerciseCategory: .bodyweight),
+            "1 rep"
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricValue(-5, metric: .volume, exerciseCategory: .bodyweight),
+            "0 reps"
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricValue(.infinity, metric: .volume, exerciseCategory: .bodyweight),
+            "0 reps"
+        )
+    }
+
     func testFormatMetricValue_forWeightedVolumeTruncatesThousandsInsteadOfRoundingUp() {
         XCTAssertEqual(
             ExerciseProgressView.formatMetricValue(1999, metric: .volume, exerciseCategory: .compound),
@@ -100,6 +115,17 @@ final class ExerciseProgressViewTests: XCTestCase {
         XCTAssertEqual(
             ExerciseProgressView.formatMetricValue(1_999_999, metric: .volume, exerciseCategory: .compound),
             "1.9M lb"
+        )
+    }
+
+    func testFormatMetricValue_forWeightedMetricsSanitizesCorruptedValues() {
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricValue(-42, metric: .topSet, exerciseCategory: .compound),
+            "0 lb"
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricValue(.nan, metric: .volume, exerciseCategory: .compound),
+            "0 lb"
         )
     }
 }
