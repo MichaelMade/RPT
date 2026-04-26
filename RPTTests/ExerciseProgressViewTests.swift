@@ -150,4 +150,15 @@ final class ExerciseProgressViewTests: XCTestCase {
             "-3 reps"
         )
     }
+
+    func testDeltaTrend_classifiesPositiveNeutralAndNegativeValues() {
+        XCTAssertEqual(ExerciseProgressView.deltaTrend(for: 5), .positive)
+        XCTAssertEqual(ExerciseProgressView.deltaTrend(for: 0), .neutral)
+        XCTAssertEqual(ExerciseProgressView.deltaTrend(for: -5), .negative)
+    }
+
+    func testDeltaTrend_treatsNonFiniteValuesAsNeutral() {
+        XCTAssertEqual(ExerciseProgressView.deltaTrend(for: .infinity), .neutral)
+        XCTAssertEqual(ExerciseProgressView.deltaTrend(for: .nan), .neutral)
+    }
 }

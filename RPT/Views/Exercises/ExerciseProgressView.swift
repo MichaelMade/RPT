@@ -132,6 +132,28 @@ struct ExerciseProgressView: View {
         return isWhole ? "\(Int(safeValue)) lb" : String(format: "%.1f lb", safeValue)
     }
 
+    enum DeltaTrend: Equatable {
+        case positive
+        case neutral
+        case negative
+    }
+
+    static func deltaTrend(for value: Double) -> DeltaTrend {
+        guard value.isFinite else {
+            return .neutral
+        }
+
+        if value > 0 {
+            return .positive
+        }
+
+        if value < 0 {
+            return .negative
+        }
+
+        return .neutral
+    }
+
     static func formatMetricDeltaValue(_ value: Double, metric: Metric, exerciseCategory: ExerciseCategory) -> String {
         guard value.isFinite else {
             return formatMetricValue(0, metric: metric, exerciseCategory: exerciseCategory)
@@ -273,7 +295,16 @@ struct ExerciseProgressView: View {
                 statCard(
                     title: "Change",
                     value: Self.formatMetricDeltaValue(summary.delta, metric: metric, exerciseCategory: exercise.category),
-                    tint: summary.delta >= 0 ? .green : .red
+                    tint: {
+                        switch Self.deltaTrend(for: summary.delta) {
+                        case .positive:
+                            return .green
+                        case .neutral:
+                            return nil
+                        case .negative:
+                            return .red
+                        }
+                    }()
                 )
             }
         }
