@@ -659,6 +659,37 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertFalse(summary.contains("Deadlift"))
     }
 
+    func testGenerateFormattedSummary_normalizesExerciseNamesForDeduplication() {
+        // Given
+        let workout = Workout(name: "Summary Name Cleanup")
+        let firstBench = Exercise(name: "  Bench   Press  ", category: .compound, primaryMuscleGroups: [.chest])
+        let secondBench = Exercise(name: "bench press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: firstBench, weight: 185, reps: 5, isWarmup: false)
+        _ = workout.addSet(exercise: secondBench, weight: 175, reps: 6, isWarmup: false)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: Bench Press"))
+        XCTAssertFalse(summary.contains("Bench Press, bench press"))
+    }
+
+    func testGenerateFormattedSummary_ignoresBlankExerciseNames() {
+        // Given
+        let workout = Workout(name: "Summary Blank Name")
+        let blankNameExercise = Exercise(name: "   \n\t  ", category: .compound, primaryMuscleGroups: [.back])
+
+        _ = workout.addSet(exercise: blankNameExercise, weight: 225, reps: 5, isWarmup: false)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: None"))
+    }
+
     func testWorkingSetsCount_excludesWarmupAndIncompleteSets() {
         // Given
         let workout = Workout(name: "Set Count Integrity")

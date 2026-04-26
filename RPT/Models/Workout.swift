@@ -268,15 +268,38 @@ final class Workout {
         generateFormattedSummary()
     }
     
+    private func normalizedSummaryExerciseName(_ rawName: String) -> (display: String, key: String)? {
+        let collapsedName = rawName
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedName.isEmpty else {
+            return nil
+        }
+
+        let normalizedKey = collapsedName.folding(
+            options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive],
+            locale: Locale(identifier: "en_US_POSIX")
+        )
+
+        return (display: collapsedName, key: normalizedKey)
+    }
+
     // Generate workout summary
     func generateFormattedSummary() -> String {
         var seenExerciseNames: Set<String> = []
         let completedExerciseNamesInOrder = sets.compactMap { set -> String? in
-            guard set.isCompletedWorkingSet, let exerciseName = set.exercise?.name else {
+            guard set.isCompletedWorkingSet,
+                  let exerciseName = set.exercise?.name,
+                  let normalizedName = normalizedSummaryExerciseName(exerciseName)
+            else {
                 return nil
             }
 
-            return seenExerciseNames.insert(exerciseName).inserted ? exerciseName : nil
+            return seenExerciseNames.insert(normalizedName.key).inserted
+                ? normalizedName.display
+                : nil
         }
 
         let exerciseList = completedExerciseNamesInOrder.isEmpty
