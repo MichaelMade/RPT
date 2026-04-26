@@ -562,7 +562,7 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(workout.duration, 0, accuracy: 0.0001)
     }
 
-    func testGenerateFormattedSummary_sortsExerciseNamesAndFallsBackWhenEmpty() {
+    func testGenerateFormattedSummary_preservesCompletedExerciseOrderAndFallsBackWhenEmpty() {
         // Given
         let workout = Workout(name: "Summary Workout")
         let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
@@ -577,10 +577,11 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // When
         _ = workout.addSet(exercise: squat, weight: 225, reps: 5)
         _ = workout.addSet(exercise: bench, weight: 185, reps: 5)
+        _ = workout.addSet(exercise: squat, weight: 205, reps: 3)
         let summary = workout.generateFormattedSummary()
 
-        // Then sorted for stable, readable output
-        XCTAssertTrue(summary.contains("Exercises: Bench Press, Squat"))
+        // Then preserves first-seen completed order while de-duplicating exercise names
+        XCTAssertTrue(summary.contains("Exercises: Squat, Bench Press"))
     }
 
     func testGenerateFormattedSummary_includesHumanReadableDuration() {

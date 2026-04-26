@@ -270,14 +270,18 @@ final class Workout {
     
     // Generate workout summary
     func generateFormattedSummary() -> String {
-        let completedExerciseNames = Set(
-            sets
-                .filter(\.isCompletedWorkingSet)
-                .compactMap { $0.exercise?.name }
-        )
-        let exerciseList = completedExerciseNames.isEmpty
+        var seenExerciseNames: Set<String> = []
+        let completedExerciseNamesInOrder = sets.compactMap { set -> String? in
+            guard set.isCompletedWorkingSet, let exerciseName = set.exercise?.name else {
+                return nil
+            }
+
+            return seenExerciseNames.insert(exerciseName).inserted ? exerciseName : nil
+        }
+
+        let exerciseList = completedExerciseNamesInOrder.isEmpty
             ? "None"
-            : completedExerciseNames.sorted().joined(separator: ", ")
+            : completedExerciseNamesInOrder.joined(separator: ", ")
         
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium

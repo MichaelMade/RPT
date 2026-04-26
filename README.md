@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved workout share/export readability by preserving the user’s logged exercise order in `Workout.generateFormattedSummary()` (while still de-duplicating names and keeping the `Exercises: None` fallback). This keeps summary text aligned with the actual workout flow instead of reordering exercises alphabetically; added regression coverage in `WorkoutManagerTests`.
 - Improved share/export summary usefulness by adding a human-readable `Duration:` line in `Workout.generateFormattedSummary()` (for example `2m 5s`, `1h 12m`) with safe clamping for corrupted persisted values, so copied summaries now include time spent without leaking invalid duration data; added regression coverage in `WorkoutManagerTests`.
 - Improved workout summary exercise-list integrity by making `Workout.generateFormattedSummary()` include only exercises with completed working sets in the `Exercises:` line. This prevents warmup-only or incomplete placeholder sets from appearing in share/export summaries as if they were completed work; added regression coverage in `WorkoutManagerTests`.
 - Improved workout summary completeness for mixed sessions by updating `Workout.generateFormattedSummary()` to include a dedicated `Bodyweight Reps` line whenever a workout contains both weighted volume and completed bodyweight work. This prevents bodyweight effort from being omitted in share/export summaries of mixed workouts; added regression coverage in `WorkoutManagerTests`.
