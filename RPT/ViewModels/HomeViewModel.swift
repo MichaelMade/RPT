@@ -49,7 +49,15 @@ class HomeViewModel: ObservableObject {
     }
 
     func resumableWorkout(activeWorkout: Workout?) -> Workout? {
-        activeWorkout ?? currentWorkout
+        if let activeWorkout, !activeWorkout.isCompleted {
+            return activeWorkout
+        }
+
+        if let currentWorkout, !currentWorkout.isCompleted {
+            return currentWorkout
+        }
+
+        return nil
     }
 
     func canContinueWorkout(activeWorkout: Workout?) -> Bool {

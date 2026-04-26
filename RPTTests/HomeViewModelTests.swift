@@ -237,6 +237,26 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertFalse(canContinue, "Should not continue when no active or stored incomplete workout exists")
     }
 
+    func testResumableWorkout_skipsCompletedActiveBindingAndFallsBackToCurrentIncomplete() {
+        let completedActiveWorkout = Workout(name: "Completed Active", isCompleted: true)
+        let storedIncompleteWorkout = Workout(name: "Stored Incomplete", isCompleted: false)
+        viewModel.currentWorkout = storedIncompleteWorkout
+
+        let resumable = viewModel.resumableWorkout(activeWorkout: completedActiveWorkout)
+
+        XCTAssertTrue(resumable === storedIncompleteWorkout, "Should ignore completed active binding and resume the stored incomplete workout")
+    }
+
+    func testCanContinueWorkout_returnsFalseWhenOnlyCompletedWorkoutsExist() {
+        let completedActiveWorkout = Workout(name: "Completed Active", isCompleted: true)
+        let completedStoredWorkout = Workout(name: "Completed Stored", isCompleted: true)
+        viewModel.currentWorkout = completedStoredWorkout
+
+        let canContinue = viewModel.canContinueWorkout(activeWorkout: completedActiveWorkout)
+
+        XCTAssertFalse(canContinue, "Should not continue when both active and stored workouts are already completed")
+    }
+
     // MARK: - Incomplete Workout Resume Logic
 
     func testShouldResumeIncompleteWorkout_withoutDiscardState() {
