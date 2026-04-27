@@ -24,6 +24,12 @@ struct RestTimerView: View {
         case critical
     }
 
+    enum PlaybackControlState: Equatable {
+        case pause
+        case resume
+        case done
+    }
+
     init(defaultDuration: Int, isShowing: Binding<Bool>) {
         self.defaultDuration = defaultDuration
         self._isShowing = isShowing
@@ -103,13 +109,14 @@ struct RestTimerView: View {
                     toggleTimer()
                 } label: {
                     VStack {
-                        Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                        Image(systemName: playPauseIconName)
                             .font(.title)
-                        Text(isPaused ? "Resume" : "Pause")
+                        Text(playPauseLabel)
                             .font(.caption)
                     }
-                    .foregroundColor(isPaused ? .green : .orange)
+                    .foregroundColor(playPauseColor)
                 }
+                .disabled(playbackControlState == .done)
                 
                 // Skip button
                 Button {
@@ -183,6 +190,43 @@ struct RestTimerView: View {
         Self.normalizedProgress(timeRemaining: timeRemaining, duration: timerDuration)
     }
 
+    private var playbackControlState: PlaybackControlState {
+        Self.playbackControlState(isPaused: isPaused, timeRemaining: timeRemaining)
+    }
+
+    private var playPauseIconName: String {
+        switch playbackControlState {
+        case .pause:
+            return "pause.fill"
+        case .resume:
+            return "play.fill"
+        case .done:
+            return "checkmark"
+        }
+    }
+
+    private var playPauseLabel: String {
+        switch playbackControlState {
+        case .pause:
+            return "Pause"
+        case .resume:
+            return "Resume"
+        case .done:
+            return "Done"
+        }
+    }
+
+    private var playPauseColor: Color {
+        switch playbackControlState {
+        case .pause:
+            return .orange
+        case .resume:
+            return .green
+        case .done:
+            return .gray
+        }
+    }
+
     private var timerColor: Color {
         switch Self.phase(forTimeRemaining: timeRemaining, duration: timerDuration) {
         case .normal:
@@ -199,6 +243,11 @@ struct RestTimerView: View {
 
         let clampedRemaining = min(max(timeRemaining, 0), duration)
         return 1.0 - CGFloat(clampedRemaining) / CGFloat(duration)
+    }
+
+    static func playbackControlState(isPaused: Bool, timeRemaining: Int) -> PlaybackControlState {
+        guard timeRemaining > 0 else { return .done }
+        return isPaused ? .resume : .pause
     }
 
     static func phase(forTimeRemaining timeRemaining: Int, duration: Int) -> TimerPhase {
@@ -278,6 +327,8 @@ struct RestTimerView: View {
     }
     
     private func toggleTimer() {
+        guard timeRemaining > 0 else { return }
+
         isPaused.toggle()
         HapticFeedbackManager.shared.medium()
     }

@@ -56,4 +56,29 @@ final class RestTimerViewTests: XCTestCase {
     func testQuickDurationLabel_clampsNegativeInputToSafeZero() {
         XCTAssertEqual(RestTimerView.quickDurationLabel(-15), "0s")
     }
+
+    func testPlaybackControlState_returnsPauseWhenTimerRunning() {
+        XCTAssertEqual(
+            RestTimerView.playbackControlState(isPaused: false, timeRemaining: 30),
+            .pause
+        )
+    }
+
+    func testPlaybackControlState_returnsResumeWhenTimerPaused() {
+        XCTAssertEqual(
+            RestTimerView.playbackControlState(isPaused: true, timeRemaining: 30),
+            .resume
+        )
+    }
+
+    func testPlaybackControlState_returnsDoneWhenTimerCompleted() {
+        XCTAssertEqual(
+            RestTimerView.playbackControlState(isPaused: false, timeRemaining: 0),
+            .done
+        )
+        XCTAssertEqual(
+            RestTimerView.playbackControlState(isPaused: true, timeRemaining: -5),
+            .done
+        )
+    }
 }
