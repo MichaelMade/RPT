@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished Settings RPT slider UX by adding view-model guardrails that enforce monotonic back-off drops during interaction (`Set 2 ≤ Set 3`), dynamically constraining each slider to valid adjacent bounds instead of letting users pick invalid values that immediately snap back on save. Added regression coverage in `SettingsViewModelTests` for clamping and range behavior.
 - Hardened Active Workout auto-suggested weight safety in `ActiveWorkoutViewModel.addSetToExercise(_:)` by clamping malformed reduction percentages and corrupted negative prior-set weights before RPT drop math, so new set suggestions can no longer become negative from bad legacy data/settings. Added regression coverage in `ActiveWorkoutViewModelTests`.
 - Hardened Stats `Muscle Group Focus` percentage safety for corrupted aggregates by clamping per-group `setCount` to `totalSets` in `StatsView.formattedSetSharePercentage(setCount:totalSets:)`, so impossible overfull states can no longer render values above `100%`. Added regression coverage in `StatsViewFormattingTests`.
 - Hardened Exercise Progress chart data integrity by sanitizing corrupted negative set inputs before metric aggregation: `topSetMetricValue` now clamps negative reps/weights to zero, `volumeMetricValue` ignores negative reps/weights in totals, and estimated 1RM chart points now sanitize invalid weights to safe non-negative output. This prevents impossible negative chart values/trends when legacy or malformed set data slips through; added regression coverage in `ExerciseProgressViewTests`.

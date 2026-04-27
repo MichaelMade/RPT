@@ -77,4 +77,29 @@ final class SettingsViewModelTests: XCTestCase {
         )
         XCTAssertEqual(settingsManager.settings.restTimerDuration, persistedDuration)
     }
+
+    func testUpdateDropPercentage_clampsSecondBackoffToThirdBackoffMaximum() {
+        viewModel.defaultRPTPercentageDrops = [0.0, 0.10, 0.15]
+
+        viewModel.updateDropPercentage(at: 1, to: 25)
+
+        XCTAssertEqual(viewModel.defaultRPTPercentageDrops, [0.0, 0.15, 0.15])
+        XCTAssertEqual(settingsManager.settings.defaultRPTPercentageDrops, [0.0, 0.15, 0.15])
+    }
+
+    func testUpdateDropPercentage_clampsThirdBackoffToSecondBackoffMinimum() {
+        viewModel.defaultRPTPercentageDrops = [0.0, 0.10, 0.15]
+
+        viewModel.updateDropPercentage(at: 2, to: 5)
+
+        XCTAssertEqual(viewModel.defaultRPTPercentageDrops, [0.0, 0.10, 0.10])
+        XCTAssertEqual(settingsManager.settings.defaultRPTPercentageDrops, [0.0, 0.10, 0.10])
+    }
+
+    func testAllowedDropPercentageRange_tracksAdjacentSetConstraints() {
+        viewModel.defaultRPTPercentageDrops = [0.0, 0.10, 0.20]
+
+        XCTAssertEqual(viewModel.allowedDropPercentageRange(for: 1), 0...20)
+        XCTAssertEqual(viewModel.allowedDropPercentageRange(for: 2), 10...30)
+    }
 }

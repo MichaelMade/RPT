@@ -80,6 +80,37 @@ class SettingsViewModel: ObservableObject {
         return "\(appVersion) (\(buildNumber))"
     }
 
+    func allowedDropPercentageRange(for index: Int) -> ClosedRange<Double> {
+        guard defaultRPTPercentageDrops.indices.contains(index), index > 0 else {
+            return 0...0
+        }
+
+        let minimum = index > 1
+            ? defaultRPTPercentageDrops[index - 1] * 100
+            : 0
+
+        let maximum = index < defaultRPTPercentageDrops.count - 1
+            ? defaultRPTPercentageDrops[index + 1] * 100
+            : 30
+
+        let clampedMinimum = min(max(minimum, 0), 30)
+        let clampedMaximum = min(max(maximum, clampedMinimum), 30)
+        return clampedMinimum...clampedMaximum
+    }
+
+    func updateDropPercentage(at index: Int, to newValue: Double) {
+        guard defaultRPTPercentageDrops.indices.contains(index), index > 0 else {
+            return
+        }
+
+        let allowedRange = allowedDropPercentageRange(for: index)
+        let clampedValue = min(max(newValue, allowedRange.lowerBound), allowedRange.upperBound)
+
+        var newDrops = defaultRPTPercentageDrops
+        newDrops[index] = clampedValue / 100
+        defaultRPTPercentageDrops = newDrops
+    }
+
     private func syncFromPersistedSettings() {
         isSyncingFromPersistedSettings = true
         restTimerDuration = settingsManager.settings.restTimerDuration

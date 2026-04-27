@@ -51,26 +51,25 @@ struct SettingsView: View {
                         if index == 0 {
                             Text("First Set: 100%")
                         } else {
+                            let allowedRange = viewModel.allowedDropPercentageRange(for: index)
                             let binding = Binding<Double>(
                                 get: {
                                     viewModel.defaultRPTPercentageDrops[index] * 100
                                 },
                                 set: { newValue in
-                                    var newDrops = viewModel.defaultRPTPercentageDrops
-                                    newDrops[index] = newValue / 100
-                                    viewModel.defaultRPTPercentageDrops = newDrops
+                                    viewModel.updateDropPercentage(at: index, to: newValue)
                                 }
                             )
                             
                             HStack {
                                 Text("Set \(index + 1):")
                                 Spacer()
-                                Slider(value: binding, in: 0...30, step: 5) {
+                                Slider(value: binding, in: allowedRange, step: 5) {
                                     Text("Set \(index + 1)")
                                 } minimumValueLabel: {
-                                    Text("0%")
+                                    Text("\(Int(allowedRange.lowerBound))%")
                                 } maximumValueLabel: {
-                                    Text("30%")
+                                    Text("\(Int(allowedRange.upperBound))%")
                                 }
                                 .frame(width: 200)
                                 Text("\(Int(binding.wrappedValue))%")
