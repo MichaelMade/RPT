@@ -56,6 +56,29 @@ final class ExerciseProgressViewTests: XCTestCase {
         )
     }
 
+    func testTopSetMetricValue_sanitizesNegativeInputsToSafeZero() {
+        let bodyweightExercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+        let weightedExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        let bodyweightSets = [
+            ExerciseSet(weight: 0, reps: -5, exercise: bodyweightExercise),
+            ExerciseSet(weight: 0, reps: -2, exercise: bodyweightExercise)
+        ]
+        let weightedSets = [
+            ExerciseSet(weight: -225, reps: 5, exercise: weightedExercise),
+            ExerciseSet(weight: -135, reps: 8, exercise: weightedExercise)
+        ]
+
+        XCTAssertEqual(
+            ExerciseProgressView.topSetMetricValue(from: bodyweightSets, exerciseCategory: .bodyweight),
+            0
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.topSetMetricValue(from: weightedSets, exerciseCategory: .compound),
+            0
+        )
+    }
+
     func testVolumeMetricValue_forBodyweightUsesTotalReps() {
         let exercise = Exercise(name: "Push-up", category: .bodyweight, primaryMuscleGroups: [.chest])
         let sets = [
@@ -67,6 +90,30 @@ final class ExerciseProgressViewTests: XCTestCase {
         XCTAssertEqual(
             ExerciseProgressView.volumeMetricValue(from: sets, exerciseCategory: .bodyweight),
             30
+        )
+    }
+
+    func testVolumeMetricValue_ignoresNegativeWeightAndRepInputs() {
+        let bodyweightExercise = Exercise(name: "Push-up", category: .bodyweight, primaryMuscleGroups: [.chest])
+        let weightedExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        let bodyweightSets = [
+            ExerciseSet(weight: 0, reps: 12, exercise: bodyweightExercise),
+            ExerciseSet(weight: 0, reps: -10, exercise: bodyweightExercise)
+        ]
+        let weightedSets = [
+            ExerciseSet(weight: 225, reps: 5, exercise: weightedExercise),
+            ExerciseSet(weight: -185, reps: 10, exercise: weightedExercise),
+            ExerciseSet(weight: 135, reps: -8, exercise: weightedExercise)
+        ]
+
+        XCTAssertEqual(
+            ExerciseProgressView.volumeMetricValue(from: bodyweightSets, exerciseCategory: .bodyweight),
+            12
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.volumeMetricValue(from: weightedSets, exerciseCategory: .compound),
+            1125
         )
     }
 

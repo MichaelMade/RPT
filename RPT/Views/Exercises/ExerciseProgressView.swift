@@ -65,18 +65,22 @@ struct ExerciseProgressView: View {
     static func topSetMetricValue(from sets: [ExerciseSet], exerciseCategory: ExerciseCategory) -> Double {
         switch exerciseCategory {
         case .bodyweight:
-            return Double(sets.map(\.reps).max() ?? 0)
+            return Double(sets.map { max(0, $0.reps) }.max() ?? 0)
         default:
-            return Double(sets.map(\.weight).max() ?? 0)
+            return Double(sets.map { max(0, $0.weight) }.max() ?? 0)
         }
     }
 
     static func volumeMetricValue(from sets: [ExerciseSet], exerciseCategory: ExerciseCategory) -> Double {
         switch exerciseCategory {
         case .bodyweight:
-            return Double(sets.reduce(0) { $0 + $1.reps })
+            return Double(sets.reduce(0) { $0 + max(0, $1.reps) })
         default:
-            return sets.reduce(0.0) { $0 + Double($1.weight) * Double($1.reps) }
+            return sets.reduce(0.0) { partialResult, set in
+                let safeWeight = max(0, set.weight)
+                let safeReps = max(0, set.reps)
+                return partialResult + Double(safeWeight) * Double(safeReps)
+            }
         }
     }
 
@@ -230,7 +234,9 @@ struct ExerciseProgressView: View {
                 // Brzycki formula, capped at 10 reps for accuracy
                 let values = daySets.map { set -> Double in
                     let reps = min(max(1, set.reps), 10)
-                    return Double(set.weight) * (36.0 / (37.0 - Double(reps)))
+                    let safeWeight = max(0, set.weight)
+                    let oneRM = Double(safeWeight) * (36.0 / (37.0 - Double(reps)))
+                    return oneRM.isFinite ? max(0, oneRM) : 0
                 }
                 return Point(date: day, value: values.max() ?? 0)
             }
