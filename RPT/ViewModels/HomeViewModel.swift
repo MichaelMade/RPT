@@ -26,7 +26,11 @@ class HomeViewModel: ObservableObject {
     
     func loadRecentWorkouts() {
         let fetchedRecentWorkouts = workoutManager.getRecentWorkouts(limit: 25)
-        recentWorkouts = completedRecentWorkouts(from: fetchedRecentWorkouts, limit: 5)
+        recentWorkouts = resolvedRecentCompletedWorkouts(
+            from: fetchedRecentWorkouts,
+            fallbackAllWorkouts: nil,
+            limit: 5
+        )
         userStats = userManager.getUserStats()
 
         let incompleteWorkout = workoutManager.getIncompleteWorkouts().first
@@ -82,6 +86,18 @@ class HomeViewModel: ObservableObject {
             .sorted(by: { $0.date > $1.date })
             .prefix(limit)
             .map { $0 }
+    }
+
+    func resolvedRecentCompletedWorkouts(from recentSlice: [Workout], fallbackAllWorkouts: [Workout]?, limit: Int) -> [Workout] {
+        let recentCompleted = completedRecentWorkouts(from: recentSlice, limit: limit)
+
+        guard recentCompleted.count < limit else {
+            return recentCompleted
+        }
+
+        let allWorkouts = fallbackAllWorkouts ?? workoutManager.getWorkouts(from: .distantPast, to: Date())
+
+        return completedRecentWorkouts(from: allWorkouts, limit: limit)
     }
 
     func shouldResumeIncompleteWorkout(workoutDate: Date?, discardTimestamp: Date?, wasAnyWorkoutDiscarded: Bool) -> Bool {

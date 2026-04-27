@@ -228,6 +228,43 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testResolvedRecentCompletedWorkouts_usesRecentSliceWhenItAlreadySatisfiesLimit() {
+        let now = Date()
+        let recentCompletedA = Workout(date: now, name: "Recent A", isCompleted: true)
+        let recentCompletedB = Workout(date: now.addingTimeInterval(-60), name: "Recent B", isCompleted: true)
+        let fallbackCompleted = Workout(date: now.addingTimeInterval(120), name: "Fallback", isCompleted: true)
+
+        let resolved = viewModel.resolvedRecentCompletedWorkouts(
+            from: [recentCompletedB, recentCompletedA],
+            fallbackAllWorkouts: [fallbackCompleted],
+            limit: 2
+        )
+
+        XCTAssertEqual(resolved.count, 2, "Should return requested limit when recent slice already has enough completed workouts")
+        XCTAssertTrue(resolved[0] === recentCompletedA, "Should keep recent-slice ordering by newest completed date")
+        XCTAssertTrue(resolved[1] === recentCompletedB, "Should keep second-most-recent completed workout from recent slice")
+    }
+
+    func testResolvedRecentCompletedWorkouts_fallsBackToFullHistoryWhenRecentSliceIsSparse() {
+        let now = Date()
+        let recentIncomplete = Workout(date: now, name: "Draft", isCompleted: false)
+        let recentCompleted = Workout(date: now.addingTimeInterval(-60), name: "Recent Completed", isCompleted: true)
+
+        let historyNewest = Workout(date: now.addingTimeInterval(120), name: "History Newest", isCompleted: true)
+        let historySecond = Workout(date: now.addingTimeInterval(30), name: "History Second", isCompleted: true)
+        let historyOlder = Workout(date: now.addingTimeInterval(-300), name: "History Older", isCompleted: true)
+
+        let resolved = viewModel.resolvedRecentCompletedWorkouts(
+            from: [recentIncomplete, recentCompleted],
+            fallbackAllWorkouts: [historyOlder, historySecond, historyNewest],
+            limit: 2
+        )
+
+        XCTAssertEqual(resolved.count, 2, "Should use fallback history to fill requested limit when recent slice is sparse")
+        XCTAssertTrue(resolved[0] === historyNewest, "Should return most-recent completed workout from full history fallback")
+        XCTAssertTrue(resolved[1] === historySecond, "Should include next most-recent completed workout from full history fallback")
+    }
+
     // MARK: - Continue Workout Resolution
 
     func testCanContinueWorkout_withCurrentWorkoutAndNoActiveBinding() {
