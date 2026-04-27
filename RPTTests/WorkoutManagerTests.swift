@@ -357,6 +357,14 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(sanitized, "Push Day")
     }
 
+    func testSanitizedWorkoutName_collapsesInternalWhitespaceRuns() {
+        // Given/When
+        let sanitized = manager.sanitizedWorkoutName("  Upper   Body\n\tSession  ")
+
+        // Then
+        XCTAssertEqual(sanitized, "Upper Body Session")
+    }
+
     func testSanitizedWorkoutName_emptyAfterTrimFallsBackToDefault() {
         // Given/When
         let sanitized = manager.sanitizedWorkoutName("   \n\t  ")

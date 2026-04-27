@@ -52,9 +52,13 @@ class WorkoutManager: ObservableObject {
     }
 
     func sanitizedWorkoutName(_ name: String) -> String {
-        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty else { return "Workout" }
-        return String(trimmedName.prefix(80))
+        let collapsedName = name
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedName.isEmpty else { return "Workout" }
+        return String(collapsedName.prefix(80))
     }
     
     // Non-throwing version for backward compatibility
