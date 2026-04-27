@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed stale active-workout binding behavior in `ContentView` so completed workouts no longer appear as resumable in Home/Templates flows (preventing false `Active Workout In Progress` prompts when starting from a template). `shouldResumeIncompleteWorkout(for:)` now explicitly rejects completed workouts, and cleanup logic avoids marking completed sessions as discarded when clearing non-resumable state.
 - Polished Rest Timer completion UX by adding explicit play/pause control states in `RestTimerView`: the control now switches to a disabled `Done` state when the countdown reaches `0`, avoiding misleading `Pause/Resume` affordances during the auto-dismiss window. Added regression coverage in `RestTimerViewTests` for running/paused/completed control-state classification.
 - Fixed a Rest Timer restart UX bug where selecting `Reset` or a quick preset right after completion could still trigger the previously scheduled auto-dismiss and close the timer unexpectedly. `RestTimerView` now cancels any pending dismiss whenever the user actively restarts/reconfigures the timer, so fresh rest periods stay visible.
 - Improved Rest Timer quick-duration preset clarity by adding `RestTimerView.quickDurationLabel(_:)`, so mixed-minute presets now render explicit labels (for example `90` seconds now displays `1m 30s` instead of the ambiguous `1m`). Added regression coverage in `RestTimerViewTests` for mixed-minute, minute-only, and negative-input cases.

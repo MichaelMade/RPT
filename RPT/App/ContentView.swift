@@ -174,6 +174,10 @@ struct ContentView: View {
     }
 
     private func shouldResumeIncompleteWorkout(for workout: Workout) -> Bool {
+        guard !workout.isCompleted else {
+            return false
+        }
+
         let wasAnyWorkoutDiscarded = workoutStateManager.wasAnyWorkoutDiscarded()
 
         guard wasAnyWorkoutDiscarded else {
@@ -192,7 +196,12 @@ struct ContentView: View {
         guard activeWorkout == nil else {
             if let workout = activeWorkout, !shouldResumeIncompleteWorkout(for: workout) {
                 showingActiveWorkoutSheet = false
-                activeWorkout = nil
+
+                // Keep completed workouts in local state so we don't accidentally
+                // mark them as discarded through the activeWorkout onChange path.
+                if !workout.isCompleted {
+                    activeWorkout = nil
+                }
             }
             return
         }
