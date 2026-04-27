@@ -161,4 +161,38 @@ final class ExerciseProgressViewTests: XCTestCase {
         XCTAssertEqual(ExerciseProgressView.deltaTrend(for: .infinity), .neutral)
         XCTAssertEqual(ExerciseProgressView.deltaTrend(for: .nan), .neutral)
     }
+
+    func testFormatMetricDeltaValue_treatsSubDisplayPrecisionChangesAsNeutral() {
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricDeltaValue(0.04, metric: .topSet, exerciseCategory: .compound),
+            "0 lb"
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricDeltaValue(-0.04, metric: .topSet, exerciseCategory: .compound),
+            "0 lb"
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.formatMetricDeltaValue(0.9, metric: .topSet, exerciseCategory: .bodyweight),
+            "0 reps"
+        )
+    }
+
+    func testDeltaTrend_displayAwareVariant_treatsSubDisplayPrecisionChangesAsNeutral() {
+        XCTAssertEqual(
+            ExerciseProgressView.deltaTrend(for: 0.04, metric: .topSet, exerciseCategory: .compound),
+            .neutral
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.deltaTrend(for: -0.04, metric: .topSet, exerciseCategory: .compound),
+            .neutral
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.deltaTrend(for: -0.9, metric: .topSet, exerciseCategory: .bodyweight),
+            .neutral
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.deltaTrend(for: 1.0, metric: .topSet, exerciseCategory: .bodyweight),
+            .positive
+        )
+    }
 }

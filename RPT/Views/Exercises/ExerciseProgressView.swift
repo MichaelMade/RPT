@@ -93,13 +93,6 @@ struct ExerciseProgressView: View {
             return "\(truncatedReps) \(truncatedReps == 1 ? \"rep\" : \"reps\")"
         }
 
-        func truncatedTowardZero(_ input: Double, decimals: Int) -> Double {
-            let factor = pow(10.0, Double(decimals))
-            let scaled = input * factor
-            let truncated = input >= 0 ? floor(scaled) : ceil(scaled)
-            return truncated / factor
-        }
-
         if metric == .volume {
             let magnitude = abs(safeValue)
 
@@ -132,6 +125,35 @@ struct ExerciseProgressView: View {
         return isWhole ? "\(Int(safeValue)) lb" : String(format: "%.1f lb", safeValue)
     }
 
+    private static func truncatedTowardZero(_ input: Double, decimals: Int) -> Double {
+        let factor = pow(10.0, Double(decimals))
+        let scaled = input * factor
+        let truncated = input >= 0 ? floor(scaled) : ceil(scaled)
+        return truncated / factor
+    }
+
+    private static func displaysAsZeroDeltaMagnitude(_ value: Double, metric: Metric, exerciseCategory: ExerciseCategory) -> Bool {
+        let safeMagnitude = value.isFinite ? abs(value) : 0
+
+        if exerciseCategory == .bodyweight, metric == .topSet || metric == .volume {
+            return Int(safeMagnitude.rounded(.towardZero)) == 0
+        }
+
+        if metric == .volume {
+            if safeMagnitude >= 1_000_000 {
+                return truncatedTowardZero(safeMagnitude / 1_000_000, decimals: 1) == 0
+            }
+
+            if safeMagnitude >= 1000 {
+                return truncatedTowardZero(safeMagnitude / 1000, decimals: 1) == 0
+            }
+
+            return truncatedTowardZero(safeMagnitude, decimals: 1) == 0
+        }
+
+        return ((safeMagnitude * 10).rounded() / 10) == 0
+    }
+
     enum DeltaTrend: Equatable {
         case positive
         case neutral
@@ -159,13 +181,25 @@ struct ExerciseProgressView: View {
             return formatMetricValue(0, metric: metric, exerciseCategory: exerciseCategory)
         }
 
-        if value == 0 {
+        if value == 0 || displaysAsZeroDeltaMagnitude(value, metric: metric, exerciseCategory: exerciseCategory) {
             return formatMetricValue(0, metric: metric, exerciseCategory: exerciseCategory)
         }
 
         let signPrefix = value > 0 ? "+" : "-"
         let magnitudeText = formatMetricValue(abs(value), metric: metric, exerciseCategory: exerciseCategory)
         return "\(signPrefix)\(magnitudeText)"
+    }
+
+    static func deltaTrend(for value: Double, metric: Metric, exerciseCategory: ExerciseCategory) -> DeltaTrend {
+        guard value.isFinite else {
+            return .neutral
+        }
+
+        if value == 0 || displaysAsZeroDeltaMagnitude(value, metric: metric, exerciseCategory: exerciseCategory) {
+            return .neutral
+        }
+
+        return value > 0 ? .positive : .negative
     }
 
     private struct Point: Identifiable {
@@ -296,7 +330,7 @@ struct ExerciseProgressView: View {
                     title: "Change",
                     value: Self.formatMetricDeltaValue(summary.delta, metric: metric, exerciseCategory: exercise.category),
                     tint: {
-                        switch Self.deltaTrend(for: summary.delta) {
+                        switch Self.deltaTrend(for: summary.delta, metric: metric, exerciseCategory: exercise.category) {
                         case .positive:
                             return .green
                         case .neutral:
