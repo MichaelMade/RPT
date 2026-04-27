@@ -16,6 +16,7 @@ struct RestTimerView: View {
     @State private var timerDuration: Int
     @State private var isPaused = false
     @State private var timerCancellable = Set<AnyCancellable>()
+    @State private var dismissWorkItem: DispatchWorkItem?
 
     enum TimerPhase: Equatable {
         case normal
@@ -206,6 +207,17 @@ struct RestTimerView: View {
     private func startTimer() {
         stopTimer()
 
+        let safeDuration = max(timerDuration, 0)
+        timerDuration = safeDuration
+        timeRemaining = min(max(timeRemaining, 0), safeDuration)
+
+        guard safeDuration > 0 else {
+            timeRemaining = 0
+            isPaused = true
+            scheduleDismiss(after: 0.2)
+            return
+        }
+
         isPaused = false
         HapticFeedbackManager.shared.medium()
 
@@ -228,17 +240,15 @@ struct RestTimerView: View {
 
         if timeRemaining == 0 {
             HapticFeedbackManager.shared.success()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                withAnimation {
-                    isShowing = false
-                }
-            }
+            scheduleDismiss(after: 2)
         }
     }
 
     private func stopTimer() {
         timerCancellable.forEach { $0.cancel() }
         timerCancellable.removeAll()
+        dismissWorkItem?.cancel()
+        dismissWorkItem = nil
     }
     
     private func resetTimer() {
@@ -266,11 +276,20 @@ struct RestTimerView: View {
         HapticFeedbackManager.shared.success()
         
         // Auto-close after a delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        scheduleDismiss(after: 1)
+    }
+
+    private func scheduleDismiss(after delay: TimeInterval) {
+        dismissWorkItem?.cancel()
+
+        let workItem = DispatchWorkItem {
             withAnimation {
                 isShowing = false
             }
         }
+
+        dismissWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
     
     private func setTime(_ seconds: Int) {
