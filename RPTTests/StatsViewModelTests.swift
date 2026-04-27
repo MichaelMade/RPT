@@ -122,4 +122,14 @@ final class StatsViewModelTests: XCTestCase {
     func testNormalizedPRExerciseName_returnsNilForWhitespaceOnlyNames() {
         XCTAssertNil(viewModel.normalizedPRExerciseName("  \n\t  "))
     }
+
+    func testSanitizedVolume_clampsCorruptedValuesToZero() {
+        XCTAssertEqual(viewModel.sanitizedVolume(-10), 0)
+        XCTAssertEqual(viewModel.sanitizedVolume(.infinity), 0)
+        XCTAssertEqual(viewModel.sanitizedVolume(.nan), 0)
+    }
+
+    func testSanitizedVolume_preservesFinitePositiveValues() {
+        XCTAssertEqual(viewModel.sanitizedVolume(1234.5), 1234.5)
+    }
 }

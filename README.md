@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened Stats weekly-volume data integrity in `StatsViewModel` by sanitizing corrupted workout/user volume values before chart and headline aggregation (`negative`, `infinite`, or `NaN` values now clamp to `0`), preventing impossible chart bars and broken totals from malformed legacy data. Added regression coverage in `StatsViewModelTests`.
 - Hardened Home `Recent Workouts` list completeness in `HomeViewModel.loadRecentWorkouts()` by adding a safe full-history fallback when the initial recent slice does not contain enough completed sessions (for example many in-progress drafts). This ensures the Home card can still show up to 5 true completed workouts instead of under-filling due to query-window bias; added regression coverage in `HomeViewModelTests`.
 - Polished Settings RPT slider UX by adding view-model guardrails that enforce monotonic back-off drops during interaction (`Set 2 ≤ Set 3`), dynamically constraining each slider to valid adjacent bounds instead of letting users pick invalid values that immediately snap back on save. Added regression coverage in `SettingsViewModelTests` for clamping and range behavior.
 - Hardened Active Workout auto-suggested weight safety in `ActiveWorkoutViewModel.addSetToExercise(_:)` by clamping malformed reduction percentages and corrupted negative prior-set weights before RPT drop math, so new set suggestions can no longer become negative from bad legacy data/settings. Added regression coverage in `ActiveWorkoutViewModelTests`.

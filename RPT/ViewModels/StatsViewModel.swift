@@ -53,7 +53,7 @@ class StatsViewModel: ObservableObject {
     func reload() {
         let stats = userManager.getUserStats()
         totalWorkouts = stats.totalWorkouts
-        totalVolume = stats.totalVolume
+        totalVolume = sanitizedVolume(stats.totalVolume)
         currentStreak = stats.workoutStreak
 
         // Use full history so long-time users don't lose older PRs/weekly activity
@@ -84,8 +84,10 @@ class StatsViewModel: ObservableObject {
         var points: [WeeklyVolumePoint] = []
         var cursor = twelveWeeksAgo
         while cursor <= now {
-            let volume = (grouped[cursor] ?? []).reduce(0.0) { $0 + $1.totalVolume }
-            points.append(WeeklyVolumePoint(weekStart: cursor, volume: volume))
+            let volume = (grouped[cursor] ?? []).reduce(0.0) { partial, workout in
+                partial + sanitizedVolume(workout.totalVolume)
+            }
+            points.append(WeeklyVolumePoint(weekStart: cursor, volume: sanitizedVolume(volume)))
             cursor = cal.date(byAdding: .weekOfYear, value: 1, to: cursor) ?? cursor.addingTimeInterval(604800)
         }
         weeklyVolume = points
@@ -177,6 +179,10 @@ class StatsViewModel: ObservableObject {
     }
 
     // MARK: - Helpers
+
+    func sanitizedVolume(_ volume: Double) -> Double {
+        volume.isFinite ? max(0, volume) : 0
+    }
 
     private func weekAnchor(for date: Date) -> Date {
         let cal = Calendar.current
