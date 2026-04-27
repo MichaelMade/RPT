@@ -184,6 +184,7 @@ RPT/
 - Fixed workout statistics integrity by excluding in-progress workouts from count, volume, and average-duration calculations, so Home/Stats summaries reflect only completed sessions.
 - Hardened `WorkoutManager.roundToNearest5(_:)` against corrupted non-finite and negative inputs by clamping to `0` before rounding, preventing crash-prone numeric edge cases.
 - Hardened `WorkoutManager.formatWeight(_:)` to safely clamp corrupted negative or non-finite values to `0.0 lb`, matching the app's defensive volume-formatting behavior.
+- Improved Stats PR data quality by normalizing exercise names before PR aggregation in `StatsViewModel.computePRs` (trim/collapse whitespace plus case/diacritic-insensitive keys), so name variants like `Bench   Press` and `bench press` now resolve to one canonical PR card instead of splitting progress history; added regression coverage in `StatsViewModelTests`.
 
 ## Contributing
 

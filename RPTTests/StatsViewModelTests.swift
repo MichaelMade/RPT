@@ -110,4 +110,16 @@ final class StatsViewModelTests: XCTestCase {
         XCTAssertEqual(bodyweightPR.formattedWeightReps, "BW × 12 reps")
         XCTAssertEqual(weightedPR.formattedWeightReps, "45 lb × 8 reps")
     }
+
+    func testNormalizedPRExerciseName_collapsesWhitespaceAndNormalizesLookupKey() {
+        let normalized = viewModel.normalizedPRExerciseName("  Bench   Press\n")
+        let variant = viewModel.normalizedPRExerciseName("bench press")
+
+        XCTAssertEqual(normalized?.display, "Bench Press")
+        XCTAssertEqual(normalized?.key, variant?.key)
+    }
+
+    func testNormalizedPRExerciseName_returnsNilForWhitespaceOnlyNames() {
+        XCTAssertNil(viewModel.normalizedPRExerciseName("  \n\t  "))
+    }
 }

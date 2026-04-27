@@ -120,14 +120,18 @@ class StatsViewModel: ObservableObject {
 
         for workout in workouts {
             for set in workout.sets where set.isCompletedWorkingSet {
-                guard let name = set.exercise?.name else { continue }
-
-                if let existing = best[name], !isBetterPRCandidate(set, than: existing) {
+                guard let rawName = set.exercise?.name,
+                      let normalizedName = normalizedPRExerciseName(rawName)
+                else {
                     continue
                 }
 
-                best[name] = PersonalRecord(
-                    exerciseName: name,
+                if let existing = best[normalizedName.key], !isBetterPRCandidate(set, than: existing) {
+                    continue
+                }
+
+                best[normalizedName.key] = PersonalRecord(
+                    exerciseName: normalizedName.display,
                     weight: set.weight,
                     reps: set.reps,
                     date: set.completedAt,
@@ -152,6 +156,24 @@ class StatsViewModel: ObservableObject {
         }
 
         return set.completedAt > existing.date
+    }
+
+    func normalizedPRExerciseName(_ rawName: String) -> (display: String, key: String)? {
+        let collapsedName = rawName
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedName.isEmpty else {
+            return nil
+        }
+
+        let normalizedKey = collapsedName.folding(
+            options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive],
+            locale: Locale(identifier: "en_US_POSIX")
+        )
+
+        return (display: collapsedName, key: normalizedKey)
     }
 
     // MARK: - Helpers
