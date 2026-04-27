@@ -203,16 +203,16 @@ struct StatsView: View {
     }
 
     func formattedSetSharePercentage(setCount: Int, totalSets: Int) -> String {
-        let safeSetCount = max(0, setCount)
         let safeTotalSets = max(0, totalSets)
 
         guard safeTotalSets > 0 else {
             return "(0%)"
         }
 
+        let safeSetCount = min(max(0, setCount), safeTotalSets)
         let ratio = Double(safeSetCount) / Double(safeTotalSets)
         let rawPercentage = ratio.isFinite ? ratio * 100 : 0
-        let safePercentage = max(0, Int(rawPercentage))
+        let safePercentage = min(100, max(0, Int(rawPercentage)))
 
         return "(\(safePercentage)%)"
     }

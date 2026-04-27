@@ -49,4 +49,8 @@ final class StatsViewFormattingTests: XCTestCase {
     func testFormattedSetSharePercentage_formatsWholePercentage() {
         XCTAssertEqual(sut.formattedSetSharePercentage(setCount: 3, totalSets: 12), "(25%)")
     }
+
+    func testFormattedSetSharePercentage_clampsOverfullShareToHundredPercent() {
+        XCTAssertEqual(sut.formattedSetSharePercentage(setCount: 15, totalSets: 10), "(100%)")
+    }
 }
