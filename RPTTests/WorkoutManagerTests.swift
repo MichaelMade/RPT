@@ -86,6 +86,40 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(weights[2], 0, accuracy: 1e-6)   // clamped to 1 drop
     }
 
+    func testCalculateRPTWeights_enforcesMonotonicBackoffWhenDropsAreOutOfOrder() {
+        // Given
+        let firstSetWeight: Double = 200
+        let drops: [Double] = [0.25, 0.1, 0.05]
+
+        // When
+        let weights = manager.calculateRPTWeights(
+            firstSetWeight: firstSetWeight,
+            percentageDrops: drops
+        )
+
+        // Then
+        XCTAssertEqual(weights[0], 150, accuracy: 1e-6)
+        XCTAssertEqual(weights[1], 150, accuracy: 1e-6)
+        XCTAssertEqual(weights[2], 150, accuracy: 1e-6)
+    }
+
+    func testCalculateRPTWeights_nonFiniteDropsInheritPreviousSafeBackoff() {
+        // Given
+        let firstSetWeight: Double = 200
+        let drops: [Double] = [0.1, .infinity, 0.3]
+
+        // When
+        let weights = manager.calculateRPTWeights(
+            firstSetWeight: firstSetWeight,
+            percentageDrops: drops
+        )
+
+        // Then
+        XCTAssertEqual(weights[0], 180, accuracy: 1e-6)
+        XCTAssertEqual(weights[1], 180, accuracy: 1e-6)
+        XCTAssertEqual(weights[2], 140, accuracy: 1e-6)
+    }
+
     // MARK: - Weight & Volume Formatting
 
     func testFormatWeight_displaysOneDecimal() {
