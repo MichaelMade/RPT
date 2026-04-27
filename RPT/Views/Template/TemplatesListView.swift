@@ -152,6 +152,7 @@ struct TemplatesListView: View {
                     if let workout = activeWorkoutBinding {
                         _ = WorkoutManager.shared.saveWorkoutSafely(workout)
                         activeWorkoutBinding = nil
+                        WorkoutStateManager.shared.markWorkoutAsSaved(workout.id)
                     }
                     if let template = templateToStartWorkout {
                         selectedTemplate = template
