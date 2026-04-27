@@ -15,6 +15,7 @@ struct RestTimerView: View {
     @State private var timeRemaining: Int
     @State private var timerDuration: Int
     @State private var isPaused = false
+    @State private var isTimerActive = false
     @State private var timerCancellable = Set<AnyCancellable>()
     @State private var dismissWorkItem: DispatchWorkItem?
 
@@ -250,6 +251,10 @@ struct RestTimerView: View {
         return isPaused ? .resume : .pause
     }
 
+    static func shouldRestartAfterManualTimeChange(isPaused: Bool, timerIsActive: Bool) -> Bool {
+        isPaused || !timerIsActive
+    }
+
     static func phase(forTimeRemaining timeRemaining: Int, duration: Int) -> TimerPhase {
         guard duration > 0 else { return .critical }
 
@@ -278,11 +283,13 @@ struct RestTimerView: View {
         guard safeDuration > 0 else {
             timeRemaining = 0
             isPaused = true
+            isTimerActive = false
             scheduleDismiss(after: 0.2)
             return
         }
 
         isPaused = false
+        isTimerActive = true
         HapticFeedbackManager.shared.medium()
 
         Timer.publish(every: 1, on: .main, in: .common)
@@ -311,6 +318,7 @@ struct RestTimerView: View {
     private func stopTimer() {
         timerCancellable.forEach { $0.cancel() }
         timerCancellable.removeAll()
+        isTimerActive = false
         cancelScheduledDismiss()
     }
     
@@ -321,7 +329,7 @@ struct RestTimerView: View {
         timerDuration = safeDefaultDuration
         timeRemaining = safeDefaultDuration
 
-        if isPaused {
+        if Self.shouldRestartAfterManualTimeChange(isPaused: isPaused, timerIsActive: isTimerActive) {
             startTimer()
         }
     }
@@ -371,7 +379,7 @@ struct RestTimerView: View {
         timerDuration = safeSeconds
         timeRemaining = safeSeconds
 
-        if isPaused {
+        if Self.shouldRestartAfterManualTimeChange(isPaused: isPaused, timerIsActive: isTimerActive) {
             startTimer()
         }
         HapticFeedbackManager.shared.medium()

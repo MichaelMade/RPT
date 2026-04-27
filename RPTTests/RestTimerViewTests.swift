@@ -81,4 +81,22 @@ final class RestTimerViewTests: XCTestCase {
             .done
         )
     }
+
+    func testShouldRestartAfterManualTimeChange_returnsTrueWhenTimerIsPaused() {
+        XCTAssertTrue(
+            RestTimerView.shouldRestartAfterManualTimeChange(isPaused: true, timerIsActive: true)
+        )
+    }
+
+    func testShouldRestartAfterManualTimeChange_returnsTrueWhenTimerWasStoppedBySkip() {
+        XCTAssertTrue(
+            RestTimerView.shouldRestartAfterManualTimeChange(isPaused: false, timerIsActive: false)
+        )
+    }
+
+    func testShouldRestartAfterManualTimeChange_returnsFalseWhileTimerIsAlreadyRunning() {
+        XCTAssertFalse(
+            RestTimerView.shouldRestartAfterManualTimeChange(isPaused: false, timerIsActive: true)
+        )
+    }
 }

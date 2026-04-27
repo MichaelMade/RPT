@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed a Rest Timer restart hole after `Skip`/stopped states: `RestTimerView` now tracks whether a countdown is still active and automatically restarts when the user hits `Reset` or picks a quick preset after a skip/stopped timer, instead of leaving the timer frozen at the new value until the sheet is dismissed. Added regression coverage in `RestTimerViewTests` for paused, stopped, and actively running restart decisions.
 - Fixed template-switch draft preservation in `TemplatesListView`: choosing `Save & Continue Later` from the `Active Workout In Progress` alert now explicitly re-marks the cleared workout as saved after dismissing the active binding, so the draft remains resumable later instead of being accidentally treated as discarded.
 - Fixed stale active-workout binding behavior in `ContentView` so completed workouts no longer appear as resumable in Home/Templates flows (preventing false `Active Workout In Progress` prompts when starting from a template). `shouldResumeIncompleteWorkout(for:)` now explicitly rejects completed workouts, and cleanup logic avoids marking completed sessions as discarded when clearing non-resumable state.
 - Polished Rest Timer completion UX by adding explicit play/pause control states in `RestTimerView`: the control now switches to a disabled `Done` state when the countdown reaches `0`, avoiding misleading `Pause/Resume` affordances during the auto-dismiss window. Added regression coverage in `RestTimerViewTests` for running/paused/completed control-state classification.
