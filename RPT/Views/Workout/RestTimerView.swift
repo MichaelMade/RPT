@@ -13,13 +13,22 @@ struct RestTimerView: View {
     @Binding var isShowing: Bool
 
     @State private var timeRemaining: Int
+    @State private var timerDuration: Int
     @State private var isPaused = false
     @State private var timerCancellable = Set<AnyCancellable>()
+
+    enum TimerPhase: Equatable {
+        case normal
+        case warning
+        case critical
+    }
 
     init(defaultDuration: Int, isShowing: Binding<Bool>) {
         self.defaultDuration = defaultDuration
         self._isShowing = isShowing
-        self._timeRemaining = State(initialValue: defaultDuration)
+        let safeDefaultDuration = max(defaultDuration, 0)
+        self._timeRemaining = State(initialValue: safeDefaultDuration)
+        self._timerDuration = State(initialValue: safeDefaultDuration)
     }
     
     var body: some View {
@@ -158,17 +167,37 @@ struct RestTimerView: View {
     }
     
     private var progress: CGFloat {
-        if defaultDuration <= 0 { return 0 }
-        return 1.0 - CGFloat(timeRemaining) / CGFloat(defaultDuration)
+        Self.normalizedProgress(timeRemaining: timeRemaining, duration: timerDuration)
     }
-    
+
     private var timerColor: Color {
-        if timeRemaining > defaultDuration / 3 {
+        switch Self.phase(forTimeRemaining: timeRemaining, duration: timerDuration) {
+        case .normal:
             return .blue
-        } else if timeRemaining > defaultDuration / 6 {
+        case .warning:
             return .orange
-        } else {
+        case .critical:
             return .red
+        }
+    }
+
+    static func normalizedProgress(timeRemaining: Int, duration: Int) -> CGFloat {
+        guard duration > 0 else { return 0 }
+
+        let clampedRemaining = min(max(timeRemaining, 0), duration)
+        return 1.0 - CGFloat(clampedRemaining) / CGFloat(duration)
+    }
+
+    static func phase(forTimeRemaining timeRemaining: Int, duration: Int) -> TimerPhase {
+        guard duration > 0 else { return .critical }
+
+        let clampedRemaining = max(timeRemaining, 0)
+        if clampedRemaining > duration / 3 {
+            return .normal
+        } else if clampedRemaining > duration / 6 {
+            return .warning
+        } else {
+            return .critical
         }
     }
     
@@ -213,7 +242,9 @@ struct RestTimerView: View {
     }
     
     private func resetTimer() {
-        timeRemaining = defaultDuration
+        let safeDefaultDuration = max(defaultDuration, 0)
+        timerDuration = safeDefaultDuration
+        timeRemaining = safeDefaultDuration
         
         if isPaused {
             startTimer()
@@ -243,7 +274,10 @@ struct RestTimerView: View {
     }
     
     private func setTime(_ seconds: Int) {
-        timeRemaining = seconds
+        let safeSeconds = max(seconds, 0)
+        timerDuration = safeSeconds
+        timeRemaining = safeSeconds
+
         if isPaused {
             startTimer()
         }
