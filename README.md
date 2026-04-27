@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished `WorkoutDetailView` summary cards by promoting completed-workout duration into the stat grid and normalizing notes before display, so detail screens surface session length alongside exercises/sets/work and no longer render whitespace-only or messy multiline notes; added regression coverage in `FormattingTests`.
 - Improved Home `Recent Workouts` glanceability by adding a dedicated `Duration` row to `WorkoutRow` whenever a completed workout has a valid positive duration, so users can compare session length without opening workout details. Invalid or zero durations stay hidden to avoid noisy `0s` rows, and regression coverage was added in `FormattingTests`.
 - Fixed a Rest Timer restart hole after `Skip`/stopped states: `RestTimerView` now tracks whether a countdown is still active and automatically restarts when the user hits `Reset` or picks a quick preset after a skip/stopped timer, instead of leaving the timer frozen at the new value until the sheet is dismissed. Added regression coverage in `RestTimerViewTests` for paused, stopped, and actively running restart decisions.
 - Fixed template-switch draft preservation in `TemplatesListView`: choosing `Save & Continue Later` from the `Active Workout In Progress` alert now explicitly re-marks the cleared workout as saved after dismissing the active binding, so the draft remains resumable later instead of being accidentally treated as discarded.

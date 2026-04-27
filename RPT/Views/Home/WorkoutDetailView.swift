@@ -11,6 +11,39 @@ import SwiftData
 struct WorkoutDetailView: View {
     let workout: Workout
 
+    private let summaryColumns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+
+    static func summaryMetrics(for workout: Workout) -> [(title: String, value: String)] {
+        var metrics: [(title: String, value: String)] = [
+            (title: "Exercises", value: "\(workout.exerciseCount)"),
+            (title: "Sets", value: "\(workout.workingSetsCount)"),
+            (title: workout.preferredWorkMetricTitle, value: workout.preferredWorkMetricValue)
+        ]
+
+        let safeDuration = workout.duration.isFinite ? max(0, workout.duration) : 0
+        if workout.isCompleted, safeDuration > 0 {
+            metrics.append((title: "Duration", value: workout.formattedDurationForSummary()))
+        }
+
+        return metrics
+    }
+
+    static func normalizedNotes(for workout: Workout) -> String? {
+        let collapsedNotes = workout.notes
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedNotes.isEmpty else {
+            return nil
+        }
+
+        return collapsedNotes
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -24,31 +57,23 @@ struct WorkoutDetailView: View {
                     }
                     
                     // Workout stats
-                    HStack(spacing: 16) {
-                        StatBox(
-                            title: "Exercises",
-                            value: "\(workout.exerciseCount)"
-                        )
-                        
-                        StatBox(
-                            title: "Sets",
-                            value: "\(workout.workingSetsCount)"
-                        )
-                        
-                        StatBox(
-                            title: workout.preferredWorkMetricTitle,
-                            value: workout.preferredWorkMetricValue
-                        )
+                    LazyVGrid(columns: summaryColumns, alignment: .leading, spacing: 12) {
+                        ForEach(Self.summaryMetrics(for: workout), id: \.title) { metric in
+                            StatBox(
+                                title: metric.title,
+                                value: metric.value
+                            )
+                        }
                     }
                     .padding(.vertical, 8)
                     
                     // Notes
-                    if !workout.notes.isEmpty {
+                    if let normalizedNotes = Self.normalizedNotes(for: workout) {
                         Text("Notes")
                             .font(.headline)
                             .padding(.top, 4)
                         
-                        Text(workout.notes)
+                        Text(normalizedNotes)
                             .font(.body)
                             .foregroundColor(.secondary)
                     }

@@ -202,6 +202,28 @@ final class FormattingTests: XCTestCase {
         XCTAssertNil(WorkoutRow.durationMetric(for: corruptedDurationWorkout))
     }
 
+    func testWorkoutDetailSummaryMetrics_includeDurationOnlyForCompletedPositiveDurations() {
+        let completedWorkout = Workout(name: "Completed Workout", duration: 3725, isCompleted: true)
+        let completedMetrics = WorkoutDetailView.summaryMetrics(for: completedWorkout)
+
+        XCTAssertEqual(completedMetrics.last?.title, "Duration")
+        XCTAssertEqual(completedMetrics.last?.value, "1h 2m 5s")
+
+        let incompleteWorkout = Workout(name: "Incomplete Workout", duration: 3725, isCompleted: false)
+        XCTAssertFalse(WorkoutDetailView.summaryMetrics(for: incompleteWorkout).contains(where: { $0.title == "Duration" }))
+
+        let corruptedWorkout = Workout(name: "Corrupted Workout", duration: -.infinity, isCompleted: true)
+        XCTAssertFalse(WorkoutDetailView.summaryMetrics(for: corruptedWorkout).contains(where: { $0.title == "Duration" }))
+    }
+
+    func testWorkoutDetailNormalizedNotes_collapsesWhitespaceAndHidesBlankNotes() {
+        let workoutWithNotes = Workout(name: "Notes Workout", notes: "  Great\n\n session   today  ")
+        XCTAssertEqual(WorkoutDetailView.normalizedNotes(for: workoutWithNotes), "Great session today")
+
+        let blankNotesWorkout = Workout(name: "Blank Notes", notes: " \n\t ")
+        XCTAssertNil(WorkoutDetailView.normalizedNotes(for: blankNotesWorkout))
+    }
+
     func testWorkoutRowSecondaryMetric_prefersBodyweightRepsWhenVolumeIsZero() {
         let workout = Workout(name: "Bodyweight Workout")
         let pullUp = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
