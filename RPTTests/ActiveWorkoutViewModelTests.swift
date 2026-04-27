@@ -160,6 +160,39 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(addedSet?.reps, 8, "Working-set progression should build from the last completed working set")
     }
 
+    func testAddSetToExercise_keepsDefaultRepsWhenLastSetRepsAreZero() throws {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: exercise, weight: 200, reps: 0)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // When
+        try viewModel.addSetToExercise(exercise)
+
+        // Then
+        let addedSet = workout.sets.last { $0.exercise?.id == exercise.id }
+        XCTAssertEqual(addedSet?.reps, 8, "Zero-rep seed sets should keep default starter reps instead of dropping to 2 reps")
+    }
+
+    func testAddSetToExercise_keepsDefaultRepsWhenLastSetRepsAreCorruptedNegative() throws {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let corruptedSet = workout.addSet(exercise: exercise, weight: 200, reps: 6)
+        corruptedSet.reps = -4
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // When
+        try viewModel.addSetToExercise(exercise)
+
+        // Then
+        let addedSet = workout.sets.last { $0.exercise?.id == exercise.id }
+        XCTAssertEqual(addedSet?.reps, 8, "Corrupted negative reps should not collapse suggestions below default starter reps")
+    }
+
     func testViewModelPreservesExerciseInsertionOrderWhenTimestampsMatch() {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")

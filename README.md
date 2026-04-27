@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Active Workout set-suggestion resilience in `ActiveWorkoutViewModel.addSetToExercise`: rep progression now only increments when the prior set has a positive rep value, and falls back to the default starter reps when prior reps are zero/corrupted. This prevents broken suggestions like `2 reps` (or negative reps) from malformed seed data while preserving normal RPT progression; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Polished Exercise Progress summary-card semantics by introducing `ExerciseProgressView.deltaTrend(for:)` and using it to tint the Change card only when progress is directionally positive/negative. Zero or corrupted deltas now render with neutral text color instead of misleading green styling, while gains still show green and regressions red; added regression coverage in `ExerciseProgressViewTests`.
 - Fixed Exercise Progress summary-card change accuracy by adding signed delta formatting (`ExerciseProgressView.formatMetricDeltaValue(...)`) and wiring the Change card to use it. Negative progress is now shown correctly (for example `-5 lb`, `-3 reps`) instead of being clamped to zero, while positive deltas keep explicit `+` prefixes; added regression coverage in `ExerciseProgressViewTests`.
 - Improved repo hygiene for ongoing iOS asset iteration by ignoring local AppIcon backup files (`RPT.backup-*.jpg`) in `.gitignore`. This prevents accidental commits and noisy dirty working trees when preserving temporary icon variants during design experiments.

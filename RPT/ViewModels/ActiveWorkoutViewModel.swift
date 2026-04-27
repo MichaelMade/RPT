@@ -266,12 +266,13 @@ class ActiveWorkoutViewModel: ObservableObject {
             let calculatedWeight = Double(lastSet.weight) * (1.0 - reductionPercentage)
             // Round to nearest 5
             newWeight = workoutManager.roundToNearest5(calculatedWeight)
-            
-            // For RPT, often increase reps
-            newReps = lastSet.reps + 2
-            
-            // Ensure reps don't exceed a reasonable limit
-            newReps = min(newReps, 15)
+
+            // For RPT, usually increase reps from the prior completed value.
+            // Keep the default starter reps when prior reps are zero/corrupted.
+            let safeLastReps = max(0, lastSet.reps)
+            if safeLastReps > 0 {
+                newReps = min(safeLastReps + 2, 15)
+            }
         }
         
         // Add the new set
