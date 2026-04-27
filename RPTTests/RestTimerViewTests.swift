@@ -45,4 +45,15 @@ final class RestTimerViewTests: XCTestCase {
         XCTAssertEqual(RestTimerView.phase(forTimeRemaining: 2, duration: 5), .warning)
         XCTAssertEqual(RestTimerView.phase(forTimeRemaining: 1, duration: 5), .critical)
     }
+
+    func testQuickDurationLabel_formatsMinuteSecondPresetsClearly() {
+        XCTAssertEqual(RestTimerView.quickDurationLabel(30), "30s")
+        XCTAssertEqual(RestTimerView.quickDurationLabel(60), "1m")
+        XCTAssertEqual(RestTimerView.quickDurationLabel(90), "1m 30s")
+        XCTAssertEqual(RestTimerView.quickDurationLabel(0), "0s")
+    }
+
+    func testQuickDurationLabel_clampsNegativeInputToSafeZero() {
+        XCTAssertEqual(RestTimerView.quickDurationLabel(-15), "0s")
+    }
 }

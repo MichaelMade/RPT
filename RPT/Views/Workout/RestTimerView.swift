@@ -160,11 +160,23 @@ struct RestTimerView: View {
     }
     
     private func formatTimeButton(_ seconds: Int) -> String {
-        if seconds < 60 {
-            return "\(seconds)s"
-        } else {
-            return "\(seconds/60)m"
+        Self.quickDurationLabel(seconds)
+    }
+
+    static func quickDurationLabel(_ seconds: Int) -> String {
+        let safeSeconds = max(seconds, 0)
+        let minutes = safeSeconds / 60
+        let remainingSeconds = safeSeconds % 60
+
+        if minutes == 0 {
+            return "\(safeSeconds)s"
         }
+
+        if remainingSeconds == 0 {
+            return "\(minutes)m"
+        }
+
+        return "\(minutes)m \(remainingSeconds)s"
     }
     
     private var progress: CGFloat {
