@@ -36,4 +36,17 @@ final class StatsViewFormattingTests: XCTestCase {
         XCTAssertEqual(sut.formattedTotal(1_000_000.0), "1M lb")
         XCTAssertEqual(sut.formattedTotal(1_999_999.0), "1.9M lb")
     }
+
+    func testFormattedSetSharePercentage_handlesZeroTotalSafely() {
+        XCTAssertEqual(sut.formattedSetSharePercentage(setCount: 3, totalSets: 0), "(0%)")
+    }
+
+    func testFormattedSetSharePercentage_clampsInvalidInputs() {
+        XCTAssertEqual(sut.formattedSetSharePercentage(setCount: -5, totalSets: 10), "(0%)")
+        XCTAssertEqual(sut.formattedSetSharePercentage(setCount: 5, totalSets: -10), "(0%)")
+    }
+
+    func testFormattedSetSharePercentage_formatsWholePercentage() {
+        XCTAssertEqual(sut.formattedSetSharePercentage(setCount: 3, totalSets: 12), "(25%)")
+    }
 }

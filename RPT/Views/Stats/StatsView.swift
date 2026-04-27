@@ -127,7 +127,7 @@ struct StatsView: View {
                             Text("\(share.setCount) sets")
                                 .font(.caption.monospacedDigit())
                                 .foregroundColor(.secondary)
-                            Text("(\(Int(Double(share.setCount) / Double(totalSets) * 100))%)")
+                            Text(formattedSetSharePercentage(setCount: share.setCount, totalSets: totalSets))
                                 .font(.caption.monospacedDigit())
                                 .foregroundColor(.secondary)
                         }
@@ -200,6 +200,21 @@ struct StatsView: View {
         }
 
         return "\(Int(floor(truncatedVolume))) lb"
+    }
+
+    func formattedSetSharePercentage(setCount: Int, totalSets: Int) -> String {
+        let safeSetCount = max(0, setCount)
+        let safeTotalSets = max(0, totalSets)
+
+        guard safeTotalSets > 0 else {
+            return "(0%)"
+        }
+
+        let ratio = Double(safeSetCount) / Double(safeTotalSets)
+        let rawPercentage = ratio.isFinite ? ratio * 100 : 0
+        let safePercentage = max(0, Int(rawPercentage))
+
+        return "(\(safePercentage)%)"
     }
 }
 
