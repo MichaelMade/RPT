@@ -44,6 +44,19 @@ struct WorkoutRow: View {
         return "\(count) \(count == 1 ? "set" : "sets")"
     }
 
+    static func durationMetric(for workout: Workout) -> (label: String, value: String)? {
+        let safeDuration = workout.duration.isFinite ? max(0, workout.duration) : 0
+
+        guard safeDuration > 0 else {
+            return nil
+        }
+
+        return (
+            label: "Duration",
+            value: workout.formattedDurationForSummary()
+        )
+    }
+
     static func secondaryMetric(for workout: Workout) -> (label: String, value: String)? {
         guard workout.hasPreferredWorkMetric else {
             return nil
@@ -87,6 +100,20 @@ struct WorkoutRow: View {
                     .font(.caption)
             }
             
+            if let durationMetric = Self.durationMetric(for: workout) {
+                HStack {
+                    Text("\(durationMetric.label):")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Spacer()
+
+                    Text(durationMetric.value)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                }
+            }
+
             if let secondaryMetric = Self.secondaryMetric(for: workout) {
                 HStack {
                     Text("\(secondaryMetric.label):")

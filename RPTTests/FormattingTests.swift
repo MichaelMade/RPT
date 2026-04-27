@@ -185,6 +185,23 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(WorkoutRow.exerciseCountText(for: fallbackWorkout), "2 exercises")
     }
 
+    func testWorkoutRowDurationMetric_showsFormattedCompletedDuration() {
+        let workout = Workout(name: "Long Workout", duration: 3725)
+
+        let metric = WorkoutRow.durationMetric(for: workout)
+
+        XCTAssertEqual(metric?.label, "Duration")
+        XCTAssertEqual(metric?.value, "1h 2m 5s")
+    }
+
+    func testWorkoutRowDurationMetric_hidesZeroAndCorruptedDurations() {
+        let zeroDurationWorkout = Workout(name: "Zero Duration", duration: 0)
+        let corruptedDurationWorkout = Workout(name: "Corrupted Duration", duration: -.infinity)
+
+        XCTAssertNil(WorkoutRow.durationMetric(for: zeroDurationWorkout))
+        XCTAssertNil(WorkoutRow.durationMetric(for: corruptedDurationWorkout))
+    }
+
     func testWorkoutRowSecondaryMetric_prefersBodyweightRepsWhenVolumeIsZero() {
         let workout = Workout(name: "Bodyweight Workout")
         let pullUp = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
