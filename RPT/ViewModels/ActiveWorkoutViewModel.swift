@@ -261,11 +261,13 @@ class ActiveWorkoutViewModel: ObservableObject {
         // completed working sets for drop-index math so warmups/incomplete
         // placeholders never shift top/back-off progression.
         if let lastSet = completedWorkingSets.last ?? orderedExistingSets.last {
-            // For RPT, reduce weight by default percentage
-            let reductionPercentage = getReductionPercentage(forSetNumber: completedWorkingSets.count)
-            let calculatedWeight = Double(lastSet.weight) * (1.0 - reductionPercentage)
-            // Round to nearest 5
-            newWeight = workoutManager.roundToNearest5(calculatedWeight)
+            // For RPT, reduce weight by default percentage.
+            // Clamp to a safe range so malformed settings never yield invalid math.
+            let reductionPercentage = min(max(getReductionPercentage(forSetNumber: completedWorkingSets.count), 0), 1)
+            let safeLastWeight = max(0, lastSet.weight)
+            let calculatedWeight = Double(safeLastWeight) * (1.0 - reductionPercentage)
+            // Round to nearest 5 and keep suggestions non-negative.
+            newWeight = max(0, workoutManager.roundToNearest5(calculatedWeight))
 
             // For RPT, usually increase reps from the prior completed value.
             // Keep the default starter reps when prior reps are zero/corrupted.

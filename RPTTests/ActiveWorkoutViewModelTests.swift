@@ -193,6 +193,23 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(addedSet?.reps, 8, "Corrupted negative reps should not collapse suggestions below default starter reps")
     }
 
+    func testAddSetToExercise_clampsCorruptedNegativeLastWeightToSafeSuggestion() throws {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let corruptedSet = workout.addSet(exercise: exercise, weight: 185, reps: 6)
+        corruptedSet.weight = -185
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // When
+        try viewModel.addSetToExercise(exercise)
+
+        // Then
+        let addedSet = workout.sets.last { $0.id != corruptedSet.id && $0.exercise?.id == exercise.id }
+        XCTAssertEqual(addedSet?.weight, 0, "Corrupted negative previous weight should never produce negative auto-suggested weights")
+    }
+
     func testViewModelPreservesExerciseInsertionOrderWhenTimestampsMatch() {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")
