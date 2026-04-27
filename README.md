@@ -186,6 +186,8 @@ RPT/
 - Hardened `WorkoutManager.formatWeight(_:)` to safely clamp corrupted negative or non-finite values to `0.0 lb`, matching the app's defensive volume-formatting behavior.
 - Improved Stats PR data quality by normalizing exercise names before PR aggregation in `StatsViewModel.computePRs` (trim/collapse whitespace plus case/diacritic-insensitive keys), so name variants like `Bench   Press` and `bench press` now resolve to one canonical PR card instead of splitting progress history; added regression coverage in `StatsViewModelTests`.
 
+- Fixed Settings state drift when invalid edits are rejected: `SettingsViewModel` now re-syncs from persisted `SettingsManager` values whenever a safe update fails (instead of leaving stale in-memory/UI values that were never saved). This hardens RPT drop editing and programmatic timer updates against invalid input mismatch; added regression coverage in new `SettingsViewModelTests`.
+
 ## Contributing
 
 Contributions are welcome! Please:

@@ -12,28 +12,45 @@ import SwiftData
 @MainActor
 class SettingsViewModel: ObservableObject {
     private let settingsManager: SettingsManager
+    private var isSyncingFromPersistedSettings = false
     
     @Published var restTimerDuration: Int {
         didSet {
-            _ = settingsManager.updateRestTimerDurationSafely(seconds: restTimerDuration)
+            guard !isSyncingFromPersistedSettings else { return }
+
+            if !settingsManager.updateRestTimerDurationSafely(seconds: restTimerDuration) {
+                syncFromPersistedSettings()
+            }
         }
     }
     
     @Published var defaultRPTPercentageDrops: [Double] {
         didSet {
-            _ = settingsManager.updateRPTPercentageDropsSafely(drops: defaultRPTPercentageDrops)
+            guard !isSyncingFromPersistedSettings else { return }
+
+            if !settingsManager.updateRPTPercentageDropsSafely(drops: defaultRPTPercentageDrops) {
+                syncFromPersistedSettings()
+            }
         }
     }
     
     @Published var showRPE: Bool {
         didSet {
-            _ = settingsManager.updateShowRPESafely(show: showRPE)
+            guard !isSyncingFromPersistedSettings else { return }
+
+            if !settingsManager.updateShowRPESafely(show: showRPE) {
+                syncFromPersistedSettings()
+            }
         }
     }
     
     @Published var darkModePreference: DarkModePreference {
         didSet {
-            _ = settingsManager.updateDarkModePreferenceSafely(preference: darkModePreference)
+            guard !isSyncingFromPersistedSettings else { return }
+
+            if !settingsManager.updateDarkModePreferenceSafely(preference: darkModePreference) {
+                syncFromPersistedSettings()
+            }
         }
     }
     
@@ -49,12 +66,8 @@ class SettingsViewModel: ObservableObject {
     
     func resetToDefaults() {
         _ = settingsManager.resetToDefaultsSafely()
-        
-        // Update local properties
-        self.restTimerDuration = settingsManager.settings.restTimerDuration
-        self.defaultRPTPercentageDrops = settingsManager.settings.defaultRPTPercentageDrops
-        self.showRPE = settingsManager.settings.showRPE
-        self.darkModePreference = settingsManager.settings.darkModePreference
+
+        syncFromPersistedSettings()
     }
     
     func calculateExample(firstWeight: Int = 225) -> String {
@@ -65,5 +78,14 @@ class SettingsViewModel: ObservableObject {
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "\(appVersion) (\(buildNumber))"
+    }
+
+    private func syncFromPersistedSettings() {
+        isSyncingFromPersistedSettings = true
+        restTimerDuration = settingsManager.settings.restTimerDuration
+        defaultRPTPercentageDrops = settingsManager.settings.defaultRPTPercentageDrops
+        showRPE = settingsManager.settings.showRPE
+        darkModePreference = settingsManager.settings.darkModePreference
+        isSyncingFromPersistedSettings = false
     }
 }
