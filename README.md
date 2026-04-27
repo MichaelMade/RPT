@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed a Rest Timer restart UX bug where selecting `Reset` or a quick preset right after completion could still trigger the previously scheduled auto-dismiss and close the timer unexpectedly. `RestTimerView` now cancels any pending dismiss whenever the user actively restarts/reconfigures the timer, so fresh rest periods stay visible.
 - Improved Rest Timer quick-duration preset clarity by adding `RestTimerView.quickDurationLabel(_:)`, so mixed-minute presets now render explicit labels (for example `90` seconds now displays `1m 30s` instead of the ambiguous `1m`). Added regression coverage in `RestTimerViewTests` for mixed-minute, minute-only, and negative-input cases.
 - Polished Rest Timer urgency-color behavior for very short presets by updating `RestTimerView.phase(forTimeRemaining:duration:)` to use ceil-based thresholds with minimum warning/critical windows. This ensures short timers (for example `5s`) still transition through visible warning (`2s`) and critical (`1s`) states instead of skipping urgency cues due to integer-division truncation; added regression coverage in `RestTimerViewTests`.
 - Fixed Rest Timer preset behavior so progress-ring fill and urgency color thresholds now use the currently selected timer duration (for example `30s`, `60s`, `90s`) instead of the original default duration. This prevents misleading ring progress/color states after quick-time changes and safely clamps invalid timer values; added regression coverage in new `RestTimerViewTests`.

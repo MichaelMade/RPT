@@ -262,15 +262,16 @@ struct RestTimerView: View {
     private func stopTimer() {
         timerCancellable.forEach { $0.cancel() }
         timerCancellable.removeAll()
-        dismissWorkItem?.cancel()
-        dismissWorkItem = nil
+        cancelScheduledDismiss()
     }
     
     private func resetTimer() {
+        cancelScheduledDismiss()
+
         let safeDefaultDuration = max(defaultDuration, 0)
         timerDuration = safeDefaultDuration
         timeRemaining = safeDefaultDuration
-        
+
         if isPaused {
             startTimer()
         }
@@ -295,7 +296,7 @@ struct RestTimerView: View {
     }
 
     private func scheduleDismiss(after delay: TimeInterval) {
-        dismissWorkItem?.cancel()
+        cancelScheduledDismiss()
 
         let workItem = DispatchWorkItem {
             withAnimation {
@@ -306,8 +307,15 @@ struct RestTimerView: View {
         dismissWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
+
+    private func cancelScheduledDismiss() {
+        dismissWorkItem?.cancel()
+        dismissWorkItem = nil
+    }
     
     private func setTime(_ seconds: Int) {
+        cancelScheduledDismiss()
+
         let safeSeconds = max(seconds, 0)
         timerDuration = safeSeconds
         timeRemaining = safeSeconds
