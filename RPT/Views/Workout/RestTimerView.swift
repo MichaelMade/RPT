@@ -193,9 +193,12 @@ struct RestTimerView: View {
         guard duration > 0 else { return .critical }
 
         let clampedRemaining = max(timeRemaining, 0)
-        if clampedRemaining > duration / 3 {
+        let warningThreshold = max(1, Int(ceil(Double(duration) / 3.0)))
+        let criticalThreshold = max(1, Int(ceil(Double(duration) / 6.0)))
+
+        if clampedRemaining > warningThreshold {
             return .normal
-        } else if clampedRemaining > duration / 6 {
+        } else if clampedRemaining > criticalThreshold {
             return .warning
         } else {
             return .critical

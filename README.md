@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished Rest Timer urgency-color behavior for very short presets by updating `RestTimerView.phase(forTimeRemaining:duration:)` to use ceil-based thresholds with minimum warning/critical windows. This ensures short timers (for example `5s`) still transition through visible warning (`2s`) and critical (`1s`) states instead of skipping urgency cues due to integer-division truncation; added regression coverage in `RestTimerViewTests`.
 - Fixed Rest Timer preset behavior so progress-ring fill and urgency color thresholds now use the currently selected timer duration (for example `30s`, `60s`, `90s`) instead of the original default duration. This prevents misleading ring progress/color states after quick-time changes and safely clamps invalid timer values; added regression coverage in new `RestTimerViewTests`.
 - Hardened core RPT set-weight generation in `WorkoutManager.calculateRPTWeights(...)` by enforcing monotonic back-off drops (`Set 2`/`Set 3` can no longer become heavier than earlier sets) even if drop input is out-of-order or partially corrupted at runtime. Added regression coverage in `WorkoutManagerTests` for non-monotonic and non-finite drop arrays.
 - Hardened Stats weekly-volume data integrity in `StatsViewModel` by sanitizing corrupted workout/user volume values before chart and headline aggregation (`negative`, `infinite`, or `NaN` values now clamp to `0`), preventing impossible chart bars and broken totals from malformed legacy data. Added regression coverage in `StatsViewModelTests`.

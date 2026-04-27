@@ -39,4 +39,10 @@ final class RestTimerViewTests: XCTestCase {
     func testPhase_returnsCriticalForInvalidDuration() {
         XCTAssertEqual(RestTimerView.phase(forTimeRemaining: 10, duration: 0), .critical)
     }
+
+    func testPhase_forShortDurationsStillShowsWarningAndCriticalStates() {
+        XCTAssertEqual(RestTimerView.phase(forTimeRemaining: 5, duration: 5), .normal)
+        XCTAssertEqual(RestTimerView.phase(forTimeRemaining: 2, duration: 5), .warning)
+        XCTAssertEqual(RestTimerView.phase(forTimeRemaining: 1, duration: 5), .critical)
+    }
 }
