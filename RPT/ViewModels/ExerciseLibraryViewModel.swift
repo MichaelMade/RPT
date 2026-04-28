@@ -67,7 +67,26 @@ class ExerciseLibraryViewModel: ObservableObject {
             return nil
         }
 
-        return "Showing \(filteredCount) of \(exercises.count) exercises"
+        var summary = "Showing \(filteredCount) of \(exercises.count) exercises"
+        var qualifiers: [String] = []
+
+        if hasActiveSearch {
+            qualifiers.append("for “\(normalizedSearchText)”")
+        }
+
+        if let selectedCategory {
+            qualifiers.append("in \(selectedCategory.rawValue.capitalized)")
+        }
+
+        if let selectedMuscleGroup {
+            qualifiers.append("targeting \(selectedMuscleGroup.displayName)")
+        }
+
+        if !qualifiers.isEmpty {
+            summary += " " + qualifiers.joined(separator: " • ")
+        }
+
+        return summary
     }
 
     static func searchMatchPriority(exerciseName: String, normalizedQuery: String) -> Int? {

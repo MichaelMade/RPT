@@ -159,8 +159,8 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.filteredResultsSummary(filteredCount: 1),
-            "Showing 1 of 3 exercises",
-            "Active exercise searches should surface a quick filtered-result summary"
+            "Showing 1 of 3 exercises for “Bench”",
+            "Active exercise searches should surface a quick filtered-result summary with the normalized query"
         )
 
         viewModel.searchText = ""
@@ -168,8 +168,26 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.filteredResultsSummary(filteredCount: 2),
-            "Showing 2 of 3 exercises",
-            "Active exercise filters should also surface the filtered-result summary even without a text search"
+            "Showing 2 of 3 exercises targeting Back",
+            "Active exercise filters should surface which muscle group is narrowing the library"
+        )
+    }
+
+    func testFilteredResultsSummary_includesCombinedSearchAndFilterContext() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
+            Exercise(name: "Cable Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
+            Exercise(name: "Pull-Up", category: .bodyweight, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+        viewModel.searchText = "  row\n"
+        viewModel.selectedCategory = .compound
+        viewModel.selectedMuscleGroup = .back
+
+        XCTAssertEqual(
+            viewModel.filteredResultsSummary(filteredCount: 2),
+            "Showing 2 of 3 exercises for “row” • in Compound • targeting Back",
+            "Combined search and filter summaries should explain why the visible exercise set is narrowed"
         )
     }
 }
