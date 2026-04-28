@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved exercise-library and exercise-picker search recovery by normalizing whitespace-only or messy multiline queries before filtering, adding filtered-result summaries, and surfacing one-tap `Clear Search` / `Reset Filters` recovery in empty states so accidental blank-looking searches no longer hide every exercise with no easy way back; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Improved first-run Stats UX by adding a clear empty-state card when no workouts have been completed yet, so new users see how to unlock weekly volume, muscle-group focus, and PRs instead of just a dead-looking zeroed stats screen.
 - Hardened workout share/export summary resilience for legacy completed sessions by making `Workout.generateFormattedSummary()` fall back to canonical logged exercise names and set counts when completed-set timestamps are missing/corrupted, so copied summaries no longer read like empty workouts (`Exercises: None`, `Sets: 0`) for real finished history; in-progress/planned workouts still avoid exposing placeholder exercises. Added regression coverage in `WorkoutManagerTests`.
 - Hardened workout stats duration quality by making `WorkoutManager` ignore zero/corrupted completed-workout durations when calculating average duration, so malformed history no longer drags down averages; also switched formatted average durations to the same human-readable hour/minute/second style used elsewhere (`1h 2m 5s` instead of raw `62:05`). Added regression coverage in `WorkoutManagerTests`.

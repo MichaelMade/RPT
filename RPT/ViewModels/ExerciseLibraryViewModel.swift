@@ -17,6 +17,28 @@ class ExerciseLibraryViewModel: ObservableObject {
     @Published var selectedCategory: ExerciseCategory?
     @Published var selectedMuscleGroup: MuscleGroup?
     @Published var exercises: [Exercise] = []
+
+    static func normalizedSearchQuery(_ rawQuery: String) -> String {
+        rawQuery
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+    }
+
+    var normalizedSearchText: String {
+        Self.normalizedSearchQuery(searchText)
+    }
+
+    var hasActiveSearch: Bool {
+        !normalizedSearchText.isEmpty
+    }
+
+    var hasActiveFilters: Bool {
+        selectedCategory != nil || selectedMuscleGroup != nil
+    }
+
+    var hasActiveQuery: Bool {
+        hasActiveSearch || hasActiveFilters
+    }
     
     init(exerciseManager: ExerciseManager? = nil) {
         self.exerciseManager = exerciseManager ?? ExerciseManager.shared
@@ -26,13 +48,32 @@ class ExerciseLibraryViewModel: ObservableObject {
     func refreshExercises() {
         exercises = exerciseManager.fetchAllExercises()
     }
+
+    func clearSearch() {
+        searchText = ""
+    }
+
+    func clearFilters() {
+        selectedCategory = nil
+        selectedMuscleGroup = nil
+    }
+
+    func filteredResultsSummary(filteredCount: Int) -> String? {
+        guard hasActiveQuery, !exercises.isEmpty else {
+            return nil
+        }
+
+        return "Showing \(filteredCount) of \(exercises.count) exercises"
+    }
     
     func fetchExercises() -> [Exercise] {
+        let normalizedSearchText = normalizedSearchText
+
         // Filter in memory based on search text and filters
         return exercises.filter { exercise in
             // Apply search filter
-            let matchesSearch = searchText.isEmpty ||
-                                exercise.name.localizedCaseInsensitiveContains(searchText)
+            let matchesSearch = normalizedSearchText.isEmpty ||
+                                exercise.name.localizedCaseInsensitiveContains(normalizedSearchText)
             
             // Apply category filter
             let matchesCategory = selectedCategory == nil ||

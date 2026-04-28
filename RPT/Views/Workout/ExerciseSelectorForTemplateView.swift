@@ -19,13 +19,34 @@ struct ExerciseSelectorForTemplateView: View {
         NavigationStack {
             List {
                 let filteredExercises = viewModel.fetchExercises()
+
+                if let summary = viewModel.filteredResultsSummary(filteredCount: filteredExercises.count) {
+                    Text(summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .listRowSeparator(.hidden)
+                }
                 
                 if filteredExercises.isEmpty {
-                    ContentUnavailableView(
-                        "No Exercises Found",
-                        systemImage: "magnifyingglass",
-                        description: Text("Try changing your search.")
-                    )
+                    ContentUnavailableView {
+                        Label(
+                            viewModel.hasActiveQuery ? "No Matching Exercises" : "No Exercises Available",
+                            systemImage: viewModel.hasActiveQuery ? "magnifyingglass" : "dumbbell"
+                        )
+                    } description: {
+                        Text(
+                            viewModel.hasActiveQuery
+                            ? "Try changing your search, or clear it to browse every exercise."
+                            : "Add an exercise in the library first, then come back here to use it in a template."
+                        )
+                    } actions: {
+                        if viewModel.hasActiveSearch {
+                            Button("Clear Search") {
+                                searchText = ""
+                                viewModel.clearSearch()
+                            }
+                        }
+                    }
                 } else {
                     ForEach(filteredExercises) { exercise in
                         // Make the entire row tappable
