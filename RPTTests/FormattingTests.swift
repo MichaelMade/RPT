@@ -314,6 +314,52 @@ final class FormattingTests: XCTestCase {
         XCTAssertNil(WorkoutRow.supplementalMetric(for: bodyweightWorkout))
     }
 
+    func testExerciseDetailRecentHistoryEntries_sortByWorkoutDateInsteadOfCorruptedSetTimestamp() {
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        let olderWorkout = Workout(
+            date: Date(timeIntervalSinceReferenceDate: 1_000),
+            name: "Older Workout",
+            isCompleted: true
+        )
+        let olderSet = olderWorkout.addSet(exercise: exercise, weight: 225, reps: 5)
+        olderSet.completedAt = Date(timeIntervalSinceReferenceDate: 5_000)
+
+        let newerWorkout = Workout(
+            date: Date(timeIntervalSinceReferenceDate: 2_000),
+            name: "Newer Workout",
+            isCompleted: true
+        )
+        let newerSet = newerWorkout.addSet(exercise: exercise, weight: 205, reps: 8)
+        newerSet.completedAt = Date(timeIntervalSinceReferenceDate: 500)
+
+        let entries = ExerciseDetailView.recentHistoryEntries(from: [
+            (workout: olderWorkout, sets: [olderSet]),
+            (workout: newerWorkout, sets: [newerSet])
+        ])
+
+        XCTAssertEqual(entries.map { $0.workout.name }, ["Newer Workout", "Older Workout"])
+    }
+
+    func testExerciseDetailRecentHistoryEntries_ignoresWorkoutsWithoutCompletedWorkingSets() {
+        let exercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+
+        let completedWorkout = Workout(name: "Completed", isCompleted: true)
+        let completedSet = completedWorkout.addSet(exercise: exercise, weight: 0, reps: 10)
+
+        let placeholderWorkout = Workout(name: "Placeholder", isCompleted: true)
+        let placeholderSet = placeholderWorkout.addSet(exercise: exercise, weight: 0, reps: 0)
+
+        let entries = ExerciseDetailView.recentHistoryEntries(from: [
+            (workout: completedWorkout, sets: [completedSet]),
+            (workout: placeholderWorkout, sets: [placeholderSet])
+        ])
+
+        XCTAssertEqual(entries.count, 1)
+        XCTAssertEqual(entries.first?.workout.name, "Completed")
+        XCTAssertEqual(entries.first?.set.formattedWeightReps, "BW × 10 reps")
+    }
+
     func testWeightUnitsConsistency() {
         let workoutManager = WorkoutManager.shared
         let settingsManager = SettingsManager.shared

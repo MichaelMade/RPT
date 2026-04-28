@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed `ExerciseDetailView` history recency drift by deriving each workout’s history card from the workout date (with best-set fallback only inside that workout) instead of sorting/displaying by individual set timestamps, so corrupted legacy `completedAt` values no longer reshuffle or misdate recent exercise history; added regression coverage in `FormattingTests`.
 - Fixed exercise-history/set-order drift by making `WorkoutManager.getWorkoutHistory(for:)` preserve each workout's canonical logged set order instead of re-sorting by `completedAt`, so Exercise History and template autofill stay stable even when legacy timestamps are edited or corrupted; added regression coverage in `WorkoutManagerTests`.
 - Improved `WorkoutDetailView` summary accuracy by making the `Exercises` stat prefer exercises with completed working sets (while safely falling back for legacy placeholder-only workouts), so history detail no longer overcounts warmup-only or unfinished exercises; added regression coverage in `FormattingTests`.
 - Polished `WorkoutDetailView` title/header hygiene by normalizing workout and exercise names before display, so legacy whitespace-heavy or blank names no longer render as awkward empty/messy detail-screen labels; added regression coverage in `FormattingTests`.

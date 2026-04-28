@@ -11,10 +11,32 @@ import SwiftData
 struct ExerciseDetailView: View {
     @Bindable var exercise: Exercise
     @State private var showingEditSheet = false
-    @State private var recentSets: [ExerciseSet] = []
+    @State private var recentHistory: [(workout: Workout, set: ExerciseSet)] = []
     
     private let exerciseManager = ExerciseManager.shared
     private let workoutManager = WorkoutManager.shared
+
+    static func recentHistoryEntries(from history: [(workout: Workout, sets: [ExerciseSet])]) -> [(workout: Workout, set: ExerciseSet)] {
+        history
+            .compactMap { workout, sets in
+                let completedWorkingSets = sets.filter(\.isCompletedWorkingSet)
+
+                guard let bestSet = completedWorkingSets.max(by: { lhs, rhs in
+                    rhs.isBetterPerformance(than: lhs)
+                }) else {
+                    return nil
+                }
+
+                return (workout: workout, set: bestSet)
+            }
+            .sorted { lhs, rhs in
+                if lhs.workout.date != rhs.workout.date {
+                    return lhs.workout.date > rhs.workout.date
+                }
+
+                return lhs.set.completedAt > rhs.set.completedAt
+            }
+    }
     
     var body: some View {
         ScrollView {
@@ -126,26 +148,26 @@ struct ExerciseDetailView: View {
                             .font(.headline)
                     }
                     
-                    if recentSets.isEmpty {
+                    if recentHistory.isEmpty {
                         Text("No workout history for this exercise")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .padding()
                     } else {
-                        ForEach(recentSets.prefix(5)) { set in
+                        ForEach(Array(recentHistory.prefix(5).enumerated()), id: \.element.set.id) { _, entry in
                             HStack {
                                 VStack(alignment: .leading) {
-                                    Text(set.workout?.name ?? "Workout")
+                                    Text(WorkoutDetailView.displayName(for: entry.workout))
                                         .font(.subheadline)
                                     
-                                    Text(set.completedAt, style: .date)
+                                    Text(entry.workout.date, style: .date)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
                                 
                                 Spacer()
                                 
-                                Text(set.formattedWeightReps)
+                                Text(entry.set.formattedWeightReps)
                                     .font(.headline)
                             }
                             .padding(.vertical, 8)
@@ -188,20 +210,6 @@ struct ExerciseDetailView: View {
     // Load recent sets for this exercise
     private func loadRecentSets() {
         let history = workoutManager.getWorkoutHistory(for: exercise)
-        
-        // Collect best sets from each workout
-        var bestSets: [ExerciseSet] = []
-        for (_, sets) in history {
-            let completedWorkingSets = sets.filter { $0.isCompletedWorkingSet }
-
-            if let bestSet = completedWorkingSets.max(by: { lhs, rhs in
-                rhs.isBetterPerformance(than: lhs)
-            }) {
-                bestSets.append(bestSet)
-            }
-        }
-        
-        // Sort by date (most recent first)
-        recentSets = bestSets.sorted(by: { $0.completedAt > $1.completedAt })
+        recentHistory = Self.recentHistoryEntries(from: history)
     }
 }
