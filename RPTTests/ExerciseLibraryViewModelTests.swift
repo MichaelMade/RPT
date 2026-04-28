@@ -111,6 +111,37 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_appliesCategoryAndMuscleGroupFiltersTogether() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Incline Dumbbell Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.shoulders], instructions: ""),
+            Exercise(name: "Pull-Up", category: .bodyweight, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+        viewModel.selectedCategory = .compound
+        viewModel.selectedMuscleGroup = .shoulders
+
+        let results = viewModel.fetchExercises()
+
+        XCTAssertEqual(
+            results.map(\.name),
+            ["Incline Dumbbell Press"],
+            "Exercise filters should support narrowing by both category and muscle group in the selector flows"
+        )
+    }
+
+    func testClearFilters_resetsCategoryAndMuscleGroupSelections() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.selectedCategory = .compound
+        viewModel.selectedMuscleGroup = .back
+
+        viewModel.clearFilters()
+
+        XCTAssertNil(viewModel.selectedCategory)
+        XCTAssertNil(viewModel.selectedMuscleGroup)
+        XCTAssertFalse(viewModel.hasActiveFilters)
+    }
+
     func testFilteredResultsSummary_onlyAppearsForActiveQueries() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
@@ -130,6 +161,15 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             viewModel.filteredResultsSummary(filteredCount: 1),
             "Showing 1 of 3 exercises",
             "Active exercise searches should surface a quick filtered-result summary"
+        )
+
+        viewModel.searchText = ""
+        viewModel.selectedMuscleGroup = .back
+
+        XCTAssertEqual(
+            viewModel.filteredResultsSummary(filteredCount: 2),
+            "Showing 2 of 3 exercises",
+            "Active exercise filters should also surface the filtered-result summary even without a text search"
         )
     }
 }

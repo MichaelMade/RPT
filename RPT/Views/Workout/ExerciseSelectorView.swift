@@ -20,7 +20,6 @@ struct ExerciseSelectorView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Category filter
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         CategoryFilterButton(
@@ -43,6 +42,38 @@ struct ExerciseSelectorView: View {
                                     } else {
                                         selectedCategory = category
                                         viewModel.selectedCategory = category
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.vertical, 8)
+                .background(Color(UIColor.secondarySystemBackground))
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        CategoryFilterButton(
+                            title: "All Muscles",
+                            isSelected: selectedMuscleGroup == nil,
+                            action: {
+                                selectedMuscleGroup = nil
+                                viewModel.selectedMuscleGroup = nil
+                            }
+                        )
+
+                        ForEach(MuscleGroup.allCases, id: \.self) { muscleGroup in
+                            CategoryFilterButton(
+                                title: muscleGroup.displayName,
+                                isSelected: selectedMuscleGroup == muscleGroup,
+                                action: {
+                                    if selectedMuscleGroup == muscleGroup {
+                                        selectedMuscleGroup = nil
+                                        viewModel.selectedMuscleGroup = nil
+                                    } else {
+                                        selectedMuscleGroup = muscleGroup
+                                        viewModel.selectedMuscleGroup = muscleGroup
                                     }
                                 }
                             )
