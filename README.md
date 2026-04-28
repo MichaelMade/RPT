@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved exercise-library and exercise-picker search relevance by ranking exact matches first, then full-name prefixes, then word-prefix hits, and finally weaker substring matches, so broad queries like `row` surface the most likely exercises before incidental matches; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Hardened exercise-library and exercise-picker search matching by normalizing both queries and stored exercise names through the same whitespace/case/diacritic-insensitive path, so legacy names like `Café   Row` still match clean searches such as `cafe row`; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Improved exercise-library and exercise-picker search recovery by normalizing whitespace-only or messy multiline queries before filtering, adding filtered-result summaries, and surfacing one-tap `Clear Search` / `Reset Filters` recovery in empty states so accidental blank-looking searches no longer hide every exercise with no easy way back; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Improved first-run Stats UX by adding a clear empty-state card when no workouts have been completed yet, so new users see how to unlock weekly volume, muscle-group focus, and PRs instead of just a dead-looking zeroed stats screen.

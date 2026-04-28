@@ -69,32 +69,80 @@ class ExerciseLibraryViewModel: ObservableObject {
 
         return "Showing \(filteredCount) of \(exercises.count) exercises"
     }
-    
+
+    static func searchMatchPriority(exerciseName: String, normalizedQuery: String) -> Int? {
+        guard !normalizedQuery.isEmpty else {
+            return 0
+        }
+
+        let normalizedName = normalizedSearchLookupKey(exerciseName)
+
+        guard normalizedName.contains(normalizedQuery) else {
+            return nil
+        }
+
+        if normalizedName == normalizedQuery {
+            return 0
+        }
+
+        if normalizedName.hasPrefix(normalizedQuery) {
+            return 1
+        }
+
+        let words = normalizedName.split(separator: " ")
+        if words.contains(where: { $0.hasPrefix(normalizedQuery) }) {
+            return 2
+        }
+
+        return 3
+    }
+
     func fetchExercises() -> [Exercise] {
         let normalizedSearchText = normalizedSearchText
         let normalizedSearchLookup = Self.normalizedSearchLookupKey(normalizedSearchText)
 
         // Filter in memory based on search text and filters
-        return exercises.filter { exercise in
-            // Apply search filter
-            let matchesSearch = normalizedSearchLookup.isEmpty ||
-                                Self.normalizedSearchLookupKey(exercise.name).contains(normalizedSearchLookup)
-            
-            // Apply category filter
-            let matchesCategory = selectedCategory == nil ||
-                                  exercise.category == selectedCategory
-            
-            // Apply muscle group filter
-            let matchesMuscleGroup: Bool
-            if let muscleGroup = selectedMuscleGroup {
-                matchesMuscleGroup = exercise.primaryMuscleGroups.contains(muscleGroup) ||
-                                    exercise.secondaryMuscleGroups.contains(muscleGroup)
-            } else {
-                matchesMuscleGroup = true
+        return exercises
+            .enumerated()
+            .compactMap { index, exercise in
+                let searchPriority = Self.searchMatchPriority(
+                    exerciseName: exercise.name,
+                    normalizedQuery: normalizedSearchLookup
+                )
+
+                let matchesSearch = normalizedSearchLookup.isEmpty || searchPriority != nil
+
+                // Apply category filter
+                let matchesCategory = selectedCategory == nil ||
+                                      exercise.category == selectedCategory
+
+                // Apply muscle group filter
+                let matchesMuscleGroup: Bool
+                if let muscleGroup = selectedMuscleGroup {
+                    matchesMuscleGroup = exercise.primaryMuscleGroups.contains(muscleGroup) ||
+                                        exercise.secondaryMuscleGroups.contains(muscleGroup)
+                } else {
+                    matchesMuscleGroup = true
+                }
+
+                guard matchesSearch && matchesCategory && matchesMuscleGroup else {
+                    return nil
+                }
+
+                return (
+                    index: index,
+                    exercise: exercise,
+                    searchPriority: searchPriority ?? 0
+                )
             }
-            
-            return matchesSearch && matchesCategory && matchesMuscleGroup
-        }
+            .sorted { lhs, rhs in
+                if lhs.searchPriority != rhs.searchPriority {
+                    return lhs.searchPriority < rhs.searchPriority
+                }
+
+                return lhs.index < rhs.index
+            }
+            .map(\.exercise)
     }
     
     func addExercise(name: String, category: ExerciseCategory, primaryMuscles: [MuscleGroup], secondaryMuscles: [MuscleGroup], instructions: String) {

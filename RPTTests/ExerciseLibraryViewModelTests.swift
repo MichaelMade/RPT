@@ -68,6 +68,49 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testSearchMatchPriority_prefersExactThenPrefixThenWordPrefixThenSubstring() {
+        let exact = ExerciseLibraryViewModel.searchMatchPriority(
+            exerciseName: "Row",
+            normalizedQuery: ExerciseLibraryViewModel.normalizedSearchLookupKey("row")
+        )
+        let prefix = ExerciseLibraryViewModel.searchMatchPriority(
+            exerciseName: "Row Machine",
+            normalizedQuery: ExerciseLibraryViewModel.normalizedSearchLookupKey("row")
+        )
+        let wordPrefix = ExerciseLibraryViewModel.searchMatchPriority(
+            exerciseName: "Barbell Row",
+            normalizedQuery: ExerciseLibraryViewModel.normalizedSearchLookupKey("row")
+        )
+        let substring = ExerciseLibraryViewModel.searchMatchPriority(
+            exerciseName: "Front Squat Rowing Drill",
+            normalizedQuery: ExerciseLibraryViewModel.normalizedSearchLookupKey("row")
+        )
+
+        XCTAssertEqual(exact, 0)
+        XCTAssertEqual(prefix, 1)
+        XCTAssertEqual(wordPrefix, 2)
+        XCTAssertEqual(substring, 3)
+    }
+
+    func testFetchExercises_prioritizesMoreRelevantSearchMatches() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Front Squat Rowing Drill", category: .compound, primaryMuscleGroups: [.legs], secondaryMuscleGroups: [.back], instructions: ""),
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
+            Exercise(name: "Row Machine", category: .other, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
+            Exercise(name: "Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+        viewModel.searchText = "row"
+
+        let results = viewModel.fetchExercises()
+
+        XCTAssertEqual(
+            results.map(\.name),
+            ["Row", "Row Machine", "Barbell Row", "Front Squat Rowing Drill"],
+            "Exercise search should rank exact and prefix matches ahead of weaker substring matches"
+        )
+    }
+
     func testFilteredResultsSummary_onlyAppearsForActiveQueries() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
