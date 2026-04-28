@@ -16,6 +16,32 @@ struct ExerciseDetailView: View {
     private let exerciseManager = ExerciseManager.shared
     private let workoutManager = WorkoutManager.shared
 
+    static func displayName(for exercise: Exercise) -> String {
+        let collapsedName = exercise.name
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedName.isEmpty else {
+            return "Exercise"
+        }
+
+        return String(collapsedName.prefix(80))
+    }
+
+    static func normalizedInstructions(for exercise: Exercise) -> String? {
+        let collapsedInstructions = exercise.instructions
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedInstructions.isEmpty else {
+            return nil
+        }
+
+        return collapsedInstructions
+    }
+
     static func recentHistoryEntries(from history: [(workout: Workout, sets: [ExerciseSet])]) -> [(workout: Workout, set: ExerciseSet)] {
         history
             .compactMap { workout, sets in
@@ -47,6 +73,10 @@ struct ExerciseDetailView: View {
                     ExerciseIconView(category: exercise.category, size: 60)
                     
                     VStack(alignment: .leading, spacing: 6) {
+                        Text(Self.displayName(for: exercise))
+                            .font(.title2)
+                            .fontWeight(.bold)
+
                         // Category and custom badge
                         HStack {
                             ExerciseCategoryTag(category: exercise.category)
@@ -101,7 +131,7 @@ struct ExerciseDetailView: View {
                 .cornerRadius(12)
                 
                 // Instructions
-                if !exercise.instructions.isEmpty {
+                if let normalizedInstructions = Self.normalizedInstructions(for: exercise) {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Image(systemName: "list.bullet.clipboard")
@@ -111,7 +141,7 @@ struct ExerciseDetailView: View {
                                 .font(.headline)
                         }
                         
-                        Text(exercise.instructions)
+                        Text(normalizedInstructions)
                             .font(.body)
                     }
                     .padding()
@@ -189,7 +219,7 @@ struct ExerciseDetailView: View {
             .padding()
             .frame(maxWidth: .infinity)
         }
-        .navigationTitle(exercise.name)
+        .navigationTitle(Self.displayName(for: exercise))
         .toolbar {
             if exercise.isCustom {
                 ToolbarItem(placement: .navigationBarTrailing) {

@@ -379,6 +379,35 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(entries.first?.set.formattedWeightReps, "BW × 10 reps")
     }
 
+    func testExerciseDetailDisplayName_fallsBackForBlankAndNormalizesWhitespace() {
+        let blankExercise = Exercise(name: "   \n   ", category: .compound, primaryMuscleGroups: [.chest])
+        XCTAssertEqual(ExerciseDetailView.displayName(for: blankExercise), "Exercise")
+
+        let spacedExercise = Exercise(name: "  Incline   Bench\nPress  ", category: .compound, primaryMuscleGroups: [.chest])
+        XCTAssertEqual(ExerciseDetailView.displayName(for: spacedExercise), "Incline Bench Press")
+    }
+
+    func testExerciseDetailNormalizedInstructions_collapsesWhitespaceAndHidesBlankInstructions() {
+        let exerciseWithInstructions = Exercise(
+            name: "Bench Press",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            instructions: "  Keep\n\n shoulders   packed  "
+        )
+        XCTAssertEqual(
+            ExerciseDetailView.normalizedInstructions(for: exerciseWithInstructions),
+            "Keep shoulders packed"
+        )
+
+        let blankInstructionsExercise = Exercise(
+            name: "Bench Press",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            instructions: " \n\t "
+        )
+        XCTAssertNil(ExerciseDetailView.normalizedInstructions(for: blankInstructionsExercise))
+    }
+
     func testWeightUnitsConsistency() {
         let workoutManager = WorkoutManager.shared
         let settingsManager = SettingsManager.shared
