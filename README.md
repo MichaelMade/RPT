@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished workout share/export summaries by hiding the `Duration` line when a workout has zero or corrupted duration, so copied summaries no longer include noisy `Duration: 0s` output for incomplete or malformed sessions; added regression coverage in `WorkoutManagerTests`.
 - Improved `WorkoutDetailView` mixed-session summary completeness by adding a dedicated `Bodyweight Reps` stat whenever a workout contains both weighted volume and completed bodyweight work, so detail screens no longer hide bodyweight effort behind the primary volume card alone; added regression coverage in `FormattingTests`.
 - Fixed Stats PR recency/date drift by making `StatsViewModel` treat each PR's parent workout date as the canonical date/ordering signal instead of fragile per-set timestamps, so corrupted legacy `completedAt` values no longer misdate or reshuffle Recent Personal Records; added regression coverage in `StatsViewModelTests`.
 - Hardened workout-template text hygiene by normalizing template names, exercise names, and notes during save/render paths, so legacy whitespace-heavy templates no longer show blank/messy labels or empty note sections in template list/detail/edit flows; added regression coverage in `TemplateManagerTests`.

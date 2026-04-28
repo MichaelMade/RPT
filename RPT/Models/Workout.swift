@@ -350,7 +350,12 @@ final class Workout {
         var summary = "\(summaryWorkoutName) - \(dateString)\n"
         summary += "Exercises: \(exerciseList)\n"
         summary += "Sets: \(workingSetsCount)\n"
-        summary += "Duration: \(formattedDurationForSummary())\n"
+
+        let safeDuration = duration.isFinite ? max(0, duration) : 0
+        if safeDuration > 0 {
+            summary += "Duration: \(formattedDurationForSummary())\n"
+        }
+
         if totalVolume > 0 {
             summary += "Total Volume: \(formattedTotalVolume())\n"
 
