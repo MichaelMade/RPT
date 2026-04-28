@@ -38,7 +38,7 @@ struct TemplateEditView: View {
                             showingExerciseEditor = exercises[index]
                         }) {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(exercises[index].exerciseName)
+                                Text(TemplateExercise.normalizedDisplayName(exercises[index].exerciseName))
                                     .font(.headline)
                                     .foregroundColor(.primary)
                                 
@@ -94,8 +94,8 @@ struct TemplateEditView: View {
             }
             .onAppear {
                 if let template = existingTemplate {
-                    templateName = template.name
-                    templateNotes = template.notes
+                    templateName = WorkoutTemplate.normalizedDisplayName(template.name)
+                    templateNotes = WorkoutTemplate.normalizedDisplayNotes(template.notes) ?? ""
                     exercises = template.exercises
                 }
             }

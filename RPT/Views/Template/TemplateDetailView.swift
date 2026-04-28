@@ -22,15 +22,15 @@ struct TemplateDetailView: View {
                 // Main content
                 List {
                     Section(header: Text("Template Information")) {
-                        Text(template.name)
+                        Text(WorkoutTemplate.normalizedDisplayName(template.name))
                             .font(.headline)
-                        
-                        if !template.notes.isEmpty {
+
+                        if let normalizedNotes = WorkoutTemplate.normalizedDisplayNotes(template.notes) {
                             Text("Notes:")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
-                            
-                            Text(template.notes)
+
+                            Text(normalizedNotes)
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
@@ -40,7 +40,7 @@ struct TemplateDetailView: View {
                         ForEach(template.exercises.indices, id: \.self) { index in
                             let exercise = template.exercises[index]
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("\(index + 1). \(exercise.exerciseName)")
+                                Text("\(index + 1). \(TemplateExercise.normalizedDisplayName(exercise.exerciseName))")
                                     .font(.headline)
                                 
                                 Text("\(exercise.suggestedSets) sets")
@@ -67,8 +67,8 @@ struct TemplateDetailView: View {
                                     }
                                 }
                                 
-                                if !exercise.notes.isEmpty {
-                                    Text(exercise.notes)
+                                if let normalizedNotes = TemplateExercise.normalizedDisplayNotes(exercise.notes) {
+                                    Text(normalizedNotes)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                         .padding(.top, 4)

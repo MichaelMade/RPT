@@ -8,18 +8,42 @@
 import Foundation
 import SwiftData
 
+private enum TemplateTextFormatter {
+    static func collapsed(_ raw: String) -> String? {
+        let collapsed = raw
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsed.isEmpty else {
+            return nil
+        }
+
+        return collapsed
+    }
+}
+
 @Model
 final class WorkoutTemplate: Identifiable {
     @Attribute(.unique) var id: String
     var name: String
     var exercises: [TemplateExercise]
     var notes: String
+
+    static func normalizedDisplayName(_ raw: String) -> String {
+        let collapsedName = TemplateTextFormatter.collapsed(raw) ?? "Template"
+        return String(collapsedName.prefix(80))
+    }
+
+    static func normalizedDisplayNotes(_ raw: String) -> String? {
+        TemplateTextFormatter.collapsed(raw)
+    }
     
     init(id: String = UUID().uuidString, name: String, exercises: [TemplateExercise] = [], notes: String = "") {
         self.id = id
-        self.name = name
+        self.name = Self.normalizedDisplayName(name)
         self.exercises = exercises
-        self.notes = notes
+        self.notes = Self.normalizedDisplayNotes(notes) ?? ""
     }
 }
 
@@ -30,14 +54,23 @@ struct TemplateExercise: Codable, Hashable, Identifiable {
     var suggestedSets: Int
     var repRanges: [TemplateRepRange]
     var notes: String
+
+    static func normalizedDisplayName(_ raw: String) -> String {
+        let collapsedName = TemplateTextFormatter.collapsed(raw) ?? "Exercise"
+        return String(collapsedName.prefix(80))
+    }
+
+    static func normalizedDisplayNotes(_ raw: String) -> String? {
+        TemplateTextFormatter.collapsed(raw)
+    }
     
     // Custom initializer to ensure suggestedSets and repRanges are in sync
     init(id: UUID = UUID(), exerciseName: String, suggestedSets: Int, repRanges: [TemplateRepRange], notes: String = "") {
         let normalizedSets = max(0, suggestedSets)
         self.id = id
-        self.exerciseName = exerciseName
+        self.exerciseName = Self.normalizedDisplayName(exerciseName)
         self.suggestedSets = normalizedSets
-        self.notes = notes
+        self.notes = Self.normalizedDisplayNotes(notes) ?? ""
 
         guard normalizedSets > 0 else {
             self.repRanges = []

@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened workout-template text hygiene by normalizing template names, exercise names, and notes during save/render paths, so legacy whitespace-heavy templates no longer show blank/messy labels or empty note sections in template list/detail/edit flows; added regression coverage in `TemplateManagerTests`.
 - Polished `ExerciseDetailView` header/content hygiene by showing a normalized exercise name prominently in the detail header, normalizing the navigation title, and collapsing/hiding whitespace-only instructions so legacy/custom exercises no longer render blank or messy labels/instruction cards; added regression coverage in `FormattingTests`.
 - Improved `WorkoutDetailView` summary count resilience by making the `Sets` stat prefer completed working sets but safely fall back to the workout’s logged set count when legacy/placeholder-only history has no completed set timestamps, so detail summaries no longer misleadingly show `0` sets for older imported workouts; added regression coverage in `FormattingTests`.
 - Fixed `ExerciseDetailView` history recency drift by deriving each workout’s history card from the workout date (with best-set fallback only inside that workout) instead of sorting/displaying by individual set timestamps, so corrupted legacy `completedAt` values no longer reshuffle or misdate recent exercise history; added regression coverage in `FormattingTests`.

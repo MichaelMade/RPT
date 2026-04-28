@@ -30,7 +30,7 @@ struct TemplateExerciseEditView: View {
         NavigationStack {
             Form {
                 Section(header: Text("Exercise Details")) {
-                    Text(exercise.exerciseName)
+                    Text(TemplateExercise.normalizedDisplayName(exercise.exerciseName))
                         .font(.headline)
                     
                     VStack(alignment: .leading) {

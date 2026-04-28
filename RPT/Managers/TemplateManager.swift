@@ -16,18 +16,7 @@ class TemplateManager {
     static let shared = TemplateManager()
 
     static func sanitizeTemplateName(_ name: String) -> String {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let collapsedWhitespace = trimmed.replacingOccurrences(
-            of: #"\s+"#,
-            with: " ",
-            options: .regularExpression
-        )
-
-        if collapsedWhitespace.isEmpty {
-            return "Template"
-        }
-
-        return String(collapsedWhitespace.prefix(80))
+        WorkoutTemplate.normalizedDisplayName(name)
     }
 
     private static let stableComparisonLocale = Locale(identifier: "en_US_POSIX")
@@ -111,7 +100,7 @@ class TemplateManager {
 
         // Update the template properties
         template.name = sanitizedName
-        template.notes = notes
+        template.notes = WorkoutTemplate.normalizedDisplayNotes(notes) ?? ""
         
         // Force SwiftData to recognize the change by completely replacing the exercises array
         var updatedExercises: [TemplateExercise] = []

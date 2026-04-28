@@ -60,7 +60,7 @@ struct TemplatesListView: View {
                         }
                     }) {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(template.name)
+                            Text(WorkoutTemplate.normalizedDisplayName(template.name))
                                 .font(.headline)
                             
                             HStack {
@@ -73,7 +73,7 @@ struct TemplatesListView: View {
                                 // Preview of first few exercises
                                 if !template.exercises.isEmpty {
                                     let previewExercises = template.exercises.prefix(2)
-                                    Text(previewExercises.map { $0.exerciseName }.joined(separator: ", ") +
+                                    Text(previewExercises.map { TemplateExercise.normalizedDisplayName($0.exerciseName) }.joined(separator: ", ") +
                                          (template.exercises.count > 2 ? "..." : ""))
                                         .font(.caption)
                                         .foregroundColor(.gray)
@@ -137,7 +137,7 @@ struct TemplatesListView: View {
                 isPresented: $showingConfirmationDialog,
                 presenting: templateToDelete
             ) { template in
-                Button("Delete \(template.name)", role: .destructive) {
+                Button("Delete \(WorkoutTemplate.normalizedDisplayName(template.name))", role: .destructive) {
                     viewModel.deleteTemplate(template)
                 }
             } message: { template in
