@@ -136,7 +136,7 @@ class StatsViewModel: ObservableObject {
                     exerciseName: normalizedName.display,
                     weight: set.weight,
                     reps: set.reps,
-                    date: set.completedAt,
+                    date: prReferenceDate(for: set),
                     exerciseCategory: set.exercise?.category
                 )
             }
@@ -157,7 +157,18 @@ class StatsViewModel: ObservableObject {
             return set.reps > existing.reps
         }
 
-        return set.completedAt > existing.date
+        return prReferenceDate(for: set) > existing.date
+    }
+
+    func prReferenceDate(for set: ExerciseSet) -> Date {
+        let workoutDate = set.workout?.date ?? .distantPast
+        let completionDate = set.completedAt
+
+        if workoutDate == .distantPast {
+            return completionDate
+        }
+
+        return workoutDate
     }
 
     func normalizedPRExerciseName(_ rawName: String) -> (display: String, key: String)? {

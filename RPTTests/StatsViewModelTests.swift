@@ -44,7 +44,7 @@ final class StatsViewModelTests: XCTestCase {
         )
     }
 
-    func testIsBetterPRCandidate_prefersMoreRecentSetWhenWeightAndRepsTie() {
+    func testIsBetterPRCandidate_prefersMoreRecentWorkoutWhenWeightAndRepsTie() {
         let existing = StatsViewModel.PersonalRecord(
             exerciseName: "Bench Press",
             weight: 225,
@@ -52,18 +52,23 @@ final class StatsViewModelTests: XCTestCase {
             date: Date(timeIntervalSince1970: 100)
         )
 
+        let candidateWorkout = Workout(
+            date: Date(timeIntervalSince1970: 200),
+            name: "Newer Workout",
+            isCompleted: true
+        )
         let candidate = ExerciseSet(
             weight: 225,
             reps: 5,
             exercise: exercise,
-            workout: workout,
-            completedAt: Date(timeIntervalSince1970: 200),
+            workout: candidateWorkout,
+            completedAt: Date(timeIntervalSince1970: 50),
             isWarmup: false
         )
 
         XCTAssertTrue(
             viewModel.isBetterPRCandidate(candidate, than: existing),
-            "Equal PR candidates should prefer the most recent set"
+            "Equal PR candidates should prefer the most recent workout date even if a set timestamp is stale"
         )
     }
 
@@ -109,6 +114,24 @@ final class StatsViewModelTests: XCTestCase {
 
         XCTAssertEqual(bodyweightPR.formattedWeightReps, "BW × 12 reps")
         XCTAssertEqual(weightedPR.formattedWeightReps, "45 lb × 8 reps")
+    }
+
+    func testPRReferenceDate_prefersWorkoutDateOverCorruptedSetTimestamp() {
+        let workoutDate = Date(timeIntervalSince1970: 2_000)
+        let set = ExerciseSet(
+            weight: 225,
+            reps: 5,
+            exercise: exercise,
+            workout: Workout(date: workoutDate, name: "Workout", isCompleted: true),
+            completedAt: Date(timeIntervalSince1970: 100),
+            isWarmup: false
+        )
+
+        XCTAssertEqual(
+            viewModel.prReferenceDate(for: set),
+            workoutDate,
+            "PR cards should use the workout date as the canonical recency/date signal"
+        )
     }
 
     func testNormalizedPRExerciseName_collapsesWhitespaceAndNormalizesLookupKey() {
