@@ -16,11 +16,15 @@ struct StatsView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     headlineCards
 
-                    weeklyVolumeChart
+                    if viewModel.totalWorkouts == 0 {
+                        emptyStateCard
+                    } else {
+                        weeklyVolumeChart
 
-                    muscleGroupDistribution
+                        muscleGroupDistribution
 
-                    personalRecords
+                        personalRecords
+                    }
                 }
                 .padding()
             }
@@ -63,6 +67,33 @@ struct StatsView: View {
                 tint: .green
             )
         }
+    }
+
+    // MARK: - Empty state
+
+    private var emptyStateCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .font(.title2)
+                    .foregroundColor(.blue)
+
+                Text("No workout stats yet")
+                    .font(.headline)
+            }
+
+            Text("Complete your first workout to unlock weekly volume, muscle group focus, and personal records here.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+
+            Label("Start a workout from Home or use Templates to begin faster.", systemImage: "arrow.right.circle")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
     }
 
     // MARK: - Weekly volume chart
