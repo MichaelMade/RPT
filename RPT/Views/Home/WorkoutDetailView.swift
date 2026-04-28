@@ -16,6 +16,32 @@ struct WorkoutDetailView: View {
         GridItem(.flexible(), spacing: 12)
     ]
 
+    static func displayName(for workout: Workout) -> String {
+        let collapsedName = workout.name
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedName.isEmpty else {
+            return "Workout"
+        }
+
+        return String(collapsedName.prefix(80))
+    }
+
+    static func displayExerciseName(_ exercise: Exercise) -> String {
+        let collapsedName = exercise.name
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedName.isEmpty else {
+            return "Exercise"
+        }
+
+        return String(collapsedName.prefix(80))
+    }
+
     static func summaryMetrics(for workout: Workout) -> [(title: String, value: String)] {
         var metrics: [(title: String, value: String)] = [
             (title: "Exercises", value: "\(workout.exerciseCount)"),
@@ -94,7 +120,7 @@ struct WorkoutDetailView: View {
             }
             .padding(.vertical)
         }
-        .navigationTitle(workout.name)
+        .navigationTitle(Self.displayName(for: workout))
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -161,7 +187,7 @@ struct ExerciseSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Exercise header
-            Text(exercise.name)
+            Text(WorkoutDetailView.displayExerciseName(exercise))
                 .font(.headline)
                 .padding(.leading, 8)
             

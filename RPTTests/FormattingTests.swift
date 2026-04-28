@@ -224,6 +224,22 @@ final class FormattingTests: XCTestCase {
         XCTAssertNil(WorkoutDetailView.normalizedNotes(for: blankNotesWorkout))
     }
 
+    func testWorkoutDetailDisplayName_fallsBackForBlankAndNormalizesWhitespace() {
+        let blankNameWorkout = Workout(name: "   \n   ")
+        XCTAssertEqual(WorkoutDetailView.displayName(for: blankNameWorkout), "Workout")
+
+        let spacedNameWorkout = Workout(name: "  Upper   Body\nSession  ")
+        XCTAssertEqual(WorkoutDetailView.displayName(for: spacedNameWorkout), "Upper Body Session")
+    }
+
+    func testWorkoutDetailDisplayExerciseName_fallsBackForBlankAndNormalizesWhitespace() {
+        let blankExercise = Exercise(name: "   \n   ", category: .compound, primaryMuscleGroups: [.chest])
+        XCTAssertEqual(WorkoutDetailView.displayExerciseName(blankExercise), "Exercise")
+
+        let spacedExercise = Exercise(name: "  Incline   Bench\nPress  ", category: .compound, primaryMuscleGroups: [.chest])
+        XCTAssertEqual(WorkoutDetailView.displayExerciseName(spacedExercise), "Incline Bench Press")
+    }
+
     func testWorkoutRowSecondaryMetric_prefersBodyweightRepsWhenVolumeIsZero() {
         let workout = Workout(name: "Bodyweight Workout")
         let pullUp = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
