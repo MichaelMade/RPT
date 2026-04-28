@@ -64,6 +64,10 @@ struct WorkoutDetailView: View {
             (title: workout.preferredWorkMetricTitle, value: workout.preferredWorkMetricValue)
         ]
 
+        if workout.totalVolume > 0, workout.totalBodyweightReps > 0 {
+            metrics.append((title: "Bodyweight Reps", value: workout.formattedTotalBodyweightReps()))
+        }
+
         let safeDuration = workout.duration.isFinite ? max(0, workout.duration) : 0
         if workout.isCompleted, safeDuration > 0 {
             metrics.append((title: "Duration", value: workout.formattedDurationForSummary()))

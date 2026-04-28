@@ -216,6 +216,22 @@ final class FormattingTests: XCTestCase {
         XCTAssertFalse(WorkoutDetailView.summaryMetrics(for: corruptedWorkout).contains(where: { $0.title == "Duration" }))
     }
 
+    func testWorkoutDetailSummaryMetrics_includeBodyweightRepsForMixedSessions() {
+        let workout = Workout(name: "Mixed Session")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let pullup = Exercise(name: "Pull-Up", category: .bodyweight, primaryMuscleGroups: [.back])
+
+        _ = workout.addSet(exercise: bench, weight: 225, reps: 5)
+        _ = workout.addSet(exercise: pullup, weight: 0, reps: 12)
+
+        let metrics = WorkoutDetailView.summaryMetrics(for: workout)
+        let volumeMetric = metrics.first(where: { $0.title == "Volume" })
+        let bodyweightMetric = metrics.first(where: { $0.title == "Bodyweight Reps" })
+
+        XCTAssertEqual(volumeMetric?.value, "1125 lb")
+        XCTAssertEqual(bodyweightMetric?.value, "12 reps")
+    }
+
     func testWorkoutDetailSummaryMetrics_preferCompletedWorkingSetExerciseCountWithFallback() {
         let workout = Workout(name: "Workout Detail Exercise Count")
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
