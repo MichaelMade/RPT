@@ -11,6 +11,26 @@ import SwiftData
 
 @MainActor
 class TemplateManager {
+    enum DraftValidationResult: Equatable {
+        case valid
+        case missingName
+        case noExercises
+        case duplicateName
+
+        var helperText: String? {
+            switch self {
+            case .valid:
+                return nil
+            case .missingName:
+                return "Enter a template name to save this workout plan."
+            case .noExercises:
+                return "Add at least one exercise before saving this template."
+            case .duplicateName:
+                return "A template with this name already exists. Choose a unique name to save."
+            }
+        }
+    }
+
     private let modelContext: ModelContext
     private let exerciseManager: ExerciseManager
     static let shared = TemplateManager()
@@ -37,7 +57,7 @@ class TemplateManager {
 
         return fallbackDate
     }
-    
+
     private init() {
         let dataManager = DataManager.shared
         self.modelContext = dataManager.getModelContext()
@@ -65,38 +85,49 @@ class TemplateManager {
         )
         return try? modelContext.fetch(descriptor).first
     }
-    
-    // MARK: - Mutation Operations
-    
-    @discardableResult
-    func createTemplate(name: String, exercises: [TemplateExercise], notes: String = "") -> Bool {
+
+    func validateDraft(name: String, exercises: [TemplateExercise], excludingTemplateId excludedTemplateId: String? = nil) -> DraftValidationResult {
         let sanitizedName = Self.sanitizeTemplateName(name)
+        let hasMeaningfulName = !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+        guard hasMeaningfulName else {
+            return .missingName
+        }
+
+        guard !exercises.isEmpty else {
+            return .noExercises
+        }
 
         let duplicateExists = fetchAllTemplates().contains {
-            Self.namesCollide($0.name, sanitizedName)
+            $0.id != excludedTemplateId && Self.namesCollide($0.name, sanitizedName)
         }
 
-        guard !duplicateExists else {
+        return duplicateExists ? .duplicateName : .valid
+    }
+
+    // MARK: - Mutation Operations
+
+    @discardableResult
+    func createTemplate(name: String, exercises: [TemplateExercise], notes: String = "") -> Bool {
+        guard validateDraft(name: name, exercises: exercises) == .valid else {
             return false
         }
+
+        let sanitizedName = Self.sanitizeTemplateName(name)
 
         let template = WorkoutTemplate(name: sanitizedName, exercises: exercises, notes: notes)
         modelContext.insert(template)
         try? modelContext.save()
         return true
     }
-    
+
     @discardableResult
     func updateTemplate(_ template: WorkoutTemplate, name: String, exercises: [TemplateExercise], notes: String) -> Bool {
-        let sanitizedName = Self.sanitizeTemplateName(name)
-
-        let duplicateExists = fetchAllTemplates().contains {
-            $0.id != template.id && Self.namesCollide($0.name, sanitizedName)
-        }
-
-        guard !duplicateExists else {
+        guard validateDraft(name: name, exercises: exercises, excludingTemplateId: template.id) == .valid else {
             return false
         }
+
+        let sanitizedName = Self.sanitizeTemplateName(name)
 
         // Update the template properties
         template.name = sanitizedName

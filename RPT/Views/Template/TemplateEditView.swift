@@ -21,12 +21,34 @@ struct TemplateEditView: View {
     let existingTemplate: WorkoutTemplate?
     
     private let templateManager = TemplateManager.shared
+
+    private var draftValidation: TemplateManager.DraftValidationResult {
+        templateManager.validateDraft(
+            name: templateName,
+            exercises: exercises,
+            excludingTemplateId: existingTemplate?.id
+        )
+    }
+
+    private var saveHelperText: String? {
+        draftValidation.helperText
+    }
+
+    private var canSave: Bool {
+        draftValidation == .valid
+    }
     
     var body: some View {
         NavigationStack {
             Form {
                 Section(header: Text("Template Information")) {
                     TextField("Template Name", text: $templateName)
+
+                    if let saveHelperText, draftValidation == .missingName || draftValidation == .duplicateName {
+                        Text(saveHelperText)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    }
                     
                     TextField("Notes (optional)", text: $templateNotes, axis: .vertical)
                         .lineLimit(5)
@@ -70,6 +92,12 @@ struct TemplateEditView: View {
                     Button("Add Exercise") {
                         showingExerciseSelector = true
                     }
+
+                    if let saveHelperText, draftValidation == .noExercises {
+                        Text(saveHelperText)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             .navigationTitle(isNewTemplate ? "New Template" : "Edit Template")
@@ -89,7 +117,7 @@ struct TemplateEditView: View {
                             showingDuplicateTemplateAlert = true
                         }
                     }
-                    .disabled(templateName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || exercises.isEmpty)
+                    .disabled(!canSave)
                 }
             }
             .onAppear {

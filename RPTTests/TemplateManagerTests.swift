@@ -3,6 +3,48 @@ import XCTest
 
 @MainActor
 final class TemplateManagerTests: XCTestCase {
+    func testValidateDraft_requiresNonEmptyName() {
+        let result = TemplateManager.shared.validateDraft(
+            name: "   \n  ",
+            exercises: [sampleTemplateExercise()]
+        )
+
+        XCTAssertEqual(result, .missingName)
+    }
+
+    func testValidateDraft_requiresAtLeastOneExercise() {
+        let result = TemplateManager.shared.validateDraft(
+            name: "Upper Body",
+            exercises: []
+        )
+
+        XCTAssertEqual(result, .noExercises)
+    }
+
+    func testValidateDraft_acceptsEditableExistingTemplateName() {
+        guard let template = TemplateManager.shared.fetchAllTemplates().first else {
+            XCTFail("Expected seeded template data")
+            return
+        }
+
+        let result = TemplateManager.shared.validateDraft(
+            name: " \(template.name) ",
+            exercises: [sampleTemplateExercise()],
+            excludingTemplateId: template.id
+        )
+
+        XCTAssertEqual(result, .valid)
+    }
+
+    func testValidateDraft_rejectsDuplicateNormalizedName() {
+        let result = TemplateManager.shared.validateDraft(
+            name: "  Ｕｐｐｅｒ   Ｂｏｄｙ   ＲＰＴ  ",
+            exercises: [sampleTemplateExercise()]
+        )
+
+        XCTAssertEqual(result, .duplicateName)
+    }
+
     func testInitialCompletedAt_returnsDistantPastForIncompleteTemplateSet() {
         let now = Date()
 
@@ -70,5 +112,16 @@ final class TemplateManagerTests: XCTestCase {
         )
 
         XCTAssertEqual(exercise.exerciseName, "Exercise")
+    }
+
+    private func sampleTemplateExercise() -> TemplateExercise {
+        TemplateExercise(
+            exerciseName: "Bench Press",
+            suggestedSets: 3,
+            repRanges: [
+                TemplateRepRange(setNumber: 1, minReps: 6, maxReps: 8, percentageOfFirstSet: 1.0)
+            ],
+            notes: ""
+        )
     }
 }
