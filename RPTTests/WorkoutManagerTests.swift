@@ -950,6 +950,32 @@ final class WorkoutManagerLogicTests: XCTestCase {
         )
     }
 
+    func testOrderedSetsForExercise_preservesLoggedOrderWhenInterleavedTimestampsDrift() {
+        // Given
+        let workout = Workout(name: "Exercise History Ordering")
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        let squatSet1 = workout.addSet(exercise: squat, weight: 225, reps: 5)
+        let benchSet = workout.addSet(exercise: bench, weight: 185, reps: 6)
+        let squatSet2 = workout.addSet(exercise: squat, weight: 205, reps: 7)
+
+        // Simulate timestamp edits/corruption that would misorder exercise history if sorted by completion date.
+        squatSet1.completedAt = Date(timeIntervalSinceReferenceDate: 300)
+        benchSet.completedAt = Date(timeIntervalSinceReferenceDate: 100)
+        squatSet2.completedAt = Date(timeIntervalSinceReferenceDate: 200)
+
+        // When
+        let orderedSets = workout.orderedSets(for: squat)
+
+        // Then
+        XCTAssertEqual(
+            orderedSets.map(\.weight),
+            [225, 205],
+            "Exercise-specific history should preserve canonical logged order even when completion timestamps drift"
+        )
+    }
+
     func testCreateFollowUpWorkout_preservesLoggedSetOrderWhenCompletionTimestampsDrift() {
         // Given
         let workout = Workout(name: "Order Integrity")

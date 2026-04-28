@@ -124,6 +124,10 @@ final class Workout {
             return (exercise: exercise, sets: sets)
         }
     }
+
+    func orderedSets(for exercise: Exercise) -> [ExerciseSet] {
+        orderedExerciseGroups.first(where: { $0.exercise.id == exercise.id })?.sets ?? []
+    }
     
     // Calculate best set for each exercise
     var bestSets: [Exercise: ExerciseSet] {

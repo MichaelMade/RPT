@@ -259,12 +259,8 @@ class WorkoutManager: ObservableObject {
         var result: [(workout: Workout, sets: [ExerciseSet])] = []
         
         for workout in allWorkouts {
-            let exerciseSets = workout.sets.filter {
-                $0.exercise?.id == exercise.id
-            }.sorted {
-                $0.completedAt < $1.completedAt
-            }
-            
+            let exerciseSets = workout.orderedSets(for: exercise)
+
             if !exerciseSets.isEmpty {
                 result.append((workout: workout, sets: exerciseSets))
             }
