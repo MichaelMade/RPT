@@ -235,6 +235,25 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(fallbackMetric?.value, "2")
     }
 
+    func testWorkoutDetailSummaryMetrics_preferCompletedWorkingSetCountWithFallback() {
+        let workout = Workout(name: "Workout Detail Set Count")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: bench, weight: 45, reps: 10, isWarmup: true)
+        _ = workout.addSet(exercise: bench, weight: 225, reps: 5)
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 0)
+
+        let setMetric = WorkoutDetailView.summaryMetrics(for: workout).first(where: { $0.title == "Sets" })
+        XCTAssertEqual(setMetric?.value, "1")
+
+        let fallbackWorkout = Workout(name: "Workout Detail Set Fallback")
+        _ = fallbackWorkout.addSet(exercise: bench, weight: 135, reps: 0)
+        _ = fallbackWorkout.addSet(exercise: bench, weight: 185, reps: 0)
+
+        let fallbackMetric = WorkoutDetailView.summaryMetrics(for: fallbackWorkout).first(where: { $0.title == "Sets" })
+        XCTAssertEqual(fallbackMetric?.value, "2")
+    }
+
     func testWorkoutDetailNormalizedNotes_collapsesWhitespaceAndHidesBlankNotes() {
         let workoutWithNotes = Workout(name: "Notes Workout", notes: "  Great\n\n session   today  ")
         XCTAssertEqual(WorkoutDetailView.normalizedNotes(for: workoutWithNotes), "Great session today")

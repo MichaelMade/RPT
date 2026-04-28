@@ -52,10 +52,15 @@ struct WorkoutDetailView: View {
         return completedExercises > 0 ? completedExercises : workout.exerciseCount
     }
 
+    static func displaySetCount(for workout: Workout) -> Int {
+        let completedSetCount = workout.workingSetsCount
+        return completedSetCount > 0 ? completedSetCount : workout.sets.count
+    }
+
     static func summaryMetrics(for workout: Workout) -> [(title: String, value: String)] {
         var metrics: [(title: String, value: String)] = [
             (title: "Exercises", value: "\(displayExerciseCount(for: workout))"),
-            (title: "Sets", value: "\(workout.workingSetsCount)"),
+            (title: "Sets", value: "\(displaySetCount(for: workout))"),
             (title: workout.preferredWorkMetricTitle, value: workout.preferredWorkMetricValue)
         ]
 
