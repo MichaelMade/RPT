@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened workout stats duration quality by making `WorkoutManager` ignore zero/corrupted completed-workout durations when calculating average duration, so malformed history no longer drags down averages; also switched formatted average durations to the same human-readable hour/minute/second style used elsewhere (`1h 2m 5s` instead of raw `62:05`). Added regression coverage in `WorkoutManagerTests`.
 - Polished workout share/export summaries by hiding the `Duration` line when a workout has zero or corrupted duration, so copied summaries no longer include noisy `Duration: 0s` output for incomplete or malformed sessions; added regression coverage in `WorkoutManagerTests`.
 - Improved `WorkoutDetailView` mixed-session summary completeness by adding a dedicated `Bodyweight Reps` stat whenever a workout contains both weighted volume and completed bodyweight work, so detail screens no longer hide bodyweight effort behind the primary volume card alone; added regression coverage in `FormattingTests`.
 - Fixed Stats PR recency/date drift by making `StatsViewModel` treat each PR's parent workout date as the canonical date/ordering signal instead of fragile per-set timestamps, so corrupted legacy `completedAt` values no longer misdate or reshuffle Recent Personal Records; added regression coverage in `StatsViewModelTests`.

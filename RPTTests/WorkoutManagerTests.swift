@@ -510,6 +510,45 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(stats.totalVolume, 0, accuracy: 0.0001)
         XCTAssertEqual(stats.averageDuration, 0, accuracy: 0.0001)
     }
+
+    func testAggregateCompletedWorkoutStats_ignoresZeroAndCorruptedDurationsWhenAveraging() {
+        // Given
+        let validWorkout = Workout(date: Date(), name: "Valid", duration: 1800, isCompleted: true)
+        let zeroDurationWorkout = Workout(date: Date(), name: "Zero", duration: 0, isCompleted: true)
+        let corruptedWorkout = Workout(date: Date(), name: "Corrupted", duration: .infinity, isCompleted: true)
+
+        // When
+        let stats = manager.aggregateCompletedWorkoutStats(from: [validWorkout, zeroDurationWorkout, corruptedWorkout])
+
+        // Then
+        XCTAssertEqual(stats.count, 3)
+        XCTAssertEqual(
+            stats.averageDuration,
+            1800,
+            accuracy: 0.0001,
+            "Missing/corrupted durations should not drag down average workout duration"
+        )
+    }
+
+    func testSanitizedCompletedWorkoutDuration_requiresCompletedWorkoutAndPositiveFiniteDuration() {
+        let completedWorkout = Workout(date: Date(), name: "Completed", duration: 125, isCompleted: true)
+        let incompleteWorkout = Workout(date: Date(), name: "Incomplete", duration: 125, isCompleted: false)
+        let zeroDurationWorkout = Workout(date: Date(), name: "Zero", duration: 0, isCompleted: true)
+        let corruptedWorkout = Workout(date: Date(), name: "Corrupted", duration: -.infinity, isCompleted: true)
+
+        XCTAssertEqual(manager.sanitizedCompletedWorkoutDuration(completedWorkout), 125, accuracy: 0.0001)
+        XCTAssertNil(manager.sanitizedCompletedWorkoutDuration(incompleteWorkout))
+        XCTAssertNil(manager.sanitizedCompletedWorkoutDuration(zeroDurationWorkout))
+        XCTAssertNil(manager.sanitizedCompletedWorkoutDuration(corruptedWorkout))
+    }
+
+    func testFormatDuration_usesHumanReadableHourMinuteSecondOutput() {
+        XCTAssertEqual(manager.formatDuration(3725), "1h 2m 5s")
+        XCTAssertEqual(manager.formatDuration(3600), "1h 0m")
+        XCTAssertEqual(manager.formatDuration(125), "2m 5s")
+        XCTAssertEqual(manager.formatDuration(59.9), "59s")
+        XCTAssertEqual(manager.formatDuration(.infinity), "0s")
+    }
     
     // MARK: - Workout Model Tests
     

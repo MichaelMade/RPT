@@ -321,12 +321,10 @@ class WorkoutManager: ObservableObject {
             let safeVolume = workout.totalVolume.isFinite ? max(0, workout.totalVolume) : 0
             return partial + safeVolume
         }
-        let totalDuration = completedWorkouts.reduce(0.0) { partial, workout in
-            let safeDuration = workout.duration.isFinite ? max(0, workout.duration) : 0
-            return partial + safeDuration
-        }
 
-        let averageDuration = count > 0 ? totalDuration / Double(count) : 0
+        let validDurations = completedWorkouts.compactMap { sanitizedCompletedWorkoutDuration($0) }
+        let totalDuration = validDurations.reduce(0.0, +)
+        let averageDuration = validDurations.isEmpty ? 0 : totalDuration / Double(validDurations.count)
 
         return (count, totalVolume, averageDuration)
     }
@@ -374,18 +372,48 @@ class WorkoutManager: ObservableObject {
             : String(format: "%.1f lb", truncatedVolume)
     }
     
+    func sanitizedCompletedWorkoutDuration(_ workout: Workout) -> TimeInterval? {
+        guard workout.isCompleted else {
+            return nil
+        }
+
+        let safeDuration = workout.duration.isFinite ? max(0, workout.duration) : 0
+        return safeDuration > 0 ? safeDuration : nil
+    }
+
+    func formatDuration(_ duration: TimeInterval) -> String {
+        let safeDuration = duration.isFinite ? max(0, duration) : 0
+        let totalSeconds = Int(floor(safeDuration))
+
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+
+        if hours > 0 {
+            if seconds > 0 {
+                return "\(hours)h \(minutes)m \(seconds)s"
+            }
+
+            return "\(hours)h \(minutes)m"
+        }
+
+        if minutes > 0 {
+            return "\(minutes)m \(seconds)s"
+        }
+
+        return "\(seconds)s"
+    }
+
     // Calculate workout statistics with proper formatting
     func calculateWorkoutStatsFormatted(timeframe: TimeFrame) -> (count: Int, totalVolume: String, averageDuration: String) {
         let stats = calculateWorkoutStats(timeframe: timeframe)
-        
+
         // Format duration
-        let durationMinutes = Int(stats.averageDuration / 60)
-        let durationSeconds = Int(stats.averageDuration.truncatingRemainder(dividingBy: 60))
-        let formattedDuration = String(format: "%d:%02d", durationMinutes, durationSeconds)
-        
+        let formattedDuration = formatDuration(stats.averageDuration)
+
         // Format volume
         let formattedVolume = formatVolume(stats.totalVolume)
-        
+
         return (stats.count, formattedVolume, formattedDuration)
     }
     
