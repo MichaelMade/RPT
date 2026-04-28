@@ -16,6 +16,7 @@ struct TemplatesListView: View {
     @State private var currentAction: TemplateAction?
     @State private var showingConfirmationDialog = false
     @State private var templateToDelete: WorkoutTemplate?
+    @State private var searchText = ""
     
     // State for active workout handling
     @State private var showingActiveWorkoutAlert = false
@@ -45,61 +46,100 @@ struct TemplatesListView: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(viewModel.templates) { template in
-                    Button(action: {
-                        // Check if there's an active workout before proceeding
-                        if activeWorkoutBinding != nil {
-                            // Store the template we want to use
-                            templateToStartWorkout = template
-                            // Show active workout confirmation
-                            showingActiveWorkoutAlert = true
+                let filteredTemplates = viewModel.fetchTemplates()
+
+                if let summary = viewModel.filteredResultsSummary(filteredCount: filteredTemplates.count) {
+                    Text(summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .listRowSeparator(.hidden)
+                }
+
+                if filteredTemplates.isEmpty {
+                    ContentUnavailableView {
+                        Label(
+                            viewModel.hasActiveSearch ? "No Matching Templates" : "No Templates Yet",
+                            systemImage: viewModel.hasActiveSearch ? "magnifyingglass" : "list.bullet.clipboard"
+                        )
+                    } description: {
+                        Text(
+                            viewModel.hasActiveSearch
+                            ? "Try a different search or clear it to browse every workout template."
+                            : "Create your first workout template to quickly start repeatable RPT sessions."
+                        )
+                    } actions: {
+                        if viewModel.hasActiveSearch {
+                            Button("Clear Search") {
+                                searchText = ""
+                                viewModel.clearSearch()
+                            }
                         } else {
-                            // Proceed normally if no active workout
-                            selectedTemplate = template
-                            currentAction = .detail
-                        }
-                    }) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(WorkoutTemplate.normalizedDisplayName(template.name))
-                                .font(.headline)
-                            
-                            HStack {
-                                Text("\(template.exercises.count) exercises")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                
-                                Spacer()
-                                
-                                // Preview of first few exercises
-                                if !template.exercises.isEmpty {
-                                    let previewExercises = template.exercises.prefix(2)
-                                    Text(previewExercises.map { TemplateExercise.normalizedDisplayName($0.exerciseName) }.joined(separator: ", ") +
-                                         (template.exercises.count > 2 ? "..." : ""))
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                        .lineLimit(1)
-                                }
+                            Button("Create Template") {
+                                showingCreateSheet = true
                             }
                         }
-                        .padding(.vertical, 4)
                     }
-                    .swipeActions {
-                        Button {
-                            selectedTemplate = template
-                            currentAction = .edit
-                        } label: {
-                            Label("Edit", systemImage: "pencil")
-                        }
-                        .tint(.blue)
+                } else {
+                    ForEach(filteredTemplates) { template in
+                        Button(action: {
+                            // Check if there's an active workout before proceeding
+                            if activeWorkoutBinding != nil {
+                                // Store the template we want to use
+                                templateToStartWorkout = template
+                                // Show active workout confirmation
+                                showingActiveWorkoutAlert = true
+                            } else {
+                                // Proceed normally if no active workout
+                                selectedTemplate = template
+                                currentAction = .detail
+                            }
+                        }) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(WorkoutTemplate.normalizedDisplayName(template.name))
+                                    .font(.headline)
 
-                        Button(role: .destructive) {
-                            templateToDelete = template
-                            showingConfirmationDialog = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+                                HStack {
+                                    Text("\(template.exercises.count) exercises")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+
+                                    Spacer()
+
+                                    // Preview of first few exercises
+                                    if !template.exercises.isEmpty {
+                                        let previewExercises = template.exercises.prefix(2)
+                                        Text(previewExercises.map { TemplateExercise.normalizedDisplayName($0.exerciseName) }.joined(separator: ", ") +
+                                             (template.exercises.count > 2 ? "..." : ""))
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                            .lineLimit(1)
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        .swipeActions {
+                            Button {
+                                selectedTemplate = template
+                                currentAction = .edit
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.blue)
+
+                            Button(role: .destructive) {
+                                templateToDelete = template
+                                showingConfirmationDialog = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
                         }
                     }
                 }
+            }
+            .searchable(text: $searchText, prompt: "Search templates")
+            .onChange(of: searchText) { _, newValue in
+                viewModel.searchText = newValue
             }
             .navigationTitle("Workout Templates")
             .toolbar {
