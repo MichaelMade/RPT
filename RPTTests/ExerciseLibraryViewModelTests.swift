@@ -51,6 +51,23 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_matchesLegacyWhitespaceAndDiacriticVariants() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Café   Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.searchText = " cafe row "
+
+        let results = viewModel.fetchExercises()
+
+        XCTAssertEqual(
+            results.map(\.name),
+            ["Café   Row"],
+            "Exercise search should stay resilient to legacy whitespace and diacritic variants in stored names"
+        )
+    }
+
     func testFilteredResultsSummary_onlyAppearsForActiveQueries() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [

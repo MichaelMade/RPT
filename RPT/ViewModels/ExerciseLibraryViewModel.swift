@@ -24,6 +24,10 @@ class ExerciseLibraryViewModel: ObservableObject {
             .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
     }
 
+    static func normalizedSearchLookupKey(_ rawValue: String) -> String {
+        ExerciseManager.normalizedNameLookupKey(normalizedSearchQuery(rawValue))
+    }
+
     var normalizedSearchText: String {
         Self.normalizedSearchQuery(searchText)
     }
@@ -68,12 +72,13 @@ class ExerciseLibraryViewModel: ObservableObject {
     
     func fetchExercises() -> [Exercise] {
         let normalizedSearchText = normalizedSearchText
+        let normalizedSearchLookup = Self.normalizedSearchLookupKey(normalizedSearchText)
 
         // Filter in memory based on search text and filters
         return exercises.filter { exercise in
             // Apply search filter
-            let matchesSearch = normalizedSearchText.isEmpty ||
-                                exercise.name.localizedCaseInsensitiveContains(normalizedSearchText)
+            let matchesSearch = normalizedSearchLookup.isEmpty ||
+                                Self.normalizedSearchLookupKey(exercise.name).contains(normalizedSearchLookup)
             
             // Apply category filter
             let matchesCategory = selectedCategory == nil ||
