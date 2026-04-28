@@ -418,6 +418,20 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(exercise.displayName.count, 80)
     }
 
+    func testExercisePrimaryMuscleGroupSummary_usesDisplayNames() {
+        let exercise = Exercise(
+            name: "Back Extension",
+            category: .bodyweight,
+            primaryMuscleGroups: [.lowerBack, .glutes]
+        )
+
+        XCTAssertEqual(
+            exercise.primaryMuscleGroupSummary,
+            "Lower Back, Glutes",
+            "Exercise picker rows should use muscle-group display names so camel-cased enum values never leak into UI"
+        )
+    }
+
     func testExerciseDetailNormalizedInstructions_collapsesWhitespaceAndHidesBlankInstructions() {
         let exerciseWithInstructions = Exercise(
             name: "Bench Press",

@@ -48,6 +48,10 @@ final class Exercise {
         Self.normalizedDisplayName(name)
     }
 
+    var primaryMuscleGroupSummary: String {
+        primaryMuscleGroups.map(\.displayName).joined(separator: ", ")
+    }
+
     init(name: String,
          category: ExerciseCategory,
          primaryMuscleGroups: [MuscleGroup],

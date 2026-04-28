@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed exercise-picker muscle-group label formatting by switching workout/template picker rows to shared `MuscleGroup.displayName` summaries, so names like `Lower Back` no longer leak as awkward raw enum text such as `Lowerback`; added regression coverage in `FormattingTests`.
 - Improved both workout and template exercise pickers with full category + muscle-group filter chips, plus consistent empty-state recovery (`Clear Search` / `Reset Filters`), so larger exercise libraries are much easier to narrow down before adding movements; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Hardened legacy/custom exercise-name display across the library, pickers, active-workout headers, and destructive confirmations by centralizing normalized exercise display names (`trim + collapse whitespace`, blank fallback, 80-character cap), so messy imported names no longer leak awkward blank/multiline labels into core workout flows; added regression coverage in `FormattingTests`.
 - Improved exercise-library and exercise-picker search relevance by ranking exact matches first, then full-name prefixes, then word-prefix hits, and finally weaker substring matches, so broad queries like `row` surface the most likely exercises before incidental matches; added regression coverage in `ExerciseLibraryViewModelTests`.

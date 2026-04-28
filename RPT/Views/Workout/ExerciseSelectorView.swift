@@ -144,7 +144,7 @@ struct ExerciseSelectorView: View {
                                             .font(.headline)
                                             .foregroundColor(.primary)
                                         
-                                        Text(exercise.primaryMuscleGroups.map { $0.rawValue.capitalized }.joined(separator: ", "))
+                                        Text(exercise.primaryMuscleGroupSummary)
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
