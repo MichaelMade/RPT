@@ -823,6 +823,38 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(summary.contains("Exercises: None"))
     }
 
+    func testGenerateFormattedSummary_completedWorkoutFallsBackToLoggedExerciseNamesWhenTimestampsAreMissing() {
+        // Given
+        let workout = Workout(name: "Legacy Completed", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 0, isWarmup: false)
+        _ = workout.addSet(exercise: squat, weight: 225, reps: 0, isWarmup: false)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: Bench Press, Squat"))
+        XCTAssertTrue(summary.contains("Sets: 2"))
+    }
+
+    func testGenerateFormattedSummary_incompleteWorkoutDoesNotFallBackToPlannedExerciseNames() {
+        // Given
+        let workout = Workout(name: "Planned Workout", isCompleted: false)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 0, isWarmup: false)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: None"))
+        XCTAssertTrue(summary.contains("Sets: 0"))
+    }
+
     func testGenerateFormattedSummary_fallsBackToDefaultNameWhenNameIsWhitespaceOnly() {
         // Given
         let workout = Workout(name: "   \n\t  ")

@@ -320,9 +320,9 @@ final class Workout {
         return collapsedNotes
     }
 
-    // Generate workout summary
-    func generateFormattedSummary() -> String {
+    private func summaryExerciseNamesInOrder() -> [String] {
         var seenExerciseNames: Set<String> = []
+
         let completedExerciseNamesInOrder = sets.compactMap { set -> String? in
             guard set.isCompletedWorkingSet,
                   let exerciseName = set.exercise?.name,
@@ -336,9 +336,48 @@ final class Workout {
                 : nil
         }
 
-        let exerciseList = completedExerciseNamesInOrder.isEmpty
+        if !completedExerciseNamesInOrder.isEmpty {
+            return completedExerciseNamesInOrder
+        }
+
+        guard isCompleted else {
+            return []
+        }
+
+        return sets.compactMap { set -> String? in
+            guard !set.isWarmup,
+                  let exerciseName = set.exercise?.name,
+                  let normalizedName = normalizedSummaryExerciseName(exerciseName)
+            else {
+                return nil
+            }
+
+            return seenExerciseNames.insert(normalizedName.key).inserted
+                ? normalizedName.display
+                : nil
+        }
+    }
+
+    private func summarySetCount() -> Int {
+        let completedWorkingSetCount = workingSetsCount
+        if completedWorkingSetCount > 0 {
+            return completedWorkingSetCount
+        }
+
+        guard isCompleted else {
+            return completedWorkingSetCount
+        }
+
+        let nonWarmupLoggedSetCount = sets.filter { !$0.isWarmup }.count
+        return nonWarmupLoggedSetCount > 0 ? nonWarmupLoggedSetCount : sets.count
+    }
+
+    // Generate workout summary
+    func generateFormattedSummary() -> String {
+        let summaryExerciseNames = summaryExerciseNamesInOrder()
+        let exerciseList = summaryExerciseNames.isEmpty
             ? "None"
-            : completedExerciseNamesInOrder.joined(separator: ", ")
+            : summaryExerciseNames.joined(separator: ", ")
         
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium
@@ -349,7 +388,7 @@ final class Workout {
 
         var summary = "\(summaryWorkoutName) - \(dateString)\n"
         summary += "Exercises: \(exerciseList)\n"
-        summary += "Sets: \(workingSetsCount)\n"
+        summary += "Sets: \(summarySetCount())\n"
 
         let safeDuration = duration.isFinite ? max(0, duration) : 0
         if safeDuration > 0 {
