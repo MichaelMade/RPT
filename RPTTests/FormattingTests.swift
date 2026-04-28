@@ -216,6 +216,25 @@ final class FormattingTests: XCTestCase {
         XCTAssertFalse(WorkoutDetailView.summaryMetrics(for: corruptedWorkout).contains(where: { $0.title == "Duration" }))
     }
 
+    func testWorkoutDetailSummaryMetrics_preferCompletedWorkingSetExerciseCountWithFallback() {
+        let workout = Workout(name: "Workout Detail Exercise Count")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        _ = workout.addSet(exercise: bench, weight: 225, reps: 5)
+        _ = workout.addSet(exercise: squat, weight: 95, reps: 8, isWarmup: true)
+
+        let exerciseMetric = WorkoutDetailView.summaryMetrics(for: workout).first(where: { $0.title == "Exercises" })
+        XCTAssertEqual(exerciseMetric?.value, "1")
+
+        let fallbackWorkout = Workout(name: "Workout Detail Fallback")
+        _ = fallbackWorkout.addSet(exercise: bench, weight: 135, reps: 0)
+        _ = fallbackWorkout.addSet(exercise: squat, weight: 185, reps: 0)
+
+        let fallbackMetric = WorkoutDetailView.summaryMetrics(for: fallbackWorkout).first(where: { $0.title == "Exercises" })
+        XCTAssertEqual(fallbackMetric?.value, "2")
+    }
+
     func testWorkoutDetailNormalizedNotes_collapsesWhitespaceAndHidesBlankNotes() {
         let workoutWithNotes = Workout(name: "Notes Workout", notes: "  Great\n\n session   today  ")
         XCTAssertEqual(WorkoutDetailView.normalizedNotes(for: workoutWithNotes), "Great session today")

@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved `WorkoutDetailView` summary accuracy by making the `Exercises` stat prefer exercises with completed working sets (while safely falling back for legacy placeholder-only workouts), so history detail no longer overcounts warmup-only or unfinished exercises; added regression coverage in `FormattingTests`.
 - Polished `WorkoutDetailView` title/header hygiene by normalizing workout and exercise names before display, so legacy whitespace-heavy or blank names no longer render as awkward empty/messy detail-screen labels; added regression coverage in `FormattingTests`.
 - Polished `WorkoutDetailView` summary cards by promoting completed-workout duration into the stat grid and normalizing notes before display, so detail screens surface session length alongside exercises/sets/work and no longer render whitespace-only or messy multiline notes; added regression coverage in `FormattingTests`.
 - Improved Home `Recent Workouts` glanceability by adding a dedicated `Duration` row to `WorkoutRow` whenever a completed workout has a valid positive duration, so users can compare session length without opening workout details. Invalid or zero durations stay hidden to avoid noisy `0s` rows, and regression coverage was added in `FormattingTests`.

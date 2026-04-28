@@ -42,9 +42,19 @@ struct WorkoutDetailView: View {
         return String(collapsedName.prefix(80))
     }
 
+    static func displayExerciseCount(for workout: Workout) -> Int {
+        let completedExercises = Set(
+            workout.sets
+                .filter(\.isCompletedWorkingSet)
+                .compactMap { $0.exercise }
+        ).count
+
+        return completedExercises > 0 ? completedExercises : workout.exerciseCount
+    }
+
     static func summaryMetrics(for workout: Workout) -> [(title: String, value: String)] {
         var metrics: [(title: String, value: String)] = [
-            (title: "Exercises", value: "\(workout.exerciseCount)"),
+            (title: "Exercises", value: "\(displayExerciseCount(for: workout))"),
             (title: "Sets", value: "\(workout.workingSetsCount)"),
             (title: workout.preferredWorkMetricTitle, value: workout.preferredWorkMetricValue)
         ]
