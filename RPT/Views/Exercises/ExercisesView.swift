@@ -170,7 +170,7 @@ struct ExercisesView: View {
                 isPresented: $showingDeleteConfirmation,
                 presenting: exerciseToDelete
             ) { exercise in
-                Button("Delete \(exercise.name)", role: .destructive) {
+                Button("Delete \(exercise.displayName)", role: .destructive) {
                     viewModel.deleteExercise(exercise)
                 }
             } message: { exercise in

@@ -403,6 +403,21 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(ExerciseDetailView.displayName(for: spacedExercise), "Incline Bench Press")
     }
 
+    func testExerciseDisplayName_fallsBackForBlankAndNormalizesWhitespace() {
+        let blankExercise = Exercise(name: "   \n   ", category: .compound, primaryMuscleGroups: [.chest])
+        XCTAssertEqual(blankExercise.displayName, "Exercise")
+
+        let spacedExercise = Exercise(name: "  Incline   Bench\nPress  ", category: .compound, primaryMuscleGroups: [.chest])
+        XCTAssertEqual(spacedExercise.displayName, "Incline Bench Press")
+    }
+
+    func testExerciseDisplayName_clampsVeryLongNames() {
+        let longName = String(repeating: "A", count: 120)
+        let exercise = Exercise(name: longName, category: .compound, primaryMuscleGroups: [.chest])
+
+        XCTAssertEqual(exercise.displayName.count, 80)
+    }
+
     func testExerciseDetailNormalizedInstructions_collapsesWhitespaceAndHidesBlankInstructions() {
         let exerciseWithInstructions = Exercise(
             name: "Bench Press",

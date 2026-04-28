@@ -19,7 +19,7 @@ struct ExerciseRowView: View {
             VStack(alignment: .leading, spacing: 4) {
                 // Exercise name and custom badge
                 HStack {
-                    Text(exercise.name)
+                    Text(exercise.displayName)
                         .font(.headline)
                     
                     if exercise.isCustom {

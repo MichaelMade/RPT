@@ -55,7 +55,7 @@ struct ExerciseSelectorForTemplateView: View {
                             HapticFeedbackManager.shared.medium()
                             
                             // Select the exercise and dismiss
-                            onSelectExercise(exercise.name)
+                            onSelectExercise(exercise.displayName)
                             dismiss()
                         }) {
                             // Exercise row content
@@ -64,7 +64,7 @@ struct ExerciseSelectorForTemplateView: View {
                                 ExerciseIconView(category: exercise.category, size: 36)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(exercise.name)
+                                    Text(exercise.displayName)
                                         .font(.headline)
                                         .foregroundColor(.primary)
                                     

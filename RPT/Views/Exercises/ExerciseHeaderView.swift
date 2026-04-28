@@ -33,7 +33,7 @@ struct ExerciseHeaderView: View {
                         ExerciseIconView(category: exercise.category, size: 32)
                             .padding(.trailing, 4)
                         
-                        Text(exercise.name)
+                        Text(exercise.displayName)
                             .font(.headline)
                             .foregroundColor(.primary)
                     }

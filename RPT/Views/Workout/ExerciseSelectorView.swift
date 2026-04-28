@@ -109,7 +109,7 @@ struct ExerciseSelectorView: View {
                                     ExerciseIconView(category: exercise.category, size: 36)
                                     
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text(exercise.name)
+                                        Text(exercise.displayName)
                                             .font(.headline)
                                             .foregroundColor(.primary)
                                         

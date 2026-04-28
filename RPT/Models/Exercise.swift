@@ -8,6 +8,21 @@
 import Foundation
 import SwiftData
 
+private enum ExerciseTextFormatter {
+    static func collapsed(_ raw: String) -> String? {
+        let collapsed = raw
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsed.isEmpty else {
+            return nil
+        }
+
+        return collapsed
+    }
+}
+
 @Model
 final class Exercise {
     var name: String
@@ -20,6 +35,19 @@ final class Exercise {
     @Relationship(deleteRule: .cascade, inverse: \ExerciseSet.exercise)
     var sets: [ExerciseSet]
     
+    static func normalizedDisplayName(_ raw: String) -> String {
+        let collapsedName = ExerciseTextFormatter.collapsed(raw) ?? "Exercise"
+        return String(collapsedName.prefix(80))
+    }
+
+    static func normalizedDisplayInstructions(_ raw: String) -> String? {
+        ExerciseTextFormatter.collapsed(raw)
+    }
+
+    var displayName: String {
+        Self.normalizedDisplayName(name)
+    }
+
     init(name: String,
          category: ExerciseCategory,
          primaryMuscleGroups: [MuscleGroup],
