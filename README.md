@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved exercise-library and picker multi-word search resilience by matching normalized query tokens against exercise-name word prefixes even when users type them out of order (for example `press bench` now finds `Incline Bench Press`), so search feels much less brittle in larger libraries; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Improved exercise-library and picker search feedback by expanding the filtered-results summary to include the active normalized search text plus category/muscle filters (for example `for “row” • in Compound • targeting Back`), so users can immediately see why the visible exercise set is narrowed; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Fixed exercise-picker muscle-group label formatting by switching workout/template picker rows to shared `MuscleGroup.displayName` summaries, so names like `Lower Back` no longer leak as awkward raw enum text such as `Lowerback`; added regression coverage in `FormattingTests`.
 - Improved both workout and template exercise pickers with full category + muscle-group filter chips, plus consistent empty-state recovery (`Clear Search` / `Reset Filters`), so larger exercise libraries are much easier to narrow down before adding movements; added regression coverage in `ExerciseLibraryViewModelTests`.

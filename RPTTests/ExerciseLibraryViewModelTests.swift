@@ -68,7 +68,7 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
-    func testSearchMatchPriority_prefersExactThenPrefixThenWordPrefixThenSubstring() {
+    func testSearchMatchPriority_prefersExactThenPrefixThenTokenPrefixThenSubstring() {
         let exact = ExerciseLibraryViewModel.searchMatchPriority(
             exerciseName: "Row",
             normalizedQuery: ExerciseLibraryViewModel.normalizedSearchLookupKey("row")
@@ -77,7 +77,7 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             exerciseName: "Row Machine",
             normalizedQuery: ExerciseLibraryViewModel.normalizedSearchLookupKey("row")
         )
-        let wordPrefix = ExerciseLibraryViewModel.searchMatchPriority(
+        let tokenPrefix = ExerciseLibraryViewModel.searchMatchPriority(
             exerciseName: "Barbell Row",
             normalizedQuery: ExerciseLibraryViewModel.normalizedSearchLookupKey("row")
         )
@@ -88,7 +88,7 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
 
         XCTAssertEqual(exact, 0)
         XCTAssertEqual(prefix, 1)
-        XCTAssertEqual(wordPrefix, 2)
+        XCTAssertEqual(tokenPrefix, 2)
         XCTAssertEqual(substring, 3)
     }
 
@@ -108,6 +108,24 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             results.map(\.name),
             ["Row", "Row Machine", "Barbell Row", "Front Squat Rowing Drill"],
             "Exercise search should rank exact and prefix matches ahead of weaker substring matches"
+        )
+    }
+
+    func testFetchExercises_matchesReorderedMultiWordQueriesByTokenPrefix() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Incline Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.shoulders], instructions: ""),
+            Exercise(name: "Bench Dip", category: .bodyweight, primaryMuscleGroups: [.triceps], secondaryMuscleGroups: [.chest], instructions: ""),
+            Exercise(name: "Press Around", category: .other, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.shoulders], instructions: "")
+        ]
+        viewModel.searchText = "press bench"
+
+        let results = viewModel.fetchExercises()
+
+        XCTAssertEqual(
+            results.map(\.name),
+            ["Incline Bench Press"],
+            "Exercise search should still find likely matches when users type multi-word queries out of stored-name order"
         )
     }
 

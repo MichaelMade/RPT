@@ -28,6 +28,12 @@ class ExerciseLibraryViewModel: ObservableObject {
         ExerciseManager.normalizedNameLookupKey(normalizedSearchQuery(rawValue))
     }
 
+    static func normalizedSearchTokens(_ rawValue: String) -> [String] {
+        normalizedSearchLookupKey(rawValue)
+            .split(separator: " ")
+            .map(String.init)
+    }
+
     var normalizedSearchText: String {
         Self.normalizedSearchQuery(searchText)
     }
@@ -95,10 +101,8 @@ class ExerciseLibraryViewModel: ObservableObject {
         }
 
         let normalizedName = normalizedSearchLookupKey(exerciseName)
-
-        guard normalizedName.contains(normalizedQuery) else {
-            return nil
-        }
+        let queryTokens = normalizedSearchTokens(normalizedQuery)
+        let words = normalizedName.split(separator: " ")
 
         if normalizedName == normalizedQuery {
             return 0
@@ -108,12 +112,18 @@ class ExerciseLibraryViewModel: ObservableObject {
             return 1
         }
 
-        let words = normalizedName.split(separator: " ")
-        if words.contains(where: { $0.hasPrefix(normalizedQuery) }) {
+        if !queryTokens.isEmpty,
+           queryTokens.allSatisfy({ token in
+               words.contains(where: { $0.hasPrefix(token) })
+           }) {
             return 2
         }
 
-        return 3
+        if normalizedName.contains(normalizedQuery) {
+            return 3
+        }
+
+        return nil
     }
 
     func fetchExercises() -> [Exercise] {
