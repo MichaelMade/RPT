@@ -9,6 +9,26 @@ import SwiftUI
 import SwiftData
 
 struct ExerciseSetRowView: View {
+    enum DraftValidationResult: Equatable {
+        case valid
+        case invalidWeight
+        case invalidReps
+        case invalidRPE
+
+        var helperText: String? {
+            switch self {
+            case .valid:
+                return nil
+            case .invalidWeight:
+                return "Enter a valid weight in pounds, or leave it blank to clear the set."
+            case .invalidReps:
+                return "Enter a valid rep count, or leave it blank to clear the set."
+            case .invalidRPE:
+                return "Leave RPE blank or enter a whole number from 1 to 10."
+            }
+        }
+    }
+
     @Bindable var set: ExerciseSet
     @State private var isEditing = false
     @State private var weightInput = ""
@@ -42,6 +62,15 @@ struct ExerciseSetRowView: View {
         self.onUpdateDropSets = onUpdateDropSets
     }
     // MARK: - End Updated Initializer
+
+    private var draftValidation: DraftValidationResult {
+        Self.validateDraft(weightInput: weightInput, repsInput: repsInput, rpeInput: rpeInput)
+    }
+
+    private var canSaveDraft: Bool {
+        draftValidation == .valid
+    }
+
     
     var body: some View {
         if isEditing {
@@ -133,6 +162,13 @@ struct ExerciseSetRowView: View {
                     }
                 }
                 
+                if let helperText = draftValidation.helperText {
+                    Text(helperText)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
                 
                 // Action buttons
                 HStack(spacing: 15) {
@@ -153,6 +189,7 @@ struct ExerciseSetRowView: View {
                         saveSet()
                     }
                     .buttonStyle(.borderedProminent)
+                    .disabled(!canSaveDraft)
                 }
                 .frame(height: 50)
             }
@@ -213,6 +250,39 @@ struct ExerciseSetRowView: View {
             }
         }
     }
+
+    static func validateDraft(weightInput: String, repsInput: String, rpeInput: String) -> DraftValidationResult {
+        guard sanitizedInteger(from: weightInput, emptyValue: 0) != nil else {
+            return .invalidWeight
+        }
+
+        guard sanitizedInteger(from: repsInput, emptyValue: 0) != nil else {
+            return .invalidReps
+        }
+
+        let trimmedRPE = rpeInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedRPE.isEmpty {
+            guard let rpe = sanitizedInteger(from: rpeInput, emptyValue: nil), (1...10).contains(rpe) else {
+                return .invalidRPE
+            }
+        }
+
+        return .valid
+    }
+
+    static func sanitizedInteger(from input: String, emptyValue: Int?) -> Int? {
+        let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedInput.isEmpty else {
+            return emptyValue
+        }
+
+        guard let parsedValue = Int(trimmedInput), parsedValue >= 0 else {
+            return nil
+        }
+
+        return parsedValue
+    }
     
     // MARK: - Helper Methods
     
@@ -249,23 +319,28 @@ struct ExerciseSetRowView: View {
     
     // MARK: - Modified saveSet method
     private func saveSet() {
+        guard canSaveDraft else {
+            return
+        }
+
         // Provide haptic feedback
         HapticFeedbackManager.shared.heavy()
         
         // Convert inputs to appropriate types
-        if let weightInput = Int(weightInput), let reps = Int(repsInput) {
-            let rpe = rpeInput.isEmpty ? nil : Int(rpeInput)
-            
+        if let parsedWeight = Self.sanitizedInteger(from: weightInput, emptyValue: 0),
+           let parsedReps = Self.sanitizedInteger(from: repsInput, emptyValue: 0) {
+            let rpe = Self.sanitizedInteger(from: rpeInput, emptyValue: nil)
+
             // Validate inputs
-            let weight = WorkoutManager.shared.roundToNearest5(Double(max(0, weightInput)))
-            let validatedReps = max(0, reps)
-            let validatedRPE = rpe.map { min(10, max(1, $0)) }
-            
+            let weight = WorkoutManager.shared.roundToNearest5(Double(parsedWeight))
+            let validatedReps = parsedReps
+            let validatedRPE = rpe
+
             let wasCompletedWorkingSet = set.isCompletedWorkingSet
 
             // Update the set
             onUpdate(weight, validatedReps, validatedRPE)
-            
+
             if isFirstSet && ExerciseSetRowView.shouldUpdateDropSets(
                 weight: weight,
                 reps: validatedReps,
@@ -274,9 +349,9 @@ struct ExerciseSetRowView: View {
             ) {
                 onUpdateDropSets?(weight)
             }
-            
+
             isEditing = false
-            
+
             // Start rest timer only when a set transitions into a completed working set.
             if ExerciseSetRowView.shouldStartRestTimer(
                 weight: weight,

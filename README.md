@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Active Workout set-edit recovery by treating blank weight/reps as an intentional clear instead of a failed save, and by adding inline validation guidance for invalid weight, reps, or RPE input so logged-set edits no longer fail silently; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Improved Home/Workout Detail recency glanceability by switching workout dates to relative, time-aware labels like `Today • 9:45 AM`, `Yesterday • 8:00 AM`, or weekday/date fallbacks, so recent sessions are easier to scan without opening each workout; added regression coverage in `FormattingTests`.
 - Improved Stats empty-state clarity for returning users by keeping `Weekly Volume`, `Muscle Group Focus`, and `Recent Personal Records` visible as explanatory placeholder cards whenever those sections have no current data, so Stats no longer looks half-broken when a timeframe is empty or no completed working sets have been logged recently; added regression coverage in `StatsViewFormattingTests`.
 - Fixed a misleading Plate Calculator fallback so targets that cannot be built with the currently selected plates no longer pretend to be `Just the bar`; the calculator now distinguishes blank/invalid targets, targets below bar weight, exact bar-only loads, and truly unavailable plate setups with explicit guidance, and added regression coverage in new `PlateCalculatorViewTests`.

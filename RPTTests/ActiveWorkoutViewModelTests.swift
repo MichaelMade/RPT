@@ -310,6 +310,35 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertFalse(ExerciseSetRowView.shouldUpdateDropSets(weight: 225, reps: 5, isWarmup: true))
     }
 
+    func testExerciseSetDraftValidation_allowsBlankWeightAndRepsToClearSet() {
+        XCTAssertEqual(
+            ExerciseSetRowView.validateDraft(weightInput: "", repsInput: "  ", rpeInput: ""),
+            .valid
+        )
+    }
+
+    func testExerciseSetDraftValidation_rejectsInvalidNumericInputs() {
+        XCTAssertEqual(
+            ExerciseSetRowView.validateDraft(weightInput: "abc", repsInput: "5", rpeInput: ""),
+            .invalidWeight
+        )
+        XCTAssertEqual(
+            ExerciseSetRowView.validateDraft(weightInput: "185", repsInput: "five", rpeInput: ""),
+            .invalidReps
+        )
+        XCTAssertEqual(
+            ExerciseSetRowView.validateDraft(weightInput: "185", repsInput: "5", rpeInput: "11"),
+            .invalidRPE
+        )
+    }
+
+    func testExerciseSetSanitizedInteger_treatsBlankAsExplicitEmptyValue() {
+        XCTAssertEqual(ExerciseSetRowView.sanitizedInteger(from: "   ", emptyValue: 0), 0)
+        XCTAssertNil(ExerciseSetRowView.sanitizedInteger(from: "", emptyValue: nil))
+        XCTAssertEqual(ExerciseSetRowView.sanitizedInteger(from: " 12 ", emptyValue: 0), 12)
+        XCTAssertNil(ExerciseSetRowView.sanitizedInteger(from: "-3", emptyValue: 0))
+    }
+
     func testFinishHelperText_whenAllExercisesCompleted_returnsNil() {
         let workout = workoutManager.createWorkout(name: "Test Workout")
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
