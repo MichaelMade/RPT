@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed lifetime streak updates for backfilled or late-night workout completions by basing `User.updateWorkoutStreak` on each workout’s logged date instead of the wall-clock completion time, so legitimate next-day sessions no longer reset the Home/Stats streak when they are finished after midnight or registered later; added regression coverage in `UserModelTests`.
 - Fixed Home’s `Last 7 Days` weekly-progress summary so heavy training weeks no longer show awkward copy like `10 of 7 workouts`; the summary now caps at the visible 7-workout goal to match the filled progress bar, and regression coverage was added in `HomeViewModelTests`.
 - Improved Active Workout set-edit recovery by treating blank weight/reps as an intentional clear instead of a failed save, and by adding inline validation guidance for invalid weight, reps, or RPE input so logged-set edits no longer fail silently; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Improved Home/Workout Detail recency glanceability by switching workout dates to relative, time-aware labels like `Today • 9:45 AM`, `Yesterday • 8:00 AM`, or weekday/date fallbacks, so recent sessions are easier to scan without opening each workout; added regression coverage in `FormattingTests`.

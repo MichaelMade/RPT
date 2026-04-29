@@ -187,6 +187,34 @@ final class UserModelTests: XCTestCase {
         XCTAssertEqual(user.totalVolume, 1025, "Total volume should not double-count retriggered completion")
     }
 
+    func testRegisterCompletedWorkoutIfNeeded_usesWorkoutDateForBackfilledStreaks() {
+        // Given
+        let user = User(username: "TestUser", email: "test@example.com")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let calendar = Calendar.current
+        let now = Date()
+        let priorWorkoutDate = calendar.date(byAdding: .day, value: -2, to: now)!
+        let backfilledWorkoutDate = calendar.date(byAdding: .day, value: -1, to: now)!
+
+        let priorWorkout = Workout(date: priorWorkoutDate, name: "Prior Workout")
+        _ = priorWorkout.addSet(exercise: bench, weight: 185, reps: 5)
+        priorWorkout.complete()
+
+        let backfilledWorkout = Workout(date: backfilledWorkoutDate, name: "Backfilled Workout")
+        _ = backfilledWorkout.addSet(exercise: bench, weight: 190, reps: 5)
+        backfilledWorkout.complete()
+
+        XCTAssertTrue(user.registerCompletedWorkoutIfNeeded(priorWorkout), "Sanity check: first completed workout should register")
+        XCTAssertEqual(user.workoutStreak, 1, "First completed workout should start the streak")
+
+        // When
+        let secondRegistration = user.registerCompletedWorkoutIfNeeded(backfilledWorkout)
+
+        // Then
+        XCTAssertTrue(secondRegistration, "Second completed workout should register")
+        XCTAssertEqual(user.workoutStreak, 2, "A workout logged for the next calendar day should extend the streak even when completed later")
+    }
+
     func testCreateFollowUpWorkout_usesOnlyCompletedWorkingSets() {
         let workout = Workout(name: "Corrupted Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

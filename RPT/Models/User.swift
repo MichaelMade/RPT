@@ -117,19 +117,21 @@ final class User {
         return true
     }
 
-    // Check and update the workout streak, excluding the just-completed workout
+    // Check and update the workout streak, excluding the just-completed workout.
+    // Use the workout's own logged day rather than the wall-clock completion day so
+    // late-night finishes or backfilled historical workouts do not reset valid streaks.
     private func updateWorkoutStreak(currentWorkout: Workout) {
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else { return }
+        let workoutDay = calendar.startOfDay(for: currentWorkout.date)
+        guard let previousDay = calendar.date(byAdding: .day, value: -1, to: workoutDay) else { return }
 
         let previousDates = workouts.filter { $0 !== currentWorkout }.map { $0.date }
         let latestPreviousDay = previousDates.max().map { calendar.startOfDay(for: $0) }
 
-        if latestPreviousDay == today {
-            // Another workout already counted today; streak unchanged
+        if latestPreviousDay == workoutDay {
+            // Another workout already counted on this workout's day; streak unchanged.
             return
-        } else if latestPreviousDay == yesterday {
+        } else if latestPreviousDay == previousDay {
             workoutStreak += 1
         } else {
             workoutStreak = 1
