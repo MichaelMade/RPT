@@ -33,15 +33,8 @@ class HomeViewModel: ObservableObject {
         )
         userStats = userManager.getUserStats()
 
-        let incompleteWorkout = workoutManager.getIncompleteWorkouts().first
         let workoutStateManager = WorkoutStateManager.shared
-        let shouldResume = shouldResumeIncompleteWorkout(
-            workoutDate: incompleteWorkout?.date,
-            discardTimestamp: workoutStateManager.discardTimestamp,
-            wasAnyWorkoutDiscarded: workoutStateManager.wasAnyWorkoutDiscarded()
-        )
-
-        currentWorkout = shouldResume ? incompleteWorkout : nil
+        currentWorkout = workoutStateManager.firstResumableWorkout(in: workoutManager.getIncompleteWorkouts())
     }
     
     func startNewWorkout() {

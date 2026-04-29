@@ -220,11 +220,10 @@ class WorkoutManager: ObservableObject {
     
     // Get incomplete workouts (saved but not yet completed)
     func getIncompleteWorkouts() -> [Workout] {
-        var descriptor = FetchDescriptor<Workout>(
+        let descriptor = FetchDescriptor<Workout>(
             predicate: #Predicate<Workout> { !$0.isCompleted },
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
-        descriptor.fetchLimit = 1
 
         return (try? modelContext.fetch(descriptor)) ?? []
     }

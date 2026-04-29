@@ -23,7 +23,7 @@ struct ContentView: View {
                 activeWorkoutBinding: Binding(
                     get: {
                         guard let workout = activeWorkout else { return nil }
-                        return shouldResumeIncompleteWorkout(for: workout) ? workout : nil
+                        return workoutStateManager.shouldResume(workout) ? workout : nil
                     },
                     set: { newWorkout in
                         if newWorkout != nil {
@@ -41,13 +41,13 @@ struct ContentView: View {
                 ),
                 showActiveWorkoutSheet: Binding(
                     get: {
-                        if let workout = activeWorkout, !shouldResumeIncompleteWorkout(for: workout) {
+                        if let workout = activeWorkout, !workoutStateManager.shouldResume(workout) {
                             return false
                         }
                         return showingActiveWorkoutSheet
                     },
                     set: { newValue in
-                        if newValue, let workout = activeWorkout, !shouldResumeIncompleteWorkout(for: workout) {
+                        if newValue, let workout = activeWorkout, !workoutStateManager.shouldResume(workout) {
                             showingActiveWorkoutSheet = false
                         } else {
                             showingActiveWorkoutSheet = newValue
@@ -76,7 +76,7 @@ struct ContentView: View {
                 activeWorkoutBinding: Binding(
                     get: {
                         guard let workout = activeWorkout else { return nil }
-                        return shouldResumeIncompleteWorkout(for: workout) ? workout : nil
+                        return workoutStateManager.shouldResume(workout) ? workout : nil
                     },
                     set: { newWorkout in
                         if newWorkout != nil {
@@ -94,13 +94,13 @@ struct ContentView: View {
                 ),
                 showActiveWorkoutSheet: Binding(
                     get: {
-                        if let workout = activeWorkout, !shouldResumeIncompleteWorkout(for: workout) {
+                        if let workout = activeWorkout, !workoutStateManager.shouldResume(workout) {
                             return false
                         }
                         return showingActiveWorkoutSheet
                     },
                     set: { newValue in
-                        if newValue, let workout = activeWorkout, !shouldResumeIncompleteWorkout(for: workout) {
+                        if newValue, let workout = activeWorkout, !workoutStateManager.shouldResume(workout) {
                             showingActiveWorkoutSheet = false
                         } else {
                             showingActiveWorkoutSheet = newValue
@@ -173,28 +173,9 @@ struct ContentView: View {
         }
     }
 
-    private func shouldResumeIncompleteWorkout(for workout: Workout) -> Bool {
-        guard !workout.isCompleted else {
-            return false
-        }
-
-        let wasAnyWorkoutDiscarded = workoutStateManager.wasAnyWorkoutDiscarded()
-
-        guard wasAnyWorkoutDiscarded else {
-            return true
-        }
-
-        guard let discardTimestamp = workoutStateManager.discardTimestamp else {
-            // Fail open for legacy/corrupted discard state.
-            return true
-        }
-
-        return workout.date >= discardTimestamp
-    }
-
     private func restoreResumableWorkoutIfAvailable() {
         guard activeWorkout == nil else {
-            if let workout = activeWorkout, !shouldResumeIncompleteWorkout(for: workout) {
+            if let workout = activeWorkout, !workoutStateManager.shouldResume(workout) {
                 showingActiveWorkoutSheet = false
 
                 // Keep completed workouts in local state so we don't accidentally
@@ -206,12 +187,10 @@ struct ContentView: View {
             return
         }
 
-        guard let lastIncomplete = WorkoutManager.shared.getIncompleteWorkouts().first else {
-            return
-        }
+        let incompleteWorkouts = WorkoutManager.shared.getIncompleteWorkouts()
 
-        if shouldResumeIncompleteWorkout(for: lastIncomplete) {
-            activeWorkout = lastIncomplete
+        if let resumableWorkout = workoutStateManager.firstResumableWorkout(in: incompleteWorkouts) {
+            activeWorkout = resumableWorkout
         } else {
             showingActiveWorkoutSheet = false
             activeWorkout = nil

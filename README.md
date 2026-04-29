@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed resumable-workout restore selection so Home and Templates now scan all incomplete drafts and pick the first truly resumable one instead of stopping at a single newest draft. This prevents an older valid workout from getting stranded when a newer incomplete draft was already discarded or otherwise non-resumable; added regression coverage in `WorkoutStateManagerTests`.
 - Improved Exercise Library first-run recovery by distinguishing a truly empty library from a zero-result search/filter state, so empty libraries now keep the `No Exercises Yet` onboarding copy and surface a one-tap `Add Custom Exercise` action instead of misleading `No Matching Exercises` messaging; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Fixed lifetime streak updates for backfilled or late-night workout completions by basing `User.updateWorkoutStreak` on each workout’s logged date instead of the wall-clock completion time, so legitimate next-day sessions no longer reset the Home/Stats streak when they are finished after midnight or registered later; added regression coverage in `UserModelTests`.
 - Fixed Home’s `Last 7 Days` weekly-progress summary so heavy training weeks no longer show awkward copy like `10 of 7 workouts`; the summary now caps at the visible 7-workout goal to match the filled progress bar, and regression coverage was added in `HomeViewModelTests`.

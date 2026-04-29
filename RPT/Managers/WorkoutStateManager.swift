@@ -77,6 +77,33 @@ class WorkoutStateManager: ObservableObject {
         
         return workoutWasDiscarded
     }
+
+    func shouldResume(_ workout: Workout?) -> Bool {
+        guard let workout else {
+            return false
+        }
+
+        guard !workout.isCompleted else {
+            return false
+        }
+
+        let wasAnyWorkoutDiscarded = wasAnyWorkoutDiscarded()
+
+        guard wasAnyWorkoutDiscarded else {
+            return true
+        }
+
+        guard let discardTimestamp else {
+            // Fail open for legacy/corrupted discard state.
+            return true
+        }
+
+        return workout.date >= discardTimestamp
+    }
+
+    func firstResumableWorkout(in workouts: [Workout]) -> Workout? {
+        workouts.first(where: shouldResume)
+    }
     
     // Clear all discard state
     func clearDiscardedState() {
