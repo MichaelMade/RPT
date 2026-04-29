@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved custom exercise delete safety by previewing logged-history fallout in the confirmation dialog, including how many logged sets/workouts will be removed and whether any workout templates still reference the exercise and will skip it until replaced; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Fixed template-exercise edit data loss by preserving existing rep ranges and percentage drops when changing only notes or set count, so editing a template exercise no longer silently resets custom progression back to generic defaults; added regression coverage in `TemplateManagerTests`.
 - Improved Active Workout finish-state clarity by surfacing inline guidance above the action bar whenever exercises still need to be manually marked complete, including the remaining count plus the next exercise names so users understand why `Finish` is disabled and how to unlock it; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Prevented duplicate template exercises by teaching `TemplateManager` to reject repeated exercise names within the same template and by hiding already-added exercises inside the template picker, so users no longer accidentally save or re-add the same movement twice; added regression coverage in `TemplateManagerTests`.

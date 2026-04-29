@@ -208,4 +208,22 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             "Combined search and filter summaries should explain why the visible exercise set is narrowed"
         )
     }
+
+    func testDeletionConfirmationMessage_fallsBackToGenericCopyWithoutImpactDetails() {
+        XCTAssertEqual(
+            ExerciseLibraryViewModel.deletionConfirmationMessage(
+                for: .init(loggedSetCount: 0, workoutCount: 0, templateCount: 0)
+            ),
+            "Are you sure you want to delete this exercise? This action cannot be undone."
+        )
+    }
+
+    func testDeletionConfirmationMessage_describesLoggedHistoryAndTemplateImpact() {
+        XCTAssertEqual(
+            ExerciseLibraryViewModel.deletionConfirmationMessage(
+                for: .init(loggedSetCount: 5, workoutCount: 2, templateCount: 1)
+            ),
+            "This will remove 5 logged sets from 2 workouts. 1 template still references this exercise and will skip it when started until you replace or remove it."
+        )
+    }
 }

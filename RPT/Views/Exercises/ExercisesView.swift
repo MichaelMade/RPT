@@ -15,6 +15,7 @@ struct ExercisesView: View {
     @State private var selectedMuscleGroup: MuscleGroup?
     @State private var showingAddExercise = false
     @State private var exerciseToDelete: Exercise?
+    @State private var exerciseDeletionImpact = ExerciseManager.DeletionImpact(loggedSetCount: 0, workoutCount: 0, templateCount: 0)
     @State private var showingDeleteConfirmation = false
     
     var body: some View {
@@ -134,6 +135,7 @@ struct ExercisesView: View {
                                 if exercise.isCustom {
                                     Button(role: .destructive) {
                                         exerciseToDelete = exercise
+                                        exerciseDeletionImpact = viewModel.deletionImpact(for: exercise)
                                         showingDeleteConfirmation = true
                                     } label: {
                                         Label("Delete", systemImage: "trash")
@@ -174,7 +176,7 @@ struct ExercisesView: View {
                     viewModel.deleteExercise(exercise)
                 }
             } message: { exercise in
-                Text("Are you sure you want to delete this exercise? This action cannot be undone.")
+                Text(ExerciseLibraryViewModel.deletionConfirmationMessage(for: exerciseDeletionImpact))
             }
             .onAppear {
                 viewModel.refreshExercises()

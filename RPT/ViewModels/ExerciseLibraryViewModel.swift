@@ -201,4 +201,30 @@ class ExerciseLibraryViewModel: ObservableObject {
         exerciseManager.deleteExercise(exercise)
         refreshExercises()
     }
+
+    func deletionImpact(for exercise: Exercise) -> ExerciseManager.DeletionImpact {
+        exerciseManager.deletionImpact(for: exercise)
+    }
+
+    static func deletionConfirmationMessage(for impact: ExerciseManager.DeletionImpact) -> String {
+        guard impact.hasImpactDetails else {
+            return "Are you sure you want to delete this exercise? This action cannot be undone."
+        }
+
+        var details: [String] = []
+
+        if impact.loggedSetCount > 0 {
+            let setLabel = impact.loggedSetCount == 1 ? "logged set" : "logged sets"
+            let workoutLabel = impact.workoutCount == 1 ? "workout" : "workouts"
+            details.append("This will remove \(impact.loggedSetCount) \(setLabel) from \(impact.workoutCount) \(workoutLabel)")
+        }
+
+        if impact.templateCount > 0 {
+            let templateLabel = impact.templateCount == 1 ? "template" : "templates"
+            let referenceVerb = impact.templateCount == 1 ? "references" : "reference"
+            details.append("\(impact.templateCount) \(templateLabel) still \(referenceVerb) this exercise and will skip it when started until you replace or remove it")
+        }
+
+        return details.joined(separator: ". ") + "."
+    }
 }

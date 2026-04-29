@@ -11,6 +11,16 @@ import SwiftData
 
 @MainActor
 class ExerciseManager {
+    struct DeletionImpact: Equatable {
+        let loggedSetCount: Int
+        let workoutCount: Int
+        let templateCount: Int
+
+        var hasImpactDetails: Bool {
+            loggedSetCount > 0 || workoutCount > 0 || templateCount > 0
+        }
+    }
+
     enum DraftValidationResult: Equatable {
         case valid
         case missingName
@@ -181,6 +191,18 @@ class ExerciseManager {
             try? modelContext.save()
         }
     }
+
+    func deletionImpact(for exercise: Exercise) -> DeletionImpact {
+        let loggedSets = exercise.sets.filter { $0.workout != nil }
+        let workoutCount = Set(loggedSets.compactMap { $0.workout?.persistentModelID }).count
+        let templateCount = fetchAllTemplatesReferencingExercise(named: exercise.name).count
+
+        return DeletionImpact(
+            loggedSetCount: loggedSets.count,
+            workoutCount: workoutCount,
+            templateCount: templateCount
+        )
+    }
     
     // MARK: - Analytics
     
@@ -207,6 +229,14 @@ class ExerciseManager {
             .sorted { exerciseUsage[$0.id, default: 0] > exerciseUsage[$1.id, default: 0] }
             .prefix(limit)
             .map { $0 }
+    }
+
+    private func fetchAllTemplatesReferencingExercise(named exerciseName: String) -> [WorkoutTemplate] {
+        TemplateManager.shared.fetchAllTemplates().filter { template in
+            template.exercises.contains { templateExercise in
+                Self.namesCollide(templateExercise.exerciseName, exerciseName)
+            }
+        }
     }
     
 }
