@@ -18,12 +18,33 @@ struct AddExerciseView: View {
     @State private var showDuplicateNameAlert = false
     
     private let exerciseManager = ExerciseManager.shared
+
+    private var draftValidation: ExerciseManager.DraftValidationResult {
+        exerciseManager.validateDraft(
+            name: exerciseName,
+            primaryMuscleGroups: selectedPrimaryMuscles
+        )
+    }
+
+    private var saveHelperText: String? {
+        draftValidation.helperText
+    }
+
+    private var canSave: Bool {
+        draftValidation == .valid
+    }
     
     var body: some View {
         NavigationStack {
             Form {
                 Section(header: Text("Exercise Details")) {
                     TextField("Exercise Name", text: $exerciseName)
+
+                    if let saveHelperText, draftValidation == .missingName || draftValidation == .duplicateName {
+                        Text(saveHelperText)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    }
                     
                     Picker("Category", selection: $selectedCategory) {
                         ForEach(ExerciseCategory.allCases, id: \.self) { category in
@@ -38,6 +59,12 @@ struct AddExerciseView: View {
                         selectedMuscles: $selectedPrimaryMuscles,
                         excludedMuscles: selectedSecondaryMuscles
                     )
+
+                    if let saveHelperText, draftValidation == .noPrimaryMuscles {
+                        Text(saveHelperText)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
                 Section(header: Text("Secondary Muscles")) {
@@ -70,7 +97,7 @@ struct AddExerciseView: View {
                     Button("Save") {
                         saveExercise()
                     }
-                    .disabled(exerciseName.isEmpty || selectedPrimaryMuscles.isEmpty)
+                    .disabled(!canSave)
                 }
             }
         }

@@ -11,6 +11,26 @@ import SwiftData
 
 @MainActor
 class ExerciseManager {
+    enum DraftValidationResult: Equatable {
+        case valid
+        case missingName
+        case noPrimaryMuscles
+        case duplicateName
+
+        var helperText: String? {
+            switch self {
+            case .valid:
+                return nil
+            case .missingName:
+                return "Enter an exercise name to save it to your library."
+            case .noPrimaryMuscles:
+                return "Select at least one primary muscle group before saving this exercise."
+            case .duplicateName:
+                return "An exercise with this name already exists. Choose a unique name to save."
+            }
+        }
+    }
+
     private let modelContext: ModelContext
     static let shared = ExerciseManager()
     private static let stableComparisonLocale = Locale(identifier: "en_US_POSIX")
@@ -38,7 +58,7 @@ class ExerciseManager {
     static func namesCollide(_ lhs: String, _ rhs: String) -> Bool {
         normalizedNameLookupKey(lhs) == normalizedNameLookupKey(rhs)
     }
-    
+
     private init() {
         let dataManager = DataManager.shared
         self.modelContext = dataManager.getModelContext()
@@ -88,20 +108,39 @@ class ExerciseManager {
             exercise.secondaryMuscleGroups.contains(muscleGroup)
         }
     }
-    
-    // MARK: - Mutation Operations
-    
-    @discardableResult
-    func addExercise(name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) -> Bool {
+
+    func validateDraft(
+        name: String,
+        primaryMuscleGroups: [MuscleGroup],
+        excludingExerciseId excludedExerciseId: PersistentIdentifier? = nil
+    ) -> DraftValidationResult {
         let sanitizedName = Self.sanitizeExerciseName(name)
+        let hasMeaningfulName = !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+        guard hasMeaningfulName else {
+            return .missingName
+        }
+
+        guard !primaryMuscleGroups.isEmpty else {
+            return .noPrimaryMuscles
+        }
 
         let duplicateExists = fetchAllExercises().contains {
-            Self.namesCollide($0.name, sanitizedName)
+            $0.id != excludedExerciseId && Self.namesCollide($0.name, sanitizedName)
         }
 
-        guard !duplicateExists else {
+        return duplicateExists ? .duplicateName : .valid
+    }
+
+    // MARK: - Mutation Operations
+
+    @discardableResult
+    func addExercise(name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) -> Bool {
+        guard validateDraft(name: name, primaryMuscleGroups: primaryMuscleGroups) == .valid else {
             return false
         }
+
+        let sanitizedName = Self.sanitizeExerciseName(name)
 
         let exercise = Exercise(
             name: sanitizedName,
@@ -119,15 +158,11 @@ class ExerciseManager {
     
     @discardableResult
     func updateExercise(_ exercise: Exercise, name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) -> Bool {
-        let sanitizedName = Self.sanitizeExerciseName(name)
-
-        let duplicateExists = fetchAllExercises().contains {
-            $0.id != exercise.id && Self.namesCollide($0.name, sanitizedName)
-        }
-
-        guard !duplicateExists else {
+        guard validateDraft(name: name, primaryMuscleGroups: primaryMuscleGroups, excludingExerciseId: exercise.id) == .valid else {
             return false
         }
+
+        let sanitizedName = Self.sanitizeExerciseName(name)
 
         exercise.name = sanitizedName
         exercise.category = category
