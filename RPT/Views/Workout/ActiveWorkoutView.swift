@@ -68,47 +68,65 @@ struct ActiveWorkoutView: View {
                     
                     // Bottom action bar - only show when we have exercises
                     if !viewModel.exerciseGroups.isEmpty {
-                        HStack {
-                            Button(action: {
-                                showingExerciseSelector = true
-                            }) {
-                                Label("Add Exercise", systemImage: "plus")
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 8)
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
+                        VStack(spacing: 8) {
+                            if let finishHelperText = viewModel.finishHelperText {
+                                HStack(alignment: .top, spacing: 8) {
+                                    Image(systemName: "checkmark.circle.badge.questionmark")
+                                        .foregroundColor(.secondary)
+                                        .padding(.top, 1)
+
+                                    Text(finishHelperText)
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+
+                                    Spacer(minLength: 0)
+                                }
+                                .padding(.horizontal)
                             }
-                            
-                            Spacer()
-                            
-                            // Manual rest timer button
-                            Button(action: {
-                                viewModel.startRestTimer()
-                            }) {
-                                Label("Timer", systemImage: "timer")
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 8)
-                                    .background(Color.orange)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
+
+                            HStack {
+                                Button(action: {
+                                    showingExerciseSelector = true
+                                }) {
+                                    Label("Add Exercise", systemImage: "plus")
+                                        .padding(.horizontal)
+                                        .padding(.vertical, 8)
+                                        .background(Color.blue)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(8)
+                                }
+
+                                Spacer()
+
+                                // Manual rest timer button
+                                Button(action: {
+                                    viewModel.startRestTimer()
+                                }) {
+                                    Label("Timer", systemImage: "timer")
+                                        .padding(.horizontal)
+                                        .padding(.vertical, 8)
+                                        .background(Color.orange)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(8)
+                                }
+
+                                Spacer()
+
+                                Button(action: {
+                                    showingCompleteConfirmation = true
+                                }) {
+                                    Text("Finish")
+                                        .padding(.horizontal)
+                                        .padding(.vertical, 8)
+                                        .background(viewModel.allExercisesCompleted ? Color.green : Color.gray)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(8)
+                                }
+                                .disabled(!viewModel.allExercisesCompleted)
                             }
-                            
-                            Spacer()
-                            
-                            Button(action: {
-                                showingCompleteConfirmation = true
-                            }) {
-                                Text("Finish")
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 8)
-                                    .background(viewModel.allExercisesCompleted ? Color.green : Color.gray)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                            }
-                            .disabled(!viewModel.allExercisesCompleted)
+                            .padding(.horizontal)
                         }
-                        .padding()
+                        .padding(.vertical)
                         .background(Color(UIColor.systemBackground))
                         .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: -2)
                     }

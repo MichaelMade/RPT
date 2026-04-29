@@ -310,6 +310,53 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertFalse(ExerciseSetRowView.shouldUpdateDropSets(weight: 225, reps: 5, isWarmup: true))
     }
 
+    func testFinishHelperText_whenAllExercisesCompleted_returnsNil() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Row", category: .compound, primaryMuscleGroups: [.lats])
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 6)
+        _ = workout.addSet(exercise: row, weight: 155, reps: 8)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+        viewModel.toggleExerciseCompletion(bench)
+        viewModel.toggleExerciseCompletion(row)
+
+        XCTAssertNil(viewModel.finishHelperText)
+    }
+
+    func testFinishHelperText_whenOneExerciseRemains_mentionsExerciseName() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Row", category: .compound, primaryMuscleGroups: [.lats])
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 6)
+        _ = workout.addSet(exercise: row, weight: 155, reps: 8)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+        viewModel.toggleExerciseCompletion(bench)
+
+        XCTAssertEqual(
+            viewModel.finishHelperText,
+            "1 exercise left: Row. Tap the circle beside it when you're done to enable Finish."
+        )
+    }
+
+    func testFinishHelperText_whenSeveralExercisesRemain_summarizesCountAndPreviewNames() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Row", category: .compound, primaryMuscleGroups: [.lats])
+        _ = workout.addSet(exercise: squat, weight: 225, reps: 5)
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 6)
+        _ = workout.addSet(exercise: row, weight: 155, reps: 8)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(
+            viewModel.finishHelperText,
+            "3 exercises left: Squat, Bench Press, +1 more. Tap each circle when you're done to enable Finish."
+        )
+    }
+
     func testDeleteSet_removesSetFromExerciseRelationship() throws {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")

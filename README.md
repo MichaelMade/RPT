@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Active Workout finish-state clarity by surfacing inline guidance above the action bar whenever exercises still need to be manually marked complete, including the remaining count plus the next exercise names so users understand why `Finish` is disabled and how to unlock it; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Prevented duplicate template exercises by teaching `TemplateManager` to reject repeated exercise names within the same template and by hiding already-added exercises inside the template picker, so users no longer accidentally save or re-add the same movement twice; added regression coverage in `TemplateManagerTests`.
 - Improved New/Edit Exercise save clarity by centralizing draft validation in `ExerciseManager` and surfacing inline helper text for missing exercise names, missing primary-muscle selections, and duplicate names, so custom exercise creation/editing no longer leaves disabled Save states unexplained; added regression coverage in new `ExerciseManagerTests`.
 - Improved Workout Templates browse/search UX by adding normalized template search across template names, exercise names, and notes, plus filtered-result summaries and query-aware empty states with one-tap `Clear Search` / `Create Template` recovery; added regression coverage in new `TemplateViewModelTests`.

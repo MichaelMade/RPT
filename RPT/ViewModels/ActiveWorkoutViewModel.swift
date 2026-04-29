@@ -60,6 +60,30 @@ class ActiveWorkoutViewModel: ObservableObject {
         guard !exerciseOrder.isEmpty else { return false }
         return exerciseOrder.allSatisfy { isExerciseCompleted($0) }
     }
+
+    var remainingExercises: [Exercise] {
+        exerciseOrder.filter { !isExerciseCompleted($0) }
+    }
+
+    var finishHelperText: String? {
+        guard !exerciseOrder.isEmpty, !allExercisesCompleted else {
+            return nil
+        }
+
+        let remainingNames = remainingExercises.map(\.displayName)
+        let remainingCount = remainingNames.count
+
+        switch remainingCount {
+        case 1:
+            return "1 exercise left: \(remainingNames[0]). Tap the circle beside it when you're done to enable Finish."
+        case 2:
+            return "2 exercises left: \(remainingNames[0]) and \(remainingNames[1]). Tap each circle when you're done to enable Finish."
+        default:
+            let previewNames = remainingNames.prefix(2).joined(separator: ", ")
+            let extraCount = remainingCount - 2
+            return "\(remainingCount) exercises left: \(previewNames), +\(extraCount) more. Tap each circle when you're done to enable Finish."
+        }
+    }
     
     init(workout: Workout, workoutManager: WorkoutManager? = nil, exerciseManager: ExerciseManager? = nil, settingsManager: SettingsManager? = nil) {
         self.workout = workout
