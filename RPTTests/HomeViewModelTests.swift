@@ -198,6 +198,36 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(progress, 3.0 / 7.0, accuracy: 0.0001, "Progress should scale linearly within the weekly target")
     }
 
+    func testWeeklyProgressSummary_usesStableCopy() {
+        let summary = viewModel.weeklyProgressSummary(forWorkoutCount: 1)
+
+        XCTAssertEqual(summary, "1 of 7 workouts", "Summary should stay readable at singular counts")
+    }
+
+    func testWeeklyProgressSummary_clampsNegativeCounts() {
+        let summary = viewModel.weeklyProgressSummary(forWorkoutCount: -3)
+
+        XCTAssertEqual(summary, "0 of 7 workouts", "Summary should clamp negative counts to zero")
+    }
+
+    func testWeeklyProgressSubtitle_emptyWeekGuidance() {
+        let subtitle = viewModel.weeklyProgressSubtitle(forWorkoutCount: 0)
+
+        XCTAssertEqual(subtitle, "Log a workout to start your weekly streak.", "Subtitle should guide users when they have no recent workouts")
+    }
+
+    func testWeeklyProgressSubtitle_partialWeekCountsRemainingWorkouts() {
+        let subtitle = viewModel.weeklyProgressSubtitle(forWorkoutCount: 5)
+
+        XCTAssertEqual(subtitle, "2 more workouts to fill the last-7-days goal.", "Subtitle should explain how many workouts remain in the weekly goal")
+    }
+
+    func testWeeklyProgressSubtitle_goalMetUsesCompletionCopy() {
+        let subtitle = viewModel.weeklyProgressSubtitle(forWorkoutCount: 7)
+
+        XCTAssertEqual(subtitle, "You’ve hit your 7-workout pace for the last 7 days.", "Subtitle should celebrate when the weekly goal is met")
+    }
+
     // MARK: - Recent Workout Filtering
 
     func testCompletedRecentWorkouts_excludesIncompleteAndRespectsLimit() {

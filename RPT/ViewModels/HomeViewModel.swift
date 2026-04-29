@@ -68,14 +68,39 @@ class HomeViewModel: ObservableObject {
         resumableWorkout(activeWorkout: activeWorkout) != nil
     }
     
-    func calculateWeeklyProgress() -> Double {
+    func weeklyWorkoutCount() -> Int {
         let stats = workoutManager.calculateWorkoutStats(timeframe: .week)
-        return weeklyProgress(forWorkoutCount: stats.count)
+        return max(0, stats.count)
+    }
+
+    func calculateWeeklyProgress() -> Double {
+        weeklyProgress(forWorkoutCount: weeklyWorkoutCount())
     }
 
     func weeklyProgress(forWorkoutCount count: Int) -> Double {
         guard count > 0 else { return 0 }
         return min(1.0, Double(count) / 7.0)
+    }
+
+    func weeklyProgressSummary(forWorkoutCount count: Int) -> String {
+        let safeCount = max(0, count)
+        return "\(safeCount) of 7 workouts"
+    }
+
+    func weeklyProgressSubtitle(forWorkoutCount count: Int) -> String {
+        let safeCount = max(0, count)
+
+        if safeCount == 0 {
+            return "Log a workout to start your weekly streak."
+        }
+
+        if safeCount >= 7 {
+            return "You’ve hit your 7-workout pace for the last 7 days."
+        }
+
+        let remainingCount = 7 - safeCount
+        let remainingLabel = remainingCount == 1 ? "workout" : "workouts"
+        return "\(remainingCount) more \(remainingLabel) to fill the last-7-days goal."
     }
 
     func completedRecentWorkouts(from workouts: [Workout], limit: Int) -> [Workout] {

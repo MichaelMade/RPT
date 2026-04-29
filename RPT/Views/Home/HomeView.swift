@@ -123,30 +123,60 @@ struct HomeView: View {
                                 .padding(.horizontal)
 
                             if stats.totalWorkouts > 0 {
-                                HStack(spacing: 12) {
-                                    HomeStatTile(
-                                        icon: "figure.strengthtraining.traditional",
-                                        title: "Workouts",
-                                        value: "\(stats.totalWorkouts)",
-                                        subtitle: "logged",
-                                        tint: .blue
-                                    )
+                                let weeklyWorkoutCount = viewModel.weeklyWorkoutCount()
+                                let weeklyProgress = viewModel.weeklyProgress(forWorkoutCount: weeklyWorkoutCount)
 
-                                    HomeStatTile(
-                                        icon: "scalemass",
-                                        title: "Volume",
-                                        value: viewModel.formatTotalVolume(),
-                                        subtitle: "lb lifted",
-                                        tint: .purple
-                                    )
+                                VStack(alignment: .leading, spacing: 12) {
+                                    HStack(spacing: 12) {
+                                        HomeStatTile(
+                                            icon: "figure.strengthtraining.traditional",
+                                            title: "Workouts",
+                                            value: "\(stats.totalWorkouts)",
+                                            subtitle: "logged",
+                                            tint: .blue
+                                        )
 
-                                    HomeStatTile(
-                                        icon: "flame.fill",
-                                        title: "Streak",
-                                        value: "\(stats.workoutStreak)",
-                                        subtitle: stats.workoutStreak == 1 ? "day" : "days",
-                                        tint: .orange
-                                    )
+                                        HomeStatTile(
+                                            icon: "scalemass",
+                                            title: "Volume",
+                                            value: viewModel.formatTotalVolume(),
+                                            subtitle: "lb lifted",
+                                            tint: .purple
+                                        )
+
+                                        HomeStatTile(
+                                            icon: "flame.fill",
+                                            title: "Streak",
+                                            value: "\(stats.workoutStreak)",
+                                            subtitle: stats.workoutStreak == 1 ? "day" : "days",
+                                            tint: .orange
+                                        )
+                                    }
+
+                                    VStack(alignment: .leading, spacing: 10) {
+                                        HStack(alignment: .firstTextBaseline) {
+                                            Text("Last 7 Days")
+                                                .font(.headline)
+
+                                            Spacer()
+
+                                            Text(viewModel.weeklyProgressSummary(forWorkoutCount: weeklyWorkoutCount))
+                                                .font(.subheadline)
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.secondary)
+                                        }
+
+                                        ProgressView(value: weeklyProgress)
+                                            .tint(.green)
+
+                                        Text(viewModel.weeklyProgressSubtitle(forWorkoutCount: weeklyWorkoutCount))
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color(UIColor.secondarySystemBackground))
+                                    .cornerRadius(12)
                                 }
                                 .padding(.horizontal)
                             } else {
