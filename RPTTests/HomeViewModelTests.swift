@@ -346,7 +346,7 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertFalse(canContinue, "Should not continue when both active and stored workouts are already completed")
     }
 
-    func testResumableWorkoutSummary_includesTemplateAndCounts() {
+    func testResumableWorkoutSummary_includesTemplateCountsAndStartedProgress() {
         let startDate = Date(timeIntervalSince1970: 0)
         let now = startDate.addingTimeInterval(2 * 3600)
         let workout = Workout(date: startDate, name: "Push Day", startedFromTemplate: "  Upper  A  ")
@@ -355,7 +355,7 @@ final class HomeViewModelTests: XCTestCase {
 
         let summary = viewModel.resumableWorkoutSummary(for: workout, now: now)
 
-        XCTAssertEqual(summary, "Started 2h ago • From Upper A • 1 exercise • 1 set", "Summary should show elapsed time, template origin, and current draft counts")
+        XCTAssertEqual(summary, "Started 2h ago • From Upper A • 1 exercise • 1 set • Exercise started", "Summary should show elapsed time, template origin, current draft counts, and whether logged work has started")
     }
 
     func testResumableWorkoutSummary_emptyDraftExplainsNoExercisesYet() {
@@ -366,6 +366,35 @@ final class HomeViewModelTests: XCTestCase {
         let summary = viewModel.resumableWorkoutSummary(for: workout, now: now)
 
         XCTAssertEqual(summary, "Started just now • No exercises added yet", "Summary should explain empty drafts instead of showing zero-count noise")
+    }
+
+    func testResumableWorkoutSummary_templateDraftWithoutLoggedSetsShowsNotStartedYet() {
+        let startDate = Date(timeIntervalSince1970: 0)
+        let now = startDate.addingTimeInterval(15 * 60)
+        let workout = Workout(date: startDate, name: "Upper A")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back])
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 8)
+        _ = workout.addSet(exercise: row, weight: 135, reps: 10)
+        workout.sets.forEach { $0.completedAt = .distantPast }
+
+        let summary = viewModel.resumableWorkoutSummary(for: workout, now: now)
+
+        XCTAssertEqual(summary, "Started 15m ago • 2 exercises • 2 sets • No exercises started yet", "Summary should distinguish planned template drafts from workouts with logged work")
+    }
+
+    func testResumableWorkoutProgressText_partialWorkoutShowsStartedExerciseCount() {
+        let workout = Workout(name: "Push Day")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back])
+
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 8)
+        _ = workout.addSet(exercise: row, weight: 135, reps: 10)
+        workout.sets[1].completedAt = .distantPast
+
+        let progress = viewModel.resumableWorkoutProgressText(for: workout)
+
+        XCTAssertEqual(progress, "1 of 2 exercises started", "Progress text should show how much of a multi-exercise draft already has logged work")
     }
 
     func testWorkoutStartedSummary_clampsFutureDatesToJustNow() {

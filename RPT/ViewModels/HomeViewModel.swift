@@ -85,9 +85,42 @@ class HomeViewModel: ObservableObject {
         } else {
             parts.append(WorkoutRow.exerciseCountText(for: workout))
             parts.append(WorkoutRow.setCountText(for: workout))
+            parts.append(resumableWorkoutProgressText(for: workout))
         }
 
         return parts.joined(separator: " • ")
+    }
+
+    func resumableWorkoutProgressText(for workout: Workout) -> String {
+        let totalExercises = max(0, workout.exerciseCount)
+        let startedExercises = startedExerciseCount(for: workout)
+
+        guard totalExercises > 0 else {
+            return "No exercises added yet"
+        }
+
+        if startedExercises <= 0 {
+            return totalExercises == 1
+                ? "Exercise not started yet"
+                : "No exercises started yet"
+        }
+
+        if startedExercises >= totalExercises {
+            return totalExercises == 1
+                ? "Exercise started"
+                : "All \(totalExercises) exercises started"
+        }
+
+        let exerciseLabel = totalExercises == 1 ? "exercise" : "exercises"
+        return "\(startedExercises) of \(totalExercises) \(exerciseLabel) started"
+    }
+
+    func startedExerciseCount(for workout: Workout) -> Int {
+        Set(
+            workout.sets
+                .filter(\.isCompletedWorkingSet)
+                .compactMap { $0.exercise }
+        ).count
     }
 
     func workoutStartedSummary(for startDate: Date, now: Date = Date()) -> String {
