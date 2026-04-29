@@ -210,6 +210,12 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(summary, "0 of 7 workouts", "Summary should clamp negative counts to zero")
     }
 
+    func testWeeklyProgressSummary_capsVisibleCountAtWeeklyGoal() {
+        let summary = viewModel.weeklyProgressSummary(forWorkoutCount: 10)
+
+        XCTAssertEqual(summary, "7 of 7 workouts", "Summary should cap the visible count at the 7-workout goal to match the full progress state")
+    }
+
     func testWeeklyProgressSubtitle_emptyWeekGuidance() {
         let subtitle = viewModel.weeklyProgressSubtitle(forWorkoutCount: 0)
 

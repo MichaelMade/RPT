@@ -155,7 +155,8 @@ class HomeViewModel: ObservableObject {
 
     func weeklyProgressSummary(forWorkoutCount count: Int) -> String {
         let safeCount = max(0, count)
-        return "\(safeCount) of 7 workouts"
+        let displayedCount = min(7, safeCount)
+        return "\(displayedCount) of 7 workouts"
     }
 
     func weeklyProgressSubtitle(forWorkoutCount count: Int) -> String {
