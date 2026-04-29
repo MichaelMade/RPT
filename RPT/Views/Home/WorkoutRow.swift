@@ -24,6 +24,48 @@ struct WorkoutRow: View {
         return String(collapsedName.prefix(80))
     }
 
+    static func relativeDateText(
+        for date: Date,
+        now: Date = Date(),
+        calendar: Calendar = .current,
+        locale: Locale = .autoupdatingCurrent,
+        timeZone: TimeZone = .autoupdatingCurrent
+    ) -> String {
+        var displayCalendar = calendar
+        displayCalendar.timeZone = timeZone
+
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.timeZone = timeZone
+
+        if displayCalendar.isDateInToday(date) {
+            formatter.dateFormat = "h:mm a"
+            return "Today • \(formatter.string(from: date))"
+        }
+
+        if displayCalendar.isDateInYesterday(date) {
+            formatter.dateFormat = "h:mm a"
+            return "Yesterday • \(formatter.string(from: date))"
+        }
+
+        let startOfToday = displayCalendar.startOfDay(for: now)
+        let startOfDate = displayCalendar.startOfDay(for: date)
+        let dayDelta = displayCalendar.dateComponents([.day], from: startOfDate, to: startOfToday).day ?? 0
+
+        if (2...6).contains(dayDelta) {
+            formatter.dateFormat = "EEEE • h:mm a"
+            return formatter.string(from: date)
+        }
+
+        if displayCalendar.component(.year, from: date) == displayCalendar.component(.year, from: now) {
+            formatter.dateFormat = "MMM d • h:mm a"
+            return formatter.string(from: date)
+        }
+
+        formatter.dateFormat = "MMM d, yyyy • h:mm a"
+        return formatter.string(from: date)
+    }
+
     static func displayExerciseCount(for workout: Workout) -> Int {
         let completedExercises = Set(
             workout.sets
@@ -84,7 +126,7 @@ struct WorkoutRow: View {
             Text(Self.displayName(for: workout))
                 .font(.headline)
             
-            Text(workout.date, style: .date)
+            Text(Self.relativeDateText(for: workout.date))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             

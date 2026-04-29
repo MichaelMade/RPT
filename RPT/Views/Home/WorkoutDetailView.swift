@@ -96,7 +96,7 @@ struct WorkoutDetailView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     // Date
                     HStack {
-                        Text(workout.date, style: .date)
+                        Text(WorkoutRow.relativeDateText(for: workout.date))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }

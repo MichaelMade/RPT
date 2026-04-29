@@ -149,6 +149,67 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(WorkoutRow.displayName(for: workout).count, 80)
     }
 
+    func testWorkoutRowRelativeDateText_formatsTodayWithTime() {
+        var calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+        let locale = Locale(identifier: "en_US_POSIX")
+        let now = Date(timeIntervalSince1970: 1_714_392_000) // Apr 29, 2024 12:00 UTC
+        let date = Date(timeIntervalSince1970: 1_714_383_900) // Apr 29, 2024 09:45 UTC
+
+        XCTAssertEqual(
+            WorkoutRow.relativeDateText(for: date, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
+            "Today • 9:45 AM"
+        )
+    }
+
+    func testWorkoutRowRelativeDateText_formatsYesterdayWithTime() {
+        var calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+        let locale = Locale(identifier: "en_US_POSIX")
+        let now = Date(timeIntervalSince1970: 1_714_392_000) // Apr 29, 2024 12:00 UTC
+        let date = Date(timeIntervalSince1970: 1_714_294_800) // Apr 28, 2024 08:00 UTC
+
+        XCTAssertEqual(
+            WorkoutRow.relativeDateText(for: date, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
+            "Yesterday • 8:00 AM"
+        )
+    }
+
+    func testWorkoutRowRelativeDateText_formatsRecentWeekdayWithTime() {
+        var calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+        let locale = Locale(identifier: "en_US_POSIX")
+        let now = Date(timeIntervalSince1970: 1_714_392_000) // Apr 29, 2024 12:00 UTC
+        let date = Date(timeIntervalSince1970: 1_714_118_200) // Apr 26, 2024 03:50 UTC
+
+        XCTAssertEqual(
+            WorkoutRow.relativeDateText(for: date, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
+            "Friday • 3:50 AM"
+        )
+    }
+
+    func testWorkoutRowRelativeDateText_formatsOlderDatesWithMonthDayAndYearFallback() {
+        var calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+        let locale = Locale(identifier: "en_US_POSIX")
+        let now = Date(timeIntervalSince1970: 1_714_392_000) // Apr 29, 2024 12:00 UTC
+        let sameYearDate = Date(timeIntervalSince1970: 1_709_651_400) // Mar 5, 2024 03:30 UTC
+        let priorYearDate = Date(timeIntervalSince1970: 1_672_491_900) // Dec 31, 2022 11:45 PM UTC
+
+        XCTAssertEqual(
+            WorkoutRow.relativeDateText(for: sameYearDate, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
+            "Mar 5 • 3:30 AM"
+        )
+        XCTAssertEqual(
+            WorkoutRow.relativeDateText(for: priorYearDate, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
+            "Dec 31, 2022 • 11:45 PM"
+        )
+    }
+
     func testWorkoutRowSetCountText_prefersCompletedWorkingSetsAndUsesSingularPluralGrammar() {
         let workout = Workout(name: "Workout Row Set Count")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
