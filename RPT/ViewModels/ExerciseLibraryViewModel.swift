@@ -130,12 +130,12 @@ class ExerciseLibraryViewModel: ObservableObject {
         }
     }
 
-    static func searchMatchPriority(exerciseName: String, normalizedQuery: String) -> Int? {
+    static func searchMatchPriority(exercise: Exercise, normalizedQuery: String) -> Int? {
         guard !normalizedQuery.isEmpty else {
             return 0
         }
 
-        let normalizedName = normalizedSearchLookupKey(exerciseName)
+        let normalizedName = normalizedSearchLookupKey(exercise.name)
         let queryTokens = normalizedSearchTokens(normalizedQuery)
         let words = normalizedName.split(separator: " ")
 
@@ -158,6 +158,37 @@ class ExerciseLibraryViewModel: ObservableObject {
             return 3
         }
 
+        let aliasValues = [
+            exercise.category.rawValue,
+            exercise.category.rawValue.capitalized
+        ]
+        + exercise.primaryMuscleGroups.map(\.displayName)
+        + exercise.secondaryMuscleGroups.map(\.displayName)
+
+        let aliasLookups = aliasValues.map(normalizedSearchLookupKey)
+
+        if aliasLookups.contains(normalizedQuery) {
+            return 4
+        }
+
+        if aliasLookups.contains(where: { $0.hasPrefix(normalizedQuery) }) {
+            return 5
+        }
+
+        if !queryTokens.isEmpty,
+           aliasLookups.contains(where: { alias in
+               let aliasWords = alias.split(separator: " ")
+               return queryTokens.allSatisfy { token in
+                   aliasWords.contains(where: { $0.hasPrefix(token) })
+               }
+           }) {
+            return 6
+        }
+
+        if aliasLookups.contains(where: { $0.contains(normalizedQuery) }) {
+            return 7
+        }
+
         return nil
     }
 
@@ -170,7 +201,7 @@ class ExerciseLibraryViewModel: ObservableObject {
             .enumerated()
             .compactMap { index, exercise in
                 let searchPriority = Self.searchMatchPriority(
-                    exerciseName: exercise.name,
+                    exercise: exercise,
                     normalizedQuery: normalizedSearchLookup
                 )
 
