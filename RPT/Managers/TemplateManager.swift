@@ -16,6 +16,7 @@ class TemplateManager {
         case missingName
         case noExercises
         case duplicateName
+        case duplicateExercise
 
         var helperText: String? {
             switch self {
@@ -27,6 +28,8 @@ class TemplateManager {
                 return "Add at least one exercise before saving this template."
             case .duplicateName:
                 return "A template with this name already exists. Choose a unique name to save."
+            case .duplicateExercise:
+                return "Each exercise can only appear once in a template. Remove or replace the duplicate entry to save."
             }
         }
     }
@@ -56,6 +59,19 @@ class TemplateManager {
         }
 
         return fallbackDate
+    }
+
+    static func hasDuplicateExerciseNames(_ exercises: [TemplateExercise]) -> Bool {
+        var seen = Set<String>()
+
+        for exercise in exercises {
+            let lookupKey = ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
+            if !seen.insert(lookupKey).inserted {
+                return true
+            }
+        }
+
+        return false
     }
 
     private init() {
@@ -96,6 +112,10 @@ class TemplateManager {
 
         guard !exercises.isEmpty else {
             return .noExercises
+        }
+
+        guard !Self.hasDuplicateExerciseNames(exercises) else {
+            return .duplicateExercise
         }
 
         let duplicateExists = fetchAllTemplates().contains {

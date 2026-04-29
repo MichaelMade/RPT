@@ -15,7 +15,12 @@ struct ExerciseSelectorForTemplateView: View {
     @State private var selectedCategory: ExerciseCategory?
     @State private var selectedMuscleGroup: MuscleGroup?
 
+    var excludedExerciseNames: [String] = []
     var onSelectExercise: (String) -> Void
+
+    private var excludedLookupKeys: Set<String> {
+        Set(excludedExerciseNames.map(ExerciseManager.normalizedNameLookupKey))
+    }
 
     var body: some View {
         NavigationStack {
@@ -85,7 +90,10 @@ struct ExerciseSelectorForTemplateView: View {
                 .background(Color(UIColor.secondarySystemBackground))
 
                 List {
-                    let filteredExercises = viewModel.fetchExercises()
+                    let fetchedExercises = viewModel.fetchExercises()
+                    let filteredExercises = fetchedExercises.filter { exercise in
+                        !excludedLookupKeys.contains(ExerciseManager.normalizedNameLookupKey(exercise.name))
+                    }
 
                     if let summary = viewModel.filteredResultsSummary(filteredCount: filteredExercises.count) {
                         Text(summary)
@@ -97,15 +105,11 @@ struct ExerciseSelectorForTemplateView: View {
                     if filteredExercises.isEmpty {
                         ContentUnavailableView {
                             Label(
-                                viewModel.hasActiveQuery ? "No Matching Exercises" : "No Exercises Available",
+                                emptyStateTitle(for: fetchedExercises),
                                 systemImage: viewModel.hasActiveQuery ? "magnifyingglass" : "dumbbell"
                             )
                         } description: {
-                            Text(
-                                viewModel.hasActiveQuery
-                                ? "Try changing your search or filters, or clear them to browse every exercise."
-                                : "Add an exercise in the library first, then come back here to use it in a template."
-                            )
+                            Text(emptyStateDescription(for: fetchedExercises))
                         } actions: {
                             if viewModel.hasActiveSearch {
                                 Button("Clear Search") {
@@ -174,5 +178,27 @@ struct ExerciseSelectorForTemplateView: View {
                 viewModel.refreshExercises()
             }
         }
+    }
+
+    private func emptyStateTitle(for fetchedExercises: [Exercise]) -> String {
+        if !fetchedExercises.isEmpty, !excludedExerciseNames.isEmpty, fetchedExercises.allSatisfy({ exercise in
+            excludedLookupKeys.contains(ExerciseManager.normalizedNameLookupKey(exercise.name))
+        }) {
+            return "All Exercises Already Added"
+        }
+
+        return viewModel.hasActiveQuery ? "No Matching Exercises" : "No Exercises Available"
+    }
+
+    private func emptyStateDescription(for fetchedExercises: [Exercise]) -> String {
+        if !fetchedExercises.isEmpty, !excludedExerciseNames.isEmpty, fetchedExercises.allSatisfy({ exercise in
+            excludedLookupKeys.contains(ExerciseManager.normalizedNameLookupKey(exercise.name))
+        }) {
+            return "This template already includes every exercise in your current filtered list. Remove one from the template or change your filters to add something else."
+        }
+
+        return viewModel.hasActiveQuery
+            ? "Try changing your search or filters, or clear them to browse every exercise."
+            : "Add an exercise in the library first, then come back here to use it in a template."
     }
 }

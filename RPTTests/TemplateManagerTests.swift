@@ -36,6 +36,18 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(result, .valid)
     }
 
+    func testValidateDraft_rejectsDuplicateExerciseNames() {
+        let result = TemplateManager.shared.validateDraft(
+            name: "Upper Body",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "  bench\npress  ")
+            ]
+        )
+
+        XCTAssertEqual(result, .duplicateExercise)
+    }
+
     func testValidateDraft_rejectsDuplicateNormalizedName() {
         let result = TemplateManager.shared.validateDraft(
             name: "  Ｕｐｐｅｒ   Ｂｏｄｙ   ＲＰＴ  ",
@@ -43,6 +55,15 @@ final class TemplateManagerTests: XCTestCase {
         )
 
         XCTAssertEqual(result, .duplicateName)
+    }
+
+    func testHasDuplicateExerciseNames_ignoresCaseWhitespaceAndWidthVariants() {
+        XCTAssertTrue(
+            TemplateManager.hasDuplicateExerciseNames([
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: " ＢＥＮＣＨ   ＰＲＥＳＳ ")
+            ])
+        )
     }
 
     func testInitialCompletedAt_returnsDistantPastForIncompleteTemplateSet() {
@@ -114,9 +135,9 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(exercise.exerciseName, "Exercise")
     }
 
-    private func sampleTemplateExercise() -> TemplateExercise {
+    private func sampleTemplateExercise(named name: String = "Bench Press") -> TemplateExercise {
         TemplateExercise(
-            exerciseName: "Bench Press",
+            exerciseName: name,
             suggestedSets: 3,
             repRanges: [
                 TemplateRepRange(setNumber: 1, minReps: 6, maxReps: 8, percentageOfFirstSet: 1.0)

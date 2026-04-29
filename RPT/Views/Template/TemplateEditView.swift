@@ -93,7 +93,7 @@ struct TemplateEditView: View {
                         showingExerciseSelector = true
                     }
 
-                    if let saveHelperText, draftValidation == .noExercises {
+                    if let saveHelperText, draftValidation == .noExercises || draftValidation == .duplicateExercise {
                         Text(saveHelperText)
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -128,7 +128,9 @@ struct TemplateEditView: View {
                 }
             }
             .sheet(isPresented: $showingExerciseSelector) {
-                ExerciseSelectorForTemplateView { exerciseName in
+                ExerciseSelectorForTemplateView(
+                    excludedExerciseNames: exercises.map(\.exerciseName)
+                ) { exerciseName in
                     addExerciseToTemplate(exerciseName)
                 }
             }
