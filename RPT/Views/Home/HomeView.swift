@@ -48,37 +48,63 @@ struct HomeView: View {
                     .padding(.horizontal)
                     
                     // Start/Continue workout button
-                    Button(action: {
+                    VStack(alignment: .leading, spacing: 10) {
                         let resumableWorkout = viewModel.resumableWorkout(activeWorkout: activeWorkoutBinding)
+                        let canContinueWorkout = resumableWorkout != nil
+
+                        Button(action: {
+                            if let resumableWorkout {
+                                activeWorkoutBinding = resumableWorkout
+                            } else {
+                                viewModel.startNewWorkout()
+                                workoutStateManager.clearDiscardedState()
+                                activeWorkoutBinding = viewModel.currentWorkout
+                            }
+
+                            showActiveWorkoutSheet = true
+                        }) {
+                            HStack {
+                                Image(systemName: canContinueWorkout ? "arrow.clockwise.circle.fill" : "plus.circle.fill")
+                                    .font(.title2)
+
+                                Text(canContinueWorkout ? "Continue Workout" : "Start New Workout")
+                                    .font(.headline)
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding()
+                            .background(canContinueWorkout ? Color.green : Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                        }
 
                         if let resumableWorkout {
-                            activeWorkoutBinding = resumableWorkout
-                        } else {
-                            viewModel.startNewWorkout()
-                            workoutStateManager.clearDiscardedState()
-                            activeWorkoutBinding = viewModel.currentWorkout
+                            HStack(alignment: .top, spacing: 10) {
+                                Image(systemName: "clock.arrow.circlepath")
+                                    .foregroundColor(.green)
+                                    .font(.subheadline)
+                                    .padding(.top, 1)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(WorkoutRow.displayName(for: resumableWorkout))
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+
+                                    Text(viewModel.resumableWorkoutSummary(for: resumableWorkout))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Spacer(minLength: 0)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(12)
                         }
-
-                        showActiveWorkoutSheet = true
-                    }) {
-                        let canContinueWorkout = viewModel.canContinueWorkout(activeWorkout: activeWorkoutBinding)
-
-                        HStack {
-                            Image(systemName: canContinueWorkout ? "arrow.clockwise.circle.fill" : "plus.circle.fill")
-                                .font(.title2)
-
-                            Text(canContinueWorkout ? "Continue Workout" : "Start New Workout")
-                                .font(.headline)
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                        }
-                        .padding()
-                        .background(canContinueWorkout ? Color.green : Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
                     }
                     .padding(.horizontal)
                     

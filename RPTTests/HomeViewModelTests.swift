@@ -346,6 +346,37 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertFalse(canContinue, "Should not continue when both active and stored workouts are already completed")
     }
 
+    func testResumableWorkoutSummary_includesTemplateAndCounts() {
+        let startDate = Date(timeIntervalSince1970: 0)
+        let now = startDate.addingTimeInterval(2 * 3600)
+        let workout = Workout(date: startDate, name: "Push Day", startedFromTemplate: "  Upper  A  ")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        workout.addSet(exercise: exercise, weight: 185, reps: 8)
+
+        let summary = viewModel.resumableWorkoutSummary(for: workout, now: now)
+
+        XCTAssertEqual(summary, "Started 2h ago • From Upper A • 1 exercise • 1 set", "Summary should show elapsed time, template origin, and current draft counts")
+    }
+
+    func testResumableWorkoutSummary_emptyDraftExplainsNoExercisesYet() {
+        let startDate = Date(timeIntervalSince1970: 0)
+        let now = startDate.addingTimeInterval(30)
+        let workout = Workout(date: startDate, name: "Draft Workout")
+
+        let summary = viewModel.resumableWorkoutSummary(for: workout, now: now)
+
+        XCTAssertEqual(summary, "Started just now • No exercises added yet", "Summary should explain empty drafts instead of showing zero-count noise")
+    }
+
+    func testWorkoutStartedSummary_clampsFutureDatesToJustNow() {
+        let now = Date(timeIntervalSince1970: 1_000)
+        let futureStart = now.addingTimeInterval(600)
+
+        let summary = viewModel.workoutStartedSummary(for: futureStart, now: now)
+
+        XCTAssertEqual(summary, "Started just now", "Future or corrupted draft dates should fail safe instead of claiming the workout starts in the future")
+    }
+
     // MARK: - Incomplete Workout Resume Logic
 
     func testShouldResumeIncompleteWorkout_withoutDiscardState() {

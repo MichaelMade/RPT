@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Home draft-workout continuity by adding a resumable-workout summary card under `Continue Workout` that previews the draft name, how long ago it started, optional template origin, and current exercise/set counts, so users can confidently decide whether to jump back in or start fresh; added regression coverage in `HomeViewModelTests`.
 - Improved Home tab momentum visibility by adding a `Last 7 Days` progress card under `Progress Snapshot`, with weekly workout pacing, a progress bar, and clear guidance on how many sessions remain to fill the rolling 7-day goal.
 - Improved Home tab progress visibility by adding a `Progress Snapshot` section that surfaces lifetime workouts, total lifted volume, and current streak, plus a first-workout empty state so new users understand what will appear there once they finish a session.
 - Fixed an Active Workout exit-flow inconsistency by hiding `Complete Workout` from the exit dialog until every exercise has been manually marked done, and by reusing the same remaining-exercises helper copy there that already explains the disabled `Finish` button; added regression coverage in `ActiveWorkoutViewModelTests`.

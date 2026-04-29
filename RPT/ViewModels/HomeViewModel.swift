@@ -73,6 +73,44 @@ class HomeViewModel: ObservableObject {
         return max(0, stats.count)
     }
 
+    func resumableWorkoutSummary(for workout: Workout, now: Date = Date()) -> String {
+        var parts: [String] = [workoutStartedSummary(for: workout.date, now: now)]
+
+        if let templateName = normalizedSummaryName(workout.startedFromTemplate) {
+            parts.append("From \(templateName)")
+        }
+
+        if workout.sets.isEmpty {
+            parts.append("No exercises added yet")
+        } else {
+            parts.append(WorkoutRow.exerciseCountText(for: workout))
+            parts.append(WorkoutRow.setCountText(for: workout))
+        }
+
+        return parts.joined(separator: " • ")
+    }
+
+    func workoutStartedSummary(for startDate: Date, now: Date = Date()) -> String {
+        let safeInterval = max(0, now.timeIntervalSince(startDate))
+
+        if safeInterval < 60 {
+            return "Started just now"
+        }
+
+        if safeInterval < 3600 {
+            let minutes = max(1, Int(floor(safeInterval / 60)))
+            return "Started \(minutes)m ago"
+        }
+
+        if safeInterval < 86_400 {
+            let hours = max(1, Int(floor(safeInterval / 3600)))
+            return "Started \(hours)h ago"
+        }
+
+        let days = max(1, Int(floor(safeInterval / 86_400)))
+        return "Started \(days)d ago"
+    }
+
     func calculateWeeklyProgress() -> Double {
         weeklyProgress(forWorkoutCount: weeklyWorkoutCount())
     }
@@ -168,5 +206,20 @@ class HomeViewModel: ObservableObject {
         }
 
         return "\(Int(floor(truncatedVolume)))"
+    }
+
+    private func normalizedSummaryName(_ raw: String?) -> String? {
+        guard let raw else { return nil }
+
+        let collapsedName = raw
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedName.isEmpty else {
+            return nil
+        }
+
+        return String(collapsedName.prefix(80))
     }
 }
