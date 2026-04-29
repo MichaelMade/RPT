@@ -115,6 +115,64 @@ struct HomeView: View {
                     }
                     .padding(.horizontal)
 
+                    if let stats = viewModel.userStats {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Progress Snapshot")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .padding(.horizontal)
+
+                            if stats.totalWorkouts > 0 {
+                                HStack(spacing: 12) {
+                                    HomeStatTile(
+                                        icon: "figure.strengthtraining.traditional",
+                                        title: "Workouts",
+                                        value: "\(stats.totalWorkouts)",
+                                        subtitle: "logged",
+                                        tint: .blue
+                                    )
+
+                                    HomeStatTile(
+                                        icon: "scalemass",
+                                        title: "Volume",
+                                        value: viewModel.formatTotalVolume(),
+                                        subtitle: "lb lifted",
+                                        tint: .purple
+                                    )
+
+                                    HomeStatTile(
+                                        icon: "flame.fill",
+                                        title: "Streak",
+                                        value: "\(stats.workoutStreak)",
+                                        subtitle: stats.workoutStreak == 1 ? "day" : "days",
+                                        tint: .orange
+                                    )
+                                }
+                                .padding(.horizontal)
+                            } else {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "chart.line.uptrend.xyaxis")
+                                            .font(.title3)
+                                            .foregroundColor(.blue)
+
+                                        Text("No workouts logged yet")
+                                            .font(.headline)
+                                    }
+
+                                    Text("Finish your first workout to start a streak and unlock lifetime progress on Home.")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                            }
+                        }
+                    }
+
                     // Recent workouts section
                     if !viewModel.recentWorkouts.isEmpty {
                         VStack(alignment: .leading) {
@@ -164,6 +222,44 @@ struct HomeView: View {
 }
 
 // Preview with active workout
+private struct HomeStatTile: View {
+    let icon: String
+    let title: String
+    let value: String
+    let subtitle: String
+    let tint: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.caption)
+                    .foregroundColor(tint)
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer(minLength: 0)
+            }
+
+            Text(value)
+                .font(.title3.monospacedDigit())
+                .fontWeight(.bold)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            Text(subtitle)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+}
+
 #Preview("With Active Workout") {
     let workout = Workout(date: Date(), name: "Active Workout")
     return NavigationStack {

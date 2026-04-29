@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Home tab progress visibility by adding a `Progress Snapshot` section that surfaces lifetime workouts, total lifted volume, and current streak, plus a first-workout empty state so new users understand what will appear there once they finish a session.
 - Fixed an Active Workout exit-flow inconsistency by hiding `Complete Workout` from the exit dialog until every exercise has been manually marked done, and by reusing the same remaining-exercises helper copy there that already explains the disabled `Finish` button; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Improved custom exercise delete safety by previewing logged-history fallout in the confirmation dialog, including how many logged sets/workouts will be removed and whether any workout templates still reference the exercise and will skip it until replaced; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Fixed template-exercise edit data loss by preserving existing rep ranges and percentage drops when changing only notes or set count, so editing a template exercise no longer silently resets custom progression back to generic defaults; added regression coverage in `TemplateManagerTests`.
