@@ -206,11 +206,13 @@ struct ActiveWorkoutView: View {
                     dismiss()
                 }
 
-                Button("Complete Workout") {
-                    _ = viewModel.completeWorkoutSafely()
-                    WorkoutStateManager.shared.markWorkoutAsSaved(viewModel.workout.id)
-                    onCompleteWorkout?()
-                    dismiss()
+                if viewModel.canCompleteWorkoutFromExitDialog {
+                    Button("Complete Workout") {
+                        _ = viewModel.completeWorkoutSafely()
+                        WorkoutStateManager.shared.markWorkoutAsSaved(viewModel.workout.id)
+                        onCompleteWorkout?()
+                        dismiss()
+                    }
                 }
 
                 Button("Discard Workout", role: .destructive) {
@@ -222,7 +224,7 @@ struct ActiveWorkoutView: View {
 
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("Save for later keeps it as a draft. Complete marks it as finished.")
+                Text(viewModel.exitDialogHelperText)
             }
             // Discard confirmation
             .confirmationDialog(

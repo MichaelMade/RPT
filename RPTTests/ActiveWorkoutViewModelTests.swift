@@ -357,6 +357,38 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         )
     }
 
+    func testExitDialogHelperText_whenAllExercisesCompleted_usesCompletionMessaging() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 6)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+        viewModel.toggleExerciseCompletion(bench)
+
+        XCTAssertEqual(
+            viewModel.exitDialogHelperText,
+            "Save for later keeps it as a draft. Complete marks it as finished."
+        )
+        XCTAssertTrue(viewModel.canCompleteWorkoutFromExitDialog)
+    }
+
+    func testExitDialogHelperText_whenExercisesRemain_explainsWhyCompleteIsUnavailable() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Row", category: .compound, primaryMuscleGroups: [.lats])
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 6)
+        _ = workout.addSet(exercise: row, weight: 155, reps: 8)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+        viewModel.toggleExerciseCompletion(bench)
+
+        XCTAssertEqual(
+            viewModel.exitDialogHelperText,
+            "1 exercise left: Row. Tap the circle beside it when you're done to enable Complete Workout."
+        )
+        XCTAssertFalse(viewModel.canCompleteWorkoutFromExitDialog)
+    }
+
     func testDeleteSet_removesSetFromExerciseRelationship() throws {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")

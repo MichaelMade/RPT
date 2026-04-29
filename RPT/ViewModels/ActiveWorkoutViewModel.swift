@@ -66,23 +66,16 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     var finishHelperText: String? {
-        guard !exerciseOrder.isEmpty, !allExercisesCompleted else {
-            return nil
-        }
+        helperTextForIncompleteExercises(enableActionLabel: "Finish")
+    }
 
-        let remainingNames = remainingExercises.map(\.displayName)
-        let remainingCount = remainingNames.count
+    var exitDialogHelperText: String {
+        helperTextForIncompleteExercises(enableActionLabel: "Complete Workout")
+        ?? "Save for later keeps it as a draft. Complete marks it as finished."
+    }
 
-        switch remainingCount {
-        case 1:
-            return "1 exercise left: \(remainingNames[0]). Tap the circle beside it when you're done to enable Finish."
-        case 2:
-            return "2 exercises left: \(remainingNames[0]) and \(remainingNames[1]). Tap each circle when you're done to enable Finish."
-        default:
-            let previewNames = remainingNames.prefix(2).joined(separator: ", ")
-            let extraCount = remainingCount - 2
-            return "\(remainingCount) exercises left: \(previewNames), +\(extraCount) more. Tap each circle when you're done to enable Finish."
-        }
+    var canCompleteWorkoutFromExitDialog: Bool {
+        allExercisesCompleted
     }
     
     init(workout: Workout, workoutManager: WorkoutManager? = nil, exerciseManager: ExerciseManager? = nil, settingsManager: SettingsManager? = nil) {
@@ -455,6 +448,26 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
     
     // MARK: - Helper Methods
+
+    private func helperTextForIncompleteExercises(enableActionLabel: String) -> String? {
+        guard !exerciseOrder.isEmpty, !allExercisesCompleted else {
+            return nil
+        }
+
+        let remainingNames = remainingExercises.map(\.displayName)
+        let remainingCount = remainingNames.count
+
+        switch remainingCount {
+        case 1:
+            return "1 exercise left: \(remainingNames[0]). Tap the circle beside it when you're done to enable \(enableActionLabel)."
+        case 2:
+            return "2 exercises left: \(remainingNames[0]) and \(remainingNames[1]). Tap each circle when you're done to enable \(enableActionLabel)."
+        default:
+            let previewNames = remainingNames.prefix(2).joined(separator: ", ")
+            let extraCount = remainingCount - 2
+            return "\(remainingCount) exercises left: \(previewNames), +\(extraCount) more. Tap each circle when you're done to enable \(enableActionLabel)."
+        }
+    }
 
     private static func shouldUseForTemplateAutofill(_ set: ExerciseSet) -> Bool {
         set.isCompletedWorkingSet
