@@ -15,6 +15,27 @@ final class StatsViewFormattingTests: XCTestCase {
         super.tearDown()
     }
 
+    func testWeeklyVolumeEmptyStateMessage_explainsMissingRecentWindow() {
+        XCTAssertEqual(
+            sut.weeklyVolumeEmptyStateMessage(totalWorkouts: 3),
+            "No completed workouts landed in the last 12 weeks, so there’s no recent volume to chart yet."
+        )
+    }
+
+    func testMuscleGroupEmptyStateMessage_explainsMissingRecentWorkingSets() {
+        XCTAssertEqual(
+            sut.muscleGroupEmptyStateMessage(totalWorkouts: 2),
+            "Log completed working sets in the last 4 weeks to see which muscle groups are getting the most attention."
+        )
+    }
+
+    func testPersonalRecordsEmptyStateMessage_explainsMissingCompletedSets() {
+        XCTAssertEqual(
+            sut.personalRecordsEmptyStateMessage(totalWorkouts: 1),
+            "Finish a few completed working sets and your strongest recent performances will show up here."
+        )
+    }
+
     func testFormattedTotal_doesNotPromoteSubThousandNearThreshold() {
         XCTAssertEqual(sut.formattedTotal(999.95), "999 lb")
     }

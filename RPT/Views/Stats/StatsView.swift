@@ -122,6 +122,12 @@ struct StatsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(UIColor.secondarySystemBackground))
             .cornerRadius(12)
+        } else if viewModel.totalWorkouts > 0 {
+            SectionPlaceholderCard(
+                title: "Weekly Volume",
+                systemImage: "chart.bar.xaxis",
+                message: weeklyVolumeEmptyStateMessage(totalWorkouts: viewModel.totalWorkouts)
+            )
         }
     }
 
@@ -169,6 +175,12 @@ struct StatsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(UIColor.secondarySystemBackground))
             .cornerRadius(12)
+        } else if viewModel.totalWorkouts > 0 {
+            SectionPlaceholderCard(
+                title: "Muscle Group Focus",
+                systemImage: "figure.strengthtraining.traditional",
+                message: muscleGroupEmptyStateMessage(totalWorkouts: viewModel.totalWorkouts)
+            )
         }
     }
 
@@ -203,10 +215,40 @@ struct StatsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(UIColor.secondarySystemBackground))
             .cornerRadius(12)
+        } else if viewModel.totalWorkouts > 0 {
+            SectionPlaceholderCard(
+                title: "Recent Personal Records",
+                systemImage: "trophy",
+                message: personalRecordsEmptyStateMessage(totalWorkouts: viewModel.totalWorkouts)
+            )
         }
     }
 
     // MARK: - Helpers
+
+    func weeklyVolumeEmptyStateMessage(totalWorkouts: Int) -> String {
+        guard totalWorkouts > 0 else {
+            return "Complete a workout to start building your weekly training chart."
+        }
+
+        return "No completed workouts landed in the last 12 weeks, so there’s no recent volume to chart yet."
+    }
+
+    func muscleGroupEmptyStateMessage(totalWorkouts: Int) -> String {
+        guard totalWorkouts > 0 else {
+            return "Complete a workout to see where your working sets are landing."
+        }
+
+        return "Log completed working sets in the last 4 weeks to see which muscle groups are getting the most attention."
+    }
+
+    func personalRecordsEmptyStateMessage(totalWorkouts: Int) -> String {
+        guard totalWorkouts > 0 else {
+            return "Complete a workout to start capturing personal records."
+        }
+
+        return "Finish a few completed working sets and your strongest recent performances will show up here."
+    }
 
     func formattedTotal(_ volume: Double) -> String {
         let safeVolume = volume.isFinite ? max(0, volume) : 0
@@ -246,6 +288,32 @@ struct StatsView: View {
         let safePercentage = min(100, max(0, Int(rawPercentage)))
 
         return "(\(safePercentage)%)"
+    }
+}
+
+private struct SectionPlaceholderCard: View {
+    let title: String
+    let systemImage: String
+    let message: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                Image(systemName: systemImage)
+                    .font(.title3)
+                    .foregroundColor(.blue)
+                Text(title)
+                    .font(.headline)
+            }
+
+            Text(message)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
     }
 }
 

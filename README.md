@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Stats empty-state clarity for returning users by keeping `Weekly Volume`, `Muscle Group Focus`, and `Recent Personal Records` visible as explanatory placeholder cards whenever those sections have no current data, so Stats no longer looks half-broken when a timeframe is empty or no completed working sets have been logged recently; added regression coverage in `StatsViewFormattingTests`.
 - Fixed a misleading Plate Calculator fallback so targets that cannot be built with the currently selected plates no longer pretend to be `Just the bar`; the calculator now distinguishes blank/invalid targets, targets below bar weight, exact bar-only loads, and truly unavailable plate setups with explicit guidance, and added regression coverage in new `PlateCalculatorViewTests`.
 - Improved Home draft-workout continuity again by teaching the resumable-workout summary card to distinguish untouched template drafts from partially logged sessions, now showing whether no exercises have been started yet, some have logged work, or the whole draft is underway; added regression coverage in `HomeViewModelTests`.
 - Improved Home draft-workout continuity by adding a resumable-workout summary card under `Continue Workout` that previews the draft name, how long ago it started, optional template origin, and current exercise/set counts, so users can confidently decide whether to jump back in or start fresh; added regression coverage in `HomeViewModelTests`.
