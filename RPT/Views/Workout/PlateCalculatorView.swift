@@ -6,6 +6,13 @@
 import SwiftUI
 
 struct PlateCalculatorView: View {
+    enum BreakdownStatus: Equatable {
+        case validation(message: String)
+        case barOnly(message: String)
+        case unavailable(message: String)
+        case calculated
+    }
+
     @Environment(\.dismiss) private var dismiss
 
     @State private var targetText: String = "135"
@@ -20,16 +27,25 @@ struct PlateCalculatorView: View {
             : PlateCalculator.defaultKgPlates.filter(availableKgPlates.contains)
     }
 
-    private var targetWeight: Double {
-        Double(targetText) ?? 0
+    private var targetWeight: Double? {
+        Self.sanitizedTargetWeight(from: targetText)
     }
 
     private var result: PlateCalculator.Result {
         PlateCalculator.calculate(
-            targetWeight: targetWeight,
+            targetWeight: targetWeight ?? 0,
             barbell: barbell,
             unit: unit,
             availablePlates: currentAvailablePlates
+        )
+    }
+
+    private var breakdownStatus: BreakdownStatus {
+        Self.breakdownStatus(
+            rawTargetText: targetText,
+            barbell: barbell,
+            unit: unit,
+            result: result
         )
     }
 
@@ -58,13 +74,16 @@ struct PlateCalculatorView: View {
                 }
 
                 Section("Plates Per Side") {
-                    if result.targetWeight < barbell.weight(in: unit) {
-                        Label("Target is less than bar weight", systemImage: "exclamationmark.triangle")
+                    switch breakdownStatus {
+                    case .validation(let message), .unavailable(let message):
+                        Label(message, systemImage: "exclamationmark.triangle")
                             .foregroundColor(.orange)
-                    } else if result.platesPerSide.isEmpty {
-                        Text("Just the bar (\(formatted(barbell.weight(in: unit))) \(unit.short))")
+
+                    case .barOnly(let message):
+                        Text(message)
                             .foregroundColor(.secondary)
-                    } else {
+
+                    case .calculated:
                         ForEach(Array(result.platesPerSide.enumerated()), id: \.offset) { _, plate in
                             HStack {
                                 RoundedRectangle(cornerRadius: 3)
@@ -120,6 +139,62 @@ struct PlateCalculatorView: View {
         }
     }
 
+    static func sanitizedTargetWeight(from rawText: String) -> Double? {
+        let trimmed = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmed.isEmpty,
+              let parsedValue = Double(trimmed),
+              parsedValue.isFinite,
+              parsedValue > 0 else {
+            return nil
+        }
+
+        return parsedValue
+    }
+
+    static func formattedWeight(_ value: Double) -> String {
+        value.truncatingRemainder(dividingBy: 1) == 0
+            ? String(Int(value))
+            : String(format: "%.2f", value)
+    }
+
+    static func breakdownStatus(
+        rawTargetText: String,
+        barbell: BarbellType,
+        unit: WeightUnit,
+        result: PlateCalculator.Result
+    ) -> BreakdownStatus {
+        let trimmedTarget = rawTargetText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedTarget.isEmpty else {
+            return .validation(message: "Enter a target weight to see the plate breakdown.")
+        }
+
+        guard let targetWeight = sanitizedTargetWeight(from: trimmedTarget) else {
+            return .validation(message: "Enter a valid positive target weight.")
+        }
+
+        let barWeight = barbell.weight(in: unit)
+        if targetWeight < barWeight {
+            return .validation(
+                message: "Target is less than the selected bar weight (\(formattedWeight(barWeight)) \(unit.short))."
+            )
+        }
+
+        if abs(targetWeight - barWeight) < 0.001 {
+            return .barOnly(message: "Just the bar (\(formattedWeight(barWeight)) \(unit.short))")
+        }
+
+        let isOnlyBarLoadable = result.platesPerSide.isEmpty && abs(result.achievedWeight - barWeight) < 0.001
+        if isOnlyBarLoadable {
+            return .unavailable(
+                message: "Can't make \(formattedWeight(targetWeight)) \(unit.short) with the selected plates — currently only the bar is loadable."
+            )
+        }
+
+        return .calculated
+    }
+
     private func plateBinding(for plate: Double) -> Binding<Bool> {
         Binding(
             get: {
@@ -136,9 +211,7 @@ struct PlateCalculatorView: View {
     }
 
     private func formatted(_ value: Double) -> String {
-        value.truncatingRemainder(dividingBy: 1) == 0
-            ? String(Int(value))
-            : String(format: "%.2f", value)
+        Self.formattedWeight(value)
     }
 
     private func plateColor(_ weight: Double) -> Color {
