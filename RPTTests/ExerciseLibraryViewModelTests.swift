@@ -209,6 +209,48 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testEmptyStateKind_prefersEmptyLibraryWhenNoExercisesExistEvenIfQueryIsActive() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.searchText = "bench"
+        viewModel.selectedCategory = .compound
+
+        XCTAssertEqual(
+            viewModel.emptyStateKind(filteredCount: 0),
+            .emptyLibrary,
+            "An actually empty library should keep the first-run empty state instead of pretending the user merely filtered everything out"
+        )
+        XCTAssertEqual(
+            viewModel.emptyStateTitle(filteredCount: 0),
+            "No Exercises Yet"
+        )
+        XCTAssertEqual(
+            viewModel.emptyStateDescription(filteredCount: 0),
+            "Add your first custom exercise to start building your library."
+        )
+    }
+
+    func testEmptyStateKind_usesNoMatchingResultsWhenLibraryHasExercisesButFiltersHideThem() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.searchText = "squat"
+
+        XCTAssertEqual(
+            viewModel.emptyStateKind(filteredCount: 0),
+            .noMatchingResults,
+            "Once the library has exercises, a zero-result search should use the recovery empty state instead of first-run copy"
+        )
+        XCTAssertEqual(
+            viewModel.emptyStateTitle(filteredCount: 0),
+            "No Matching Exercises"
+        )
+        XCTAssertEqual(
+            viewModel.emptyStateDescription(filteredCount: 0),
+            "Try changing your search or filters, or clear them to see every exercise."
+        )
+    }
+
     func testDeletionConfirmationMessage_fallsBackToGenericCopyWithoutImpactDetails() {
         XCTAssertEqual(
             ExerciseLibraryViewModel.deletionConfirmationMessage(

@@ -90,6 +90,7 @@ struct ExercisesView: View {
                 // Exercise List
                 List {
                     let exercises = viewModel.fetchExercises()
+                    let emptyStateKind = viewModel.emptyStateKind(filteredCount: exercises.count)
 
                     if let summary = viewModel.filteredResultsSummary(filteredCount: exercises.count) {
                         Text(summary)
@@ -98,31 +99,33 @@ struct ExercisesView: View {
                             .listRowSeparator(.hidden)
                     }
                     
-                    if exercises.isEmpty {
+                    if let emptyStateKind {
                         ContentUnavailableView {
                             Label(
-                                viewModel.hasActiveQuery ? "No Matching Exercises" : "No Exercises Yet",
-                                systemImage: viewModel.hasActiveQuery ? "magnifyingglass" : "dumbbell"
+                                viewModel.emptyStateTitle(filteredCount: exercises.count) ?? "No Exercises Yet",
+                                systemImage: emptyStateKind == .emptyLibrary ? "dumbbell" : "magnifyingglass"
                             )
                         } description: {
-                            Text(
-                                viewModel.hasActiveQuery
-                                ? "Try changing your search or filters, or clear them to see every exercise."
-                                : "Add your first custom exercise to start building your library."
-                            )
+                            Text(viewModel.emptyStateDescription(filteredCount: exercises.count) ?? "")
                         } actions: {
-                            if viewModel.hasActiveSearch {
-                                Button("Clear Search") {
-                                    searchText = ""
-                                    viewModel.clearSearch()
+                            if emptyStateKind == .emptyLibrary {
+                                Button("Add Custom Exercise") {
+                                    showingAddExercise = true
                                 }
-                            }
+                            } else {
+                                if viewModel.hasActiveSearch {
+                                    Button("Clear Search") {
+                                        searchText = ""
+                                        viewModel.clearSearch()
+                                    }
+                                }
 
-                            if viewModel.hasActiveFilters {
-                                Button("Reset Filters") {
-                                    selectedCategory = nil
-                                    selectedMuscleGroup = nil
-                                    viewModel.clearFilters()
+                                if viewModel.hasActiveFilters {
+                                    Button("Reset Filters") {
+                                        selectedCategory = nil
+                                        selectedMuscleGroup = nil
+                                        viewModel.clearFilters()
+                                    }
                                 }
                             }
                         }

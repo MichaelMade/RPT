@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Exercise Library first-run recovery by distinguishing a truly empty library from a zero-result search/filter state, so empty libraries now keep the `No Exercises Yet` onboarding copy and surface a one-tap `Add Custom Exercise` action instead of misleading `No Matching Exercises` messaging; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Fixed lifetime streak updates for backfilled or late-night workout completions by basing `User.updateWorkoutStreak` on each workout’s logged date instead of the wall-clock completion time, so legitimate next-day sessions no longer reset the Home/Stats streak when they are finished after midnight or registered later; added regression coverage in `UserModelTests`.
 - Fixed Home’s `Last 7 Days` weekly-progress summary so heavy training weeks no longer show awkward copy like `10 of 7 workouts`; the summary now caps at the visible 7-workout goal to match the filled progress bar, and regression coverage was added in `HomeViewModelTests`.
 - Improved Active Workout set-edit recovery by treating blank weight/reps as an intentional clear instead of a failed save, and by adding inline validation guidance for invalid weight, reps, or RPE input so logged-set edits no longer fail silently; added regression coverage in `ActiveWorkoutViewModelTests`.

@@ -11,6 +11,11 @@ import SwiftData
 
 @MainActor
 class ExerciseLibraryViewModel: ObservableObject {
+    enum EmptyStateKind {
+        case emptyLibrary
+        case noMatchingResults
+    }
+
     private let exerciseManager: ExerciseManager
     
     @Published var searchText = ""
@@ -93,6 +98,36 @@ class ExerciseLibraryViewModel: ObservableObject {
         }
 
         return summary
+    }
+
+    func emptyStateKind(filteredCount: Int) -> EmptyStateKind? {
+        guard filteredCount == 0 else {
+            return nil
+        }
+
+        return exercises.isEmpty ? .emptyLibrary : .noMatchingResults
+    }
+
+    func emptyStateTitle(filteredCount: Int) -> String? {
+        switch emptyStateKind(filteredCount: filteredCount) {
+        case .emptyLibrary:
+            return "No Exercises Yet"
+        case .noMatchingResults:
+            return "No Matching Exercises"
+        case .none:
+            return nil
+        }
+    }
+
+    func emptyStateDescription(filteredCount: Int) -> String? {
+        switch emptyStateKind(filteredCount: filteredCount) {
+        case .emptyLibrary:
+            return "Add your first custom exercise to start building your library."
+        case .noMatchingResults:
+            return "Try changing your search or filters, or clear them to see every exercise."
+        case .none:
+            return nil
+        }
     }
 
     static func searchMatchPriority(exerciseName: String, normalizedQuery: String) -> Int? {
