@@ -135,6 +135,44 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(exercise.exerciseName, "Exercise")
     }
 
+    func testTemplateExerciseInitializer_preservesExistingRepRangesWhenReducingSetCount() {
+        let exercise = TemplateExercise(
+            exerciseName: "Bench Press",
+            suggestedSets: 2,
+            repRanges: [
+                TemplateRepRange(setNumber: 1, minReps: 4, maxReps: 6, percentageOfFirstSet: 1.0),
+                TemplateRepRange(setNumber: 2, minReps: 7, maxReps: 9, percentageOfFirstSet: 0.87),
+                TemplateRepRange(setNumber: 3, minReps: 10, maxReps: 12, percentageOfFirstSet: 0.74)
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(exercise.repRanges.count, 2)
+        XCTAssertEqual(exercise.repRanges[0].minReps, 4)
+        XCTAssertEqual(exercise.repRanges[1].minReps, 7)
+        XCTAssertEqual(exercise.repRanges[1].maxReps, 9)
+        XCTAssertEqual(exercise.repRanges[1].percentageOfFirstSet, 0.87)
+    }
+
+    func testTemplateExerciseInitializer_fillsMissingRangesWithoutOverwritingExistingOnes() {
+        let exercise = TemplateExercise(
+            exerciseName: "Bench Press",
+            suggestedSets: 3,
+            repRanges: [
+                TemplateRepRange(setNumber: 1, minReps: 5, maxReps: 7, percentageOfFirstSet: 1.0),
+                TemplateRepRange(setNumber: 3, minReps: 9, maxReps: 11, percentageOfFirstSet: 0.76)
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(exercise.repRanges.map(\.setNumber), [1, 2, 3])
+        XCTAssertEqual(exercise.repRanges[0].minReps, 5)
+        XCTAssertEqual(exercise.repRanges[1].minReps, 8)
+        XCTAssertEqual(exercise.repRanges[1].maxReps, 10)
+        XCTAssertEqual(exercise.repRanges[1].percentageOfFirstSet, 0.9)
+        XCTAssertEqual(exercise.repRanges[2].percentageOfFirstSet, 0.76)
+    }
+
     private func sampleTemplateExercise(named name: String = "Bench Press") -> TemplateExercise {
         TemplateExercise(
             exerciseName: name,

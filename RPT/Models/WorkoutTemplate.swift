@@ -63,18 +63,12 @@ struct TemplateExercise: Codable, Hashable, Identifiable {
     static func normalizedDisplayNotes(_ raw: String) -> String? {
         TemplateTextFormatter.collapsed(raw)
     }
-    
-    // Custom initializer to ensure suggestedSets and repRanges are in sync
-    init(id: UUID = UUID(), exerciseName: String, suggestedSets: Int, repRanges: [TemplateRepRange], notes: String = "") {
+
+    static func normalizedRepRanges(for suggestedSets: Int, from repRanges: [TemplateRepRange]) -> [TemplateRepRange] {
         let normalizedSets = max(0, suggestedSets)
-        self.id = id
-        self.exerciseName = Self.normalizedDisplayName(exerciseName)
-        self.suggestedSets = normalizedSets
-        self.notes = Self.normalizedDisplayNotes(notes) ?? ""
 
         guard normalizedSets > 0 else {
-            self.repRanges = []
-            return
+            return []
         }
 
         var filteredRanges = repRanges.filter { $0.setNumber <= normalizedSets }
@@ -92,7 +86,18 @@ struct TemplateExercise: Codable, Hashable, Identifiable {
             ))
         }
 
-        self.repRanges = filteredRanges
+        return filteredRanges.sorted(by: { $0.setNumber < $1.setNumber })
+    }
+
+    // Custom initializer to ensure suggestedSets and repRanges are in sync
+    init(id: UUID = UUID(), exerciseName: String, suggestedSets: Int, repRanges: [TemplateRepRange], notes: String = "") {
+        let normalizedSets = max(0, suggestedSets)
+        self.id = id
+        self.exerciseName = Self.normalizedDisplayName(exerciseName)
+        self.suggestedSets = normalizedSets
+        self.notes = Self.normalizedDisplayNotes(notes) ?? ""
+
+        self.repRanges = Self.normalizedRepRanges(for: normalizedSets, from: repRanges)
     }
     
     static func == (lhs: TemplateExercise, rhs: TemplateExercise) -> Bool {

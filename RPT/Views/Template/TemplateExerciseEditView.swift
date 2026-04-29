@@ -25,6 +25,10 @@ struct TemplateExerciseEditView: View {
         _suggestedSets = State(initialValue: exercise.suggestedSets)
         _notes = State(initialValue: exercise.notes)
     }
+
+    private var previewRepRanges: [TemplateRepRange] {
+        TemplateExercise.normalizedRepRanges(for: suggestedSets, from: exercise.repRanges)
+    }
     
     var body: some View {
         NavigationStack {
@@ -73,18 +77,16 @@ struct TemplateExerciseEditView: View {
                             .font(.subheadline)
                             .padding(.bottom, 4)
                         
-                        ForEach(1...suggestedSets, id: \.self) { setNum in
-                            let percentage = setNum == 1 ? 100 : Int((1.0 - (Double(setNum - 1) * 0.1)) * 100)
-                            let minReps = min(6 + ((setNum - 1) * 2), 15)
-                            let maxReps = min(8 + ((setNum - 1) * 2), 20)
-                            
+                        ForEach(previewRepRanges, id: \.setNumber) { repRange in
+                            let percentage = Int((repRange.percentageOfFirstSet ?? 1.0) * 100)
+
                             HStack {
-                                Text("Set \(setNum):")
+                                Text("Set \(repRange.setNumber):")
                                     .fontWeight(.medium)
                                 
-                                Text("\(minReps)-\(maxReps) reps")
+                                Text("\(repRange.minReps)-\(repRange.maxReps) reps")
                                 
-                                if setNum > 1 {
+                                if repRange.setNumber > 1 {
                                     Text("(\(percentage)% of first set)")
                                         .foregroundColor(.blue)
                                 }
@@ -112,7 +114,7 @@ struct TemplateExerciseEditView: View {
                             id: exercise.id,
                             exerciseName: exercise.exerciseName,
                             suggestedSets: suggestedSets,  // Use the updated set count
-                            repRanges: [],  // Empty array - the initializer will create proper rep ranges
+                            repRanges: exercise.repRanges,
                             notes: notes
                         )
                         
