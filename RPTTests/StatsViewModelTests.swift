@@ -155,4 +155,42 @@ final class StatsViewModelTests: XCTestCase {
     func testSanitizedVolume_preservesFinitePositiveValues() {
         XCTAssertEqual(viewModel.sanitizedVolume(1234.5), 1234.5)
     }
+
+    func testWeeklyWorkMetric_prefersVolumeWhenWeightedWorkExists() {
+        XCTAssertEqual(viewModel.weeklyWorkMetricTitle(totalVolume: 1200, totalBodyweightReps: 40), "Volume")
+        XCTAssertEqual(
+            viewModel.weeklyWorkMetricValue(
+                weeklyWorkoutCount: 2,
+                formattedVolume: "1.2k lb",
+                totalBodyweightReps: 40
+            ),
+            "1.2k lb"
+        )
+        XCTAssertEqual(viewModel.weeklyWorkMetricSubtitle(totalVolume: 1200, totalBodyweightReps: 40), "lifted")
+    }
+
+    func testWeeklyWorkMetric_fallsBackToBodyweightRepsWhenVolumeIsZero() {
+        XCTAssertEqual(viewModel.weeklyWorkMetricTitle(totalVolume: 0, totalBodyweightReps: 32), "Reps")
+        XCTAssertEqual(
+            viewModel.weeklyWorkMetricValue(
+                weeklyWorkoutCount: 2,
+                formattedVolume: "0 lb",
+                totalBodyweightReps: 32
+            ),
+            "32"
+        )
+        XCTAssertEqual(viewModel.weeklyWorkMetricSubtitle(totalVolume: 0, totalBodyweightReps: 32), "bodyweight")
+    }
+
+    func testWeeklyWorkMetric_usesPlaceholderWhenNoRecentWorkExists() {
+        XCTAssertEqual(
+            viewModel.weeklyWorkMetricValue(
+                weeklyWorkoutCount: 0,
+                formattedVolume: "0 lb",
+                totalBodyweightReps: 0
+            ),
+            "—"
+        )
+        XCTAssertEqual(viewModel.weeklyWorkMetricSubtitle(totalVolume: 0, totalBodyweightReps: 0), "logged")
+    }
 }

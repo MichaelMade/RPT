@@ -95,12 +95,9 @@ struct StatsView: View {
                 )
                 StatTile(
                     icon: "scalemass",
-                    title: "Volume",
-                    value: thisWeekVolumeValue(
-                        weeklyWorkoutCount: viewModel.weeklyWorkoutCount,
-                        formattedVolume: viewModel.weeklyWorkoutVolume
-                    ),
-                    subtitle: "lifted",
+                    title: viewModel.weeklyWorkMetricTitle,
+                    value: viewModel.weeklyWorkMetricValue,
+                    subtitle: viewModel.weeklyWorkMetricSubtitle,
                     tint: .purple
                 )
                 StatTile(
@@ -290,10 +287,6 @@ struct StatsView: View {
         return safeWeeklyCount == 1
             ? "1 workout in the last 7 days"
             : "\(safeWeeklyCount) workouts in the last 7 days"
-    }
-
-    func thisWeekVolumeValue(weeklyWorkoutCount: Int, formattedVolume: String) -> String {
-        max(0, weeklyWorkoutCount) > 0 ? formattedVolume : "—"
     }
 
     func thisWeekAverageDurationValue(weeklyWorkoutCount: Int, formattedDuration: String) -> String {

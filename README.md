@@ -1,6 +1,6 @@
 # RPT
 
-- Polished the Stats `This Week` snapshot so `Volume` and `Avg Time` now show an em dash instead of misleading `0 lb` / `0s` when there are no completed workouts in the last 7 days, making empty recent windows read as “no data yet” instead of fake zero-performance stats; added regression coverage in `StatsViewFormattingTests`.
+- Fixed the Stats `This Week` snapshot so bodyweight-only training weeks no longer misleadingly show `0 lb`; the work tile now automatically falls back to logged bodyweight reps when no weighted volume exists, with regression coverage in `StatsViewModelTests`.
 
 Reverse Pyramid Training (RPT) iOS App
 
@@ -63,6 +63,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed the Stats `This Week` snapshot so bodyweight-only training weeks no longer misleadingly show `0 lb`; the work tile now automatically falls back to logged bodyweight reps when no weighted volume exists, with regression coverage in `StatsViewModelTests`.
 - Polished Stats `Recent Personal Records` glanceability by switching PR dates over to the same relative, time-aware labels already used on Home and Workout Detail (for example `Today • 9:45 AM` / `Yesterday • 8:00 AM`), so recent achievements are faster to scan at a glance; added regression coverage in `StatsViewFormattingTests`.
 - Added a `This Week` snapshot to the Stats screen so users can immediately see last-7-days workout count, total lifted volume, and average workout time before drilling into the longer-term charts; added regression coverage for the new summary copy in `StatsViewFormattingTests`.
 - Fixed a Home draft-resume edge case so the `Continue Workout` path now uses the shared discard-aware resume rules instead of only checking whether a draft is incomplete; this prevents previously discarded in-memory drafts from resurfacing after state restoration when a newer eligible draft exists, and adds regression coverage in `HomeViewModelTests`.

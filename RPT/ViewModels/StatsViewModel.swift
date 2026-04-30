@@ -39,7 +39,9 @@ class StatsViewModel: ObservableObject {
     @Published var currentStreak: Int = 0
     @Published var weeksActive: Int = 0
     @Published var weeklyWorkoutCount: Int = 0
-    @Published var weeklyWorkoutVolume: String = "0 lb"
+    @Published var weeklyWorkMetricTitle: String = "Volume"
+    @Published var weeklyWorkMetricValue: String = "—"
+    @Published var weeklyWorkMetricSubtitle: String = "lifted"
     @Published var weeklyAverageDuration: String = "0s"
     @Published var weeklyVolume: [WeeklyVolumePoint] = []
     @Published var muscleGroupShare: [MuscleGroupShare] = []
@@ -59,16 +61,27 @@ class StatsViewModel: ObservableObject {
         totalVolume = sanitizedVolume(stats.totalVolume)
         currentStreak = stats.workoutStreak
 
+        let now = Date()
+        let thisWeekStart = Calendar.current.date(byAdding: .day, value: -7, to: now) ?? .distantPast
         let thisWeek = workoutManager.calculateWorkoutStatsFormatted(timeframe: .week)
         weeklyWorkoutCount = max(0, thisWeek.count)
-        weeklyWorkoutVolume = thisWeek.totalVolume
         weeklyAverageDuration = thisWeek.averageDuration
 
         // Use full history so long-time users don't lose older PRs/weekly activity
         // once they pass an arbitrary recent-workout cap.
         let allWorkouts = workoutManager
-            .getWorkouts(from: .distantPast, to: Date())
+            .getWorkouts(from: .distantPast, to: now)
             .filter { $0.isCompleted }
+
+        let thisWeekWorkouts = allWorkouts.filter { $0.date >= thisWeekStart }
+        let thisWeekBodyweightReps = thisWeekWorkouts.reduce(0) { $0 + $1.totalBodyweightReps }
+        weeklyWorkMetricTitle = weeklyWorkMetricTitle(totalVolume: thisWeekWorkouts.reduce(0) { $0 + sanitizedVolume($1.totalVolume) }, totalBodyweightReps: thisWeekBodyweightReps)
+        weeklyWorkMetricValue = weeklyWorkMetricValue(
+            weeklyWorkoutCount: weeklyWorkoutCount,
+            formattedVolume: thisWeek.totalVolume,
+            totalBodyweightReps: thisWeekBodyweightReps
+        )
+        weeklyWorkMetricSubtitle = weeklyWorkMetricSubtitle(totalVolume: thisWeekWorkouts.reduce(0) { $0 + sanitizedVolume($1.totalVolume) }, totalBodyweightReps: thisWeekBodyweightReps)
 
         computeWeeklyVolume(from: allWorkouts)
         computeMuscleGroupShare(from: allWorkouts)
@@ -198,6 +211,26 @@ class StatsViewModel: ObservableObject {
     }
 
     // MARK: - Helpers
+
+    func weeklyWorkMetricTitle(totalVolume: Double, totalBodyweightReps: Int) -> String {
+        sanitizedVolume(totalVolume) > 0 ? "Volume" : "Reps"
+    }
+
+    func weeklyWorkMetricValue(weeklyWorkoutCount: Int, formattedVolume: String, totalBodyweightReps: Int) -> String {
+        guard max(0, weeklyWorkoutCount) > 0 else {
+            return "—"
+        }
+
+        if totalBodyweightReps > 0, formattedVolume == "0 lb" {
+            return "\(totalBodyweightReps)"
+        }
+
+        return formattedVolume == "0 lb" ? "—" : formattedVolume
+    }
+
+    func weeklyWorkMetricSubtitle(totalVolume: Double, totalBodyweightReps: Int) -> String {
+        sanitizedVolume(totalVolume) > 0 ? "lifted" : (totalBodyweightReps > 0 ? "bodyweight" : "logged")
+    }
 
     func sanitizedVolume(_ volume: Double) -> Double {
         volume.isFinite ? max(0, volume) : 0

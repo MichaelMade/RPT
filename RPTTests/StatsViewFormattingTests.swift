@@ -40,20 +40,6 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
-    func testThisWeekVolumeValue_usesPlaceholderWhenNoRecentWorkoutsExist() {
-        XCTAssertEqual(
-            sut.thisWeekVolumeValue(weeklyWorkoutCount: 0, formattedVolume: "0 lb"),
-            "—"
-        )
-    }
-
-    func testThisWeekVolumeValue_preservesFormattedVolumeWhenRecentWorkoutsExist() {
-        XCTAssertEqual(
-            sut.thisWeekVolumeValue(weeklyWorkoutCount: 2, formattedVolume: "12.4k lb"),
-            "12.4k lb"
-        )
-    }
-
     func testThisWeekAverageDurationValue_usesPlaceholderWhenNoRecentWorkoutsExist() {
         XCTAssertEqual(
             sut.thisWeekAverageDurationValue(weeklyWorkoutCount: 0, formattedDuration: "0s"),
