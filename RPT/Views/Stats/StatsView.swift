@@ -246,7 +246,7 @@ struct StatsView: View {
                         VStack(alignment: .leading) {
                             Text(pr.exerciseName)
                                 .font(.subheadline)
-                            Text(pr.date, style: .date)
+                            Text(personalRecordDateText(for: pr.date))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -308,6 +308,22 @@ struct StatsView: View {
         }
 
         return "Finish a few completed working sets and your strongest recent performances will show up here."
+    }
+
+    func personalRecordDateText(
+        for date: Date,
+        now: Date = Date(),
+        calendar: Calendar = .current,
+        locale: Locale = .autoupdatingCurrent,
+        timeZone: TimeZone = .autoupdatingCurrent
+    ) -> String {
+        WorkoutRow.relativeDateText(
+            for: date,
+            now: now,
+            calendar: calendar,
+            locale: locale,
+            timeZone: timeZone
+        )
     }
 
     func formattedTotal(_ volume: Double) -> String {

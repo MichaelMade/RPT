@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished Stats `Recent Personal Records` glanceability by switching PR dates over to the same relative, time-aware labels already used on Home and Workout Detail (for example `Today • 9:45 AM` / `Yesterday • 8:00 AM`), so recent achievements are faster to scan at a glance; added regression coverage in `StatsViewFormattingTests`.
 - Added a `This Week` snapshot to the Stats screen so users can immediately see last-7-days workout count, total lifted volume, and average workout time before drilling into the longer-term charts; added regression coverage for the new summary copy in `StatsViewFormattingTests`.
 - Fixed a Home draft-resume edge case so the `Continue Workout` path now uses the shared discard-aware resume rules instead of only checking whether a draft is incomplete; this prevents previously discarded in-memory drafts from resurfacing after state restoration when a newer eligible draft exists, and adds regression coverage in `HomeViewModelTests`.
 - Improved Home draft recovery by adding a `Start Fresh Instead` path whenever a resumable workout exists, with clear save/discard/continue options that let users begin a new session without first hunting through template flows or losing track of the existing draft; added regression coverage in `HomeViewModelTests` for the new guidance copy.

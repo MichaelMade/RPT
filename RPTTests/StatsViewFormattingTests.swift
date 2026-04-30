@@ -61,6 +61,68 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
+    func testPersonalRecordDateText_usesRelativeTodayLabel() {
+        var calendar = Calendar(identifier: .gregorian)
+        let locale = Locale(identifier: "en_US_POSIX")
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+
+        let now = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 4,
+            day: 30,
+            hour: 19,
+            minute: 20
+        ).date!
+        let date = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 4,
+            day: 30,
+            hour: 9,
+            minute: 45
+        ).date!
+
+        XCTAssertEqual(
+            sut.personalRecordDateText(for: date, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
+            "Today • 9:45 AM"
+        )
+    }
+
+    func testPersonalRecordDateText_usesRelativeYesterdayLabel() {
+        var calendar = Calendar(identifier: .gregorian)
+        let locale = Locale(identifier: "en_US_POSIX")
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+
+        let now = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 4,
+            day: 30,
+            hour: 19,
+            minute: 20
+        ).date!
+        let date = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 4,
+            day: 29,
+            hour: 8,
+            minute: 0
+        ).date!
+
+        XCTAssertEqual(
+            sut.personalRecordDateText(for: date, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
+            "Yesterday • 8:00 AM"
+        )
+    }
+
     func testFormattedTotal_doesNotPromoteSubThousandNearThreshold() {
         XCTAssertEqual(sut.formattedTotal(999.95), "999 lb")
     }
