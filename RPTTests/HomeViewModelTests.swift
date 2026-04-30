@@ -456,6 +456,20 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(progress, "1 of 2 exercises started", "Progress text should show how much of a multi-exercise draft already has logged work")
     }
 
+    func testResumableWorkoutProgressText_countsWarmupOnlyExerciseAsStarted() {
+        let workout = Workout(name: "Push Day")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back])
+
+        _ = workout.addSet(exercise: bench, weight: 45, reps: 10, isWarmup: true)
+        let rowSet = workout.addSet(exercise: row, weight: 135, reps: 10)
+        rowSet.completedAt = .distantPast
+
+        let progress = viewModel.resumableWorkoutProgressText(for: workout)
+
+        XCTAssertEqual(progress, "1 of 2 exercises started", "Progress text should treat warmup-only logged work as a started exercise instead of claiming nothing has begun")
+    }
+
     func testWorkoutStartedSummary_clampsFutureDatesToJustNow() {
         let now = Date(timeIntervalSince1970: 1_000)
         let futureStart = now.addingTimeInterval(600)

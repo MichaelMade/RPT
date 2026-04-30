@@ -127,7 +127,7 @@ class HomeViewModel: ObservableObject {
     func startedExerciseCount(for workout: Workout) -> Int {
         Set(
             workout.sets
-                .filter(\.isCompletedWorkingSet)
+                .filter(\.isCompletedLoggedSet)
                 .compactMap { $0.exercise }
         ).count
     }

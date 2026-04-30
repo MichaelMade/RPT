@@ -61,8 +61,12 @@ final class ExerciseSet {
         Self.hasCompletedValues(weight: weight, reps: reps, exerciseCategory: exercise?.category)
     }
 
+    var isCompletedLoggedSet: Bool {
+        hasCompletedValues && completedAt != .distantPast
+    }
+
     var isCompletedWorkingSet: Bool {
-        !isWarmup && hasCompletedValues && completedAt != .distantPast
+        !isWarmup && isCompletedLoggedSet
     }
 
     /// Returns true when this set should rank above another set for "best set" selection.
