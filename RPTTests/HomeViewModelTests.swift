@@ -388,6 +388,23 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertNil(resolved, "Should clear the active binding when neither the current binding nor stored fallback is resumable")
     }
 
+    func testShouldReloadAfterWorkoutSheetPresentationChange_onlyOnDismiss() {
+        XCTAssertTrue(
+            viewModel.shouldReloadAfterWorkoutSheetPresentationChange(from: true, to: false),
+            "Closing the active workout sheet should trigger a Home refresh so recent workouts and stats stay current"
+        )
+
+        XCTAssertFalse(
+            viewModel.shouldReloadAfterWorkoutSheetPresentationChange(from: false, to: true),
+            "Opening the active workout sheet should not eagerly reload Home state"
+        )
+
+        XCTAssertFalse(
+            viewModel.shouldReloadAfterWorkoutSheetPresentationChange(from: false, to: false),
+            "No-op sheet state changes should not trigger a Home refresh"
+        )
+    }
+
     func testResumableWorkoutSummary_includesTemplateCountsAndStartedProgress() {
         let startDate = Date(timeIntervalSince1970: 0)
         let now = startDate.addingTimeInterval(2 * 3600)

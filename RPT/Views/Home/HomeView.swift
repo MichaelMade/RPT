@@ -263,13 +263,24 @@ struct HomeView: View {
                 WorkoutDetailView(workout: workout)
             }
             .onAppear {
-                viewModel.loadRecentWorkouts()
-                activeWorkoutBinding = viewModel.resolvedActiveWorkoutBinding(
-                    currentBinding: activeWorkoutBinding,
-                    storedWorkout: viewModel.currentWorkout
-                )
+                reloadHomeState()
+            }
+            .onChange(of: showActiveWorkoutSheet) { oldValue, newValue in
+                guard viewModel.shouldReloadAfterWorkoutSheetPresentationChange(from: oldValue, to: newValue) else {
+                    return
+                }
+
+                reloadHomeState()
             }
         }
+    }
+
+    private func reloadHomeState() {
+        viewModel.loadRecentWorkouts()
+        activeWorkoutBinding = viewModel.resolvedActiveWorkoutBinding(
+            currentBinding: activeWorkoutBinding,
+            storedWorkout: viewModel.currentWorkout
+        )
     }
 }
 

@@ -72,6 +72,10 @@ class HomeViewModel: ObservableObject {
 
         return nil
     }
+
+    func shouldReloadAfterWorkoutSheetPresentationChange(from oldValue: Bool, to newValue: Bool) -> Bool {
+        oldValue && !newValue
+    }
     
     func weeklyWorkoutCount() -> Int {
         let stats = workoutManager.calculateWorkoutStats(timeframe: .week)

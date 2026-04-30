@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Home-state refresh after closing the active workout sheet, so finishing or discarding a workout now immediately refreshes `Progress Snapshot`, `Last 7 Days`, and `Recent Workouts` instead of leaving stale pre-workout data on screen until Home is reopened; added regression coverage in `HomeViewModelTests`.
 - Fixed a Home-screen resume-state bug where reopening Home could overwrite an already active in-progress workout with a different stored draft; Home now preserves the current active binding whenever it is still resumable and only falls back to stored state when needed, with regression coverage in `HomeViewModelTests`.
 - Improved exercise-library and exercise-picker search breadth so queries can now match muscle-group and category terms like `chest`, `lower back`, or `compound` in addition to exercise names, while still keeping exact/prefix name matches ranked first; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Fixed resumable-workout restore selection so Home and Templates now scan all incomplete drafts and pick the first truly resumable one instead of stopping at a single newest draft. This prevents an older valid workout from getting stranded when a newer incomplete draft was already discarded or otherwise non-resumable; added regression coverage in `WorkoutStateManagerTests`.
