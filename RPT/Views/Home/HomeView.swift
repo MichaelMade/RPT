@@ -13,6 +13,8 @@ struct HomeView: View {
     @State private var showingRPTCalculator = false
     @State private var showingPlateCalculator = false
     @State private var selectedWorkout: Workout?
+    @State private var showingStartFreshAlert = false
+    @State private var resumableWorkoutToReplace: Workout?
     @StateObject private var workoutStateManager = WorkoutStateManager.shared
     
     // Bindings for active workout
@@ -104,6 +106,17 @@ struct HomeView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(Color(UIColor.secondarySystemBackground))
                             .cornerRadius(12)
+
+                            Button {
+                                resumableWorkoutToReplace = resumableWorkout
+                                showingStartFreshAlert = true
+                            } label: {
+                                Label("Start Fresh Instead", systemImage: "plus.circle")
+                                    .font(.subheadline.weight(.semibold))
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.blue)
                         }
                     }
                     .padding(.horizontal)
@@ -284,6 +297,31 @@ struct HomeView: View {
             .navigationDestination(item: $selectedWorkout) { workout in
                 WorkoutDetailView(workout: workout)
             }
+            .alert("Start a New Workout?", isPresented: $showingStartFreshAlert) {
+                Button("Save & Start New Workout") {
+                    saveCurrentWorkoutAndStartFresh()
+                }
+
+                Button("Discard & Start New Workout", role: .destructive) {
+                    discardCurrentWorkoutAndStartFresh()
+                }
+
+                Button("Continue Workout") {
+                    if let resumableWorkoutToReplace {
+                        activeWorkoutBinding = resumableWorkoutToReplace
+                        showActiveWorkoutSheet = true
+                    }
+                    resumableWorkoutToReplace = nil
+                }
+
+                Button("Cancel", role: .cancel) {
+                    resumableWorkoutToReplace = nil
+                }
+            } message: {
+                if let resumableWorkoutToReplace {
+                    Text(viewModel.startFreshWorkoutMessage(for: resumableWorkoutToReplace))
+                }
+            }
             .onAppear {
                 reloadHomeState()
             }
@@ -303,6 +341,31 @@ struct HomeView: View {
             currentBinding: activeWorkoutBinding,
             storedWorkout: viewModel.currentWorkout
         )
+    }
+
+    private func startFreshWorkout() {
+        viewModel.startNewWorkout()
+        workoutStateManager.clearDiscardedState()
+        activeWorkoutBinding = viewModel.currentWorkout
+        showActiveWorkoutSheet = true
+        resumableWorkoutToReplace = nil
+    }
+
+    private func saveCurrentWorkoutAndStartFresh() {
+        guard let resumableWorkoutToReplace else { return }
+
+        _ = WorkoutManager.shared.saveWorkoutSafely(resumableWorkoutToReplace)
+        activeWorkoutBinding = nil
+        workoutStateManager.markWorkoutAsSaved(resumableWorkoutToReplace.id)
+        startFreshWorkout()
+    }
+
+    private func discardCurrentWorkoutAndStartFresh() {
+        guard let resumableWorkoutToReplace else { return }
+
+        _ = WorkoutManager.shared.deleteWorkoutSafely(resumableWorkoutToReplace)
+        activeWorkoutBinding = nil
+        startFreshWorkout()
     }
 }
 

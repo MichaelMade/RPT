@@ -458,6 +458,34 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(summary, "Started 15m ago • 2 exercises • 2 sets • No exercises started yet", "Summary should distinguish planned template drafts from workouts with logged work")
     }
 
+    func testStartFreshWorkoutMessage_includesCurrentDraftSummary() {
+        let startDate = Date(timeIntervalSince1970: 0)
+        let now = startDate.addingTimeInterval(30 * 60)
+        let workout = Workout(date: startDate, name: "Upper A")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        workout.addSet(exercise: bench, weight: 185, reps: 8)
+
+        let message = viewModel.startFreshWorkoutMessage(for: workout, now: now)
+
+        XCTAssertEqual(
+            message,
+            "You already have Started 30m ago • 1 exercise • 1 set • Exercise started. Save it for later, discard it, or keep going.",
+            "Start-fresh guidance should reuse the resumable-workout summary so users know exactly what draft they are about to replace"
+        )
+    }
+
+    func testStartFreshWorkoutMessage_emptyDraftExplainsOptions() {
+        let workout = Workout(date: Date(timeIntervalSince1970: 0), name: "Draft")
+
+        let message = viewModel.startFreshWorkoutMessage(for: workout, now: Date(timeIntervalSince1970: 10))
+
+        XCTAssertEqual(
+            message,
+            "You already have Started just now • No exercises added yet. Save it for later, discard it, or keep going.",
+            "Start-fresh guidance should stay clear even when the existing draft has no exercises yet"
+        )
+    }
+
     func testResumableWorkoutProgressText_partialWorkoutShowsStartedExerciseCount() {
         let workout = Workout(name: "Push Day")
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

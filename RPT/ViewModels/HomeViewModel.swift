@@ -220,6 +220,10 @@ class HomeViewModel: ObservableObject {
         )
     }
 
+    func startFreshWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
+        "You already have \(resumableWorkoutSummary(for: workout, now: now)). Save it for later, discard it, or keep going."
+    }
+
     func shouldResumeIncompleteWorkout(workoutDate: Date?, discardTimestamp: Date?, wasAnyWorkoutDiscarded: Bool) -> Bool {
         guard let workoutDate else { return false }
 
