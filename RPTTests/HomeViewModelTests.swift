@@ -14,10 +14,12 @@ final class HomeViewModelTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
+        WorkoutStateManager.shared.clearDiscardedState()
         viewModel = HomeViewModel()
     }
     
     override func tearDown() {
+        WorkoutStateManager.shared.clearDiscardedState()
         viewModel = nil
         super.tearDown()
     }
@@ -368,6 +370,35 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertFalse(canContinue, "Should not continue when both active and stored workouts are already completed")
     }
 
+    func testResumableWorkout_skipsDiscardedActiveBindingAndFallsBackToNewerStoredDraft() {
+        let discardTime = Date()
+        let discardedActiveWorkout = Workout(date: discardTime.addingTimeInterval(-120), name: "Discarded Active", isCompleted: false)
+        let storedWorkout = Workout(date: discardTime.addingTimeInterval(120), name: "Stored Draft", isCompleted: false)
+        viewModel.currentWorkout = storedWorkout
+
+        let workoutStateManager = WorkoutStateManager.shared
+        workoutStateManager.markWorkoutAsDiscarded(discardedActiveWorkout.id)
+        workoutStateManager.discardTimestamp = discardTime
+
+        let resumable = viewModel.resumableWorkout(activeWorkout: discardedActiveWorkout)
+
+        XCTAssertTrue(resumable === storedWorkout, "Should ignore an incomplete binding that predates the discard timestamp and fall back to a newer eligible draft")
+    }
+
+    func testCanContinueWorkout_returnsFalseWhenOnlyDiscardedIncompleteWorkoutExists() {
+        let discardTime = Date()
+        let discardedStoredWorkout = Workout(date: discardTime.addingTimeInterval(-60), name: "Discarded Draft", isCompleted: false)
+        viewModel.currentWorkout = discardedStoredWorkout
+
+        let workoutStateManager = WorkoutStateManager.shared
+        workoutStateManager.markWorkoutAsDiscarded(discardedStoredWorkout.id)
+        workoutStateManager.discardTimestamp = discardTime
+
+        let canContinue = viewModel.canContinueWorkout(activeWorkout: nil)
+
+        XCTAssertFalse(canContinue, "Should not offer Continue Workout when the only incomplete draft was already discarded")
+    }
+
     func testResolvedActiveWorkoutBinding_prefersExistingIncompleteBinding() {
         let activeWorkout = Workout(name: "Current Active")
         let storedWorkout = Workout(name: "Stored Draft")
@@ -402,6 +433,23 @@ final class HomeViewModelTests: XCTestCase {
         )
 
         XCTAssertNil(resolved, "Should clear the active binding when neither the current binding nor stored fallback is resumable")
+    }
+
+    func testResolvedActiveWorkoutBinding_skipsDiscardedBindingAndRecoversNewerStoredDraft() {
+        let discardTime = Date()
+        let discardedBinding = Workout(date: discardTime.addingTimeInterval(-120), name: "Discarded Binding", isCompleted: false)
+        let storedWorkout = Workout(date: discardTime.addingTimeInterval(120), name: "Recovered Draft", isCompleted: false)
+
+        let workoutStateManager = WorkoutStateManager.shared
+        workoutStateManager.markWorkoutAsDiscarded(discardedBinding.id)
+        workoutStateManager.discardTimestamp = discardTime
+
+        let resolved = viewModel.resolvedActiveWorkoutBinding(
+            currentBinding: discardedBinding,
+            storedWorkout: storedWorkout
+        )
+
+        XCTAssertTrue(resolved === storedWorkout, "Should replace a discarded in-memory binding with a newer eligible stored draft")
     }
 
     func testShouldReloadAfterWorkoutSheetPresentationChange_onlyOnDismiss() {

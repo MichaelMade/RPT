@@ -46,11 +46,13 @@ class HomeViewModel: ObservableObject {
     }
 
     func resumableWorkout(activeWorkout: Workout?) -> Workout? {
-        if let activeWorkout, !activeWorkout.isCompleted {
+        let workoutStateManager = WorkoutStateManager.shared
+
+        if workoutStateManager.shouldResume(activeWorkout) {
             return activeWorkout
         }
 
-        if let currentWorkout, !currentWorkout.isCompleted {
+        if workoutStateManager.shouldResume(currentWorkout) {
             return currentWorkout
         }
 
@@ -62,15 +64,10 @@ class HomeViewModel: ObservableObject {
     }
 
     func resolvedActiveWorkoutBinding(currentBinding: Workout?, storedWorkout: Workout?) -> Workout? {
-        if let currentBinding, !currentBinding.isCompleted {
-            return currentBinding
-        }
-
-        if let storedWorkout, !storedWorkout.isCompleted {
-            return storedWorkout
-        }
-
-        return nil
+        WorkoutStateManager.shared.resolvedResumableWorkout(
+            currentBinding: currentBinding,
+            fallbackWorkouts: [storedWorkout].compactMap { $0 }
+        )
     }
 
     func shouldReloadAfterWorkoutSheetPresentationChange(from oldValue: Bool, to newValue: Bool) -> Bool {
