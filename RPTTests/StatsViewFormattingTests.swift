@@ -15,6 +15,31 @@ final class StatsViewFormattingTests: XCTestCase {
         super.tearDown()
     }
 
+    func testThisWeekSummaryMessage_encouragesFirstWorkoutWhenNoHistoryExists() {
+        XCTAssertEqual(
+            sut.thisWeekSummaryMessage(totalWorkouts: 0, weeklyWorkoutCount: 0),
+            "Finish a workout to start this week’s trend"
+        )
+    }
+
+    func testThisWeekSummaryMessage_explainsWhenReturningUserHasNoRecentWorkouts() {
+        XCTAssertEqual(
+            sut.thisWeekSummaryMessage(totalWorkouts: 5, weeklyWorkoutCount: 0),
+            "No completed workouts in the last 7 days"
+        )
+    }
+
+    func testThisWeekSummaryMessage_usesSingularAndPluralWorkoutCopy() {
+        XCTAssertEqual(
+            sut.thisWeekSummaryMessage(totalWorkouts: 5, weeklyWorkoutCount: 1),
+            "1 workout in the last 7 days"
+        )
+        XCTAssertEqual(
+            sut.thisWeekSummaryMessage(totalWorkouts: 5, weeklyWorkoutCount: 3),
+            "3 workouts in the last 7 days"
+        )
+    }
+
     func testWeeklyVolumeEmptyStateMessage_explainsMissingRecentWindow() {
         XCTAssertEqual(
             sut.weeklyVolumeEmptyStateMessage(totalWorkouts: 3),

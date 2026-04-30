@@ -15,6 +15,7 @@ struct StatsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     headlineCards
+                    thisWeekSnapshot
 
                     if viewModel.totalWorkouts == 0 {
                         emptyStateCard
@@ -67,6 +68,51 @@ struct StatsView: View {
                 tint: .green
             )
         }
+    }
+
+    // MARK: - This week snapshot
+
+    private var thisWeekSnapshot: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("This Week")
+                    .font(.headline)
+
+                Spacer()
+
+                Text(thisWeekSummaryMessage(totalWorkouts: viewModel.totalWorkouts, weeklyWorkoutCount: viewModel.weeklyWorkoutCount))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            HStack(spacing: 12) {
+                StatTile(
+                    icon: "calendar.badge.clock",
+                    title: "Workouts",
+                    value: "\(viewModel.weeklyWorkoutCount)",
+                    subtitle: "last 7 days",
+                    tint: .blue
+                )
+                StatTile(
+                    icon: "scalemass",
+                    title: "Volume",
+                    value: viewModel.weeklyWorkoutVolume,
+                    subtitle: "lifted",
+                    tint: .purple
+                )
+                StatTile(
+                    icon: "clock",
+                    title: "Avg Time",
+                    value: viewModel.weeklyAverageDuration,
+                    subtitle: "per workout",
+                    tint: .green
+                )
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
     }
 
     // MARK: - Empty state
@@ -225,6 +271,20 @@ struct StatsView: View {
     }
 
     // MARK: - Helpers
+
+    func thisWeekSummaryMessage(totalWorkouts: Int, weeklyWorkoutCount: Int) -> String {
+        let safeWeeklyCount = max(0, weeklyWorkoutCount)
+
+        guard safeWeeklyCount > 0 else {
+            return totalWorkouts > 0
+                ? "No completed workouts in the last 7 days"
+                : "Finish a workout to start this week’s trend"
+        }
+
+        return safeWeeklyCount == 1
+            ? "1 workout in the last 7 days"
+            : "\(safeWeeklyCount) workouts in the last 7 days"
+    }
 
     func weeklyVolumeEmptyStateMessage(totalWorkouts: Int) -> String {
         guard totalWorkouts > 0 else {

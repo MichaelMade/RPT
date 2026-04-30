@@ -38,6 +38,9 @@ class StatsViewModel: ObservableObject {
     @Published var totalVolume: Double = 0
     @Published var currentStreak: Int = 0
     @Published var weeksActive: Int = 0
+    @Published var weeklyWorkoutCount: Int = 0
+    @Published var weeklyWorkoutVolume: String = "0 lb"
+    @Published var weeklyAverageDuration: String = "0s"
     @Published var weeklyVolume: [WeeklyVolumePoint] = []
     @Published var muscleGroupShare: [MuscleGroupShare] = []
     @Published var recentPRs: [PersonalRecord] = []
@@ -55,6 +58,11 @@ class StatsViewModel: ObservableObject {
         totalWorkouts = stats.totalWorkouts
         totalVolume = sanitizedVolume(stats.totalVolume)
         currentStreak = stats.workoutStreak
+
+        let thisWeek = workoutManager.calculateWorkoutStatsFormatted(timeframe: .week)
+        weeklyWorkoutCount = max(0, thisWeek.count)
+        weeklyWorkoutVolume = thisWeek.totalVolume
+        weeklyAverageDuration = thisWeek.averageDuration
 
         // Use full history so long-time users don't lose older PRs/weekly activity
         // once they pass an arbitrary recent-workout cap.

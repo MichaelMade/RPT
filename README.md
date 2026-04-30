@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Added a `This Week` snapshot to the Stats screen so users can immediately see last-7-days workout count, total lifted volume, and average workout time before drilling into the longer-term charts; added regression coverage for the new summary copy in `StatsViewFormattingTests`.
 - Fixed a Home draft-resume edge case so the `Continue Workout` path now uses the shared discard-aware resume rules instead of only checking whether a draft is incomplete; this prevents previously discarded in-memory drafts from resurfacing after state restoration when a newer eligible draft exists, and adds regression coverage in `HomeViewModelTests`.
 - Improved Home draft recovery by adding a `Start Fresh Instead` path whenever a resumable workout exists, with clear save/discard/continue options that let users begin a new session without first hunting through template flows or losing track of the existing draft; added regression coverage in `HomeViewModelTests` for the new guidance copy.
 - Fixed Templates draft-protection coverage so opening a template now also checks persisted resumable workouts, not just the current in-memory binding, before letting a new workout path continue; this prevents template browsing from silently bypassing an existing draft after state restoration hiccups, and added regression coverage in `WorkoutStateManagerTests`.
