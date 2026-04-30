@@ -60,6 +60,18 @@ class HomeViewModel: ObservableObject {
     func canContinueWorkout(activeWorkout: Workout?) -> Bool {
         resumableWorkout(activeWorkout: activeWorkout) != nil
     }
+
+    func resolvedActiveWorkoutBinding(currentBinding: Workout?, storedWorkout: Workout?) -> Workout? {
+        if let currentBinding, !currentBinding.isCompleted {
+            return currentBinding
+        }
+
+        if let storedWorkout, !storedWorkout.isCompleted {
+            return storedWorkout
+        }
+
+        return nil
+    }
     
     func weeklyWorkoutCount() -> Int {
         let stats = workoutManager.calculateWorkoutStats(timeframe: .week)

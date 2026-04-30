@@ -264,7 +264,10 @@ struct HomeView: View {
             }
             .onAppear {
                 viewModel.loadRecentWorkouts()
-                activeWorkoutBinding = viewModel.currentWorkout
+                activeWorkoutBinding = viewModel.resolvedActiveWorkoutBinding(
+                    currentBinding: activeWorkoutBinding,
+                    storedWorkout: viewModel.currentWorkout
+                )
             }
         }
     }

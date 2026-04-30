@@ -352,6 +352,42 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertFalse(canContinue, "Should not continue when both active and stored workouts are already completed")
     }
 
+    func testResolvedActiveWorkoutBinding_prefersExistingIncompleteBinding() {
+        let activeWorkout = Workout(name: "Current Active")
+        let storedWorkout = Workout(name: "Stored Draft")
+
+        let resolved = viewModel.resolvedActiveWorkoutBinding(
+            currentBinding: activeWorkout,
+            storedWorkout: storedWorkout
+        )
+
+        XCTAssertTrue(resolved === activeWorkout, "Should preserve the current active binding instead of overwriting it with a stored fallback")
+    }
+
+    func testResolvedActiveWorkoutBinding_fallsBackToStoredIncompleteWorkout() {
+        let storedWorkout = Workout(name: "Stored Draft")
+        let completedBinding = Workout(name: "Completed Active", isCompleted: true)
+
+        let resolved = viewModel.resolvedActiveWorkoutBinding(
+            currentBinding: completedBinding,
+            storedWorkout: storedWorkout
+        )
+
+        XCTAssertTrue(resolved === storedWorkout, "Should recover the stored incomplete workout when the current binding is missing or already completed")
+    }
+
+    func testResolvedActiveWorkoutBinding_returnsNilWhenNoIncompleteWorkoutExists() {
+        let completedBinding = Workout(name: "Completed Active", isCompleted: true)
+        let completedStoredWorkout = Workout(name: "Completed Stored", isCompleted: true)
+
+        let resolved = viewModel.resolvedActiveWorkoutBinding(
+            currentBinding: completedBinding,
+            storedWorkout: completedStoredWorkout
+        )
+
+        XCTAssertNil(resolved, "Should clear the active binding when neither the current binding nor stored fallback is resumable")
+    }
+
     func testResumableWorkoutSummary_includesTemplateCountsAndStartedProgress() {
         let startDate = Date(timeIntervalSince1970: 0)
         let now = startDate.addingTimeInterval(2 * 3600)

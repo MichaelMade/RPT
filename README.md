@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed a Home-screen resume-state bug where reopening Home could overwrite an already active in-progress workout with a different stored draft; Home now preserves the current active binding whenever it is still resumable and only falls back to stored state when needed, with regression coverage in `HomeViewModelTests`.
 - Improved exercise-library and exercise-picker search breadth so queries can now match muscle-group and category terms like `chest`, `lower back`, or `compound` in addition to exercise names, while still keeping exact/prefix name matches ranked first; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Fixed resumable-workout restore selection so Home and Templates now scan all incomplete drafts and pick the first truly resumable one instead of stopping at a single newest draft. This prevents an older valid workout from getting stranded when a newer incomplete draft was already discarded or otherwise non-resumable; added regression coverage in `WorkoutStateManagerTests`.
 - Improved Exercise Library first-run recovery by distinguishing a truly empty library from a zero-result search/filter state, so empty libraries now keep the `No Exercises Yet` onboarding copy and surface a one-tap `Add Custom Exercise` action instead of misleading `No Matching Exercises` messaging; added regression coverage in `ExerciseLibraryViewModelTests`.
