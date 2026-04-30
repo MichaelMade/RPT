@@ -1,5 +1,7 @@
 # RPT
 
+- Polished the Stats `This Week` snapshot so `Volume` and `Avg Time` now show an em dash instead of misleading `0 lb` / `0s` when there are no completed workouts in the last 7 days, making empty recent windows read as “no data yet” instead of fake zero-performance stats; added regression coverage in `StatsViewFormattingTests`.
+
 Reverse Pyramid Training (RPT) iOS App
 
 RPT is a SwiftUI-based iOS application designed to help athletes plan and track strength workouts using the Reverse Pyramid Training methodology. The app leverages SwiftData for local persistence and follows a modular MVVM architecture.
