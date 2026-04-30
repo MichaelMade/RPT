@@ -301,6 +301,22 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertTrue(resolved[1] === historySecond, "Should include next most-recent completed workout from full history fallback")
     }
 
+    func testRecentWorkoutsEmptyState_withoutDraftEncouragesFirstCompletion() {
+        let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: nil)
+
+        XCTAssertEqual(emptyState.title, "No recent workouts yet")
+        XCTAssertEqual(emptyState.subtitle, "Complete a workout and your latest sessions will show up here for quick review.")
+    }
+
+    func testRecentWorkoutsEmptyState_withResumableDraftExplainsWhyHistoryIsEmpty() {
+        let draft = Workout(name: "Draft Workout", isCompleted: false)
+
+        let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
+
+        XCTAssertEqual(emptyState.title, "No completed workouts yet")
+        XCTAssertEqual(emptyState.subtitle, "Finish your current workout to see it show up here with your latest stats.")
+    }
+
     // MARK: - Continue Workout Resolution
 
     func testCanContinueWorkout_withCurrentWorkoutAndNoActiveBinding() {

@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Improved Home empty-state guidance under `Recent Workouts` by keeping the section visible even before the first completed session, with copy that distinguishes a true first-run state from an in-progress draft that still needs to be finished; added regression coverage in `HomeViewModelTests`.
 - Fixed Home `Continue Workout` progress summaries so exercises with only logged warmup work now still count as `started`, preventing resumable drafts from incorrectly claiming `No exercises started yet` after the user has already begun warming up; added regression coverage in `HomeViewModelTests`.
 - Improved Home `Recent Workouts` / resumable-workout set counts so rows now fall back to non-warmup logged sets before counting warmups when no completed working sets exist yet, preventing warmup-only scaffolding from inflating visible set totals in draft or legacy sessions; added regression coverage in `FormattingTests`.
 - Fixed Home-state refresh after closing the active workout sheet, so finishing or discarding a workout now immediately refreshes `Progress Snapshot`, `Last 7 Days`, and `Recent Workouts` instead of leaving stale pre-workout data on screen until Home is reopened; added regression coverage in `HomeViewModelTests`.

@@ -206,6 +206,20 @@ class HomeViewModel: ObservableObject {
         return completedRecentWorkouts(from: allWorkouts, limit: limit)
     }
 
+    func recentWorkoutsEmptyState(activeWorkout: Workout?) -> (title: String, subtitle: String) {
+        if resumableWorkout(activeWorkout: activeWorkout) != nil {
+            return (
+                title: "No completed workouts yet",
+                subtitle: "Finish your current workout to see it show up here with your latest stats."
+            )
+        }
+
+        return (
+            title: "No recent workouts yet",
+            subtitle: "Complete a workout and your latest sessions will show up here for quick review."
+        )
+    }
+
     func shouldResumeIncompleteWorkout(workoutDate: Date?, discardTimestamp: Date?, wasAnyWorkoutDiscarded: Bool) -> Bool {
         guard let workoutDate else { return false }
 

@@ -230,13 +230,35 @@ struct HomeView: View {
                     }
 
                     // Recent workouts section
-                    if !viewModel.recentWorkouts.isEmpty {
-                        VStack(alignment: .leading) {
-                            Text("Recent Workouts")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .padding(.horizontal)
-                            
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Recent Workouts")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .padding(.horizontal)
+
+                        if viewModel.recentWorkouts.isEmpty {
+                            let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: activeWorkoutBinding)
+
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "clock.badge.exclamationmark")
+                                        .font(.title3)
+                                        .foregroundColor(.orange)
+
+                                    Text(emptyState.title)
+                                        .font(.headline)
+                                }
+
+                                Text(emptyState.subtitle)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+                        } else {
                             ForEach(viewModel.recentWorkouts) { workout in
                                 Button(action: {
                                     selectedWorkout = workout
