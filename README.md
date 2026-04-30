@@ -61,6 +61,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Templates draft-protection coverage so opening a template now also checks persisted resumable workouts, not just the current in-memory binding, before letting a new workout path continue; this prevents template browsing from silently bypassing an existing draft after state restoration hiccups, and added regression coverage in `WorkoutStateManagerTests`.
 - Improved Home empty-state guidance under `Recent Workouts` by keeping the section visible even before the first completed session, with copy that distinguishes a true first-run state from an in-progress draft that still needs to be finished; added regression coverage in `HomeViewModelTests`.
 - Fixed Home `Continue Workout` progress summaries so exercises with only logged warmup work now still count as `started`, preventing resumable drafts from incorrectly claiming `No exercises started yet` after the user has already begun warming up; added regression coverage in `HomeViewModelTests`.
 - Improved Home `Recent Workouts` / resumable-workout set counts so rows now fall back to non-warmup logged sets before counting warmups when no completed working sets exist yet, preventing warmup-only scaffolding from inflating visible set totals in draft or legacy sessions; added regression coverage in `FormattingTests`.

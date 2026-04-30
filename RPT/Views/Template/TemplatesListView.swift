@@ -21,6 +21,7 @@ struct TemplatesListView: View {
     // State for active workout handling
     @State private var showingActiveWorkoutAlert = false
     @State private var templateToStartWorkout: WorkoutTemplate?
+    @State private var resumableWorkoutToProtect: Workout?
     
     // Bindings for active workout
     @Binding var activeWorkoutBinding: Workout?
@@ -82,14 +83,11 @@ struct TemplatesListView: View {
                 } else {
                     ForEach(filteredTemplates) { template in
                         Button(action: {
-                            // Check if there's an active workout before proceeding
-                            if activeWorkoutBinding != nil {
-                                // Store the template we want to use
+                            if let resumableWorkout = protectedResumableWorkout() {
+                                resumableWorkoutToProtect = resumableWorkout
                                 templateToStartWorkout = template
-                                // Show active workout confirmation
                                 showingActiveWorkoutAlert = true
                             } else {
-                                // Proceed normally if no active workout
                                 selectedTemplate = template
                                 currentAction = .detail
                             }
@@ -189,7 +187,7 @@ struct TemplatesListView: View {
             // Alert shown when user taps a template while an active workout is in progress.
             .alert("Active Workout In Progress", isPresented: $showingActiveWorkoutAlert) {
                 Button("Save & Continue Later") {
-                    if let workout = activeWorkoutBinding {
+                    if let workout = resumableWorkoutToProtect {
                         _ = WorkoutManager.shared.saveWorkoutSafely(workout)
                         activeWorkoutBinding = nil
                         WorkoutStateManager.shared.markWorkoutAsSaved(workout.id)
@@ -197,34 +195,48 @@ struct TemplatesListView: View {
                     if let template = templateToStartWorkout {
                         selectedTemplate = template
                         currentAction = .detail
-                        templateToStartWorkout = nil
                     }
+                    templateToStartWorkout = nil
+                    resumableWorkoutToProtect = nil
                 }
 
                 Button("Discard Workout", role: .destructive) {
-                    if let workout = activeWorkoutBinding {
+                    if let workout = resumableWorkoutToProtect {
                         _ = WorkoutManager.shared.deleteWorkoutSafely(workout)
                         activeWorkoutBinding = nil
                     }
                     if let template = templateToStartWorkout {
                         selectedTemplate = template
                         currentAction = .detail
-                        templateToStartWorkout = nil
                     }
+                    templateToStartWorkout = nil
+                    resumableWorkoutToProtect = nil
                 }
 
                 Button("Continue Workout") {
+                    if let workout = resumableWorkoutToProtect {
+                        activeWorkoutBinding = workout
+                    }
                     showActiveWorkoutSheet = true
                     templateToStartWorkout = nil
+                    resumableWorkoutToProtect = nil
                 }
 
                 Button("Cancel", role: .cancel) {
                     templateToStartWorkout = nil
+                    resumableWorkoutToProtect = nil
                 }
             } message: {
                 Text("You have an active workout. What would you like to do?")
             }
         }
+    }
+
+    private func protectedResumableWorkout() -> Workout? {
+        WorkoutStateManager.shared.resolvedResumableWorkout(
+            currentBinding: activeWorkoutBinding,
+            fallbackWorkouts: WorkoutManager.shared.getIncompleteWorkouts()
+        )
     }
 }
 

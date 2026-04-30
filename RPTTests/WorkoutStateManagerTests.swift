@@ -47,4 +47,30 @@ final class WorkoutStateManagerTests: XCTestCase {
 
         XCTAssertFalse(manager.shouldResume(completedWorkout), "Completed workouts should never be treated as resumable drafts")
     }
+
+    func testResolvedResumableWorkout_prefersCurrentBindingWhenEligible() {
+        let manager = WorkoutStateManager.shared
+        let currentBinding = Workout(date: Date(), name: "Current Draft", isCompleted: false)
+        let fallbackWorkout = Workout(date: Date().addingTimeInterval(60), name: "Fallback Draft", isCompleted: false)
+
+        let resolved = manager.resolvedResumableWorkout(
+            currentBinding: currentBinding,
+            fallbackWorkouts: [fallbackWorkout]
+        )
+
+        XCTAssertTrue(resolved === currentBinding, "Current in-memory draft should win when it is still resumable")
+    }
+
+    func testResolvedResumableWorkout_fallsBackToPersistedEligibleDraft() {
+        let manager = WorkoutStateManager.shared
+        let completedBinding = Workout(date: Date(), name: "Completed Binding", isCompleted: true)
+        let persistedDraft = Workout(date: Date().addingTimeInterval(60), name: "Persisted Draft", isCompleted: false)
+
+        let resolved = manager.resolvedResumableWorkout(
+            currentBinding: completedBinding,
+            fallbackWorkouts: [persistedDraft]
+        )
+
+        XCTAssertTrue(resolved === persistedDraft, "Persisted incomplete drafts should still be protected when the current binding is missing or no longer resumable")
+    }
 }

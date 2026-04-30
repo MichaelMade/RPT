@@ -104,6 +104,14 @@ class WorkoutStateManager: ObservableObject {
     func firstResumableWorkout(in workouts: [Workout]) -> Workout? {
         workouts.first(where: shouldResume)
     }
+
+    func resolvedResumableWorkout(currentBinding: Workout?, fallbackWorkouts: [Workout]) -> Workout? {
+        if shouldResume(currentBinding) {
+            return currentBinding
+        }
+
+        return firstResumableWorkout(in: fallbackWorkouts)
+    }
     
     // Clear all discard state
     func clearDiscardedState() {
