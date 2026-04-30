@@ -225,6 +225,19 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(WorkoutRow.setCountText(for: workout), "2 sets")
     }
 
+    func testWorkoutRowDisplaySetCount_fallsBackToNonWarmupSetsBeforeCountingWarmups() {
+        let workout = Workout(name: "Workout Row Fallback Set Count")
+        let exercise = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        _ = workout.addSet(exercise: exercise, weight: 45, reps: 8, isWarmup: true)
+        _ = workout.addSet(exercise: exercise, weight: 95, reps: 5, isWarmup: true)
+        _ = workout.addSet(exercise: exercise, weight: 225, reps: 0)
+        _ = workout.addSet(exercise: exercise, weight: 205, reps: 0)
+
+        XCTAssertEqual(WorkoutRow.displaySetCount(for: workout), 2)
+        XCTAssertEqual(WorkoutRow.setCountText(for: workout), "2 sets")
+    }
+
     func testWorkoutRowExerciseCountText_prefersCompletedWorkingSetExercisesWithFallback() {
         let workout = Workout(name: "Workout Row Exercise Count")
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
