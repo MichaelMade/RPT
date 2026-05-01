@@ -571,6 +571,78 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(summary, "Started just now", "Future or corrupted draft dates should fail safe instead of claiming the workout starts in the future")
     }
 
+    func testWorkoutStartedSummary_usesRelativeYesterdayLabelAcrossCalendarDayBoundary() {
+        var calendar = Calendar(identifier: .gregorian)
+        let locale = Locale(identifier: "en_US_POSIX")
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+
+        let now = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 1,
+            hour: 6,
+            minute: 0
+        ).date!
+        let startDate = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 4,
+            day: 30,
+            hour: 23,
+            minute: 0
+        ).date!
+
+        let summary = viewModel.workoutStartedSummary(
+            for: startDate,
+            now: now,
+            calendar: calendar,
+            locale: locale,
+            timeZone: timeZone
+        )
+
+        XCTAssertEqual(summary, "Started Yesterday • 11:00 PM", "Draft summaries should use calendar-aware relative labels once the workout crosses into a prior day")
+    }
+
+    func testWorkoutStartedSummary_usesReadableDateForOlderDrafts() {
+        var calendar = Calendar(identifier: .gregorian)
+        let locale = Locale(identifier: "en_US_POSIX")
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+
+        let now = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 1,
+            hour: 6,
+            minute: 0
+        ).date!
+        let startDate = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 4,
+            day: 25,
+            hour: 9,
+            minute: 15
+        ).date!
+
+        let summary = viewModel.workoutStartedSummary(
+            for: startDate,
+            now: now,
+            calendar: calendar,
+            locale: locale,
+            timeZone: timeZone
+        )
+
+        XCTAssertEqual(summary, "Started Friday • 9:15 AM", "Older resumable drafts should show a readable relative date instead of a vague day count")
+    }
+
     // MARK: - Incomplete Workout Resume Logic
 
     func testShouldResumeIncompleteWorkout_withoutDiscardState() {

@@ -1,8 +1,8 @@
 # RPT
 
+- Polished Home resumable-workout summaries so older drafts now show calendar-aware relative start labels like `Started Yesterday • 11:00 PM` or `Started Friday • 9:15 AM` instead of vague `Started 1d ago` / `Started 6d ago` copy, making it easier to judge whether a stale draft is still worth resuming.
 - Improved the template exercise picker’s zero-results recovery so it now explains when matching exercises are already in the template, and the summary calls out excluded matches instead of looking like search/filtering broke.
 - Polished the Stats `This Week` snapshot empty-state tile so weeks with no completed workouts now show a neutral `Work — last 7 days` summary instead of the misleading `Reps — logged`, keeping the card clearer for returning users between training blocks.
-- Fixed the Stats `This Week` snapshot so bodyweight-only training weeks no longer misleadingly show `0 lb`; the work tile now automatically falls back to logged bodyweight reps when no weighted volume exists, with regression coverage in `StatsViewModelTests`.
 
 Reverse Pyramid Training (RPT) iOS App
 
@@ -65,6 +65,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished Home resumable-workout summaries so drafts from prior days now switch from vague elapsed-day copy to calendar-aware labels like `Started Yesterday • 11:00 PM` or `Started Friday • 9:15 AM`, making older saved sessions easier to recognize before resuming; added regression coverage in `HomeViewModelTests`.
 - Improved the template exercise picker’s empty-state recovery so zero available results now explicitly explain when every matching exercise is already in the template, and the filtered summary calls out excluded matches (`already in template`) instead of looking like search/filtering failed; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Polished the Stats `This Week` snapshot empty-state tile so weeks with no completed workouts now show a neutral `Work — last 7 days` summary instead of the misleading `Reps — logged`, keeping the card clearer for returning users between training blocks; added regression coverage in `StatsViewModelTests`.
 - Fixed the Stats `This Week` snapshot so bodyweight-only training weeks no longer misleadingly show `0 lb`; the work tile now automatically falls back to logged bodyweight reps when no weighted volume exists, with regression coverage in `StatsViewModelTests`.

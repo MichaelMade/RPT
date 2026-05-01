@@ -129,25 +129,39 @@ class HomeViewModel: ObservableObject {
         ).count
     }
 
-    func workoutStartedSummary(for startDate: Date, now: Date = Date()) -> String {
+    func workoutStartedSummary(
+        for startDate: Date,
+        now: Date = Date(),
+        calendar: Calendar = .current,
+        locale: Locale = .autoupdatingCurrent,
+        timeZone: TimeZone = .autoupdatingCurrent
+    ) -> String {
+        var displayCalendar = calendar
+        displayCalendar.timeZone = timeZone
+
         let safeInterval = max(0, now.timeIntervalSince(startDate))
 
-        if safeInterval < 60 {
-            return "Started just now"
-        }
+        if displayCalendar.isDate(startDate, inSameDayAs: now) {
+            if safeInterval < 60 {
+                return "Started just now"
+            }
 
-        if safeInterval < 3600 {
-            let minutes = max(1, Int(floor(safeInterval / 60)))
-            return "Started \(minutes)m ago"
-        }
+            if safeInterval < 3600 {
+                let minutes = max(1, Int(floor(safeInterval / 60)))
+                return "Started \(minutes)m ago"
+            }
 
-        if safeInterval < 86_400 {
             let hours = max(1, Int(floor(safeInterval / 3600)))
             return "Started \(hours)h ago"
         }
 
-        let days = max(1, Int(floor(safeInterval / 86_400)))
-        return "Started \(days)d ago"
+        return "Started " + WorkoutRow.relativeDateText(
+            for: startDate,
+            now: now,
+            calendar: displayCalendar,
+            locale: locale,
+            timeZone: timeZone
+        )
     }
 
     func calculateWeeklyProgress() -> Double {
