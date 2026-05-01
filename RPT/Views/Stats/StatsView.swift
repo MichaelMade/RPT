@@ -55,9 +55,9 @@ struct StatsView: View {
             )
             StatTile(
                 icon: "scalemass",
-                title: "Volume",
-                value: formattedTotal(viewModel.totalVolume),
-                subtitle: "lifted",
+                title: viewModel.lifetimeWorkMetricTitle,
+                value: viewModel.lifetimeWorkMetricValue,
+                subtitle: viewModel.lifetimeWorkMetricSubtitle,
                 tint: .purple
             )
             StatTile(

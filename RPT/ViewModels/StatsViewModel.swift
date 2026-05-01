@@ -38,6 +38,9 @@ class StatsViewModel: ObservableObject {
     @Published var totalVolume: Double = 0
     @Published var currentStreak: Int = 0
     @Published var weeksActive: Int = 0
+    @Published var lifetimeWorkMetricTitle: String = "Volume"
+    @Published var lifetimeWorkMetricValue: String = "0 lb"
+    @Published var lifetimeWorkMetricSubtitle: String = "lifted"
     @Published var weeklyWorkoutCount: Int = 0
     @Published var weeklyWorkMetricTitle: String = "Volume"
     @Published var weeklyWorkMetricValue: String = "—"
@@ -74,6 +77,15 @@ class StatsViewModel: ObservableObject {
         let allWorkouts = workoutManager
             .getWorkouts(from: .distantPast, to: now)
             .filter { $0.isCompleted }
+
+        let lifetimeBodyweightReps = allWorkouts.reduce(0) { $0 + max(0, $1.totalBodyweightReps) }
+        let lifetimeWorkMetric = lifetimeWorkMetric(
+            totalVolume: totalVolume,
+            totalBodyweightReps: lifetimeBodyweightReps
+        )
+        lifetimeWorkMetricTitle = lifetimeWorkMetric.title
+        lifetimeWorkMetricValue = lifetimeWorkMetric.value
+        lifetimeWorkMetricSubtitle = lifetimeWorkMetric.subtitle
 
         let thisWeekWorkouts = allWorkouts.filter { $0.date >= thisWeekStart }
         let thisWeekBodyweightReps = thisWeekWorkouts.reduce(0) { $0 + $1.totalBodyweightReps }
@@ -223,6 +235,33 @@ class StatsViewModel: ObservableObject {
 
     // MARK: - Helpers
 
+    func lifetimeWorkMetric(totalVolume: Double, totalBodyweightReps: Int) -> (title: String, value: String, subtitle: String) {
+        let safeVolume = sanitizedVolume(totalVolume)
+        let safeBodyweightReps = max(0, totalBodyweightReps)
+
+        if safeVolume > 0 {
+            return (
+                title: "Volume",
+                value: formatVolumeForHeadline(safeVolume),
+                subtitle: "lifted"
+            )
+        }
+
+        if safeBodyweightReps > 0 {
+            return (
+                title: "Reps",
+                value: "\(safeBodyweightReps)",
+                subtitle: "bodyweight"
+            )
+        }
+
+        return (
+            title: "Volume",
+            value: "0 lb",
+            subtitle: "lifted"
+        )
+    }
+
     func weeklyWorkMetricTitle(weeklyWorkoutCount: Int, totalVolume: Double, totalBodyweightReps: Int) -> String {
         guard max(0, weeklyWorkoutCount) > 0 else {
             return "Work"
@@ -253,6 +292,31 @@ class StatsViewModel: ObservableObject {
 
     func sanitizedVolume(_ volume: Double) -> Double {
         volume.isFinite ? max(0, volume) : 0
+    }
+
+    private func formatVolumeForHeadline(_ volume: Double) -> String {
+        let safeVolume = sanitizedVolume(volume)
+        let truncatedVolume = floor(safeVolume * 10) / 10
+
+        if truncatedVolume >= 1_000_000 {
+            let millions = truncatedVolume / 1_000_000
+            let truncatedMillions = floor(millions * 10) / 10
+            let isWhole = truncatedMillions.truncatingRemainder(dividingBy: 1) == 0
+            return isWhole
+                ? "\(Int(truncatedMillions))M lb"
+                : String(format: "%.1fM lb", truncatedMillions)
+        }
+
+        if truncatedVolume >= 1000 {
+            let thousands = truncatedVolume / 1000
+            let truncatedThousands = floor(thousands * 10) / 10
+            let isWhole = truncatedThousands.truncatingRemainder(dividingBy: 1) == 0
+            return isWhole
+                ? "\(Int(truncatedThousands))k lb"
+                : String(format: "%.1fk lb", truncatedThousands)
+        }
+
+        return "\(Int(floor(truncatedVolume))) lb"
     }
 
     private func weekAnchor(for date: Date) -> Date {

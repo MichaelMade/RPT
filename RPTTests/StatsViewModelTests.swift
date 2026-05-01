@@ -156,6 +156,30 @@ final class StatsViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.sanitizedVolume(1234.5), 1234.5)
     }
 
+    func testLifetimeWorkMetric_prefersVolumeWhenWeightedWorkExists() {
+        let metric = viewModel.lifetimeWorkMetric(totalVolume: 1200, totalBodyweightReps: 40)
+
+        XCTAssertEqual(metric.title, "Volume")
+        XCTAssertEqual(metric.value, "1.2k lb")
+        XCTAssertEqual(metric.subtitle, "lifted")
+    }
+
+    func testLifetimeWorkMetric_fallsBackToBodyweightRepsWhenVolumeIsZero() {
+        let metric = viewModel.lifetimeWorkMetric(totalVolume: 0, totalBodyweightReps: 32)
+
+        XCTAssertEqual(metric.title, "Reps")
+        XCTAssertEqual(metric.value, "32")
+        XCTAssertEqual(metric.subtitle, "bodyweight")
+    }
+
+    func testLifetimeWorkMetric_clampsCorruptedInputsSafely() {
+        let metric = viewModel.lifetimeWorkMetric(totalVolume: -.infinity, totalBodyweightReps: -5)
+
+        XCTAssertEqual(metric.title, "Volume")
+        XCTAssertEqual(metric.value, "0 lb")
+        XCTAssertEqual(metric.subtitle, "lifted")
+    }
+
     func testWeeklyWorkMetric_prefersVolumeWhenWeightedWorkExists() {
         XCTAssertEqual(
             viewModel.weeklyWorkMetricTitle(
