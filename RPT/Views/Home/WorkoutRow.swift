@@ -100,6 +100,14 @@ struct WorkoutRow: View {
         return "\(count) \(count == 1 ? "set" : "sets")"
     }
 
+    static func countsFallbackText(for workout: Workout) -> String? {
+        guard workout.sets.isEmpty else {
+            return nil
+        }
+
+        return "No sets logged"
+    }
+
     static func durationMetric(for workout: Workout) -> (label: String, value: String)? {
         let safeDuration = workout.duration.isFinite ? max(0, workout.duration) : 0
 
@@ -144,16 +152,20 @@ struct WorkoutRow: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            HStack {
-                if !workout.sets.isEmpty {
+            if let countsFallbackText = Self.countsFallbackText(for: workout) {
+                Text(countsFallbackText)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } else {
+                HStack {
                     Text(Self.exerciseCountText(for: workout))
                         .font(.caption)
+
+                    Spacer()
+
+                    Text(Self.setCountText(for: workout))
+                        .font(.caption)
                 }
-                
-                Spacer()
-                
-                Text(Self.setCountText(for: workout))
-                    .font(.caption)
             }
             
             if let durationMetric = Self.durationMetric(for: workout) {

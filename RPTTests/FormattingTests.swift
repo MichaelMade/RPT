@@ -255,6 +255,17 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(WorkoutRow.setCountText(for: workout), "2 sets")
     }
 
+    func testWorkoutRowCountsFallbackText_explainsWhenNoSetsWereLogged() {
+        let emptyWorkout = Workout(name: "Imported Workout", isCompleted: true)
+        XCTAssertEqual(WorkoutRow.countsFallbackText(for: emptyWorkout), "No sets logged")
+
+        let loggedWorkout = Workout(name: "Logged Workout", isCompleted: true)
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = loggedWorkout.addSet(exercise: exercise, weight: 225, reps: 5)
+
+        XCTAssertNil(WorkoutRow.countsFallbackText(for: loggedWorkout))
+    }
+
     func testWorkoutRowDisplaySetCount_fallsBackToNonWarmupSetsBeforeCountingWarmups() {
         let workout = Workout(name: "Workout Row Fallback Set Count")
         let exercise = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])

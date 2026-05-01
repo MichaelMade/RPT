@@ -1,5 +1,6 @@
 # RPT
 
+- Polished Home `Recent Workouts` legacy/empty-history rows so completed sessions with no persisted sets now show a neutral `No sets logged` summary instead of awkward `0 sets` count noise.
 - Fixed the Stats lifetime headline for bodyweight-only training history so it now falls back to total logged bodyweight reps instead of misleadingly showing `0 lb` when no weighted volume exists.
 - Fixed relative workout date labels so Home and Stats now derive `Today` / `Yesterday` from the intended reference date instead of the device’s live current day, preventing mislabeling in historical/test-driven formatting paths.
 - Clarified Home’s `Start Fresh Instead` confirmation so it now names the draft workout being replaced and frames it as an in-progress session, reducing ambiguity before users save, discard, or continue the current workout.
@@ -68,6 +69,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished Home `Recent Workouts` legacy/empty-history rows so completed sessions with no persisted sets now show a neutral `No sets logged` summary instead of awkward `0 sets` count noise; updated `WorkoutRow` and `FormattingTests`.
 - Fixed the Stats lifetime headline for bodyweight-only users so the top-level work tile now falls back to total logged bodyweight reps instead of misleadingly showing `0 lb` when no weighted lifetime volume exists; updated `StatsViewModel`, `StatsView`, and `StatsViewModelTests`.
 - Fixed relative date-label determinism across Home and Stats by making `WorkoutRow.relativeDateText(...)` compare against the supplied reference date (`now`) instead of the device’s live current day, so formatting helpers no longer misclassify historical/test dates as `Today` / `Yesterday`; added regression coverage in `FormattingTests`.
 - Clarified Home’s `Start Fresh Instead` confirmation so it now names the in-progress draft workout in the alert copy (`You already have Upper A in progress...`) instead of only showing a detached status summary, making the replacement decision safer when multiple workout names/flows are in play; updated `HomeView`, `HomeViewModel`, and `HomeViewModelTests`.
