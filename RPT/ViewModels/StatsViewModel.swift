@@ -43,6 +43,7 @@ class StatsViewModel: ObservableObject {
     @Published var weeklyWorkMetricValue: String = "—"
     @Published var weeklyWorkMetricSubtitle: String = "lifted"
     @Published var weeklyAverageDuration: String = "0s"
+    @Published var hasWeeklyAverageDuration: Bool = false
     @Published var weeklyVolume: [WeeklyVolumePoint] = []
     @Published var muscleGroupShare: [MuscleGroupShare] = []
     @Published var recentPRs: [PersonalRecord] = []
@@ -63,9 +64,10 @@ class StatsViewModel: ObservableObject {
 
         let now = Date()
         let thisWeekStart = Calendar.current.date(byAdding: .day, value: -7, to: now) ?? .distantPast
-        let thisWeek = workoutManager.calculateWorkoutStatsFormatted(timeframe: .week)
+        let thisWeek = workoutManager.calculateWorkoutStats(timeframe: .week)
         weeklyWorkoutCount = max(0, thisWeek.count)
-        weeklyAverageDuration = thisWeek.averageDuration
+        weeklyAverageDuration = workoutManager.formatDuration(thisWeek.averageDuration)
+        hasWeeklyAverageDuration = thisWeek.averageDuration > 0
 
         // Use full history so long-time users don't lose older PRs/weekly activity
         // once they pass an arbitrary recent-workout cap.
@@ -83,7 +85,7 @@ class StatsViewModel: ObservableObject {
         )
         weeklyWorkMetricValue = weeklyWorkMetricValue(
             weeklyWorkoutCount: weeklyWorkoutCount,
-            formattedVolume: thisWeek.totalVolume,
+            formattedVolume: workoutManager.formatVolume(thisWeek.totalVolume),
             totalBodyweightReps: thisWeekBodyweightReps
         )
         weeklyWorkMetricSubtitle = weeklyWorkMetricSubtitle(

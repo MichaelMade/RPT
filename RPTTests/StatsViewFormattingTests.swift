@@ -42,14 +42,21 @@ final class StatsViewFormattingTests: XCTestCase {
 
     func testThisWeekAverageDurationValue_usesPlaceholderWhenNoRecentWorkoutsExist() {
         XCTAssertEqual(
-            sut.thisWeekAverageDurationValue(weeklyWorkoutCount: 0, formattedDuration: "0s"),
+            sut.thisWeekAverageDurationValue(weeklyWorkoutCount: 0, hasAverageDuration: false, formattedDuration: "0s"),
+            "—"
+        )
+    }
+
+    func testThisWeekAverageDurationValue_usesPlaceholderWhenDurationDataIsUnavailable() {
+        XCTAssertEqual(
+            sut.thisWeekAverageDurationValue(weeklyWorkoutCount: 3, hasAverageDuration: false, formattedDuration: "0s"),
             "—"
         )
     }
 
     func testThisWeekAverageDurationValue_preservesFormattedDurationWhenRecentWorkoutsExist() {
         XCTAssertEqual(
-            sut.thisWeekAverageDurationValue(weeklyWorkoutCount: 3, formattedDuration: "42m 10s"),
+            sut.thisWeekAverageDurationValue(weeklyWorkoutCount: 3, hasAverageDuration: true, formattedDuration: "42m 10s"),
             "42m 10s"
         )
     }

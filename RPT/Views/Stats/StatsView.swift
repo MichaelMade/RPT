@@ -105,6 +105,7 @@ struct StatsView: View {
                     title: "Avg Time",
                     value: thisWeekAverageDurationValue(
                         weeklyWorkoutCount: viewModel.weeklyWorkoutCount,
+                        hasAverageDuration: viewModel.hasWeeklyAverageDuration,
                         formattedDuration: viewModel.weeklyAverageDuration
                     ),
                     subtitle: "per workout",
@@ -289,8 +290,12 @@ struct StatsView: View {
             : "\(safeWeeklyCount) workouts in the last 7 days"
     }
 
-    func thisWeekAverageDurationValue(weeklyWorkoutCount: Int, formattedDuration: String) -> String {
-        max(0, weeklyWorkoutCount) > 0 ? formattedDuration : "—"
+    func thisWeekAverageDurationValue(weeklyWorkoutCount: Int, hasAverageDuration: Bool, formattedDuration: String) -> String {
+        guard max(0, weeklyWorkoutCount) > 0, hasAverageDuration else {
+            return "—"
+        }
+
+        return formattedDuration
     }
 
     func weeklyVolumeEmptyStateMessage(totalWorkouts: Int) -> String {
