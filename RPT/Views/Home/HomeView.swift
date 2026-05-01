@@ -177,9 +177,9 @@ struct HomeView: View {
 
                                         HomeStatTile(
                                             icon: "scalemass",
-                                            title: "Volume",
-                                            value: viewModel.formatTotalVolume(),
-                                            subtitle: "lb lifted",
+                                            title: viewModel.lifetimeWorkMetricTitle,
+                                            value: viewModel.lifetimeWorkMetricValue,
+                                            subtitle: viewModel.lifetimeWorkMetricSubtitle,
                                             tint: .purple
                                         )
 

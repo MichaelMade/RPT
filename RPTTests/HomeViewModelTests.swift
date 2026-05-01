@@ -179,6 +179,30 @@ final class HomeViewModelTests: XCTestCase {
         // Then - should fail safe to zero
         XCTAssertEqual(formattedVolume, "0", "Format should fail safe for non-finite volume")
     }
+
+    func testLifetimeWorkMetric_prefersWeightedVolumeWhenAvailable() {
+        let metric = viewModel.lifetimeWorkMetric(totalVolume: 1520, totalBodyweightReps: 200)
+
+        XCTAssertEqual(metric.title, "Volume")
+        XCTAssertEqual(metric.value, "1.5k")
+        XCTAssertEqual(metric.subtitle, "lb lifted")
+    }
+
+    func testLifetimeWorkMetric_fallsBackToBodyweightRepsWhenNoWeightedVolumeExists() {
+        let metric = viewModel.lifetimeWorkMetric(totalVolume: 0, totalBodyweightReps: 245)
+
+        XCTAssertEqual(metric.title, "Reps")
+        XCTAssertEqual(metric.value, "245")
+        XCTAssertEqual(metric.subtitle, "bodyweight reps")
+    }
+
+    func testLifetimeWorkMetric_clampsCorruptedInputsSafely() {
+        let metric = viewModel.lifetimeWorkMetric(totalVolume: -.infinity, totalBodyweightReps: -20)
+
+        XCTAssertEqual(metric.title, "Volume")
+        XCTAssertEqual(metric.value, "0")
+        XCTAssertEqual(metric.subtitle, "lb lifted")
+    }
     
     // MARK: - Weekly Progress Tests
     

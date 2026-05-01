@@ -17,6 +17,9 @@ class HomeViewModel: ObservableObject {
     @Published var recentWorkouts: [Workout] = []
     @Published var currentWorkout: Workout?
     @Published var userStats: (totalWorkouts: Int, totalVolume: Double, workoutStreak: Int)?
+    @Published var lifetimeWorkMetricTitle: String = "Volume"
+    @Published var lifetimeWorkMetricValue: String = "0"
+    @Published var lifetimeWorkMetricSubtitle: String = "lb lifted"
     
     init(workoutManager: WorkoutManager? = nil,
          userManager: UserManager? = nil) {
@@ -25,13 +28,26 @@ class HomeViewModel: ObservableObject {
     }
     
     func loadRecentWorkouts() {
+        let now = Date()
         let fetchedRecentWorkouts = workoutManager.getRecentWorkouts(limit: 25)
+        let allWorkouts = workoutManager.getWorkouts(from: .distantPast, to: now)
+
         recentWorkouts = resolvedRecentCompletedWorkouts(
             from: fetchedRecentWorkouts,
-            fallbackAllWorkouts: nil,
+            fallbackAllWorkouts: allWorkouts,
             limit: 5
         )
         userStats = userManager.getUserStats()
+
+        let completedWorkouts = allWorkouts.filter { $0.isCompleted }
+        let totalBodyweightReps = completedWorkouts.reduce(0) { $0 + max(0, $1.totalBodyweightReps) }
+        let lifetimeWorkMetric = lifetimeWorkMetric(
+            totalVolume: userStats?.totalVolume ?? 0,
+            totalBodyweightReps: totalBodyweightReps
+        )
+        lifetimeWorkMetricTitle = lifetimeWorkMetric.title
+        lifetimeWorkMetricValue = lifetimeWorkMetric.value
+        lifetimeWorkMetricSubtitle = lifetimeWorkMetric.subtitle
 
         let workoutStateManager = WorkoutStateManager.shared
         currentWorkout = workoutStateManager.firstResumableWorkout(in: workoutManager.getIncompleteWorkouts())
@@ -251,10 +267,40 @@ class HomeViewModel: ObservableObject {
         return workoutDate >= discardTimestamp
     }
     
+    func lifetimeWorkMetric(totalVolume: Double, totalBodyweightReps: Int) -> (title: String, value: String, subtitle: String) {
+        let safeVolume = totalVolume.isFinite ? max(0, totalVolume) : 0
+        let safeBodyweightReps = max(0, totalBodyweightReps)
+
+        if safeVolume > 0 {
+            return (
+                title: "Volume",
+                value: formatTotalVolume(safeVolume),
+                subtitle: "lb lifted"
+            )
+        }
+
+        if safeBodyweightReps > 0 {
+            return (
+                title: "Reps",
+                value: "\(safeBodyweightReps)",
+                subtitle: "bodyweight reps"
+            )
+        }
+
+        return (
+            title: "Volume",
+            value: "0",
+            subtitle: "lb lifted"
+        )
+    }
+
     func formatTotalVolume() -> String {
         guard let stats = userStats else { return "0" }
+        return formatTotalVolume(stats.totalVolume)
+    }
 
-        let safeVolume = stats.totalVolume.isFinite ? max(0, stats.totalVolume) : 0
+    private func formatTotalVolume(_ totalVolume: Double) -> String {
+        let safeVolume = totalVolume.isFinite ? max(0, totalVolume) : 0
         let truncatedVolume = floor(safeVolume * 10) / 10
 
         if truncatedVolume >= 1_000_000 {
