@@ -247,8 +247,15 @@ class HomeViewModel: ObservableObject {
         )
     }
 
+    func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "You already have a workout in progress:"
+            : "You already have \(displayName) in progress:"
+    }
+
     func startFreshWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
-        "You already have \(resumableWorkoutSummary(for: workout, now: now)). Save it for later, discard it, or keep going."
+        "\(startFreshWorkoutPromptPrefix(for: workout)) \(resumableWorkoutSummary(for: workout, now: now)). Save it for later, discard it, or keep going."
     }
 
     func shouldResumeIncompleteWorkout(workoutDate: Date?, discardTimestamp: Date?, wasAnyWorkoutDiscarded: Bool) -> Bool {

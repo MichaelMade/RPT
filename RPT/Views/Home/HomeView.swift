@@ -297,7 +297,7 @@ struct HomeView: View {
             .navigationDestination(item: $selectedWorkout) { workout in
                 WorkoutDetailView(workout: workout)
             }
-            .alert("Start a New Workout?", isPresented: $showingStartFreshAlert) {
+            .alert("Replace Current Workout?", isPresented: $showingStartFreshAlert) {
                 Button("Save & Start New Workout") {
                     saveCurrentWorkoutAndStartFresh()
                 }
