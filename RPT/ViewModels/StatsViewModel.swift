@@ -75,13 +75,22 @@ class StatsViewModel: ObservableObject {
 
         let thisWeekWorkouts = allWorkouts.filter { $0.date >= thisWeekStart }
         let thisWeekBodyweightReps = thisWeekWorkouts.reduce(0) { $0 + $1.totalBodyweightReps }
-        weeklyWorkMetricTitle = weeklyWorkMetricTitle(totalVolume: thisWeekWorkouts.reduce(0) { $0 + sanitizedVolume($1.totalVolume) }, totalBodyweightReps: thisWeekBodyweightReps)
+        let thisWeekTotalVolume = thisWeekWorkouts.reduce(0) { $0 + sanitizedVolume($1.totalVolume) }
+        weeklyWorkMetricTitle = weeklyWorkMetricTitle(
+            weeklyWorkoutCount: weeklyWorkoutCount,
+            totalVolume: thisWeekTotalVolume,
+            totalBodyweightReps: thisWeekBodyweightReps
+        )
         weeklyWorkMetricValue = weeklyWorkMetricValue(
             weeklyWorkoutCount: weeklyWorkoutCount,
             formattedVolume: thisWeek.totalVolume,
             totalBodyweightReps: thisWeekBodyweightReps
         )
-        weeklyWorkMetricSubtitle = weeklyWorkMetricSubtitle(totalVolume: thisWeekWorkouts.reduce(0) { $0 + sanitizedVolume($1.totalVolume) }, totalBodyweightReps: thisWeekBodyweightReps)
+        weeklyWorkMetricSubtitle = weeklyWorkMetricSubtitle(
+            weeklyWorkoutCount: weeklyWorkoutCount,
+            totalVolume: thisWeekTotalVolume,
+            totalBodyweightReps: thisWeekBodyweightReps
+        )
 
         computeWeeklyVolume(from: allWorkouts)
         computeMuscleGroupShare(from: allWorkouts)
@@ -212,8 +221,12 @@ class StatsViewModel: ObservableObject {
 
     // MARK: - Helpers
 
-    func weeklyWorkMetricTitle(totalVolume: Double, totalBodyweightReps: Int) -> String {
-        sanitizedVolume(totalVolume) > 0 ? "Volume" : "Reps"
+    func weeklyWorkMetricTitle(weeklyWorkoutCount: Int, totalVolume: Double, totalBodyweightReps: Int) -> String {
+        guard max(0, weeklyWorkoutCount) > 0 else {
+            return "Work"
+        }
+
+        return sanitizedVolume(totalVolume) > 0 ? "Volume" : "Reps"
     }
 
     func weeklyWorkMetricValue(weeklyWorkoutCount: Int, formattedVolume: String, totalBodyweightReps: Int) -> String {
@@ -228,8 +241,12 @@ class StatsViewModel: ObservableObject {
         return formattedVolume == "0 lb" ? "—" : formattedVolume
     }
 
-    func weeklyWorkMetricSubtitle(totalVolume: Double, totalBodyweightReps: Int) -> String {
-        sanitizedVolume(totalVolume) > 0 ? "lifted" : (totalBodyweightReps > 0 ? "bodyweight" : "logged")
+    func weeklyWorkMetricSubtitle(weeklyWorkoutCount: Int, totalVolume: Double, totalBodyweightReps: Int) -> String {
+        guard max(0, weeklyWorkoutCount) > 0 else {
+            return "last 7 days"
+        }
+
+        return sanitizedVolume(totalVolume) > 0 ? "lifted" : (totalBodyweightReps > 0 ? "bodyweight" : "logged")
     }
 
     func sanitizedVolume(_ volume: Double) -> Double {
