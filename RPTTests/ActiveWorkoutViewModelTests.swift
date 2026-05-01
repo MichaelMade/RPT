@@ -80,6 +80,25 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         // Then
         XCTAssertEqual(workout.name, "Workout")
+        XCTAssertEqual(viewModel.workoutName, "Workout")
+    }
+
+    func testUpdateWorkoutName_normalizesViewModelTextAfterSanitizing() throws {
+        // Given
+        let workout = workoutManager.createWorkout(name: "Original")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+        let longMessyName = "  Upper   Body\nSession   " + String(repeating: "A", count: 100)
+
+        // When
+        viewModel.workoutName = longMessyName
+        try viewModel.updateWorkoutName()
+
+        // Then
+        XCTAssertEqual(viewModel.workoutName, workout.name)
+        XCTAssertEqual(viewModel.workoutName, workoutManager.sanitizedWorkoutName(longMessyName))
+        XCTAssertEqual(viewModel.workoutName.count, 80)
+        XCTAssertFalse(viewModel.workoutName.contains("\n"))
+        XCTAssertFalse(viewModel.workoutName.contains("  "))
     }
 
     func testAddExerciseToWorkout_createsIncompleteStarterSet() throws {

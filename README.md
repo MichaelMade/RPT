@@ -1,5 +1,6 @@
 # RPT
 
+- Fixed workout-name editing in the active session so whitespace-only or overly long names now snap the text field and navigation title back to the same sanitized value that gets saved, instead of leaving stale unsaved formatting visible.
 - Fixed the Stats `This Week` work tile fallback for corrupted/missing work data so completed weeks with no valid volume or bodyweight reps now stay neutral as `Work — logged` instead of mislabeling the card as `Reps`.
 - Polished Home `Recent Workouts` legacy/empty-history rows so completed sessions with no persisted sets now show a neutral `No sets logged` summary instead of awkward `0 sets` count noise.
 - Fixed the Stats lifetime headline for bodyweight-only training history so it now falls back to total logged bodyweight reps instead of misleadingly showing `0 lb` when no weighted volume exists.
@@ -70,6 +71,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed active-workout name editing so the text field and navigation title now immediately reflect the same sanitized workout name that is persisted (including whitespace collapse, blank-name fallback, and 80-character clamping); added regression coverage in `ActiveWorkoutViewModelTests`.
 - Fixed the Stats `This Week` work-tile fallback so completed weeks with missing/corrupted work totals now keep a neutral `Work — logged` label instead of incorrectly switching to `Reps`; updated `StatsViewModel` and `StatsViewModelTests`.
 - Polished Home `Recent Workouts` legacy/empty-history rows so completed sessions with no persisted sets now show a neutral `No sets logged` summary instead of awkward `0 sets` count noise; updated `WorkoutRow` and `FormattingTests`.
 - Fixed the Stats lifetime headline for bodyweight-only users so the top-level work tile now falls back to total logged bodyweight reps instead of misleadingly showing `0 lb` when no weighted lifetime volume exists; updated `StatsViewModel`, `StatsView`, and `StatsViewModelTests`.

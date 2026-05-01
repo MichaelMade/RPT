@@ -154,7 +154,9 @@ class ActiveWorkoutViewModel: ObservableObject {
     // MARK: - Workout Management
     
     func updateWorkoutName() throws {
-        workout.name = workoutName
+        let sanitizedName = workoutManager.sanitizedWorkoutName(workoutName)
+        workoutName = sanitizedName
+        workout.name = sanitizedName
         try workoutManager.saveWorkout(workout)
     }
     
