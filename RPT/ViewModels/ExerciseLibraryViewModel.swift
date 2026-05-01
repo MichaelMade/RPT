@@ -79,6 +79,35 @@ class ExerciseLibraryViewModel: ObservableObject {
         }
 
         var summary = "Showing \(filteredCount) of \(exercises.count) exercises"
+        let qualifiers = resultsSummaryQualifiers()
+
+        if !qualifiers.isEmpty {
+            summary += " " + qualifiers.joined(separator: " • ")
+        }
+
+        return summary
+    }
+
+    func selectableResultsSummary(availableCount: Int, excludedCount: Int) -> String? {
+        guard hasActiveQuery, !exercises.isEmpty else {
+            return nil
+        }
+
+        var summary = "Showing \(availableCount) available of \(exercises.count) exercises"
+        var qualifiers = resultsSummaryQualifiers()
+
+        if excludedCount > 0 {
+            qualifiers.append("\(excludedCount) already in template")
+        }
+
+        if !qualifiers.isEmpty {
+            summary += " " + qualifiers.joined(separator: " • ")
+        }
+
+        return summary
+    }
+
+    private func resultsSummaryQualifiers() -> [String] {
         var qualifiers: [String] = []
 
         if hasActiveSearch {
@@ -93,11 +122,7 @@ class ExerciseLibraryViewModel: ObservableObject {
             qualifiers.append("targeting \(selectedMuscleGroup.displayName)")
         }
 
-        if !qualifiers.isEmpty {
-            summary += " " + qualifiers.joined(separator: " • ")
-        }
-
-        return summary
+        return qualifiers
     }
 
     func emptyStateKind(filteredCount: Int) -> EmptyStateKind? {

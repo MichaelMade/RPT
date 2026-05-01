@@ -95,7 +95,12 @@ struct ExerciseSelectorForTemplateView: View {
                         !excludedLookupKeys.contains(ExerciseManager.normalizedNameLookupKey(exercise.name))
                     }
 
-                    if let summary = viewModel.filteredResultsSummary(filteredCount: filteredExercises.count) {
+                    let excludedCount = max(0, fetchedExercises.count - filteredExercises.count)
+
+                    if let summary = viewModel.selectableResultsSummary(
+                        availableCount: filteredExercises.count,
+                        excludedCount: excludedCount
+                    ) {
                         Text(summary)
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -105,11 +110,11 @@ struct ExerciseSelectorForTemplateView: View {
                     if filteredExercises.isEmpty {
                         ContentUnavailableView {
                             Label(
-                                emptyStateTitle(for: fetchedExercises),
+                                emptyStateTitle(for: fetchedExercises, excludedCount: excludedCount),
                                 systemImage: viewModel.hasActiveQuery ? "magnifyingglass" : "dumbbell"
                             )
                         } description: {
-                            Text(emptyStateDescription(for: fetchedExercises))
+                            Text(emptyStateDescription(for: fetchedExercises, excludedCount: excludedCount))
                         } actions: {
                             if viewModel.hasActiveSearch {
                                 Button("Clear Search") {
@@ -180,21 +185,21 @@ struct ExerciseSelectorForTemplateView: View {
         }
     }
 
-    private func emptyStateTitle(for fetchedExercises: [Exercise]) -> String {
-        if !fetchedExercises.isEmpty, !excludedExerciseNames.isEmpty, fetchedExercises.allSatisfy({ exercise in
-            excludedLookupKeys.contains(ExerciseManager.normalizedNameLookupKey(exercise.name))
-        }) {
-            return "All Exercises Already Added"
+    private func emptyStateTitle(for fetchedExercises: [Exercise], excludedCount: Int) -> String {
+        if !fetchedExercises.isEmpty, excludedCount == fetchedExercises.count {
+            return viewModel.hasActiveQuery
+                ? "All Matching Exercises Already Added"
+                : "All Exercises Already Added"
         }
 
         return viewModel.hasActiveQuery ? "No Matching Exercises" : "No Exercises Available"
     }
 
-    private func emptyStateDescription(for fetchedExercises: [Exercise]) -> String {
-        if !fetchedExercises.isEmpty, !excludedExerciseNames.isEmpty, fetchedExercises.allSatisfy({ exercise in
-            excludedLookupKeys.contains(ExerciseManager.normalizedNameLookupKey(exercise.name))
-        }) {
-            return "This template already includes every exercise in your current filtered list. Remove one from the template or change your filters to add something else."
+    private func emptyStateDescription(for fetchedExercises: [Exercise], excludedCount: Int) -> String {
+        if !fetchedExercises.isEmpty, excludedCount == fetchedExercises.count {
+            return viewModel.hasActiveQuery
+                ? "This template already includes every exercise in your current search or filter results. Clear your filters or remove one from the template to add it again."
+                : "This template already includes every exercise in your library. Remove one from the template or add a new custom exercise to keep building it out."
         }
 
         return viewModel.hasActiveQuery

@@ -266,6 +266,23 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testSelectableResultsSummary_includesTemplateExclusions() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
+            Exercise(name: "Cable Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
+            Exercise(name: "Pull-Up", category: .bodyweight, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+        viewModel.searchText = "row"
+        viewModel.selectedCategory = .compound
+
+        XCTAssertEqual(
+            viewModel.selectableResultsSummary(availableCount: 0, excludedCount: 2),
+            "Showing 0 available of 3 exercises for “row” • in Compound • 2 already in template",
+            "Template exercise pickers should explain when zero visible results are caused by already-added matches instead of missing search coverage"
+        )
+    }
+
     func testEmptyStateKind_prefersEmptyLibraryWhenNoExercisesExistEvenIfQueryIsActive() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.searchText = "bench"
