@@ -177,6 +177,36 @@ final class FormattingTests: XCTestCase {
         )
     }
 
+    func testWorkoutRowRelativeDateText_usesInjectedNowInsteadOfSystemTodayForRelativeLabels() {
+        var calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+        let locale = Locale(identifier: "en_US_POSIX")
+        let now = Date(timeIntervalSince1970: 1_714_392_000) // Apr 29, 2024 12:00 UTC
+        let date = Date(timeIntervalSince1970: 1_714_124_500) // Apr 26, 2024 05:15 AM UTC
+
+        XCTAssertEqual(
+            WorkoutRow.relativeDateText(for: date, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
+            "Friday • 5:15 AM",
+            "Relative labels should be derived from the supplied reference date, not the device's current day"
+        )
+    }
+
+    func testWorkoutRowRelativeDateText_doesNotMarkFutureDatesAsToday() {
+        var calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+        let locale = Locale(identifier: "en_US_POSIX")
+        let now = Date(timeIntervalSince1970: 1_714_392_000) // Apr 29, 2024 12:00 UTC
+        let date = Date(timeIntervalSince1970: 1_714_474_800) // Apr 30, 2024 11:00 AM UTC
+
+        XCTAssertEqual(
+            WorkoutRow.relativeDateText(for: date, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
+            "Apr 30 • 11:00 AM",
+            "Future dates should fall back to absolute calendar formatting instead of using Today/Yesterday labels"
+        )
+    }
+
     func testWorkoutRowRelativeDateText_formatsRecentWeekdayWithTime() {
         var calendar = Calendar(identifier: .gregorian)
         let timeZone = TimeZone(secondsFromGMT: 0)!

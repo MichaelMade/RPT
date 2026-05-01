@@ -1,5 +1,6 @@
 # RPT
 
+- Fixed relative workout date labels so Home and Stats now derive `Today` / `Yesterday` from the intended reference date instead of the device’s live current day, preventing mislabeling in historical/test-driven formatting paths.
 - Clarified Home’s `Start Fresh Instead` confirmation so it now names the draft workout being replaced and frames it as an in-progress session, reducing ambiguity before users save, discard, or continue the current workout.
 - Fixed Home’s lifetime progress tile for bodyweight-focused users by falling back to total logged bodyweight reps when no weighted volume exists, instead of misleadingly showing `0 lb lifted`.
 - Fixed the Stats `This Week` average-duration tile so weeks with completed workouts but missing/corrupted duration data now show a neutral `—` placeholder instead of a misleading `0s per workout`.
@@ -66,6 +67,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed relative date-label determinism across Home and Stats by making `WorkoutRow.relativeDateText(...)` compare against the supplied reference date (`now`) instead of the device’s live current day, so formatting helpers no longer misclassify historical/test dates as `Today` / `Yesterday`; added regression coverage in `FormattingTests`.
 - Clarified Home’s `Start Fresh Instead` confirmation so it now names the in-progress draft workout in the alert copy (`You already have Upper A in progress...`) instead of only showing a detached status summary, making the replacement decision safer when multiple workout names/flows are in play; updated `HomeView`, `HomeViewModel`, and `HomeViewModelTests`.
 - Fixed Home’s lifetime `Progress Snapshot` work tile so bodyweight-only training history now falls back to total logged bodyweight reps instead of misleadingly showing `0 lb lifted`; updated `HomeView`, `HomeViewModel`, and `HomeViewModelTests`.
 - Fixed the Stats `This Week` average-duration tile so completed weeks with missing or corrupted duration data now show a neutral `—` placeholder instead of a misleading `0s per workout`; updated `StatsView`, `StatsViewModel`, and `StatsViewFormattingTests`.
