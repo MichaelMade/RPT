@@ -260,4 +260,31 @@ final class StatsViewModelTests: XCTestCase {
             "last 7 days"
         )
     }
+
+    func testWeeklyWorkMetric_usesNeutralWorkLabelWhenCompletedWeekHasNoValidVolumeOrBodyweightWork() {
+        XCTAssertEqual(
+            viewModel.weeklyWorkMetricTitle(
+                weeklyWorkoutCount: 2,
+                totalVolume: 0,
+                totalBodyweightReps: 0
+            ),
+            "Work"
+        )
+        XCTAssertEqual(
+            viewModel.weeklyWorkMetricValue(
+                weeklyWorkoutCount: 2,
+                formattedVolume: "0 lb",
+                totalBodyweightReps: 0
+            ),
+            "—"
+        )
+        XCTAssertEqual(
+            viewModel.weeklyWorkMetricSubtitle(
+                weeklyWorkoutCount: 2,
+                totalVolume: 0,
+                totalBodyweightReps: 0
+            ),
+            "logged"
+        )
+    }
 }

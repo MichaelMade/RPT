@@ -1,5 +1,6 @@
 # RPT
 
+- Fixed the Stats `This Week` work tile fallback for corrupted/missing work data so completed weeks with no valid volume or bodyweight reps now stay neutral as `Work — logged` instead of mislabeling the card as `Reps`.
 - Polished Home `Recent Workouts` legacy/empty-history rows so completed sessions with no persisted sets now show a neutral `No sets logged` summary instead of awkward `0 sets` count noise.
 - Fixed the Stats lifetime headline for bodyweight-only training history so it now falls back to total logged bodyweight reps instead of misleadingly showing `0 lb` when no weighted volume exists.
 - Fixed relative workout date labels so Home and Stats now derive `Today` / `Yesterday` from the intended reference date instead of the device’s live current day, preventing mislabeling in historical/test-driven formatting paths.
@@ -69,6 +70,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed the Stats `This Week` work-tile fallback so completed weeks with missing/corrupted work totals now keep a neutral `Work — logged` label instead of incorrectly switching to `Reps`; updated `StatsViewModel` and `StatsViewModelTests`.
 - Polished Home `Recent Workouts` legacy/empty-history rows so completed sessions with no persisted sets now show a neutral `No sets logged` summary instead of awkward `0 sets` count noise; updated `WorkoutRow` and `FormattingTests`.
 - Fixed the Stats lifetime headline for bodyweight-only users so the top-level work tile now falls back to total logged bodyweight reps instead of misleadingly showing `0 lb` when no weighted lifetime volume exists; updated `StatsViewModel`, `StatsView`, and `StatsViewModelTests`.
 - Fixed relative date-label determinism across Home and Stats by making `WorkoutRow.relativeDateText(...)` compare against the supplied reference date (`now`) instead of the device’s live current day, so formatting helpers no longer misclassify historical/test dates as `Today` / `Yesterday`; added regression coverage in `FormattingTests`.

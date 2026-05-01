@@ -267,7 +267,18 @@ class StatsViewModel: ObservableObject {
             return "Work"
         }
 
-        return sanitizedVolume(totalVolume) > 0 ? "Volume" : "Reps"
+        let safeVolume = sanitizedVolume(totalVolume)
+        let safeBodyweightReps = max(0, totalBodyweightReps)
+
+        if safeVolume > 0 {
+            return "Volume"
+        }
+
+        if safeBodyweightReps > 0 {
+            return "Reps"
+        }
+
+        return "Work"
     }
 
     func weeklyWorkMetricValue(weeklyWorkoutCount: Int, formattedVolume: String, totalBodyweightReps: Int) -> String {
