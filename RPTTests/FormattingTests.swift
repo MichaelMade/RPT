@@ -385,6 +385,19 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(fallbackMetric?.value, "2")
     }
 
+    func testWorkoutDetailSummaryMetrics_fallBackToNonWarmupSetsBeforeCountingWarmups() {
+        let workout = Workout(name: "Workout Detail Warmup Fallback")
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        _ = workout.addSet(exercise: squat, weight: 45, reps: 8, isWarmup: true)
+        _ = workout.addSet(exercise: squat, weight: 95, reps: 5, isWarmup: true)
+        _ = workout.addSet(exercise: squat, weight: 225, reps: 0)
+        _ = workout.addSet(exercise: squat, weight: 205, reps: 0)
+
+        let setMetric = WorkoutDetailView.summaryMetrics(for: workout).first(where: { $0.title == "Sets" })
+        XCTAssertEqual(setMetric?.value, "2")
+    }
+
     func testWorkoutDetailNormalizedNotes_collapsesWhitespaceAndHidesBlankNotes() {
         let workoutWithNotes = Workout(name: "Notes Workout", notes: "  Great\n\n session   today  ")
         XCTAssertEqual(WorkoutDetailView.normalizedNotes(for: workoutWithNotes), "Great session today")
