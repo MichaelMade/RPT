@@ -68,6 +68,17 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
+    func testWeeklyVolumeEmptyStateMessage_explainsWhenRecentTrainingHasNoWeightedVolume() {
+        XCTAssertEqual(
+            sut.weeklyVolumeEmptyStateMessage(
+                totalWorkouts: 3,
+                hasRecentCompletedWorkouts: true,
+                hasWeightedVolumeData: false
+            ),
+            "You’ve logged recent workouts, but none added weighted volume in the last 12 weeks yet, so there’s no meaningful volume chart to show."
+        )
+    }
+
     func testMuscleGroupEmptyStateMessage_explainsMissingRecentWorkingSets() {
         XCTAssertEqual(
             sut.muscleGroupEmptyStateMessage(totalWorkouts: 2),

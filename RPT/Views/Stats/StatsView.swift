@@ -150,7 +150,7 @@ struct StatsView: View {
 
     @ViewBuilder
     private var weeklyVolumeChart: some View {
-        if !viewModel.weeklyVolume.isEmpty {
+        if viewModel.hasWeeklyVolumeChartData {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Weekly Volume")
                     .font(.headline)
@@ -176,7 +176,11 @@ struct StatsView: View {
             SectionPlaceholderCard(
                 title: "Weekly Volume",
                 systemImage: "chart.bar.xaxis",
-                message: weeklyVolumeEmptyStateMessage(totalWorkouts: viewModel.totalWorkouts)
+                message: weeklyVolumeEmptyStateMessage(
+                    totalWorkouts: viewModel.totalWorkouts,
+                    hasRecentCompletedWorkouts: viewModel.hasRecentCompletedWorkoutsForWeeklyVolume,
+                    hasWeightedVolumeData: viewModel.hasWeeklyVolumeChartData
+                )
             )
         }
     }
@@ -298,9 +302,17 @@ struct StatsView: View {
         return formattedDuration
     }
 
-    func weeklyVolumeEmptyStateMessage(totalWorkouts: Int) -> String {
+    func weeklyVolumeEmptyStateMessage(
+        totalWorkouts: Int,
+        hasRecentCompletedWorkouts: Bool = false,
+        hasWeightedVolumeData: Bool = false
+    ) -> String {
         guard totalWorkouts > 0 else {
             return "Complete a workout to start building your weekly training chart."
+        }
+
+        if hasRecentCompletedWorkouts, !hasWeightedVolumeData {
+            return "You’ve logged recent workouts, but none added weighted volume in the last 12 weeks yet, so there’s no meaningful volume chart to show."
         }
 
         return "No completed workouts landed in the last 12 weeks, so there’s no recent volume to chart yet."

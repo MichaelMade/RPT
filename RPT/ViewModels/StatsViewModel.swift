@@ -48,6 +48,8 @@ class StatsViewModel: ObservableObject {
     @Published var weeklyAverageDuration: String = "0s"
     @Published var hasWeeklyAverageDuration: Bool = false
     @Published var weeklyVolume: [WeeklyVolumePoint] = []
+    @Published var hasWeeklyVolumeChartData: Bool = false
+    @Published var hasRecentCompletedWorkoutsForWeeklyVolume: Bool = false
     @Published var muscleGroupShare: [MuscleGroupShare] = []
     @Published var recentPRs: [PersonalRecord] = []
 
@@ -119,10 +121,13 @@ class StatsViewModel: ObservableObject {
         let cal = Calendar.current
         guard let twelveWeeksAgo = cal.date(byAdding: .weekOfYear, value: -11, to: weekAnchor(for: now)) else {
             weeklyVolume = []
+            hasWeeklyVolumeChartData = false
+            hasRecentCompletedWorkoutsForWeeklyVolume = false
             return
         }
 
         let recent = workouts.filter { $0.date >= twelveWeeksAgo }
+        hasRecentCompletedWorkoutsForWeeklyVolume = !recent.isEmpty
         let grouped = Dictionary(grouping: recent) { weekAnchor(for: $0.date) }
 
         var points: [WeeklyVolumePoint] = []
@@ -135,6 +140,7 @@ class StatsViewModel: ObservableObject {
             cursor = cal.date(byAdding: .weekOfYear, value: 1, to: cursor) ?? cursor.addingTimeInterval(604800)
         }
         weeklyVolume = points
+        hasWeeklyVolumeChartData = points.contains { $0.volume > 0 }
     }
 
     private func computeMuscleGroupShare(from workouts: [Workout]) {

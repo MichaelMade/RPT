@@ -1,5 +1,6 @@
 # RPT
 
+- Fixed Stats `Weekly Volume` honesty for bodyweight-only recent training so the app now shows a clear placeholder message instead of rendering a flat zero-volume chart when the last 12 weeks contain completed workouts but no weighted volume.
 - Polished copied workout summaries so sessions without completed work now use neutral `Work` states like `Not started`, `Not logged yet`, and `No sets logged` instead of falling back to misleading `Total Volume: 0 lb` text.
 - Clarified warm-up-only workout history so Home, Workout Detail, and copied summaries now say `Warm-up sets only` instead of implying either fully logged work or no logged work at all.
 - Polished `Workout Detail` set rows so unfinished/planned sets now read as neutral `Planned` / `Not logged` states instead of looking like completed `lb × reps` results.
@@ -77,6 +78,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Stats `Weekly Volume` empty-state honesty so bodyweight-only recent training now shows a clear placeholder message instead of a misleading flat zero-volume chart when the last 12 weeks contain completed workouts but no weighted volume; updated `StatsView`, `StatsViewModel`, and `StatsViewFormattingTests`.
 - Polished copied workout summaries so empty, unstarted, and legacy no-work sessions now mirror the app’s neutral `Work` states (`Not started`, `Not logged yet`, `No sets logged`, `Warm-up sets only`) instead of exporting misleading `Total Volume: 0 lb` fallback text; added regression coverage in `WorkoutManagerTests`.
 - Clarified warm-up-only completed-workout history so Home rows, Workout Detail, and copied workout summaries now show `Warm-up sets only` while preserving the warm-up exercise/set context instead of flattening everything into `No sets logged` or `0 lb`; added regression coverage in `FormattingTests` and `WorkoutManagerTests`.
 - Polished `WorkoutDetailView` set-row status clarity so unfinished/planned sets now render as `Planned • ...` or `Not logged` instead of looking like completed `lb × reps` results; added regression coverage in `FormattingTests`.
