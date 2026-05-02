@@ -79,6 +79,27 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
+    func testWeeklyWorkChartTitle_prefersWeightedVolumeWhenAvailable() {
+        XCTAssertEqual(
+            sut.weeklyWorkChartTitle(hasWeightedVolumeData: true, hasBodyweightRepsData: true),
+            "Weekly Volume"
+        )
+    }
+
+    func testWeeklyWorkChartTitle_fallsBackToBodyweightReps() {
+        XCTAssertEqual(
+            sut.weeklyWorkChartTitle(hasWeightedVolumeData: false, hasBodyweightRepsData: true),
+            "Weekly Reps"
+        )
+    }
+
+    func testWeeklyWorkChartSubtitle_explainsBodyweightTrendFallback() {
+        XCTAssertEqual(
+            sut.weeklyWorkChartSubtitle(hasWeightedVolumeData: false, hasBodyweightRepsData: true),
+            "Last 12 weeks of bodyweight reps"
+        )
+    }
+
     func testMuscleGroupEmptyStateMessage_explainsMissingRecentWorkingSets() {
         XCTAssertEqual(
             sut.muscleGroupEmptyStateMessage(totalWorkouts: 2),

@@ -49,6 +49,8 @@ class StatsViewModel: ObservableObject {
     @Published var hasWeeklyAverageDuration: Bool = false
     @Published var weeklyVolume: [WeeklyVolumePoint] = []
     @Published var hasWeeklyVolumeChartData: Bool = false
+    @Published var weeklyBodyweightReps: [WeeklyVolumePoint] = []
+    @Published var hasWeeklyBodyweightChartData: Bool = false
     @Published var hasRecentCompletedWorkoutsForWeeklyVolume: Bool = false
     @Published var muscleGroupShare: [MuscleGroupShare] = []
     @Published var recentPRs: [PersonalRecord] = []
@@ -122,6 +124,8 @@ class StatsViewModel: ObservableObject {
         guard let twelveWeeksAgo = cal.date(byAdding: .weekOfYear, value: -11, to: weekAnchor(for: now)) else {
             weeklyVolume = []
             hasWeeklyVolumeChartData = false
+            weeklyBodyweightReps = []
+            hasWeeklyBodyweightChartData = false
             hasRecentCompletedWorkoutsForWeeklyVolume = false
             return
         }
@@ -131,16 +135,23 @@ class StatsViewModel: ObservableObject {
         let grouped = Dictionary(grouping: recent) { weekAnchor(for: $0.date) }
 
         var points: [WeeklyVolumePoint] = []
+        var bodyweightPoints: [WeeklyVolumePoint] = []
         var cursor = twelveWeeksAgo
         while cursor <= now {
             let volume = (grouped[cursor] ?? []).reduce(0.0) { partial, workout in
                 partial + sanitizedVolume(workout.totalVolume)
             }
+            let bodyweightReps = (grouped[cursor] ?? []).reduce(0) { partial, workout in
+                partial + max(0, workout.totalBodyweightReps)
+            }
             points.append(WeeklyVolumePoint(weekStart: cursor, volume: sanitizedVolume(volume)))
+            bodyweightPoints.append(WeeklyVolumePoint(weekStart: cursor, volume: Double(bodyweightReps)))
             cursor = cal.date(byAdding: .weekOfYear, value: 1, to: cursor) ?? cursor.addingTimeInterval(604800)
         }
         weeklyVolume = points
         hasWeeklyVolumeChartData = points.contains { $0.volume > 0 }
+        weeklyBodyweightReps = bodyweightPoints
+        hasWeeklyBodyweightChartData = bodyweightPoints.contains { $0.volume > 0 }
     }
 
     private func computeMuscleGroupShare(from workouts: [Workout]) {

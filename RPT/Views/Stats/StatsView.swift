@@ -150,18 +150,27 @@ struct StatsView: View {
 
     @ViewBuilder
     private var weeklyVolumeChart: some View {
-        if viewModel.hasWeeklyVolumeChartData {
+        let showsBodyweightTrend = !viewModel.hasWeeklyVolumeChartData && viewModel.hasWeeklyBodyweightChartData
+        let chartData = showsBodyweightTrend ? viewModel.weeklyBodyweightReps : viewModel.weeklyVolume
+
+        if viewModel.hasWeeklyVolumeChartData || viewModel.hasWeeklyBodyweightChartData {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Weekly Volume")
+                Text(weeklyWorkChartTitle(
+                    hasWeightedVolumeData: viewModel.hasWeeklyVolumeChartData,
+                    hasBodyweightRepsData: viewModel.hasWeeklyBodyweightChartData
+                ))
                     .font(.headline)
-                Text("Last 12 weeks")
+                Text(weeklyWorkChartSubtitle(
+                    hasWeightedVolumeData: viewModel.hasWeeklyVolumeChartData,
+                    hasBodyweightRepsData: viewModel.hasWeeklyBodyweightChartData
+                ))
                     .font(.caption)
                     .foregroundColor(.secondary)
 
-                Chart(viewModel.weeklyVolume) { point in
+                Chart(chartData) { point in
                     BarMark(
                         x: .value("Week", point.weekStart, unit: .weekOfYear),
-                        y: .value("Volume", point.volume)
+                        y: .value(showsBodyweightTrend ? "Reps" : "Volume", point.volume)
                     )
                     .foregroundStyle(Color.blue.gradient)
                 }
@@ -316,6 +325,30 @@ struct StatsView: View {
         }
 
         return "No completed workouts landed in the last 12 weeks, so there’s no recent volume to chart yet."
+    }
+
+    func weeklyWorkChartTitle(hasWeightedVolumeData: Bool, hasBodyweightRepsData: Bool) -> String {
+        if hasWeightedVolumeData {
+            return "Weekly Volume"
+        }
+
+        if hasBodyweightRepsData {
+            return "Weekly Reps"
+        }
+
+        return "Weekly Volume"
+    }
+
+    func weeklyWorkChartSubtitle(hasWeightedVolumeData: Bool, hasBodyweightRepsData: Bool) -> String {
+        if hasWeightedVolumeData {
+            return "Last 12 weeks"
+        }
+
+        if hasBodyweightRepsData {
+            return "Last 12 weeks of bodyweight reps"
+        }
+
+        return "Last 12 weeks"
     }
 
     func muscleGroupEmptyStateMessage(totalWorkouts: Int) -> String {
