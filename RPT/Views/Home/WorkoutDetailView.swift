@@ -66,11 +66,27 @@ struct WorkoutDetailView: View {
         return workout.sets.count
     }
 
+    static func workMetric(for workout: Workout) -> (title: String, value: String) {
+        if workout.hasPreferredWorkMetric {
+            return (title: workout.preferredWorkMetricTitle, value: workout.preferredWorkMetricValue)
+        }
+
+        if workout.isCompleted {
+            return (title: "Work", value: "No sets logged")
+        }
+
+        if workout.sets.isEmpty {
+            return (title: "Work", value: "Not started")
+        }
+
+        return (title: "Work", value: "Not logged yet")
+    }
+
     static func summaryMetrics(for workout: Workout) -> [(title: String, value: String)] {
         var metrics: [(title: String, value: String)] = [
             (title: "Exercises", value: "\(displayExerciseCount(for: workout))"),
             (title: "Sets", value: "\(displaySetCount(for: workout))"),
-            (title: workout.preferredWorkMetricTitle, value: workout.preferredWorkMetricValue)
+            workMetric(for: workout)
         ]
 
         if workout.totalVolume > 0, workout.totalBodyweightReps > 0 {

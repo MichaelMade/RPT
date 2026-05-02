@@ -364,6 +364,25 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(bodyweightMetric?.value, "12 reps")
     }
 
+    func testWorkoutDetailSummaryMetrics_useNeutralWorkCopyWhenNoCompletedWorkExists() {
+        let completedWorkout = Workout(name: "Completed Placeholder", isCompleted: true)
+        let incompleteWorkout = Workout(name: "Draft Placeholder")
+        let emptyWorkout = Workout(name: "Empty Placeholder")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = completedWorkout.addSet(exercise: bench, weight: 185, reps: 0)
+        _ = incompleteWorkout.addSet(exercise: bench, weight: 185, reps: 0)
+
+        let completedMetric = WorkoutDetailView.summaryMetrics(for: completedWorkout).first(where: { $0.title == "Work" })
+        let incompleteMetric = WorkoutDetailView.summaryMetrics(for: incompleteWorkout).first(where: { $0.title == "Work" })
+        let emptyMetric = WorkoutDetailView.summaryMetrics(for: emptyWorkout).first(where: { $0.title == "Work" })
+
+        XCTAssertEqual(completedMetric?.value, "No sets logged")
+        XCTAssertEqual(incompleteMetric?.value, "Not logged yet")
+        XCTAssertEqual(emptyMetric?.value, "Not started")
+        XCTAssertFalse(WorkoutDetailView.summaryMetrics(for: completedWorkout).contains(where: { $0.title == "Volume" }))
+    }
+
     func testWorkoutDetailSummaryMetrics_preferCompletedWorkingSetExerciseCountWithFallback() {
         let workout = Workout(name: "Workout Detail Exercise Count")
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
