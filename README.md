@@ -1,5 +1,6 @@
 # RPT
 
+- Polished `Workout Detail` set rows so unfinished/planned sets now read as neutral `Planned` / `Not logged` states instead of looking like completed `lb × reps` results.
 - Fixed Home `Recent Workouts` fallback copy so completed legacy/imported sessions with only placeholder or unstarted sets now show `No sets logged` instead of looking like real logged work.
 - Polished `Workout Detail` summary work-state copy so sessions without any completed work now show neutral `Work` messaging like `No sets logged`, `Not logged yet`, or `Not started` instead of a misleading `Volume: 0 lb` card.
 - Fixed `Workout Detail` summary set counts so legacy/imported sessions now fall back to non-warmup logged sets before counting warmups, keeping `Sets` aligned with Home instead of overstating warmup-only scaffolding.
@@ -74,6 +75,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished `WorkoutDetailView` set-row status clarity so unfinished/planned sets now render as `Planned • ...` or `Not logged` instead of looking like completed `lb × reps` results; added regression coverage in `FormattingTests`.
 - Fixed Home `Recent Workouts` fallback copy so completed legacy/imported sessions with only placeholder/unstarted sets now show `No sets logged` instead of implying real logged work; added regression coverage in `FormattingTests`.
 - Polished `WorkoutDetailView` summary work-state copy so sessions without any completed work now show neutral `Work` messaging like `No sets logged`, `Not logged yet`, or `Not started` instead of a misleading `Volume: 0 lb`; added regression coverage in `FormattingTests`.
 - Fixed `WorkoutDetailView` summary set-count fallback so completed legacy/imported sessions now prefer non-warmup logged sets before counting warmups, keeping the `Sets` card aligned with Home when finished data is incomplete; added regression coverage in `FormattingTests`.

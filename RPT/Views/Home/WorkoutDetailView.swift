@@ -225,7 +225,17 @@ struct ExerciseSection: View {
     let sets: [ExerciseSet]
 
     static func setDisplayText(for set: ExerciseSet) -> String {
-        set.formattedWeightReps
+        let formattedSet = set.formattedWeightReps
+
+        guard !set.isCompletedLoggedSet else {
+            return formattedSet
+        }
+
+        if set.hasCompletedValues {
+            return "Planned • \(formattedSet)"
+        }
+
+        return set.isWarmup ? "Warm-up not logged" : "Not logged"
     }
     
     var body: some View {

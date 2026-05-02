@@ -106,12 +106,50 @@ final class FormattingTests: XCTestCase {
     func testWorkoutDetailSetDisplayText_usesBodyweightAwareFormatting() {
         let bodyweightExercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
         let weightedExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Test")
 
-        let bodyweightSet = ExerciseSet(weight: 0, reps: 12, exercise: bodyweightExercise)
-        let weightedSet = ExerciseSet(weight: 185, reps: 8, exercise: weightedExercise)
+        let loggedBodyweightSet = ExerciseSet(
+            weight: 0,
+            reps: 12,
+            exercise: bodyweightExercise,
+            workout: workout,
+            completedAt: Date()
+        )
+        let loggedWeightedSet = ExerciseSet(
+            weight: 185,
+            reps: 8,
+            exercise: weightedExercise,
+            workout: workout,
+            completedAt: Date()
+        )
+        let plannedWeightedSet = ExerciseSet(
+            weight: 185,
+            reps: 8,
+            exercise: weightedExercise,
+            workout: workout,
+            completedAt: .distantPast
+        )
+        let unloggedWarmupSet = ExerciseSet(
+            weight: 95,
+            reps: 5,
+            exercise: weightedExercise,
+            workout: workout,
+            completedAt: .distantPast,
+            isWarmup: true
+        )
+        let blankPlaceholderSet = ExerciseSet(
+            weight: 0,
+            reps: 0,
+            exercise: weightedExercise,
+            workout: workout,
+            completedAt: .distantPast
+        )
 
-        XCTAssertEqual(ExerciseSection.setDisplayText(for: bodyweightSet), "BW × 12 reps")
-        XCTAssertEqual(ExerciseSection.setDisplayText(for: weightedSet), "185 lb × 8 reps")
+        XCTAssertEqual(ExerciseSection.setDisplayText(for: loggedBodyweightSet), "BW × 12 reps")
+        XCTAssertEqual(ExerciseSection.setDisplayText(for: loggedWeightedSet), "185 lb × 8 reps")
+        XCTAssertEqual(ExerciseSection.setDisplayText(for: plannedWeightedSet), "Planned • 185 lb × 8 reps")
+        XCTAssertEqual(ExerciseSection.setDisplayText(for: unloggedWarmupSet), "Planned • 95 lb × 5 reps")
+        XCTAssertEqual(ExerciseSection.setDisplayText(for: blankPlaceholderSet), "Not logged")
     }
 
     func testExerciseSetRowDisplayWeightText_usesBodyweightLabelForZeroWeightBodyweightSets() {
