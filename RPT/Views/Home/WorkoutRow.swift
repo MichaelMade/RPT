@@ -38,6 +38,16 @@ struct WorkoutRow: View {
         formatter.locale = locale
         formatter.timeZone = timeZone
 
+        if date > now {
+            if displayCalendar.component(.year, from: date) == displayCalendar.component(.year, from: now) {
+                formatter.dateFormat = "MMM d • h:mm a"
+                return formatter.string(from: date)
+            }
+
+            formatter.dateFormat = "MMM d, yyyy • h:mm a"
+            return formatter.string(from: date)
+        }
+
         if displayCalendar.isDate(date, inSameDayAs: now) {
             formatter.dateFormat = "h:mm a"
             return "Today • \(formatter.string(from: date))"

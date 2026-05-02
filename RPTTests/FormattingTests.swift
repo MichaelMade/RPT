@@ -236,10 +236,16 @@ final class FormattingTests: XCTestCase {
         calendar.timeZone = timeZone
         let locale = Locale(identifier: "en_US_POSIX")
         let now = Date(timeIntervalSince1970: 1_714_392_000) // Apr 29, 2024 12:00 UTC
-        let date = Date(timeIntervalSince1970: 1_714_474_800) // Apr 30, 2024 11:00 AM UTC
+        let sameDayFutureDate = Date(timeIntervalSince1970: 1_714_431_600) // Apr 29, 2024 11:00 PM UTC
+        let nextDayFutureDate = Date(timeIntervalSince1970: 1_714_474_800) // Apr 30, 2024 11:00 AM UTC
 
         XCTAssertEqual(
-            WorkoutRow.relativeDateText(for: date, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
+            WorkoutRow.relativeDateText(for: sameDayFutureDate, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
+            "Apr 29 • 11:00 PM",
+            "Future timestamps later the same day should use absolute calendar formatting instead of relative Today labels"
+        )
+        XCTAssertEqual(
+            WorkoutRow.relativeDateText(for: nextDayFutureDate, now: now, calendar: calendar, locale: locale, timeZone: timeZone),
             "Apr 30 • 11:00 AM",
             "Future dates should fall back to absolute calendar formatting instead of using Today/Yesterday labels"
         )

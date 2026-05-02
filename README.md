@@ -1,5 +1,6 @@
 # RPT
 
+- Fixed future-dated workout timestamps across Home, Workout Detail, and resumable draft summaries so clock-skewed or imported sessions now fall back to clear calendar dates instead of misleading `Today` / `Started just now` labels.
 - Polished in-progress copied/exported workout summaries so planned exercise names now stay visible before any sets are logged, instead of incorrectly falling back to `Exercises: None`.
 - Fixed completed workout summary set counts so Workout Detail and copied/exported summaries no longer count unlogged placeholder sets as real logged work; completed sessions now fall back to genuinely logged warmups before showing zero.
 - Fixed completed-workout exercise-count honesty so Home and Workout Detail no longer count placeholder-only planned exercises as real logged history; completed sessions now prefer genuinely logged exercises, then logged warm-up context, before falling back to zero.
@@ -82,6 +83,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed future-dated workout timestamp handling across Home, Workout Detail, and resumable draft summaries so clock-skewed/imported sessions now show explicit calendar dates instead of misleading relative `Today` / `Started just now` labels; updated `WorkoutRow`, `HomeViewModel`, `FormattingTests`, and `HomeViewModelTests`.
 - Polished copied/exported in-progress workout summaries so planned exercise names now remain visible before any set is logged, instead of incorrectly collapsing to `Exercises: None`; updated `Workout` and `WorkoutManagerTests`.
 - Fixed completed workout summary set-count honesty so Workout Detail and copied/exported workout summaries no longer count unlogged placeholder sets as real logged work; completed sessions now prefer genuinely logged non-warmup sets, then logged warmups, before falling back to `0`; added regression coverage in `FormattingTests` and `WorkoutManagerTests`.
 - Fixed completed-workout exercise-count honesty so Home and Workout Detail no longer count placeholder-only planned exercises as real logged history; completed sessions now prefer genuinely logged non-warmup exercises, then logged warm-up context, before falling back to `0`; added regression coverage in `FormattingTests`.

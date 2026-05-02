@@ -155,6 +155,16 @@ class HomeViewModel: ObservableObject {
         var displayCalendar = calendar
         displayCalendar.timeZone = timeZone
 
+        if startDate > now {
+            return "Started " + WorkoutRow.relativeDateText(
+                for: startDate,
+                now: now,
+                calendar: displayCalendar,
+                locale: locale,
+                timeZone: timeZone
+            )
+        }
+
         let safeInterval = max(0, now.timeIntervalSince(startDate))
 
         if displayCalendar.isDate(startDate, inSameDayAs: now) {

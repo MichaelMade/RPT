@@ -586,13 +586,40 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(progress, "1 of 2 exercises started", "Progress text should treat warmup-only logged work as a started exercise instead of claiming nothing has begun")
     }
 
-    func testWorkoutStartedSummary_clampsFutureDatesToJustNow() {
-        let now = Date(timeIntervalSince1970: 1_000)
-        let futureStart = now.addingTimeInterval(600)
+    func testWorkoutStartedSummary_usesReadableAbsoluteDateForFutureDrafts() {
+        var calendar = Calendar(identifier: .gregorian)
+        let locale = Locale(identifier: "en_US_POSIX")
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
 
-        let summary = viewModel.workoutStartedSummary(for: futureStart, now: now)
+        let now = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 1,
+            hour: 21,
+            minute: 20
+        ).date!
+        let futureStart = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 1,
+            hour: 23,
+            minute: 0
+        ).date!
 
-        XCTAssertEqual(summary, "Started just now", "Future or corrupted draft dates should fail safe instead of claiming the workout starts in the future")
+        let summary = viewModel.workoutStartedSummary(
+            for: futureStart,
+            now: now,
+            calendar: calendar,
+            locale: locale,
+            timeZone: timeZone
+        )
+
+        XCTAssertEqual(summary, "Started May 1 • 11:00 PM", "Future or clock-skewed draft dates should stay readable without pretending the workout just started")
     }
 
     func testWorkoutStartedSummary_usesRelativeYesterdayLabelAcrossCalendarDayBoundary() {
