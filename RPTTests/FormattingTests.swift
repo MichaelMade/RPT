@@ -308,6 +308,15 @@ final class FormattingTests: XCTestCase {
             "Completed workouts with only placeholder/unstarted sets should not look like real logged work"
         )
 
+        let warmupOnlyWorkout = Workout(name: "Warm-up Only Workout", isCompleted: true)
+        _ = warmupOnlyWorkout.addSet(exercise: exercise, weight: 45, reps: 10, isWarmup: true)
+
+        XCTAssertEqual(
+            WorkoutRow.countsFallbackText(for: warmupOnlyWorkout),
+            "Warm-up sets only",
+            "Completed workouts with only logged warm-ups should acknowledge that some work was recorded"
+        )
+
         let draftWorkout = Workout(name: "Draft Workout", isCompleted: false)
         _ = draftWorkout.addSet(exercise: exercise, weight: 225, reps: 0)
         XCTAssertNil(
@@ -406,18 +415,22 @@ final class FormattingTests: XCTestCase {
         let completedWorkout = Workout(name: "Completed Placeholder", isCompleted: true)
         let incompleteWorkout = Workout(name: "Draft Placeholder")
         let emptyWorkout = Workout(name: "Empty Placeholder")
+        let warmupOnlyWorkout = Workout(name: "Warm-up Only Placeholder", isCompleted: true)
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
 
         _ = completedWorkout.addSet(exercise: bench, weight: 185, reps: 0)
         _ = incompleteWorkout.addSet(exercise: bench, weight: 185, reps: 0)
+        _ = warmupOnlyWorkout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
 
         let completedMetric = WorkoutDetailView.summaryMetrics(for: completedWorkout).first(where: { $0.title == "Work" })
         let incompleteMetric = WorkoutDetailView.summaryMetrics(for: incompleteWorkout).first(where: { $0.title == "Work" })
         let emptyMetric = WorkoutDetailView.summaryMetrics(for: emptyWorkout).first(where: { $0.title == "Work" })
+        let warmupOnlyMetric = WorkoutDetailView.summaryMetrics(for: warmupOnlyWorkout).first(where: { $0.title == "Work" })
 
         XCTAssertEqual(completedMetric?.value, "No sets logged")
         XCTAssertEqual(incompleteMetric?.value, "Not logged yet")
         XCTAssertEqual(emptyMetric?.value, "Not started")
+        XCTAssertEqual(warmupOnlyMetric?.value, "Warm-up sets only")
         XCTAssertFalse(WorkoutDetailView.summaryMetrics(for: completedWorkout).contains(where: { $0.title == "Volume" }))
     }
 

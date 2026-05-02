@@ -101,6 +101,10 @@ struct WorkoutRow: View {
     }
 
     static func countsFallbackText(for workout: Workout) -> String? {
+        if workout.isCompleted, workout.hasLoggedWarmupOnly {
+            return "Warm-up sets only"
+        }
+
         if workout.sets.isEmpty {
             return "No sets logged"
         }

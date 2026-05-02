@@ -91,6 +91,10 @@ final class Workout {
     var workingSetsCount: Int {
         sets.filter(\.isCompletedWorkingSet).count
     }
+
+    var hasLoggedWarmupOnly: Bool {
+        workingSetsCount == 0 && sets.contains { $0.isWarmup && $0.isCompletedLoggedSet }
+    }
     
     // Group sets by exercise
     var exerciseGroups: [Exercise: [ExerciseSet]] {
@@ -344,9 +348,12 @@ final class Workout {
             return []
         }
 
-        return sets.compactMap { set -> String? in
-            guard !set.isWarmup,
-                  let exerciseName = set.exercise?.name,
+        let fallbackSets = hasLoggedWarmupOnly
+            ? sets
+            : sets.filter { !$0.isWarmup }
+
+        return fallbackSets.compactMap { set -> String? in
+            guard let exerciseName = set.exercise?.name,
                   let normalizedName = normalizedSummaryExerciseName(exerciseName)
             else {
                 return nil
@@ -403,6 +410,8 @@ final class Workout {
             }
         } else if totalBodyweightReps > 0 {
             summary += "Total Reps: \(formattedTotalBodyweightReps())\n"
+        } else if isCompleted, hasLoggedWarmupOnly {
+            summary += "Work: Warm-up sets only\n"
         } else {
             summary += "Total Volume: \(formattedTotalVolume())\n"
         }
