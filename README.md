@@ -1,5 +1,6 @@
 # RPT
 
+- Polished copied workout summaries so sessions without completed work now use neutral `Work` states like `Not started`, `Not logged yet`, and `No sets logged` instead of falling back to misleading `Total Volume: 0 lb` text.
 - Clarified warm-up-only workout history so Home, Workout Detail, and copied summaries now say `Warm-up sets only` instead of implying either fully logged work or no logged work at all.
 - Polished `Workout Detail` set rows so unfinished/planned sets now read as neutral `Planned` / `Not logged` states instead of looking like completed `lb × reps` results.
 - Fixed Home `Recent Workouts` fallback copy so completed legacy/imported sessions with only placeholder or unstarted sets now show `No sets logged` instead of looking like real logged work.
@@ -76,6 +77,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished copied workout summaries so empty, unstarted, and legacy no-work sessions now mirror the app’s neutral `Work` states (`Not started`, `Not logged yet`, `No sets logged`, `Warm-up sets only`) instead of exporting misleading `Total Volume: 0 lb` fallback text; added regression coverage in `WorkoutManagerTests`.
 - Clarified warm-up-only completed-workout history so Home rows, Workout Detail, and copied workout summaries now show `Warm-up sets only` while preserving the warm-up exercise/set context instead of flattening everything into `No sets logged` or `0 lb`; added regression coverage in `FormattingTests` and `WorkoutManagerTests`.
 - Polished `WorkoutDetailView` set-row status clarity so unfinished/planned sets now render as `Planned • ...` or `Not logged` instead of looking like completed `lb × reps` results; added regression coverage in `FormattingTests`.
 - Fixed Home `Recent Workouts` fallback copy so completed legacy/imported sessions with only placeholder/unstarted sets now show `No sets logged` instead of implying real logged work; added regression coverage in `FormattingTests`.

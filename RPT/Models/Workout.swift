@@ -379,6 +379,22 @@ final class Workout {
         return nonWarmupLoggedSetCount > 0 ? nonWarmupLoggedSetCount : sets.count
     }
 
+    private func summaryWorkFallbackLine() -> String {
+        if isCompleted, hasLoggedWarmupOnly {
+            return "Work: Warm-up sets only"
+        }
+
+        if isCompleted {
+            return "Work: No sets logged"
+        }
+
+        if sets.isEmpty {
+            return "Work: Not started"
+        }
+
+        return "Work: Not logged yet"
+    }
+
     // Generate workout summary
     func generateFormattedSummary() -> String {
         let summaryExerciseNames = summaryExerciseNamesInOrder()
@@ -410,10 +426,8 @@ final class Workout {
             }
         } else if totalBodyweightReps > 0 {
             summary += "Total Reps: \(formattedTotalBodyweightReps())\n"
-        } else if isCompleted, hasLoggedWarmupOnly {
-            summary += "Work: Warm-up sets only\n"
         } else {
-            summary += "Total Volume: \(formattedTotalVolume())\n"
+            summary += "\(summaryWorkFallbackLine())\n"
         }
         
         if let normalizedNotes = normalizedSummaryNotes() {

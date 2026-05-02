@@ -870,6 +870,39 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // Then
         XCTAssertTrue(summary.contains("Exercises: None"))
         XCTAssertTrue(summary.contains("Sets: 0"))
+        XCTAssertTrue(summary.contains("Work: Not logged yet"))
+        XCTAssertFalse(summary.contains("Total Volume: 0 lb"))
+    }
+
+    func testGenerateFormattedSummary_emptyIncompleteWorkoutUsesNotStartedCopy() {
+        // Given
+        let workout = Workout(name: "Fresh Workout", isCompleted: false)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: None"))
+        XCTAssertTrue(summary.contains("Sets: 0"))
+        XCTAssertTrue(summary.contains("Work: Not started"))
+        XCTAssertFalse(summary.contains("Total Volume: 0 lb"))
+    }
+
+    func testGenerateFormattedSummary_completedWorkoutWithoutLoggedSetsUsesNeutralWorkCopy() {
+        // Given
+        let workout = Workout(name: "Legacy Empty", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 0, isWarmup: false)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: Bench Press"))
+        XCTAssertTrue(summary.contains("Sets: 1"))
+        XCTAssertTrue(summary.contains("Work: No sets logged"))
+        XCTAssertFalse(summary.contains("Total Volume: 0 lb"))
     }
 
     func testGenerateFormattedSummary_fallsBackToDefaultNameWhenNameIsWhitespaceOnly() {
