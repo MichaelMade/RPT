@@ -460,7 +460,7 @@ final class Workout {
         summary += "Sets: \(summarySetCount())\n"
 
         let safeDuration = duration.isFinite ? max(0, duration) : 0
-        if safeDuration > 0 {
+        if isCompleted, safeDuration > 0 {
             summary += "Duration: \(formattedDurationForSummary())\n"
         }
 

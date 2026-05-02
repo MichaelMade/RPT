@@ -1,5 +1,6 @@
 # RPT
 
+- Fixed copied/exported workout summaries so `Duration` only appears for completed workouts, keeping draft or imported in-progress sessions from looking falsely finished when they carry a stale positive duration.
 - Fixed future-dated workout timestamps across Home, Workout Detail, and resumable draft summaries so clock-skewed or imported sessions now fall back to clear calendar dates instead of misleading `Today` / `Started just now` labels.
 - Polished in-progress copied/exported workout summaries so planned exercise names now stay visible before any sets are logged, instead of incorrectly falling back to `Exercises: None`.
 - Fixed completed workout summary set counts so Workout Detail and copied/exported summaries no longer count unlogged placeholder sets as real logged work; completed sessions now fall back to genuinely logged warmups before showing zero.

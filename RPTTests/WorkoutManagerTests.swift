@@ -679,9 +679,9 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(summary.contains("Exercises: Squat, Bench Press"))
     }
 
-    func testGenerateFormattedSummary_includesHumanReadableDuration() {
+    func testGenerateFormattedSummary_includesHumanReadableDurationForCompletedWorkout() {
         // Given
-        let workout = Workout(name: "Duration Summary", duration: 125)
+        let workout = Workout(name: "Duration Summary", duration: 125, isCompleted: true)
 
         // When
         let summary = workout.generateFormattedSummary()
@@ -690,9 +690,20 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(summary.contains("Duration: 2m 5s"))
     }
 
+    func testGenerateFormattedSummary_hidesDurationForIncompleteWorkout() {
+        // Given
+        let workout = Workout(name: "Draft Duration Summary", duration: 125, isCompleted: false)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertFalse(summary.contains("Duration:"))
+    }
+
     func testGenerateFormattedSummary_durationDoesNotRoundUpNearMinuteBoundary() {
         // Given
-        let workout = Workout(name: "Boundary Duration", duration: 59.9)
+        let workout = Workout(name: "Boundary Duration", duration: 59.9, isCompleted: true)
 
         // When
         let summary = workout.generateFormattedSummary()
@@ -704,7 +715,7 @@ final class WorkoutManagerLogicTests: XCTestCase {
 
     func testGenerateFormattedSummary_durationDoesNotRoundUpNearHourBoundary() {
         // Given
-        let workout = Workout(name: "Hour Boundary Duration", duration: 3599.9)
+        let workout = Workout(name: "Hour Boundary Duration", duration: 3599.9, isCompleted: true)
 
         // When
         let summary = workout.generateFormattedSummary()
@@ -716,7 +727,7 @@ final class WorkoutManagerLogicTests: XCTestCase {
 
     func testGenerateFormattedSummary_includesSecondsWhenDurationExceedsAnHour() {
         // Given
-        let workout = Workout(name: "Long Duration", duration: 3661.9)
+        let workout = Workout(name: "Long Duration", duration: 3661.9, isCompleted: true)
 
         // When
         let summary = workout.generateFormattedSummary()
@@ -727,8 +738,8 @@ final class WorkoutManagerLogicTests: XCTestCase {
 
     func testGenerateFormattedSummary_hidesZeroAndCorruptedDurations() {
         // Given
-        let zeroDurationWorkout = Workout(name: "Zero Duration Summary", duration: 0)
-        let corruptedDurationWorkout = Workout(name: "Corrupted Duration Summary", duration: -.infinity)
+        let zeroDurationWorkout = Workout(name: "Zero Duration Summary", duration: 0, isCompleted: true)
+        let corruptedDurationWorkout = Workout(name: "Corrupted Duration Summary", duration: -.infinity, isCompleted: true)
 
         // When
         let zeroSummary = zeroDurationWorkout.generateFormattedSummary()
