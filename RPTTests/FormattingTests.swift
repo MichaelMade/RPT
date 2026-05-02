@@ -362,6 +362,25 @@ final class FormattingTests: XCTestCase {
         _ = fallbackWorkout.addSet(exercise: squat, weight: 185, reps: 0)
 
         XCTAssertEqual(WorkoutRow.exerciseCountText(for: fallbackWorkout), "2 exercises")
+
+        let completedPlaceholderWorkout = Workout(name: "Completed Placeholder Exercise Count", isCompleted: true)
+        _ = completedPlaceholderWorkout.addSet(exercise: bench, weight: 135, reps: 0)
+        _ = completedPlaceholderWorkout.addSet(exercise: squat, weight: 185, reps: 0)
+
+        XCTAssertEqual(
+            WorkoutRow.exerciseCountText(for: completedPlaceholderWorkout),
+            "0 exercises",
+            "Completed placeholder-only workouts should not count unlogged planned exercises as completed history"
+        )
+
+        let warmupOnlyWorkout = Workout(name: "Warm-up Exercise Count", isCompleted: true)
+        _ = warmupOnlyWorkout.addSet(exercise: bench, weight: 45, reps: 10, isWarmup: true)
+
+        XCTAssertEqual(
+            WorkoutRow.exerciseCountText(for: warmupOnlyWorkout),
+            "1 exercise",
+            "Completed warm-up-only workouts should still acknowledge the logged exercise context"
+        )
     }
 
     func testWorkoutRowDurationMetric_showsFormattedCompletedDuration() {
@@ -451,6 +470,27 @@ final class FormattingTests: XCTestCase {
 
         let fallbackMetric = WorkoutDetailView.summaryMetrics(for: fallbackWorkout).first(where: { $0.title == "Exercises" })
         XCTAssertEqual(fallbackMetric?.value, "2")
+
+        let completedPlaceholderWorkout = Workout(name: "Completed Placeholder Detail", isCompleted: true)
+        _ = completedPlaceholderWorkout.addSet(exercise: bench, weight: 135, reps: 0)
+        _ = completedPlaceholderWorkout.addSet(exercise: squat, weight: 185, reps: 0)
+
+        let completedPlaceholderMetric = WorkoutDetailView.summaryMetrics(for: completedPlaceholderWorkout).first(where: { $0.title == "Exercises" })
+        XCTAssertEqual(
+            completedPlaceholderMetric?.value,
+            "0",
+            "Completed placeholder-only workouts should not inflate the summary exercise count"
+        )
+
+        let warmupOnlyWorkout = Workout(name: "Completed Warmup Detail", isCompleted: true)
+        _ = warmupOnlyWorkout.addSet(exercise: bench, weight: 45, reps: 10, isWarmup: true)
+
+        let warmupOnlyMetric = WorkoutDetailView.summaryMetrics(for: warmupOnlyWorkout).first(where: { $0.title == "Exercises" })
+        XCTAssertEqual(
+            warmupOnlyMetric?.value,
+            "1",
+            "Completed warm-up-only workouts should preserve logged exercise context"
+        )
     }
 
     func testWorkoutDetailSummaryMetrics_preferCompletedWorkingSetCountWithFallback() {

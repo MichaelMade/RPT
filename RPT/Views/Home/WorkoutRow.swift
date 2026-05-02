@@ -68,13 +68,7 @@ struct WorkoutRow: View {
     }
 
     static func displayExerciseCount(for workout: Workout) -> Int {
-        let completedExercises = Set(
-            workout.sets
-                .filter(\.isCompletedWorkingSet)
-                .compactMap { $0.exercise }
-        ).count
-
-        return completedExercises > 0 ? completedExercises : workout.exerciseCount
+        workout.visibleExerciseCount
     }
 
     static func exerciseCountText(for workout: Workout) -> String {

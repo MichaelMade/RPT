@@ -44,6 +44,38 @@ final class Workout {
     var exerciseCount: Int {
         Set(sets.compactMap { $0.exercise }).count
     }
+
+    var visibleExerciseCount: Int {
+        let completedWorkingExerciseCount = Set(
+            sets
+                .filter(\.isCompletedWorkingSet)
+                .compactMap { $0.exercise }
+        ).count
+
+        if completedWorkingExerciseCount > 0 {
+            return completedWorkingExerciseCount
+        }
+
+        if isCompleted {
+            let nonWarmupLoggedExerciseCount = Set(
+                sets
+                    .filter { !$0.isWarmup && $0.isCompletedLoggedSet }
+                    .compactMap { $0.exercise }
+            ).count
+
+            if nonWarmupLoggedExerciseCount > 0 {
+                return nonWarmupLoggedExerciseCount
+            }
+
+            return Set(
+                sets
+                    .filter(\.isCompletedLoggedSet)
+                    .compactMap { $0.exercise }
+            ).count
+        }
+
+        return exerciseCount
+    }
     
     // Calculate total volume from completed working sets only
     var totalVolume: Double {
