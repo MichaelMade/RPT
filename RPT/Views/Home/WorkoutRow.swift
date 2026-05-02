@@ -101,11 +101,15 @@ struct WorkoutRow: View {
     }
 
     static func countsFallbackText(for workout: Workout) -> String? {
-        guard workout.sets.isEmpty else {
-            return nil
+        if workout.sets.isEmpty {
+            return "No sets logged"
         }
 
-        return "No sets logged"
+        if workout.isCompleted, workout.workingSetsCount == 0 {
+            return "No sets logged"
+        }
+
+        return nil
     }
 
     static func durationMetric(for workout: Workout) -> (label: String, value: String)? {

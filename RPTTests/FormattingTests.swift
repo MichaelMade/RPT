@@ -259,8 +259,25 @@ final class FormattingTests: XCTestCase {
         let emptyWorkout = Workout(name: "Imported Workout", isCompleted: true)
         XCTAssertEqual(WorkoutRow.countsFallbackText(for: emptyWorkout), "No sets logged")
 
-        let loggedWorkout = Workout(name: "Logged Workout", isCompleted: true)
+        let placeholderWorkout = Workout(name: "Legacy Placeholder Workout", isCompleted: true)
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = placeholderWorkout.addSet(exercise: exercise, weight: 225, reps: 0)
+        _ = placeholderWorkout.addSet(exercise: exercise, weight: 185, reps: 0)
+
+        XCTAssertEqual(
+            WorkoutRow.countsFallbackText(for: placeholderWorkout),
+            "No sets logged",
+            "Completed workouts with only placeholder/unstarted sets should not look like real logged work"
+        )
+
+        let draftWorkout = Workout(name: "Draft Workout", isCompleted: false)
+        _ = draftWorkout.addSet(exercise: exercise, weight: 225, reps: 0)
+        XCTAssertNil(
+            WorkoutRow.countsFallbackText(for: draftWorkout),
+            "Incomplete drafts should keep their planned set counts instead of being flattened into a completed-history empty state"
+        )
+
+        let loggedWorkout = Workout(name: "Logged Workout", isCompleted: true)
         _ = loggedWorkout.addSet(exercise: exercise, weight: 225, reps: 5)
 
         XCTAssertNil(WorkoutRow.countsFallbackText(for: loggedWorkout))

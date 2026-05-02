@@ -1,5 +1,6 @@
 # RPT
 
+- Fixed Home `Recent Workouts` fallback copy so completed legacy/imported sessions with only placeholder or unstarted sets now show `No sets logged` instead of looking like real logged work.
 - Fixed `Workout Detail` summary set counts so legacy/imported sessions now fall back to non-warmup logged sets before counting warmups, keeping `Sets` aligned with Home instead of overstating warmup-only scaffolding.
 - Fixed workout-name editing in the active session so whitespace-only or overly long names now snap the text field and navigation title back to the same sanitized value that gets saved, instead of leaving stale unsaved formatting visible.
 - Fixed the Stats `This Week` work tile fallback for corrupted/missing work data so completed weeks with no valid volume or bodyweight reps now stay neutral as `Work — logged` instead of mislabeling the card as `Reps`.
@@ -72,6 +73,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Home `Recent Workouts` fallback copy so completed legacy/imported sessions with only placeholder/unstarted sets now show `No sets logged` instead of implying real logged work; added regression coverage in `FormattingTests`.
 - Fixed `WorkoutDetailView` summary set-count fallback so completed legacy/imported sessions now prefer non-warmup logged sets before counting warmups, keeping the `Sets` card aligned with Home when finished data is incomplete; added regression coverage in `FormattingTests`.
 - Fixed active-workout name editing so the text field and navigation title now immediately reflect the same sanitized workout name that is persisted (including whitespace collapse, blank-name fallback, and 80-character clamping); added regression coverage in `ActiveWorkoutViewModelTests`.
 - Fixed the Stats `This Week` work-tile fallback so completed weeks with missing/corrupted work totals now keep a neutral `Work — logged` label instead of incorrectly switching to `Reps`; updated `StatsViewModel` and `StatsViewModelTests`.
