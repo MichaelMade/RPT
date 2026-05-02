@@ -83,16 +83,7 @@ struct WorkoutRow: View {
     }
 
     static func displaySetCount(for workout: Workout) -> Int {
-        if workout.workingSetsCount > 0 {
-            return workout.workingSetsCount
-        }
-
-        let nonWarmupSetCount = workout.sets.filter { !$0.isWarmup }.count
-        if nonWarmupSetCount > 0 {
-            return nonWarmupSetCount
-        }
-
-        return workout.sets.count
+        workout.visibleSetCount
     }
 
     static func setCountText(for workout: Workout) -> String {

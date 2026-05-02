@@ -1,5 +1,6 @@
 # RPT
 
+- Fixed completed workout summary set counts so Workout Detail and copied/exported summaries no longer count unlogged placeholder sets as real logged work; completed sessions now fall back to genuinely logged warmups before showing zero.
 - Fixed Stats bodyweight-only trend visibility so the app now shows a real `Weekly Reps` chart when the last 12 weeks contain completed bodyweight work but no weighted volume, instead of dropping straight to a placeholder.
 - Fixed Stats `Weekly Volume` honesty for bodyweight-only recent training so the app now shows a clear placeholder message instead of rendering a flat zero-volume chart when the last 12 weeks contain completed workouts but no weighted volume.
 - Polished copied workout summaries so sessions without completed work now use neutral `Work` states like `Not started`, `Not logged yet`, and `No sets logged` instead of falling back to misleading `Total Volume: 0 lb` text.
@@ -79,6 +80,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed completed workout summary set-count honesty so Workout Detail and copied/exported workout summaries no longer count unlogged placeholder sets as real logged work; completed sessions now prefer genuinely logged non-warmup sets, then logged warmups, before falling back to `0`; added regression coverage in `FormattingTests` and `WorkoutManagerTests`.
 - Fixed Stats bodyweight-only trend visibility so the weekly chart now falls back to `Weekly Reps` when the last 12 weeks contain completed bodyweight work but no weighted volume, keeping recent training visible for pull-up/push-up focused users; updated `StatsView`, `StatsViewModel`, and `StatsViewFormattingTests`.
 - Fixed Stats `Weekly Volume` empty-state honesty so bodyweight-only recent training now shows a clear placeholder message instead of a misleading flat zero-volume chart when the last 12 weeks contain completed workouts but no weighted volume; updated `StatsView`, `StatsViewModel`, and `StatsViewFormattingTests`.
 - Polished copied workout summaries so empty, unstarted, and legacy no-work sessions now mirror the app’s neutral `Work` states (`Not started`, `Not logged yet`, `No sets logged`, `Warm-up sets only`) instead of exporting misleading `Total Volume: 0 lb` fallback text; added regression coverage in `WorkoutManagerTests`.

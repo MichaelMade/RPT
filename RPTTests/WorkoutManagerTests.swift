@@ -900,9 +900,28 @@ final class WorkoutManagerLogicTests: XCTestCase {
 
         // Then
         XCTAssertTrue(summary.contains("Exercises: Bench Press"))
-        XCTAssertTrue(summary.contains("Sets: 1"))
+        XCTAssertTrue(summary.contains("Sets: 0"))
         XCTAssertTrue(summary.contains("Work: No sets logged"))
         XCTAssertFalse(summary.contains("Total Volume: 0 lb"))
+    }
+
+    func testGenerateFormattedSummary_completedPlaceholderSetsFallBackToLoggedWarmupsOnly() {
+        // Given
+        let workout = Workout(name: "Legacy Warmup", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 0, isWarmup: false)
+        _ = workout.addSet(exercise: bench, weight: 165, reps: 0, isWarmup: false)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: Bench Press"))
+        XCTAssertTrue(summary.contains("Sets: 1"))
+        XCTAssertTrue(summary.contains("Work: Warm-up sets only"))
+        XCTAssertFalse(summary.contains("Sets: 3"))
     }
 
     func testGenerateFormattedSummary_fallsBackToDefaultNameWhenNameIsWhitespaceOnly() {

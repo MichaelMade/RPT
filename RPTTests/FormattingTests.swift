@@ -472,6 +472,35 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(fallbackMetric?.value, "2")
     }
 
+    func testWorkoutDetailSummaryMetrics_completedPlaceholderSetsDoNotInflateSetCount() {
+        let workout = Workout(name: "Completed Placeholder Detail", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 0)
+        _ = workout.addSet(exercise: bench, weight: 165, reps: 0)
+
+        let setMetric = WorkoutDetailView.summaryMetrics(for: workout).first(where: { $0.title == "Sets" })
+        let workMetric = WorkoutDetailView.summaryMetrics(for: workout).first(where: { $0.title == "Work" })
+
+        XCTAssertEqual(setMetric?.value, "0")
+        XCTAssertEqual(workMetric?.value, "No sets logged")
+    }
+
+    func testWorkoutDetailSummaryMetrics_completedPlaceholderSetsFallBackToLoggedWarmups() {
+        let workout = Workout(name: "Completed Warmup Detail", isCompleted: true)
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        _ = workout.addSet(exercise: squat, weight: 45, reps: 10, isWarmup: true)
+        _ = workout.addSet(exercise: squat, weight: 225, reps: 0)
+        _ = workout.addSet(exercise: squat, weight: 205, reps: 0)
+
+        let setMetric = WorkoutDetailView.summaryMetrics(for: workout).first(where: { $0.title == "Sets" })
+        let workMetric = WorkoutDetailView.summaryMetrics(for: workout).first(where: { $0.title == "Work" })
+
+        XCTAssertEqual(setMetric?.value, "1")
+        XCTAssertEqual(workMetric?.value, "Warm-up sets only")
+    }
+
     func testWorkoutDetailSummaryMetrics_fallBackToNonWarmupSetsBeforeCountingWarmups() {
         let workout = Workout(name: "Workout Detail Warmup Fallback")
         let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])

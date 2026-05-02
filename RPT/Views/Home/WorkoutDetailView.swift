@@ -53,17 +53,7 @@ struct WorkoutDetailView: View {
     }
 
     static func displaySetCount(for workout: Workout) -> Int {
-        let completedSetCount = workout.workingSetsCount
-        if completedSetCount > 0 {
-            return completedSetCount
-        }
-
-        let nonWarmupSetCount = workout.sets.filter { !$0.isWarmup }.count
-        if nonWarmupSetCount > 0 {
-            return nonWarmupSetCount
-        }
-
-        return workout.sets.count
+        workout.visibleSetCount
     }
 
     static func workMetric(for workout: Workout) -> (title: String, value: String) {

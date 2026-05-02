@@ -95,6 +95,28 @@ final class Workout {
     var hasLoggedWarmupOnly: Bool {
         workingSetsCount == 0 && sets.contains { $0.isWarmup && $0.isCompletedLoggedSet }
     }
+
+    var visibleSetCount: Int {
+        if workingSetsCount > 0 {
+            return workingSetsCount
+        }
+
+        if isCompleted {
+            let nonWarmupLoggedSetCount = sets.filter { !$0.isWarmup && $0.isCompletedLoggedSet }.count
+            if nonWarmupLoggedSetCount > 0 {
+                return nonWarmupLoggedSetCount
+            }
+
+            return sets.filter(\.isCompletedLoggedSet).count
+        }
+
+        let nonWarmupSetCount = sets.filter { !$0.isWarmup }.count
+        if nonWarmupSetCount > 0 {
+            return nonWarmupSetCount
+        }
+
+        return sets.count
+    }
     
     // Group sets by exercise
     var exerciseGroups: [Exercise: [ExerciseSet]] {
@@ -366,17 +388,7 @@ final class Workout {
     }
 
     private func summarySetCount() -> Int {
-        let completedWorkingSetCount = workingSetsCount
-        if completedWorkingSetCount > 0 {
-            return completedWorkingSetCount
-        }
-
-        guard isCompleted else {
-            return completedWorkingSetCount
-        }
-
-        let nonWarmupLoggedSetCount = sets.filter { !$0.isWarmup }.count
-        return nonWarmupLoggedSetCount > 0 ? nonWarmupLoggedSetCount : sets.count
+        visibleSetCount
     }
 
     private func summaryWorkFallbackLine() -> String {
