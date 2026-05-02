@@ -857,7 +857,7 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertFalse(summary.contains("Total Volume: 0 lb"))
     }
 
-    func testGenerateFormattedSummary_incompleteWorkoutDoesNotFallBackToPlannedExerciseNames() {
+    func testGenerateFormattedSummary_incompleteWorkoutIncludesPlannedExerciseNames() {
         // Given
         let workout = Workout(name: "Planned Workout", isCompleted: false)
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
@@ -868,8 +868,8 @@ final class WorkoutManagerLogicTests: XCTestCase {
         let summary = workout.generateFormattedSummary()
 
         // Then
-        XCTAssertTrue(summary.contains("Exercises: None"))
-        XCTAssertTrue(summary.contains("Sets: 0"))
+        XCTAssertTrue(summary.contains("Exercises: Bench Press"))
+        XCTAssertTrue(summary.contains("Sets: 1"))
         XCTAssertTrue(summary.contains("Work: Not logged yet"))
         XCTAssertFalse(summary.contains("Total Volume: 0 lb"))
     }

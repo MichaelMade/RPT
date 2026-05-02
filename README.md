@@ -1,5 +1,6 @@
 # RPT
 
+- Polished in-progress copied/exported workout summaries so planned exercise names now stay visible before any sets are logged, instead of incorrectly falling back to `Exercises: None`.
 - Fixed completed workout summary set counts so Workout Detail and copied/exported summaries no longer count unlogged placeholder sets as real logged work; completed sessions now fall back to genuinely logged warmups before showing zero.
 - Fixed completed-workout exercise-count honesty so Home and Workout Detail no longer count placeholder-only planned exercises as real logged history; completed sessions now prefer genuinely logged exercises, then logged warm-up context, before falling back to zero.
 - Fixed Stats bodyweight-only trend visibility so the app now shows a real `Weekly Reps` chart when the last 12 weeks contain completed bodyweight work but no weighted volume, instead of dropping straight to a placeholder.
@@ -81,6 +82,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished copied/exported in-progress workout summaries so planned exercise names now remain visible before any set is logged, instead of incorrectly collapsing to `Exercises: None`; updated `Workout` and `WorkoutManagerTests`.
 - Fixed completed workout summary set-count honesty so Workout Detail and copied/exported workout summaries no longer count unlogged placeholder sets as real logged work; completed sessions now prefer genuinely logged non-warmup sets, then logged warmups, before falling back to `0`; added regression coverage in `FormattingTests` and `WorkoutManagerTests`.
 - Fixed completed-workout exercise-count honesty so Home and Workout Detail no longer count placeholder-only planned exercises as real logged history; completed sessions now prefer genuinely logged non-warmup exercises, then logged warm-up context, before falling back to `0`; added regression coverage in `FormattingTests`.
 - Fixed Stats bodyweight-only trend visibility so the weekly chart now falls back to `Weekly Reps` when the last 12 weeks contain completed bodyweight work but no weighted volume, keeping recent training visible for pull-up/push-up focused users; updated `StatsView`, `StatsViewModel`, and `StatsViewFormattingTests`.

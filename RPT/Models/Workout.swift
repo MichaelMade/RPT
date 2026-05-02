@@ -398,13 +398,15 @@ final class Workout {
             return completedExerciseNamesInOrder
         }
 
-        guard isCompleted else {
-            return []
+        let fallbackSets: [ExerciseSet]
+        if isCompleted {
+            fallbackSets = hasLoggedWarmupOnly
+                ? sets
+                : sets.filter { !$0.isWarmup }
+        } else {
+            let plannedNonWarmupSets = sets.filter { !$0.isWarmup }
+            fallbackSets = plannedNonWarmupSets.isEmpty ? sets : plannedNonWarmupSets
         }
-
-        let fallbackSets = hasLoggedWarmupOnly
-            ? sets
-            : sets.filter { !$0.isWarmup }
 
         return fallbackSets.compactMap { set -> String? in
             guard let exerciseName = set.exercise?.name,
