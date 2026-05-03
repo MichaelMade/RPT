@@ -868,6 +868,28 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertFalse(summary.contains("Total Volume: 0 lb"))
     }
 
+    func testGenerateFormattedSummary_completedWarmupOnlyWorkoutDoesNotListUnstartedPlaceholderExercises() {
+        // Given
+        let workout = Workout(name: "Warm-up With Planned Work", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        _ = workout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+        _ = workout.addSet(exercise: squat, weight: 225, reps: 0, isWarmup: false)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: Bench Press"))
+        XCTAssertFalse(
+            summary.contains("Bench Press, Squat"),
+            "Completed summaries should prefer actually logged exercise context before falling back to unstarted placeholders"
+        )
+        XCTAssertTrue(summary.contains("Sets: 1"))
+        XCTAssertTrue(summary.contains("Work: Warm-up sets only"))
+    }
+
     func testGenerateFormattedSummary_incompleteWorkoutIncludesPlannedExerciseNames() {
         // Given
         let workout = Workout(name: "Planned Workout", isCompleted: false)

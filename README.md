@@ -1,5 +1,6 @@
 # RPT
 
+- Fixed copied/exported completed workout summaries so warm-up-only sessions now list only actually logged exercise names instead of leaking never-started placeholder exercises into the `Exercises:` line.
 - Fixed Home `Recent Workouts` duration honesty so unfinished draft/imported sessions with stale positive durations no longer look completed at a glance; the row now only shows `Duration` for completed workouts, matching Workout Detail and copied/exported summaries.
 - Polished `Workout Detail` unfinished warm-up rows so queued warm-up sets now stay explicitly labeled as `Warm-up • ...` instead of looking like generic planned working sets.
 - Fixed warm-up-only draft messaging across Home, Workout Detail, and copied/exported summaries so in-progress workouts with only logged warm-up sets now say `Warm-up sets only` instead of incorrectly looking like nothing has been logged yet.
@@ -87,6 +88,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed copied/exported completed workout summaries so warm-up-only sessions now prefer actually logged exercise names before falling back to placeholder plan context, preventing unstarted exercises from leaking into the `Exercises:` line when only warm-up work was recorded; updated `Workout` and `WorkoutManagerTests`.
 - Fixed Home `Recent Workouts` duration honesty so unfinished draft/imported sessions with stale positive durations no longer show a misleading `Duration` row before the workout is actually completed; updated `WorkoutRow` and `FormattingTests`.
 - Fixed future-dated workout timestamp handling across Home, Workout Detail, and resumable draft summaries so clock-skewed/imported sessions now show explicit calendar dates instead of misleading relative `Today` / `Started just now` labels; updated `WorkoutRow`, `HomeViewModel`, `FormattingTests`, and `HomeViewModelTests`.
 - Polished copied/exported in-progress workout summaries so planned exercise names now remain visible before any set is logged, instead of incorrectly collapsing to `Exercises: None`; updated `Workout` and `WorkoutManagerTests`.

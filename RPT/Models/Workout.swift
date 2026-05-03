@@ -398,11 +398,28 @@ final class Workout {
             return completedExerciseNamesInOrder
         }
 
+        if isCompleted {
+            let loggedExerciseNamesInOrder = sets.compactMap { set -> String? in
+                guard set.isCompletedLoggedSet,
+                      let exerciseName = set.exercise?.name,
+                      let normalizedName = normalizedSummaryExerciseName(exerciseName)
+                else {
+                    return nil
+                }
+
+                return seenExerciseNames.insert(normalizedName.key).inserted
+                    ? normalizedName.display
+                    : nil
+            }
+
+            if !loggedExerciseNamesInOrder.isEmpty {
+                return loggedExerciseNamesInOrder
+            }
+        }
+
         let fallbackSets: [ExerciseSet]
         if isCompleted {
-            fallbackSets = hasLoggedWarmupOnly
-                ? sets
-                : sets.filter { !$0.isWarmup }
+            fallbackSets = sets.filter { !$0.isWarmup }
         } else {
             let plannedNonWarmupSets = sets.filter { !$0.isWarmup }
             fallbackSets = plannedNonWarmupSets.isEmpty ? sets : plannedNonWarmupSets
