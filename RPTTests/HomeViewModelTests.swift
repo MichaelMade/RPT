@@ -530,6 +530,22 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(summary, "Started 15m ago • 2 exercises • 2 sets • No exercises started yet", "Summary should distinguish planned template drafts from workouts with logged work")
     }
 
+    func testResumableWorkoutSummary_warmupOnlyDraftCallsOutWarmupState() {
+        let startDate = Date(timeIntervalSince1970: 0)
+        let now = startDate.addingTimeInterval(10 * 60)
+        let workout = Workout(date: startDate, name: "Upper A", startedFromTemplate: "Push Day")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back])
+
+        _ = workout.addSet(exercise: bench, weight: 45, reps: 10, isWarmup: true)
+        let rowSet = workout.addSet(exercise: row, weight: 135, reps: 8)
+        rowSet.completedAt = .distantPast
+
+        let summary = viewModel.resumableWorkoutSummary(for: workout, now: now)
+
+        XCTAssertEqual(summary, "Started 10m ago • From Push Day • 2 exercises • 2 sets • Warm-up sets only so far", "Summary should make warm-up-only drafts feel distinct from both untouched plans and real working-set progress")
+    }
+
     func testStartFreshWorkoutMessage_includesWorkoutNameAndCurrentDraftSummary() {
         let startDate = Date(timeIntervalSince1970: 0)
         let now = startDate.addingTimeInterval(30 * 60)
@@ -572,7 +588,7 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(progress, "1 of 2 exercises started", "Progress text should show how much of a multi-exercise draft already has logged work")
     }
 
-    func testResumableWorkoutProgressText_countsWarmupOnlyExerciseAsStarted() {
+    func testResumableWorkoutProgressText_warmupOnlyWorkoutShowsWarmupSpecificMessage() {
         let workout = Workout(name: "Push Day")
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         let row = Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back])
@@ -583,7 +599,7 @@ final class HomeViewModelTests: XCTestCase {
 
         let progress = viewModel.resumableWorkoutProgressText(for: workout)
 
-        XCTAssertEqual(progress, "1 of 2 exercises started", "Progress text should treat warmup-only logged work as a started exercise instead of claiming nothing has begun")
+        XCTAssertEqual(progress, "Warm-up sets only so far", "Progress text should call out warm-up-only draft work instead of making it sound like real work sets are underway")
     }
 
     func testWorkoutStartedSummary_usesReadableAbsoluteDateForFutureDrafts() {

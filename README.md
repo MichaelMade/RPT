@@ -1,5 +1,6 @@
 # RPT
 
+- Resumable workout summaries now call out warm-up-only draft progress with `Warm-up sets only so far`, so users can tell at a glance when they have only started warming up versus logging real work sets.
 - Final workout durations now stay accurate even if an in-progress draft was saved earlier; draft saves no longer freeze the eventual completed-session duration.
 - Workout Detail now hides completed placeholder-only exercise sections whenever the session has real logged work, while still preserving warm-up-only context when that is all the user recorded.
 - Surfaced template origin across workout history and copied/exported summaries so template-based sessions keep showing `Template • ...` / `Template: ...` context even after users rename or review past workouts.
@@ -91,6 +92,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished Home resumable-workout summaries so warm-up-only drafts now say `Warm-up sets only so far` instead of sounding like normal started progress, making it clearer when a saved session has only logged prep work; updated `HomeViewModel` and regression coverage in `HomeViewModelTests`.
 - Fixed draft-duration drift so saving an in-progress workout no longer freezes the final completed-session duration; completed workouts now recompute elapsed time at finish while draft saves clear stale duration snapshots. Updated `Workout`, `WorkoutManager`, and regression coverage in `WorkoutManagerTests`.
 - Polished completed `Workout Detail` history so placeholder-only exercise sections now disappear whenever the session has real logged work, while warm-up-only sessions still preserve the exercises that were actually touched; updated `WorkoutDetailView` and regression coverage in `FormattingTests`.
 - Surfaced template origin across Home `Recent Workouts`, `Workout Detail`, and copied/exported workout summaries so template-based sessions keep their source context visible in history/review flows; updated `WorkoutRow`, `WorkoutDetailView`, `Workout`, and regression coverage in `FormattingTests` / `WorkoutManagerTests`.

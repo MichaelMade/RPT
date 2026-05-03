@@ -121,6 +121,10 @@ class HomeViewModel: ObservableObject {
             return "No exercises added yet"
         }
 
+        if workout.hasLoggedWarmupOnly {
+            return "Warm-up sets only so far"
+        }
+
         if startedExercises <= 0 {
             return totalExercises == 1
                 ? "Exercise not started yet"
