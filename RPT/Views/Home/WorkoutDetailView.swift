@@ -108,10 +108,16 @@ struct WorkoutDetailView: View {
                 // Workout summary card
                 VStack(alignment: .leading, spacing: 8) {
                     // Date
-                    HStack {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(WorkoutRow.relativeDateText(for: workout.date))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
+
+                        if let templateOriginText = WorkoutRow.templateOriginText(for: workout) {
+                            Text(templateOriginText)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     
                     // Workout stats

@@ -378,6 +378,19 @@ final class Workout {
         return collapsedNotes
     }
 
+    private func normalizedSummaryTemplateName() -> String? {
+        let collapsedTemplateName = (startedFromTemplate ?? "")
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedTemplateName.isEmpty else {
+            return nil
+        }
+
+        return String(collapsedTemplateName.prefix(80))
+    }
+
     private func summaryExerciseNamesInOrder() -> [String] {
         var seenExerciseNames: Set<String> = []
 
@@ -473,6 +486,11 @@ final class Workout {
         let summaryWorkoutName = normalizedSummaryWorkoutName()
 
         var summary = "\(summaryWorkoutName) - \(dateString)\n"
+
+        if let templateName = normalizedSummaryTemplateName() {
+            summary += "Template: \(templateName)\n"
+        }
+
         summary += "Exercises: \(exerciseList)\n"
         summary += "Sets: \(summarySetCount())\n"
 

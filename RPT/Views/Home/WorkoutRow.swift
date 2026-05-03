@@ -24,6 +24,19 @@ struct WorkoutRow: View {
         return String(collapsedName.prefix(80))
     }
 
+    static func templateOriginText(for workout: Workout) -> String? {
+        let collapsedTemplateName = (workout.startedFromTemplate ?? "")
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsedTemplateName.isEmpty else {
+            return nil
+        }
+
+        return "Template • \(String(collapsedTemplateName.prefix(80)))"
+    }
+
     static func relativeDateText(
         for date: Date,
         now: Date = Date(),
@@ -154,6 +167,12 @@ struct WorkoutRow: View {
             Text(Self.relativeDateText(for: workout.date))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
+
+            if let templateOriginText = Self.templateOriginText(for: workout) {
+                Text(templateOriginText)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
             
             if let countsFallbackText = Self.countsFallbackText(for: workout) {
                 Text(countsFallbackText)
