@@ -38,10 +38,11 @@ class WorkoutManager: ObservableObject {
     // Save a workout
     func saveWorkout(_ workout: Workout) throws {
         workout.name = sanitizedWorkoutName(workout.name)
-
-        if workout.duration == 0 {
-            workout.duration = sanitizedDurationSinceWorkoutStart(workout.date)
-        }
+        workout.duration = sanitizedDurationForSave(
+            isCompleted: workout.isCompleted,
+            existingDuration: workout.duration,
+            startDate: workout.date
+        )
 
         try modelContext.save()
     }
@@ -49,6 +50,25 @@ class WorkoutManager: ObservableObject {
     func sanitizedDurationSinceWorkoutStart(_ startDate: Date, now: Date = Date()) -> TimeInterval {
         let rawDuration = now.timeIntervalSince(startDate)
         return rawDuration.isFinite ? max(0, rawDuration) : 0
+    }
+
+    func sanitizedDurationForSave(
+        isCompleted: Bool,
+        existingDuration: TimeInterval,
+        startDate: Date,
+        now: Date = Date()
+    ) -> TimeInterval {
+        let safeExistingDuration = existingDuration.isFinite ? max(0, existingDuration) : 0
+
+        guard isCompleted else {
+            return 0
+        }
+
+        if safeExistingDuration > 0 {
+            return safeExistingDuration
+        }
+
+        return sanitizedDurationSinceWorkoutStart(startDate, now: now)
     }
 
     func sanitizedWorkoutName(_ name: String) -> String {

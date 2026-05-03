@@ -205,16 +205,17 @@ final class Workout {
     }
     
     // Mark workout as completed
-    func complete() {
+    func complete(now: Date = Date()) {
         isCompleted = true
+
+        let rawElapsedDuration = now.timeIntervalSince(date)
+        if rawElapsedDuration.isFinite, rawElapsedDuration > 0 {
+            duration = rawElapsedDuration
+            return
+        }
 
         let safeDuration = duration.isFinite ? max(0, duration) : 0
         duration = safeDuration
-
-        if duration == 0 {
-            let rawDuration = Date().timeIntervalSince(date)
-            duration = rawDuration.isFinite ? max(0, rawDuration) : 0
-        }
     }
     
     // Add a new set to the workout

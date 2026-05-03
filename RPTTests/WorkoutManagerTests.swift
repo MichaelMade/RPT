@@ -633,6 +633,20 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertGreaterThan(workout.duration, 0)
     }
 
+    func testWorkoutComplete_recomputesElapsedDurationWhenDraftSavedEarlier() {
+        // Given
+        let startDate = Date(timeIntervalSince1970: 1_714_392_000)
+        let completionDate = startDate.addingTimeInterval(300)
+        let workout = Workout(date: startDate, name: "Past Workout", duration: 90, isCompleted: false)
+
+        // When
+        workout.complete(now: completionDate)
+
+        // Then
+        XCTAssertTrue(workout.isCompleted)
+        XCTAssertEqual(workout.duration, 300, accuracy: 0.0001)
+    }
+
     func testWorkoutComplete_clampsCorruptedNegativePersistedDuration() {
         // Given
         let workout = Workout(name: "Corrupted Duration", duration: -45, isCompleted: false)
@@ -655,6 +669,43 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // Then
         XCTAssertTrue(workout.isCompleted)
         XCTAssertEqual(workout.duration, 0, accuracy: 0.0001)
+    }
+
+    func testSanitizedDurationForSave_clearsIncompleteDraftDurations() {
+        // Given/When
+        let duration = manager.sanitizedDurationForSave(
+            isCompleted: false,
+            existingDuration: 125,
+            startDate: Date(timeIntervalSince1970: 1_714_392_000),
+            now: Date(timeIntervalSince1970: 1_714_392_300)
+        )
+
+        // Then
+        XCTAssertEqual(duration, 0, accuracy: 0.0001)
+    }
+
+    func testSanitizedDurationForSave_backfillsCompletedMissingDurationButPreservesValidStoredValues() {
+        // Given
+        let startDate = Date(timeIntervalSince1970: 1_714_392_000)
+        let now = startDate.addingTimeInterval(300)
+
+        // When
+        let backfilledDuration = manager.sanitizedDurationForSave(
+            isCompleted: true,
+            existingDuration: 0,
+            startDate: startDate,
+            now: now
+        )
+        let preservedDuration = manager.sanitizedDurationForSave(
+            isCompleted: true,
+            existingDuration: 125,
+            startDate: startDate,
+            now: now
+        )
+
+        // Then
+        XCTAssertEqual(backfilledDuration, 300, accuracy: 0.0001)
+        XCTAssertEqual(preservedDuration, 125, accuracy: 0.0001)
     }
 
     func testGenerateFormattedSummary_preservesCompletedExerciseOrderAndFallsBackWhenEmpty() {
