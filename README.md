@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Detail now hides completed placeholder-only exercise sections whenever the session has real logged work, while still preserving warm-up-only context when that is all the user recorded.
 - Surfaced template origin across workout history and copied/exported summaries so template-based sessions keep showing `Template • ...` / `Template: ...` context even after users rename or review past workouts.
 - Fixed copied/exported completed workout summaries so warm-up-only sessions now list only actually logged exercise names instead of leaking never-started placeholder exercises into the `Exercises:` line.
 - Fixed Home `Recent Workouts` duration honesty so unfinished draft/imported sessions with stale positive durations no longer look completed at a glance; the row now only shows `Duration` for completed workouts, matching Workout Detail and copied/exported summaries.
@@ -89,6 +90,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished completed `Workout Detail` history so placeholder-only exercise sections now disappear whenever the session has real logged work, while warm-up-only sessions still preserve the exercises that were actually touched; updated `WorkoutDetailView` and regression coverage in `FormattingTests`.
 - Surfaced template origin across Home `Recent Workouts`, `Workout Detail`, and copied/exported workout summaries so template-based sessions keep their source context visible in history/review flows; updated `WorkoutRow`, `WorkoutDetailView`, `Workout`, and regression coverage in `FormattingTests` / `WorkoutManagerTests`.
 - Fixed copied/exported completed workout summaries so warm-up-only sessions now prefer actually logged exercise names before falling back to placeholder plan context, preventing unstarted exercises from leaking into the `Exercises:` line when only warm-up work was recorded; updated `Workout` and `WorkoutManagerTests`.
 - Fixed Home `Recent Workouts` duration honesty so unfinished draft/imported sessions with stale positive durations no longer show a misleading `Duration` row before the workout is actually completed; updated `WorkoutRow` and `FormattingTests`.

@@ -606,6 +606,35 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(WorkoutDetailView.displayExerciseName(spacedExercise), "Incline Bench Press")
     }
 
+    func testWorkoutDetailDisplayedExerciseGroups_hideCompletedPlaceholderOnlyExercisesWhenRealWorkExists() {
+        let workout = Workout(name: "Mixed Completed Detail", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        _ = workout.addSet(exercise: bench, weight: 225, reps: 5)
+        _ = workout.addSet(exercise: squat, weight: 135, reps: 0)
+        _ = workout.addSet(exercise: squat, weight: 95, reps: 0, isWarmup: true)
+
+        let displayedGroups = WorkoutDetailView.displayedExerciseGroups(for: workout)
+
+        XCTAssertEqual(displayedGroups.count, 1)
+        XCTAssertEqual(displayedGroups.first?.exercise.name, "Bench Press")
+    }
+
+    func testWorkoutDetailDisplayedExerciseGroups_preserveWarmupOnlyContextWhenNoWorkingSetsWereLogged() {
+        let workout = Workout(name: "Warmup Only Detail", isCompleted: true)
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: squat, weight: 45, reps: 10, isWarmup: true)
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 0)
+
+        let displayedGroups = WorkoutDetailView.displayedExerciseGroups(for: workout)
+
+        XCTAssertEqual(displayedGroups.count, 1)
+        XCTAssertEqual(displayedGroups.first?.exercise.name, "Squat")
+    }
+
     func testWorkoutRowSecondaryMetric_prefersBodyweightRepsWhenVolumeIsZero() {
         let workout = Workout(name: "Bodyweight Workout")
         let pullUp = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])

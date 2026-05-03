@@ -89,6 +89,30 @@ struct WorkoutDetailView: View {
         return metrics
     }
 
+    static func displayedExerciseGroups(for workout: Workout) -> [(exercise: Exercise, sets: [ExerciseSet])] {
+        let groups = workout.orderedExerciseGroups
+
+        guard workout.isCompleted else {
+            return groups
+        }
+
+        let completedWorkingGroups = groups.filter { group in
+            group.sets.contains(where: \.isCompletedWorkingSet)
+        }
+        if !completedWorkingGroups.isEmpty {
+            return completedWorkingGroups
+        }
+
+        let completedLoggedGroups = groups.filter { group in
+            group.sets.contains(where: \.isCompletedLoggedSet)
+        }
+        if !completedLoggedGroups.isEmpty {
+            return completedLoggedGroups
+        }
+
+        return groups
+    }
+
     static func normalizedNotes(for workout: Workout) -> String? {
         let collapsedNotes = workout.notes
             .components(separatedBy: .whitespacesAndNewlines)
@@ -148,7 +172,7 @@ struct WorkoutDetailView: View {
                 .padding(.horizontal)
                 
                 // Exercise sections
-                ForEach(workout.orderedExerciseGroups, id: \.exercise) { group in
+                ForEach(Self.displayedExerciseGroups(for: workout), id: \.exercise) { group in
                     ExerciseSection(
                         exercise: group.exercise,
                         sets: group.sets
