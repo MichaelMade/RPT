@@ -530,7 +530,7 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(summary, "Started 15m ago • 2 exercises • 2 sets • No exercises started yet", "Summary should distinguish planned template drafts from workouts with logged work")
     }
 
-    func testResumableWorkoutSummary_warmupOnlyDraftCallsOutWarmupState() {
+    func testResumableWorkoutSummary_warmupOnlyDraftPrefersTouchedCountsOverUntouchedPlaceholders() {
         let startDate = Date(timeIntervalSince1970: 0)
         let now = startDate.addingTimeInterval(10 * 60)
         let workout = Workout(date: startDate, name: "Upper A", startedFromTemplate: "Push Day")
@@ -543,7 +543,7 @@ final class HomeViewModelTests: XCTestCase {
 
         let summary = viewModel.resumableWorkoutSummary(for: workout, now: now)
 
-        XCTAssertEqual(summary, "Started 10m ago • From Push Day • 2 exercises • 2 sets • Warm-up sets only so far", "Summary should make warm-up-only drafts feel distinct from both untouched plans and real working-set progress")
+        XCTAssertEqual(summary, "Started 10m ago • From Push Day • 1 exercise • 1 set • Warm-up sets only so far", "Warm-up-only draft summaries should prefer actually touched warm-up context instead of inflating counts with untouched planned placeholder work")
     }
 
     func testStartFreshWorkoutMessage_includesWorkoutNameAndCurrentDraftSummary() {

@@ -1,5 +1,6 @@
 # RPT
 
+- Home resumable-workout summaries now prefer actually touched warm-up exercise/set counts during warm-up-only drafts, instead of inflating the preview with untouched planned placeholders.
 - Copied/exported draft workout summaries now keep the exercises you actually touched visible during warm-up-only sessions, instead of leaking unstarted planned placeholders into the `Exercises:` line.
 - Legacy/corrupted set rows now hide invalid RPE values outside `1...10` in Workout Detail and the active workout editor, preventing noisy `RPE: 0` / `RPE: 12` labels from leaking into the UI.
 - Stats `Avg Time` now uses honest fallback subtitles (`no recent workouts` / `duration unavailable`) whenever the last 7 days have no usable duration data, so the tile no longer shows a misleading `per workout` subtitle under a `—` value.
@@ -95,6 +96,7 @@ RPT/
 
 ## Recent Improvements
 
+- Polished Home resumable-workout summary counts so warm-up-only drafts now prefer actually touched exercise/set totals instead of inflating the preview with untouched planned placeholders; updated `HomeViewModel` and regression coverage in `HomeViewModelTests`.
 - Hardened set-row RPE display so legacy/corrupted values outside `1...10` are hidden in Workout Detail and the active workout editor instead of leaking labels like `RPE: 0`; updated `ExerciseSet`, `WorkoutDetailView`, `ExerciseSetRowView`, and regression coverage in `FormattingTests`.
 - Fixed copied/exported draft workout summaries so warm-up-only sessions now prefer actually touched exercise names before falling back to unstarted placeholders, preventing planned-but-unlogged exercises from leaking into the `Exercises:` line; updated `Workout` and regression coverage in `WorkoutManagerTests`.
 - Fixed Stats `Avg Time` empty-state honesty so the tile now uses context-aware subtitles like `no recent workouts` and `duration unavailable` instead of always claiming `per workout` beneath a placeholder `—`; updated `StatsView` and regression coverage in `StatsViewFormattingTests`.
