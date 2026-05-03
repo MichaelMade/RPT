@@ -1,5 +1,6 @@
 # RPT
 
+- Stats `Avg Time` now uses honest fallback subtitles (`no recent workouts` / `duration unavailable`) whenever the last 7 days have no usable duration data, so the tile no longer shows a misleading `per workout` subtitle under a `—` value.
 - Resumable workout summaries now call out warm-up-only draft progress with `Warm-up sets only so far`, so users can tell at a glance when they have only started warming up versus logging real work sets.
 - Final workout durations now stay accurate even if an in-progress draft was saved earlier; draft saves no longer freeze the eventual completed-session duration.
 - Workout Detail now hides completed placeholder-only exercise sections whenever the session has real logged work, while still preserving warm-up-only context when that is all the user recorded.
@@ -92,6 +93,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Stats `Avg Time` empty-state honesty so the tile now uses context-aware subtitles like `no recent workouts` and `duration unavailable` instead of always claiming `per workout` beneath a placeholder `—`; updated `StatsView` and regression coverage in `StatsViewFormattingTests`.
 - Polished Home resumable-workout summaries so warm-up-only drafts now say `Warm-up sets only so far` instead of sounding like normal started progress, making it clearer when a saved session has only logged prep work; updated `HomeViewModel` and regression coverage in `HomeViewModelTests`.
 - Fixed draft-duration drift so saving an in-progress workout no longer freezes the final completed-session duration; completed workouts now recompute elapsed time at finish while draft saves clear stale duration snapshots. Updated `Workout`, `WorkoutManager`, and regression coverage in `WorkoutManagerTests`.
 - Polished completed `Workout Detail` history so placeholder-only exercise sections now disappear whenever the session has real logged work, while warm-up-only sessions still preserve the exercises that were actually touched; updated `WorkoutDetailView` and regression coverage in `FormattingTests`.

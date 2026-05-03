@@ -61,6 +61,27 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
+    func testThisWeekAverageDurationSubtitle_explainsWhenNoRecentWorkoutsExist() {
+        XCTAssertEqual(
+            sut.thisWeekAverageDurationSubtitle(weeklyWorkoutCount: 0, hasAverageDuration: false),
+            "no recent workouts"
+        )
+    }
+
+    func testThisWeekAverageDurationSubtitle_explainsWhenDurationDataIsUnavailable() {
+        XCTAssertEqual(
+            sut.thisWeekAverageDurationSubtitle(weeklyWorkoutCount: 3, hasAverageDuration: false),
+            "duration unavailable"
+        )
+    }
+
+    func testThisWeekAverageDurationSubtitle_preservesPerWorkoutCopyWhenDurationExists() {
+        XCTAssertEqual(
+            sut.thisWeekAverageDurationSubtitle(weeklyWorkoutCount: 3, hasAverageDuration: true),
+            "per workout"
+        )
+    }
+
     func testWeeklyVolumeEmptyStateMessage_explainsMissingRecentWindow() {
         XCTAssertEqual(
             sut.weeklyVolumeEmptyStateMessage(totalWorkouts: 3),
