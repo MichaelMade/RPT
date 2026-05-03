@@ -398,7 +398,7 @@ final class FormattingTests: XCTestCase {
     }
 
     func testWorkoutRowDurationMetric_showsFormattedCompletedDuration() {
-        let workout = Workout(name: "Long Workout", duration: 3725)
+        let workout = Workout(name: "Long Workout", duration: 3725, isCompleted: true)
 
         let metric = WorkoutRow.durationMetric(for: workout)
 
@@ -406,10 +406,12 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(metric?.value, "1h 2m 5s")
     }
 
-    func testWorkoutRowDurationMetric_hidesZeroAndCorruptedDurations() {
-        let zeroDurationWorkout = Workout(name: "Zero Duration", duration: 0)
-        let corruptedDurationWorkout = Workout(name: "Corrupted Duration", duration: -.infinity)
+    func testWorkoutRowDurationMetric_hidesIncompleteZeroAndCorruptedDurations() {
+        let incompleteWorkout = Workout(name: "In Progress", duration: 3725, isCompleted: false)
+        let zeroDurationWorkout = Workout(name: "Zero Duration", duration: 0, isCompleted: true)
+        let corruptedDurationWorkout = Workout(name: "Corrupted Duration", duration: -.infinity, isCompleted: true)
 
+        XCTAssertNil(WorkoutRow.durationMetric(for: incompleteWorkout))
         XCTAssertNil(WorkoutRow.durationMetric(for: zeroDurationWorkout))
         XCTAssertNil(WorkoutRow.durationMetric(for: corruptedDurationWorkout))
     }

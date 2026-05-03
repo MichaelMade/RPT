@@ -114,7 +114,7 @@ struct WorkoutRow: View {
     static func durationMetric(for workout: Workout) -> (label: String, value: String)? {
         let safeDuration = workout.duration.isFinite ? max(0, workout.duration) : 0
 
-        guard safeDuration > 0 else {
+        guard workout.isCompleted, safeDuration > 0 else {
             return nil
         }
 

@@ -1,5 +1,6 @@
 # RPT
 
+- Fixed Home `Recent Workouts` duration honesty so unfinished draft/imported sessions with stale positive durations no longer look completed at a glance; the row now only shows `Duration` for completed workouts, matching Workout Detail and copied/exported summaries.
 - Polished `Workout Detail` unfinished warm-up rows so queued warm-up sets now stay explicitly labeled as `Warm-up • ...` instead of looking like generic planned working sets.
 - Fixed warm-up-only draft messaging across Home, Workout Detail, and copied/exported summaries so in-progress workouts with only logged warm-up sets now say `Warm-up sets only` instead of incorrectly looking like nothing has been logged yet.
 - Fixed copied/exported workout summaries so `Duration` only appears for completed workouts, keeping draft or imported in-progress sessions from looking falsely finished when they carry a stale positive duration.
@@ -86,6 +87,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Home `Recent Workouts` duration honesty so unfinished draft/imported sessions with stale positive durations no longer show a misleading `Duration` row before the workout is actually completed; updated `WorkoutRow` and `FormattingTests`.
 - Fixed future-dated workout timestamp handling across Home, Workout Detail, and resumable draft summaries so clock-skewed/imported sessions now show explicit calendar dates instead of misleading relative `Today` / `Started just now` labels; updated `WorkoutRow`, `HomeViewModel`, `FormattingTests`, and `HomeViewModelTests`.
 - Polished copied/exported in-progress workout summaries so planned exercise names now remain visible before any set is logged, instead of incorrectly collapsing to `Exercises: None`; updated `Workout` and `WorkoutManagerTests`.
 - Fixed completed workout summary set-count honesty so Workout Detail and copied/exported workout summaries no longer count unlogged placeholder sets as real logged work; completed sessions now prefer genuinely logged non-warmup sets, then logged warmups, before falling back to `0`; added regression coverage in `FormattingTests` and `WorkoutManagerTests`.
