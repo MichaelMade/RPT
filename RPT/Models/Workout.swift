@@ -412,23 +412,21 @@ final class Workout {
             return completedExerciseNamesInOrder
         }
 
-        if isCompleted {
-            let loggedExerciseNamesInOrder = sets.compactMap { set -> String? in
-                guard set.isCompletedLoggedSet,
-                      let exerciseName = set.exercise?.name,
-                      let normalizedName = normalizedSummaryExerciseName(exerciseName)
-                else {
-                    return nil
-                }
-
-                return seenExerciseNames.insert(normalizedName.key).inserted
-                    ? normalizedName.display
-                    : nil
+        let loggedExerciseNamesInOrder = sets.compactMap { set -> String? in
+            guard set.isCompletedLoggedSet,
+                  let exerciseName = set.exercise?.name,
+                  let normalizedName = normalizedSummaryExerciseName(exerciseName)
+            else {
+                return nil
             }
 
-            if !loggedExerciseNamesInOrder.isEmpty {
-                return loggedExerciseNamesInOrder
-            }
+            return seenExerciseNames.insert(normalizedName.key).inserted
+                ? normalizedName.display
+                : nil
+        }
+
+        if !loggedExerciseNamesInOrder.isEmpty {
+            return loggedExerciseNamesInOrder
         }
 
         let fallbackSets: [ExerciseSet]

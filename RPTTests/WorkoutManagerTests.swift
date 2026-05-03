@@ -975,6 +975,27 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertFalse(summary.contains("Work: Not logged yet"))
     }
 
+    func testGenerateFormattedSummary_incompleteWarmupOnlyWorkoutDoesNotListUnstartedPlaceholderExercises() {
+        // Given
+        let workout = Workout(name: "Warm-up Draft", isCompleted: false)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        _ = workout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+        _ = workout.addSet(exercise: squat, weight: 225, reps: 0, isWarmup: false)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: Bench Press"))
+        XCTAssertFalse(
+            summary.contains("Bench Press, Squat"),
+            "Draft summaries should prefer actually logged warm-up context before falling back to unstarted placeholders"
+        )
+        XCTAssertTrue(summary.contains("Work: Warm-up sets only"))
+    }
+
     func testGenerateFormattedSummary_emptyIncompleteWorkoutUsesNotStartedCopy() {
         // Given
         let workout = Workout(name: "Fresh Workout", isCompleted: false)
