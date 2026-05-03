@@ -172,6 +172,19 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(ExerciseSetRowView.displayRepsText(8), "8 reps")
     }
 
+    func testExerciseSetDisplayRPE_hidesInvalidLegacyValues() {
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Push")
+
+        let validSet = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout, rpe: 8)
+        let zeroRPE = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout, rpe: 0)
+        let oversizedRPE = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout, rpe: 12)
+
+        XCTAssertEqual(validSet.displayRPE, 8)
+        XCTAssertNil(zeroRPE.displayRPE)
+        XCTAssertNil(oversizedRPE.displayRPE)
+    }
+
     func testWorkoutRowDisplayName_fallsBackForBlankAndNormalizesWhitespace() {
         let blankNameWorkout = Workout(name: "   \n   ")
         XCTAssertEqual(WorkoutRow.displayName(for: blankNameWorkout), "Workout")

@@ -1,6 +1,7 @@
 # RPT
 
 - Copied/exported draft workout summaries now keep the exercises you actually touched visible during warm-up-only sessions, instead of leaking unstarted planned placeholders into the `Exercises:` line.
+- Legacy/corrupted set rows now hide invalid RPE values outside `1...10` in Workout Detail and the active workout editor, preventing noisy `RPE: 0` / `RPE: 12` labels from leaking into the UI.
 - Stats `Avg Time` now uses honest fallback subtitles (`no recent workouts` / `duration unavailable`) whenever the last 7 days have no usable duration data, so the tile no longer shows a misleading `per workout` subtitle under a `—` value.
 - Resumable workout summaries now call out warm-up-only draft progress with `Warm-up sets only so far`, so users can tell at a glance when they have only started warming up versus logging real work sets.
 - Final workout durations now stay accurate even if an in-progress draft was saved earlier; draft saves no longer freeze the eventual completed-session duration.
@@ -94,6 +95,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened set-row RPE display so legacy/corrupted values outside `1...10` are hidden in Workout Detail and the active workout editor instead of leaking labels like `RPE: 0`; updated `ExerciseSet`, `WorkoutDetailView`, `ExerciseSetRowView`, and regression coverage in `FormattingTests`.
 - Fixed copied/exported draft workout summaries so warm-up-only sessions now prefer actually touched exercise names before falling back to unstarted placeholders, preventing planned-but-unlogged exercises from leaking into the `Exercises:` line; updated `Workout` and regression coverage in `WorkoutManagerTests`.
 - Fixed Stats `Avg Time` empty-state honesty so the tile now uses context-aware subtitles like `no recent workouts` and `duration unavailable` instead of always claiming `per workout` beneath a placeholder `—`; updated `StatsView` and regression coverage in `StatsViewFormattingTests`.
 - Polished Home resumable-workout summaries so warm-up-only drafts now say `Warm-up sets only so far` instead of sounding like normal started progress, making it clearer when a saved session has only logged prep work; updated `HomeViewModel` and regression coverage in `HomeViewModelTests`.

@@ -202,7 +202,7 @@ struct ExerciseSetRowView: View {
                 weightInput = "\(set.weight)"
                 repsInput = "\(set.reps)"
                 
-                if let rpe = set.rpe {
+                if let rpe = set.displayRPE {
                     rpeInput = "\(rpe)"
                 } else {
                     rpeInput = ""
@@ -224,7 +224,7 @@ struct ExerciseSetRowView: View {
                             .fontWeight(.medium)
                     }
                     
-                    if let rpe = set.rpe {
+                    if let rpe = set.displayRPE {
                         Text("RPE: \(rpe)")
                             .font(.caption)
                             .foregroundColor(.secondary)

@@ -287,7 +287,7 @@ struct ExerciseSection: View {
                         Text(Self.setDisplayText(for: set))
                             .font(.subheadline)
                         
-                        if let rpe = set.rpe {
+                        if let rpe = set.displayRPE {
                             Text("RPE: \(rpe)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)

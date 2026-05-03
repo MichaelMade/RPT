@@ -69,6 +69,18 @@ final class ExerciseSet {
         !isWarmup && isCompletedLoggedSet
     }
 
+    static func sanitizedRPE(_ rpe: Int?) -> Int? {
+        guard let rpe, (1...10).contains(rpe) else {
+            return nil
+        }
+
+        return rpe
+    }
+
+    var displayRPE: Int? {
+        Self.sanitizedRPE(rpe)
+    }
+
     /// Returns true when this set should rank above another set for "best set" selection.
     /// Priority: heavier weight, then higher reps, then more recent completion.
     func isBetterPerformance(than other: ExerciseSet) -> Bool {
