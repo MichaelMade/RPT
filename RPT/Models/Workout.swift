@@ -426,7 +426,7 @@ final class Workout {
     }
 
     private func summaryWorkFallbackLine() -> String {
-        if isCompleted, hasLoggedWarmupOnly {
+        if hasLoggedWarmupOnly {
             return "Work: Warm-up sets only"
         }
 

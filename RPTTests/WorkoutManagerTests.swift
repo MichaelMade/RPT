@@ -885,6 +885,23 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertFalse(summary.contains("Total Volume: 0 lb"))
     }
 
+    func testGenerateFormattedSummary_incompleteWarmupOnlyWorkoutAcknowledgesLoggedProgress() {
+        // Given
+        let workout = Workout(name: "Warm-up Draft", isCompleted: false)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = workout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: Bench Press"))
+        XCTAssertTrue(summary.contains("Sets: 1"))
+        XCTAssertTrue(summary.contains("Work: Warm-up sets only"))
+        XCTAssertFalse(summary.contains("Work: Not logged yet"))
+    }
+
     func testGenerateFormattedSummary_emptyIncompleteWorkoutUsesNotStartedCopy() {
         // Given
         let workout = Workout(name: "Fresh Workout", isCompleted: false)

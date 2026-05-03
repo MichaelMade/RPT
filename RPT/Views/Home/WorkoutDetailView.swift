@@ -55,7 +55,7 @@ struct WorkoutDetailView: View {
             return (title: workout.preferredWorkMetricTitle, value: workout.preferredWorkMetricValue)
         }
 
-        if workout.isCompleted, workout.hasLoggedWarmupOnly {
+        if workout.hasLoggedWarmupOnly {
             return (title: "Work", value: "Warm-up sets only")
         }
 

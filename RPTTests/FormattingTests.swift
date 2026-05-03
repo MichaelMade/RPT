@@ -330,6 +330,14 @@ final class FormattingTests: XCTestCase {
             "Incomplete drafts should keep their planned set counts instead of being flattened into a completed-history empty state"
         )
 
+        let warmupOnlyDraft = Workout(name: "Warm-up Draft", isCompleted: false)
+        _ = warmupOnlyDraft.addSet(exercise: exercise, weight: 45, reps: 10, isWarmup: true)
+        XCTAssertEqual(
+            WorkoutRow.countsFallbackText(for: warmupOnlyDraft),
+            "Warm-up sets only",
+            "Incomplete drafts with logged warm-ups should acknowledge that progress was recorded"
+        )
+
         let loggedWorkout = Workout(name: "Logged Workout", isCompleted: true)
         _ = loggedWorkout.addSet(exercise: exercise, weight: 225, reps: 5)
 
@@ -441,21 +449,25 @@ final class FormattingTests: XCTestCase {
         let incompleteWorkout = Workout(name: "Draft Placeholder")
         let emptyWorkout = Workout(name: "Empty Placeholder")
         let warmupOnlyWorkout = Workout(name: "Warm-up Only Placeholder", isCompleted: true)
+        let warmupOnlyDraft = Workout(name: "Warm-up Draft Placeholder")
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
 
         _ = completedWorkout.addSet(exercise: bench, weight: 185, reps: 0)
         _ = incompleteWorkout.addSet(exercise: bench, weight: 185, reps: 0)
         _ = warmupOnlyWorkout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+        _ = warmupOnlyDraft.addSet(exercise: bench, weight: 45, reps: 10, isWarmup: true)
 
         let completedMetric = WorkoutDetailView.summaryMetrics(for: completedWorkout).first(where: { $0.title == "Work" })
         let incompleteMetric = WorkoutDetailView.summaryMetrics(for: incompleteWorkout).first(where: { $0.title == "Work" })
         let emptyMetric = WorkoutDetailView.summaryMetrics(for: emptyWorkout).first(where: { $0.title == "Work" })
         let warmupOnlyMetric = WorkoutDetailView.summaryMetrics(for: warmupOnlyWorkout).first(where: { $0.title == "Work" })
+        let warmupOnlyDraftMetric = WorkoutDetailView.summaryMetrics(for: warmupOnlyDraft).first(where: { $0.title == "Work" })
 
         XCTAssertEqual(completedMetric?.value, "No sets logged")
         XCTAssertEqual(incompleteMetric?.value, "Not logged yet")
         XCTAssertEqual(emptyMetric?.value, "Not started")
         XCTAssertEqual(warmupOnlyMetric?.value, "Warm-up sets only")
+        XCTAssertEqual(warmupOnlyDraftMetric?.value, "Warm-up sets only")
         XCTAssertFalse(WorkoutDetailView.summaryMetrics(for: completedWorkout).contains(where: { $0.title == "Volume" }))
     }
 
