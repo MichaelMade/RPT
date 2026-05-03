@@ -1,5 +1,6 @@
 # RPT
 
+- Polished `Workout Detail` unfinished warm-up rows so queued warm-up sets now stay explicitly labeled as `Warm-up • ...` instead of looking like generic planned working sets.
 - Fixed warm-up-only draft messaging across Home, Workout Detail, and copied/exported summaries so in-progress workouts with only logged warm-up sets now say `Warm-up sets only` instead of incorrectly looking like nothing has been logged yet.
 - Fixed copied/exported workout summaries so `Duration` only appears for completed workouts, keeping draft or imported in-progress sessions from looking falsely finished when they carry a stale positive duration.
 - Fixed future-dated workout timestamps across Home, Workout Detail, and resumable draft summaries so clock-skewed or imported sessions now fall back to clear calendar dates instead of misleading `Today` / `Started just now` labels.

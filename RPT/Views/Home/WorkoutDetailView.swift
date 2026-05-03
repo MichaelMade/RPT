@@ -219,11 +219,19 @@ struct ExerciseSection: View {
             return formattedSet
         }
 
+        if set.isWarmup {
+            if set.hasCompletedValues {
+                return "Warm-up • \(formattedSet)"
+            }
+
+            return "Warm-up not logged"
+        }
+
         if set.hasCompletedValues {
             return "Planned • \(formattedSet)"
         }
 
-        return set.isWarmup ? "Warm-up not logged" : "Not logged"
+        return "Not logged"
     }
     
     var body: some View {

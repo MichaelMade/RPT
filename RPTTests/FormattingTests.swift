@@ -148,7 +148,7 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(ExerciseSection.setDisplayText(for: loggedBodyweightSet), "BW × 12 reps")
         XCTAssertEqual(ExerciseSection.setDisplayText(for: loggedWeightedSet), "185 lb × 8 reps")
         XCTAssertEqual(ExerciseSection.setDisplayText(for: plannedWeightedSet), "Planned • 185 lb × 8 reps")
-        XCTAssertEqual(ExerciseSection.setDisplayText(for: unloggedWarmupSet), "Planned • 95 lb × 5 reps")
+        XCTAssertEqual(ExerciseSection.setDisplayText(for: unloggedWarmupSet), "Warm-up • 95 lb × 5 reps")
         XCTAssertEqual(ExerciseSection.setDisplayText(for: blankPlaceholderSet), "Not logged")
     }
 
