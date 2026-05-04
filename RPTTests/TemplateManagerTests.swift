@@ -173,6 +173,40 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(exercise.repRanges[2].percentageOfFirstSet, 0.76)
     }
 
+    func testAddExerciseToTemplate_rejectsNormalizedDuplicateNames() {
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+
+        let didAddDuplicate = TemplateManager.shared.addExerciseToTemplate(
+            template,
+            exerciseName: "  bench\npress  "
+        )
+
+        XCTAssertFalse(didAddDuplicate)
+        XCTAssertEqual(template.exercises.count, 1)
+    }
+
+    func testAddExerciseToTemplate_appendsDefaultExerciseWhenUnique() {
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+
+        let didAddExercise = TemplateManager.shared.addExerciseToTemplate(
+            template,
+            exerciseName: "Incline Bench Press"
+        )
+
+        XCTAssertTrue(didAddExercise)
+        XCTAssertEqual(template.exercises.count, 2)
+        XCTAssertEqual(template.exercises.last?.exerciseName, "Incline Bench Press")
+        XCTAssertEqual(template.exercises.last?.repRanges.map(\.setNumber), [1, 2, 3])
+    }
+
     private func sampleTemplateExercise(named name: String = "Bench Press") -> TemplateExercise {
         TemplateExercise(
             exerciseName: name,

@@ -104,6 +104,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened template editing against duplicate exercises by making `TemplateManager.addExerciseToTemplate(...)` reject normalized name collisions (`Bench Press` vs ` bench\npress `), so stale callbacks or future non-picker add paths cannot silently create duplicate template rows; added regression coverage in `TemplateManagerTests`.
 - Clarified the active workout progress bar so it now says exercises are `marked complete` rather than just `completed`, matching the manual completion-circle workflow that unlocks `Finish`; updated `WorkoutProgressView` and regression coverage in `WorkoutProgressViewTests`.
 - The active workout `Add Exercise` picker now filters out movements that are already in the current workout, explains when every current search match is already present, and rejects duplicate selections in `ActiveWorkoutViewModel` as a safety backstop; updated `ExerciseSelectorView`, `ExerciseLibraryViewModel`, `ActiveWorkoutView`, `ActiveWorkoutViewModel`, and regression coverage in `ActiveWorkoutViewModelTests` / `ExerciseLibraryViewModelTests`.
 - Added a contextual Workout Detail empty state for zero-set completed imports and still-empty drafts, so the lower half of the screen explains why no exercise sections are visible instead of looking broken; updated `WorkoutDetailView` and regression coverage in `FormattingTests`.

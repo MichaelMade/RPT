@@ -232,7 +232,15 @@ func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout {
     
     // MARK: - Template Management
     
-    func addExerciseToTemplate(_ template: WorkoutTemplate, exerciseName: String) {
+    @discardableResult
+    func addExerciseToTemplate(_ template: WorkoutTemplate, exerciseName: String) -> Bool {
+        let normalizedExerciseName = ExerciseManager.normalizedNameLookupKey(exerciseName)
+        guard !template.exercises.contains(where: {
+            ExerciseManager.normalizedNameLookupKey($0.exerciseName) == normalizedExerciseName
+        }) else {
+            return false
+        }
+
         // Create default template exercise with RPT pattern
         let newExercise = TemplateExercise(
             exerciseName: exerciseName,
@@ -247,6 +255,7 @@ func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout {
         
         template.exercises.append(newExercise)
         try? modelContext.save()
+        return true
     }
     
     func updateTemplateExercise(_ template: WorkoutTemplate, exerciseId: UUID, updatedExercise: TemplateExercise) {
