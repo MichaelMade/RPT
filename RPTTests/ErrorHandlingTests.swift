@@ -258,6 +258,14 @@ final class ErrorHandlingTests: XCTestCase {
         
         // Test error message
         XCTAssertNil(viewModel.errorMessage, "There should be no error message after successful operations")
+
+        let duplicateAddResult = viewModel.addExerciseToWorkoutSafely(exercise)
+        XCTAssertFalse(duplicateAddResult, "Adding the same exercise twice should fail safely")
+        XCTAssertEqual(
+            viewModel.errorMessage,
+            ActiveWorkoutViewModel.WorkoutError.duplicateExercise.description,
+            "Safe duplicate add failures should expose a user-facing message that the view can present"
+        )
         
         // Test error message setting
         viewModel.errorMessage = "Test error"

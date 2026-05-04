@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout now surfaces a clear `Workout Action Failed` alert whenever save/add/delete actions fail (including duplicate exercise picks caught by safety backstops), so errors no longer fail silently inside the workout screen.
 - The active workout progress bar now says exercises are `marked complete` instead of implying set logging alone finishes them, matching the manual completion-circle behavior needed to enable `Finish`.
 - The active workout exercise picker now hides movements that are already in the current workout and explains when every search match is already added, preventing the misleading `Add Exercise` flow from silently creating surprise extra starter sets on an existing movement.
 - Recent workout cards now say `No exercises added yet` for saved blank drafts instead of the misleading history-style `No sets logged`, so untouched in-progress sessions are easier to distinguish from empty completed imports.

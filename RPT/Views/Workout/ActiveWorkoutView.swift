@@ -288,6 +288,23 @@ struct ActiveWorkoutView: View {
                 Text("Are you sure you want to remove \(exercise.displayName) from this workout? All sets for this exercise will be deleted.")
             }
         }
+        .alert(
+            "Workout Action Failed",
+            isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        viewModel.clearError()
+                    }
+                }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                viewModel.clearError()
+            }
+        } message: {
+            Text(viewModel.errorMessage ?? "Something went wrong. Please try again.")
+        }
         .interactiveDismissDisabled() // Prevent swipe-to-dismiss
     }
     
