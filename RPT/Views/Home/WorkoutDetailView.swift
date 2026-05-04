@@ -126,6 +126,24 @@ struct WorkoutDetailView: View {
         return collapsedNotes
     }
 
+    static func exerciseDetailsEmptyState(for workout: Workout) -> (title: String, subtitle: String)? {
+        guard displayedExerciseGroups(for: workout).isEmpty else {
+            return nil
+        }
+
+        if workout.isCompleted {
+            return (
+                title: "No exercise details saved",
+                subtitle: "This workout was completed without any persisted exercise sets, so there’s nothing more to review here."
+            )
+        }
+
+        return (
+            title: "No exercises added yet",
+            subtitle: "Add an exercise to start logging sets and see your workout details here."
+        )
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -172,12 +190,28 @@ struct WorkoutDetailView: View {
                 .padding(.horizontal)
                 
                 // Exercise sections
-                ForEach(Self.displayedExerciseGroups(for: workout), id: \.exercise) { group in
-                    ExerciseSection(
-                        exercise: group.exercise,
-                        sets: group.sets
-                    )
+                if let emptyState = Self.exerciseDetailsEmptyState(for: workout) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(emptyState.title)
+                            .font(.headline)
+
+                        Text(emptyState.subtitle)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Color(UIColor.secondarySystemBackground))
+                    .cornerRadius(12)
                     .padding(.horizontal)
+                } else {
+                    ForEach(Self.displayedExerciseGroups(for: workout), id: \.exercise) { group in
+                        ExerciseSection(
+                            exercise: group.exercise,
+                            sets: group.sets
+                        )
+                        .padding(.horizontal)
+                    }
                 }
             }
             .padding(.vertical)

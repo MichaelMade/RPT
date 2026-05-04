@@ -603,6 +603,31 @@ final class FormattingTests: XCTestCase {
         XCTAssertNil(WorkoutDetailView.normalizedNotes(for: blankNotesWorkout))
     }
 
+    func testWorkoutDetailEmptyState_describesZeroSetCompletedAndDraftWorkouts() {
+        let completedWorkout = Workout(name: "Legacy Import", isCompleted: true)
+        let draftWorkout = Workout(name: "Draft")
+        let loggedWorkout = Workout(name: "Logged")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        _ = loggedWorkout.addSet(exercise: bench, weight: 225, reps: 5)
+
+        let completedState = WorkoutDetailView.exerciseDetailsEmptyState(for: completedWorkout)
+        let draftState = WorkoutDetailView.exerciseDetailsEmptyState(for: draftWorkout)
+        let loggedState = WorkoutDetailView.exerciseDetailsEmptyState(for: loggedWorkout)
+
+        XCTAssertEqual(completedState?.title, "No exercise details saved")
+        XCTAssertEqual(
+            completedState?.subtitle,
+            "This workout was completed without any persisted exercise sets, so there’s nothing more to review here."
+        )
+        XCTAssertEqual(draftState?.title, "No exercises added yet")
+        XCTAssertEqual(
+            draftState?.subtitle,
+            "Add an exercise to start logging sets and see your workout details here."
+        )
+        XCTAssertNil(loggedState)
+    }
+
     func testWorkoutDetailDisplayName_fallsBackForBlankAndNormalizesWhitespace() {
         let blankNameWorkout = Workout(name: "   \n   ")
         XCTAssertEqual(WorkoutDetailView.displayName(for: blankNameWorkout), "Workout")
