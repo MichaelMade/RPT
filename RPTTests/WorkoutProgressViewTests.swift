@@ -39,7 +39,7 @@ final class WorkoutProgressViewTests: XCTestCase {
 
     func testProgressLabel_whenCompletedExceedsTotal_clampsDisplayToTotal() {
         let view = WorkoutProgressView(completedExercises: 6, totalExercises: 4)
-        XCTAssertEqual(view.progressLabel, "4/4 Exercises")
+        XCTAssertEqual(view.progressLabel, "All exercises completed")
     }
 
     func testProgressLabel_whenTotalExercisesIsZero_showsEmptyStateCopy() {
@@ -47,8 +47,18 @@ final class WorkoutProgressViewTests: XCTestCase {
         XCTAssertEqual(view.progressLabel, "No exercises yet")
     }
 
-    func testProgressLabel_whenTotalIsOne_usesSingularGrammar() {
+    func testProgressLabel_whenNothingIsCompleted_usesHelpfulDraftCopy() {
+        let view = WorkoutProgressView(completedExercises: 0, totalExercises: 3)
+        XCTAssertEqual(view.progressLabel, "No exercises completed yet")
+    }
+
+    func testProgressLabel_whenWorkoutIsPartiallyCompleted_usesReadableSentenceCopy() {
+        let view = WorkoutProgressView(completedExercises: 1, totalExercises: 3)
+        XCTAssertEqual(view.progressLabel, "1 of 3 exercises completed")
+    }
+
+    func testProgressLabel_whenTotalIsOneAndCompleted_usesCompletionCopy() {
         let view = WorkoutProgressView(completedExercises: 1, totalExercises: 1)
-        XCTAssertEqual(view.progressLabel, "1/1 Exercise")
+        XCTAssertEqual(view.progressLabel, "All exercises completed")
     }
 }

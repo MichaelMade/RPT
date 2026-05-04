@@ -24,8 +24,15 @@ struct WorkoutProgressView: View {
             return "No exercises yet"
         }
 
-        let exerciseNoun = safeTotalExercises == 1 ? "Exercise" : "Exercises"
-        return "\(safeCompletedExercises)/\(safeTotalExercises) \(exerciseNoun)"
+        if safeCompletedExercises <= 0 {
+            return "No exercises completed yet"
+        }
+
+        if safeCompletedExercises >= safeTotalExercises {
+            return "All exercises completed"
+        }
+
+        return "\(safeCompletedExercises) of \(safeTotalExercises) exercises completed"
     }
     
     var progress: Double {
