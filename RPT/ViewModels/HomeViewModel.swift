@@ -112,30 +112,30 @@ class HomeViewModel: ObservableObject {
 
         return parts.joined(separator: " • ")
     }
-+
-+    private func exerciseCountTextForResumableSummary(for workout: Workout) -> String {
-+        let count: Int
-+
-+        if workout.hasLoggedWarmupOnly {
-+            count = Set(
-+                workout.sets
-+                    .filter(\.isCompletedLoggedSet)
-+                    .compactMap { $0.exercise }
-+            ).count
-+        } else {
-+            count = WorkoutRow.displayExerciseCount(for: workout)
-+        }
-+
-+        return "\(count) \(count == 1 ? \"exercise\" : \"exercises\")"
-+    }
-+
-+    private func setCountTextForResumableSummary(for workout: Workout) -> String {
-+        let count = workout.hasLoggedWarmupOnly
-+            ? workout.sets.filter(\.isCompletedLoggedSet).count
-+            : WorkoutRow.displaySetCount(for: workout)
-+
-+        return "\(count) \(count == 1 ? \"set\" : \"sets\")"
-+    }
+
+    private func exerciseCountTextForResumableSummary(for workout: Workout) -> String {
+        let count: Int
+
+        if workout.hasLoggedWarmupOnly {
+            count = Set(
+                workout.sets
+                    .filter(\.isCompletedLoggedSet)
+                    .compactMap { $0.exercise }
+            ).count
+        } else {
+            count = WorkoutRow.displayExerciseCount(for: workout)
+        }
+
+        return "\(count) \(count == 1 ? \"exercise\" : \"exercises\")"
+    }
+
+    private func setCountTextForResumableSummary(for workout: Workout) -> String {
+        let count = workout.hasLoggedWarmupOnly
+            ? workout.sets.filter(\.isCompletedLoggedSet).count
+            : WorkoutRow.displaySetCount(for: workout)
+
+        return "\(count) \(count == 1 ? \"set\" : \"sets\")"
+    }
 
     func resumableWorkoutProgressText(for workout: Workout) -> String {
         let totalExercises = max(0, workout.exerciseCount)
