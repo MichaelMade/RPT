@@ -11,13 +11,14 @@ import SwiftData
 
 @MainActor
 class ActiveWorkoutViewModel: ObservableObject {
-    enum WorkoutError: Error {
+    enum WorkoutError: Error, Equatable {
         case saveFailure
         case completeFailure
         case deleteFailure
         case exerciseNotFound
         case invalidExerciseData
         case invalidSetData
+        case duplicateExercise
         case operationFailed
 
         var description: String {
@@ -28,6 +29,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             case .exerciseNotFound: return "Exercise not found in workout"
             case .invalidExerciseData: return "Invalid exercise data"
             case .invalidSetData: return "Invalid set data"
+            case .duplicateExercise: return "Exercise already added to this workout"
             case .operationFailed: return "Operation failed"
             }
         }
@@ -231,7 +233,10 @@ class ActiveWorkoutViewModel: ObservableObject {
     // MARK: - Exercise Management
     
     func addExerciseToWorkout(_ exercise: Exercise) throws {
-        
+        guard !exerciseOrder.contains(where: { $0.id == exercise.id }) else {
+            throw WorkoutError.duplicateExercise
+        }
+
         // Create a new set for this exercise
         let newSet = workout.addSet(
             exercise: exercise,
@@ -261,6 +266,9 @@ class ActiveWorkoutViewModel: ObservableObject {
         do {
             try addExerciseToWorkout(exercise)
             return true
+        } catch let error as WorkoutError {
+            errorMessage = error.description
+            return false
         } catch {
             errorMessage = "Failed to add exercise: \(error.localizedDescription)"
             return false

@@ -14,8 +14,13 @@ struct ExerciseSelectorView: View {
     @State private var searchText = ""
     @State private var selectedCategory: ExerciseCategory?
     @State private var selectedMuscleGroup: MuscleGroup?
-    
+
+    var excludedExerciseNames: [String] = []
     var onSelectExercise: (Exercise) -> Void
+
+    private var excludedLookupKeys: Set<String> {
+        Set(excludedExerciseNames.map(ExerciseManager.normalizedNameLookupKey))
+    }
     
     var body: some View {
         NavigationStack {
@@ -86,9 +91,17 @@ struct ExerciseSelectorView: View {
                 
                 // Exercise list
                 List {
-                    let filteredExercises = viewModel.fetchExercises()
+                    let fetchedExercises = viewModel.fetchExercises()
+                    let filteredExercises = fetchedExercises.filter { exercise in
+                        !excludedLookupKeys.contains(ExerciseManager.normalizedNameLookupKey(exercise.name))
+                    }
+                    let excludedCount = max(0, fetchedExercises.count - filteredExercises.count)
 
-                    if let summary = viewModel.filteredResultsSummary(filteredCount: filteredExercises.count) {
+                    if let summary = viewModel.selectableResultsSummary(
+                        availableCount: filteredExercises.count,
+                        excludedCount: excludedCount,
+                        exclusionContext: "workout"
+                    ) {
                         Text(summary)
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -98,15 +111,11 @@ struct ExerciseSelectorView: View {
                     if filteredExercises.isEmpty {
                         ContentUnavailableView {
                             Label(
-                                viewModel.hasActiveQuery ? "No Matching Exercises" : "No Exercises Available",
+                                emptyStateTitle(for: fetchedExercises, excludedCount: excludedCount),
                                 systemImage: viewModel.hasActiveQuery ? "magnifyingglass" : "dumbbell"
                             )
                         } description: {
-                            Text(
-                                viewModel.hasActiveQuery
-                                ? "Try changing your search or filters, or clear them to browse every exercise."
-                                : "Add an exercise in the library first, then come back here to use it in a workout."
-                            )
+                            Text(emptyStateDescription(for: fetchedExercises, excludedCount: excludedCount))
                         } actions: {
                             if viewModel.hasActiveSearch {
                                 Button("Clear Search") {
@@ -205,6 +214,28 @@ struct ExerciseSelectorView: View {
                 viewModel.refreshExercises()
             }
         }
+    }
+
+    private func emptyStateTitle(for fetchedExercises: [Exercise], excludedCount: Int) -> String {
+        if !fetchedExercises.isEmpty, excludedCount == fetchedExercises.count {
+            return viewModel.hasActiveQuery
+                ? "All Matching Exercises Already Added"
+                : "All Exercises Already Added"
+        }
+
+        return viewModel.hasActiveQuery ? "No Matching Exercises" : "No Exercises Available"
+    }
+
+    private func emptyStateDescription(for fetchedExercises: [Exercise], excludedCount: Int) -> String {
+        if !fetchedExercises.isEmpty, excludedCount == fetchedExercises.count {
+            return viewModel.hasActiveQuery
+                ? "This workout already includes every exercise in your current search or filter results. Clear your filters or add sets to an existing exercise instead."
+                : "This workout already includes every exercise in your library. Add sets to an existing exercise or create a new custom movement to keep building it out."
+        }
+
+        return viewModel.hasActiveQuery
+            ? "Try changing your search or filters, or clear them to browse every exercise."
+            : "Add an exercise in the library first, then come back here to use it in a workout."
     }
 }
 

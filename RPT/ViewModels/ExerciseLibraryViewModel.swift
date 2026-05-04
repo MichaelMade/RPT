@@ -92,7 +92,11 @@ class ExerciseLibraryViewModel: ObservableObject {
         hasActiveQuery && filteredCount > 0 && !exercises.isEmpty
     }
 
-    func selectableResultsSummary(availableCount: Int, excludedCount: Int) -> String? {
+    func selectableResultsSummary(
+        availableCount: Int,
+        excludedCount: Int,
+        exclusionContext: String = "template"
+    ) -> String? {
         guard hasActiveQuery, !exercises.isEmpty else {
             return nil
         }
@@ -101,7 +105,7 @@ class ExerciseLibraryViewModel: ObservableObject {
         var qualifiers = resultsSummaryQualifiers()
 
         if excludedCount > 0 {
-            qualifiers.append("\(excludedCount) already in template")
+            qualifiers.append("\(excludedCount) already in \(exclusionContext)")
         }
 
         if !qualifiers.isEmpty {

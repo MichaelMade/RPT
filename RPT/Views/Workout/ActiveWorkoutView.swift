@@ -190,7 +190,9 @@ struct ActiveWorkoutView: View {
                 }
             }
             .sheet(isPresented: $showingExerciseSelector) {
-                ExerciseSelectorView { selectedExercise in
+                ExerciseSelectorView(
+                    excludedExerciseNames: viewModel.exerciseOrder.map(\.name)
+                ) { selectedExercise in
                     _ = viewModel.addExerciseToWorkoutSafely(selectedExercise)
                 }
             }

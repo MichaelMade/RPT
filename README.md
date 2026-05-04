@@ -1,5 +1,6 @@
 # RPT
 
+- The active workout exercise picker now hides movements that are already in the current workout and explains when every search match is already added, preventing the misleading `Add Exercise` flow from silently creating surprise extra starter sets on an existing movement.
 - Recent workout cards now say `No exercises added yet` for saved blank drafts instead of the misleading history-style `No sets logged`, so untouched in-progress sessions are easier to distinguish from empty completed imports.
 - Active workout progress now uses clearer status copy like `No exercises completed yet`, `1 of 3 exercises completed`, and `All exercises completed`, so the top progress bar reads like guidance instead of a raw fraction.
 - Exercise picker sheets now keep `Clear Search` and `Reset Filters` visible even while results are still showing, so users can immediately broaden a narrowed add-exercise list without manually backing out of search text or filter chips.
@@ -102,6 +103,7 @@ RPT/
 
 ## Recent Improvements
 
+- The active workout `Add Exercise` picker now filters out movements that are already in the current workout, explains when every current search match is already present, and rejects duplicate selections in `ActiveWorkoutViewModel` as a safety backstop; updated `ExerciseSelectorView`, `ExerciseLibraryViewModel`, `ActiveWorkoutView`, `ActiveWorkoutViewModel`, and regression coverage in `ActiveWorkoutViewModelTests` / `ExerciseLibraryViewModelTests`.
 - Added a contextual Workout Detail empty state for zero-set completed imports and still-empty drafts, so the lower half of the screen explains why no exercise sections are visible instead of looking broken; updated `WorkoutDetailView` and regression coverage in `FormattingTests`.
 - Refined that Workout Detail empty state for completed placeholder-only histories, so legacy/imported workouts with saved planned rows but no logged sets now say `No logged exercise details` instead of incorrectly claiming nothing was persisted; updated `WorkoutDetailView` and regression coverage in `FormattingTests`.
 - Polished Home resumable-workout summary counts so warm-up-only drafts now prefer actually touched exercise/set totals instead of inflating the preview with untouched planned placeholders; updated `HomeViewModel` and regression coverage in `HomeViewModelTests`.

@@ -99,7 +99,8 @@ struct ExerciseSelectorForTemplateView: View {
 
                     if let summary = viewModel.selectableResultsSummary(
                         availableCount: filteredExercises.count,
-                        excludedCount: excludedCount
+                        excludedCount: excludedCount,
+                        exclusionContext: "template"
                     ) {
                         Text(summary)
                             .font(.caption)

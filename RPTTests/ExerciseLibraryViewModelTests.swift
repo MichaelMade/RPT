@@ -301,6 +301,25 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testSelectableResultsSummary_supportsWorkoutExclusions() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Incline Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.shoulders], instructions: "")
+        ]
+        viewModel.searchText = "bench"
+
+        XCTAssertEqual(
+            viewModel.selectableResultsSummary(
+                availableCount: 0,
+                excludedCount: 2,
+                exclusionContext: "workout"
+            ),
+            "Showing 0 available of 2 exercises for “bench” • 2 already in workout",
+            "Workout exercise pickers should explain when the current search only finds movements that are already in the active workout"
+        )
+    }
+
     func testEmptyStateKind_prefersEmptyLibraryWhenNoExercisesExistEvenIfQueryIsActive() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.searchText = "bench"

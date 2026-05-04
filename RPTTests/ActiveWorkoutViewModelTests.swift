@@ -116,6 +116,27 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(createdSet?.completedAt, .distantPast, "New starter set should begin incomplete")
     }
 
+    func testAddExerciseToWorkout_rejectsDuplicateExerciseSelection() throws {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Overhead Press", category: .compound, primaryMuscleGroups: [.shoulders])
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        try viewModel.addExerciseToWorkout(exercise)
+
+        XCTAssertThrowsError(try viewModel.addExerciseToWorkout(exercise)) { error in
+            XCTAssertEqual(
+                error as? ActiveWorkoutViewModel.WorkoutError,
+                .duplicateExercise,
+                "Selecting an exercise that is already in the workout should be rejected instead of silently adding a surprise extra set"
+            )
+        }
+        XCTAssertEqual(
+            workout.sets.filter { $0.exercise?.id == exercise.id }.count,
+            1,
+            "Duplicate exercise selection should leave the workout with its original starter set only"
+        )
+    }
+
     func testAddSetToExercise_keepsAutoSuggestedSetIncomplete() throws {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")
