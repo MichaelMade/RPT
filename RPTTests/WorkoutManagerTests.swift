@@ -996,6 +996,27 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertTrue(summary.contains("Work: Warm-up sets only"))
     }
 
+    func testGenerateFormattedSummary_incompleteWarmupOnlyWorkoutDoesNotInflateSetCountsWithUntouchedPlaceholders() {
+        // Given
+        let workout = Workout(name: "Warm-up Draft", isCompleted: false)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        _ = workout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+        _ = workout.addSet(exercise: squat, weight: 225, reps: 0, isWarmup: false)
+        _ = workout.addSet(exercise: squat, weight: 205, reps: 0, isWarmup: false)
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Exercises: Bench Press"))
+        XCTAssertTrue(summary.contains("Sets: 1"))
+        XCTAssertFalse(summary.contains("Sets: 2"))
+        XCTAssertFalse(summary.contains("Sets: 3"))
+        XCTAssertTrue(summary.contains("Work: Warm-up sets only"))
+    }
+
     func testGenerateFormattedSummary_emptyIncompleteWorkoutUsesNotStartedCopy() {
         // Given
         let workout = Workout(name: "Fresh Workout", isCompleted: false)

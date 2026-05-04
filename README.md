@@ -1,5 +1,6 @@
 # RPT
 
+- Warm-up-only drafts now keep `Workout Detail` and copied/exported `Sets`/`Exercises` counts anchored to the sets you actually logged, instead of inflating those counts with untouched planned placeholders.
 - Workout Detail now shows a contextual empty-state card for zero-set legacy/imported or still-empty draft workouts, so those screens explain what happened instead of ending in a blank dead zone.
 - Home resumable-workout summaries now prefer actually touched warm-up exercise/set counts during warm-up-only drafts, instead of inflating the preview with untouched planned placeholders.
 - Copied/exported draft workout summaries now keep the exercises you actually touched visible during warm-up-only sessions, instead of leaking unstarted planned placeholders into the `Exercises:` line.

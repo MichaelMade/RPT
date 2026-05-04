@@ -56,6 +56,14 @@ final class Workout {
             return completedWorkingExerciseCount
         }
 
+        if hasLoggedWarmupOnly {
+            return Set(
+                sets
+                    .filter(\.isCompletedLoggedSet)
+                    .compactMap { $0.exercise }
+            ).count
+        }
+
         if isCompleted {
             let nonWarmupLoggedExerciseCount = Set(
                 sets
@@ -131,6 +139,10 @@ final class Workout {
     var visibleSetCount: Int {
         if workingSetsCount > 0 {
             return workingSetsCount
+        }
+
+        if hasLoggedWarmupOnly {
+            return sets.filter(\.isCompletedLoggedSet).count
         }
 
         if isCompleted {

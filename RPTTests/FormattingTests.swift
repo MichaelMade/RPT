@@ -582,6 +582,25 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(workMetric?.value, "Warm-up sets only")
     }
 
+    func testWorkoutDetailSummaryMetrics_incompleteWarmupOnlyDraftIgnoresUntouchedPlaceholderCounts() {
+        let workout = Workout(name: "Warm-up Draft Detail")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+        _ = workout.addSet(exercise: bench, weight: 45, reps: 10, isWarmup: true)
+        _ = workout.addSet(exercise: squat, weight: 225, reps: 0)
+        _ = workout.addSet(exercise: squat, weight: 205, reps: 0)
+
+        let metrics = WorkoutDetailView.summaryMetrics(for: workout)
+        let exerciseMetric = metrics.first(where: { $0.title == "Exercises" })
+        let setMetric = metrics.first(where: { $0.title == "Sets" })
+        let workMetric = metrics.first(where: { $0.title == "Work" })
+
+        XCTAssertEqual(exerciseMetric?.value, "1")
+        XCTAssertEqual(setMetric?.value, "1")
+        XCTAssertEqual(workMetric?.value, "Warm-up sets only")
+    }
+
     func testWorkoutDetailSummaryMetrics_fallBackToNonWarmupSetsBeforeCountingWarmups() {
         let workout = Workout(name: "Workout Detail Warmup Fallback")
         let squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
