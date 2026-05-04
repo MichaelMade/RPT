@@ -49,16 +49,16 @@ final class WorkoutProgressViewTests: XCTestCase {
 
     func testProgressLabel_whenNothingIsCompleted_usesHelpfulDraftCopy() {
         let view = WorkoutProgressView(completedExercises: 0, totalExercises: 3)
-        XCTAssertEqual(view.progressLabel, "No exercises completed yet")
+        XCTAssertEqual(view.progressLabel, "No exercises marked complete yet")
     }
 
     func testProgressLabel_whenWorkoutIsPartiallyCompleted_usesReadableSentenceCopy() {
         let view = WorkoutProgressView(completedExercises: 1, totalExercises: 3)
-        XCTAssertEqual(view.progressLabel, "1 of 3 exercises completed")
+        XCTAssertEqual(view.progressLabel, "1 of 3 exercises marked complete")
     }
 
     func testProgressLabel_whenTotalIsOneAndCompleted_usesCompletionCopy() {
         let view = WorkoutProgressView(completedExercises: 1, totalExercises: 1)
-        XCTAssertEqual(view.progressLabel, "All exercises completed")
+        XCTAssertEqual(view.progressLabel, "All exercises marked complete")
     }
 }

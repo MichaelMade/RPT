@@ -25,14 +25,14 @@ struct WorkoutProgressView: View {
         }
 
         if safeCompletedExercises <= 0 {
-            return "No exercises completed yet"
+            return "No exercises marked complete yet"
         }
 
         if safeCompletedExercises >= safeTotalExercises {
-            return "All exercises completed"
+            return "All exercises marked complete"
         }
 
-        return "\(safeCompletedExercises) of \(safeTotalExercises) exercises completed"
+        return "\(safeCompletedExercises) of \(safeTotalExercises) exercises marked complete"
     }
     
     var progress: Double {
@@ -75,7 +75,7 @@ struct WorkoutProgressView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Workout progress")
                 .accessibilityValue(progressLabel)
-                .accessibilityHint("Shows completed exercises out of total exercises")
+                .accessibilityHint("Shows how many exercises you have manually marked complete out of the total exercises in this workout")
             }
             .frame(height: 10)
         }
