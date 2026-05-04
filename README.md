@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise picker sheets now keep `Clear Search` and `Reset Filters` visible even while results are still showing, so users can immediately broaden a narrowed add-exercise list without manually backing out of search text or filter chips.
 - Workout Detail now distinguishes truly empty completed imports from placeholder-only completed histories, so the empty-state copy stays honest when a workout saved planned exercises but never logged any real sets.
 - Warm-up-only drafts now keep `Workout Detail` and copied/exported `Sets`/`Exercises` counts anchored to the sets you actually logged, instead of inflating those counts with untouched planned placeholders.
 - Workout Detail now shows a contextual empty-state card for zero-set legacy/imported or still-empty draft workouts, so those screens explain what happened instead of ending in a blank dead zone.

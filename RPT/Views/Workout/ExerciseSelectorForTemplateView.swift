@@ -162,6 +162,29 @@ struct ExerciseSelectorForTemplateView: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
+
+                        if viewModel.shouldShowResultsRecoveryActions(filteredCount: filteredExercises.count) {
+                            if viewModel.hasActiveSearch {
+                                Button("Clear Search") {
+                                    searchText = ""
+                                    viewModel.clearSearch()
+                                }
+                                .font(.caption)
+                                .buttonStyle(.borderless)
+                                .foregroundStyle(.secondary)
+                            }
+
+                            if viewModel.hasActiveFilters {
+                                Button("Reset Filters") {
+                                    selectedCategory = nil
+                                    selectedMuscleGroup = nil
+                                    viewModel.clearFilters()
+                                }
+                                .font(.caption)
+                                .buttonStyle(.borderless)
+                                .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                 }
                 .listStyle(.plain)
