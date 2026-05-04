@@ -132,9 +132,16 @@ struct WorkoutDetailView: View {
         }
 
         if workout.isCompleted {
+            if workout.sets.isEmpty {
+                return (
+                    title: "No exercise details saved",
+                    subtitle: "This workout was completed without any persisted exercise sets, so there’s nothing more to review here."
+                )
+            }
+
             return (
-                title: "No exercise details saved",
-                subtitle: "This workout was completed without any persisted exercise sets, so there’s nothing more to review here."
+                title: "No logged exercise details",
+                subtitle: "This completed workout only saved planned or unlogged exercise placeholders, so there are no recorded sets to review here."
             )
         }
 

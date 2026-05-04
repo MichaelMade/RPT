@@ -624,13 +624,16 @@ final class FormattingTests: XCTestCase {
 
     func testWorkoutDetailEmptyState_describesZeroSetCompletedAndDraftWorkouts() {
         let completedWorkout = Workout(name: "Legacy Import", isCompleted: true)
+        let placeholderCompletedWorkout = Workout(name: "Placeholder Import", isCompleted: true)
         let draftWorkout = Workout(name: "Draft")
         let loggedWorkout = Workout(name: "Logged")
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
 
+        _ = placeholderCompletedWorkout.addSet(exercise: bench, weight: 225, reps: 0)
         _ = loggedWorkout.addSet(exercise: bench, weight: 225, reps: 5)
 
         let completedState = WorkoutDetailView.exerciseDetailsEmptyState(for: completedWorkout)
+        let placeholderCompletedState = WorkoutDetailView.exerciseDetailsEmptyState(for: placeholderCompletedWorkout)
         let draftState = WorkoutDetailView.exerciseDetailsEmptyState(for: draftWorkout)
         let loggedState = WorkoutDetailView.exerciseDetailsEmptyState(for: loggedWorkout)
 
@@ -638,6 +641,11 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(
             completedState?.subtitle,
             "This workout was completed without any persisted exercise sets, so there’s nothing more to review here."
+        )
+        XCTAssertEqual(placeholderCompletedState?.title, "No logged exercise details")
+        XCTAssertEqual(
+            placeholderCompletedState?.subtitle,
+            "This completed workout only saved planned or unlogged exercise placeholders, so there are no recorded sets to review here."
         )
         XCTAssertEqual(draftState?.title, "No exercises added yet")
         XCTAssertEqual(

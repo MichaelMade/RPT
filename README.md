@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Detail now distinguishes truly empty completed imports from placeholder-only completed histories, so the empty-state copy stays honest when a workout saved planned exercises but never logged any real sets.
 - Warm-up-only drafts now keep `Workout Detail` and copied/exported `Sets`/`Exercises` counts anchored to the sets you actually logged, instead of inflating those counts with untouched planned placeholders.
 - Workout Detail now shows a contextual empty-state card for zero-set legacy/imported or still-empty draft workouts, so those screens explain what happened instead of ending in a blank dead zone.
 - Home resumable-workout summaries now prefer actually touched warm-up exercise/set counts during warm-up-only drafts, instead of inflating the preview with untouched planned placeholders.
@@ -99,6 +100,7 @@ RPT/
 ## Recent Improvements
 
 - Added a contextual Workout Detail empty state for zero-set completed imports and still-empty drafts, so the lower half of the screen explains why no exercise sections are visible instead of looking broken; updated `WorkoutDetailView` and regression coverage in `FormattingTests`.
+- Refined that Workout Detail empty state for completed placeholder-only histories, so legacy/imported workouts with saved planned rows but no logged sets now say `No logged exercise details` instead of incorrectly claiming nothing was persisted; updated `WorkoutDetailView` and regression coverage in `FormattingTests`.
 - Polished Home resumable-workout summary counts so warm-up-only drafts now prefer actually touched exercise/set totals instead of inflating the preview with untouched planned placeholders; updated `HomeViewModel` and regression coverage in `HomeViewModelTests`.
 - Hardened set-row RPE display so legacy/corrupted values outside `1...10` are hidden in Workout Detail and the active workout editor instead of leaking labels like `RPE: 0`; updated `ExerciseSet`, `WorkoutDetailView`, `ExerciseSetRowView`, and regression coverage in `FormattingTests`.
 - Fixed copied/exported draft workout summaries so warm-up-only sessions now prefer actually touched exercise names before falling back to unstarted placeholders, preventing planned-but-unlogged exercises from leaking into the `Exercises:` line; updated `Workout` and regression coverage in `WorkoutManagerTests`.
