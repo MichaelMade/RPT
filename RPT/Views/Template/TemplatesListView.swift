@@ -133,6 +133,16 @@ struct TemplatesListView: View {
                             }
                         }
                     }
+
+                    if viewModel.shouldShowResultsRecoveryActions(filteredCount: filteredTemplates.count) {
+                        Button("Clear Search") {
+                            searchText = ""
+                            viewModel.clearSearch()
+                        }
+                        .font(.caption)
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.secondary)
+                    }
                 }
             }
             .searchable(text: $searchText, prompt: "Search templates")

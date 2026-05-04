@@ -146,6 +146,32 @@ struct ExercisesView: View {
                                 }
                             }
                         }
+
+                        if viewModel.shouldShowResultsRecoveryActions(filteredCount: exercises.count) {
+                            HStack {
+                                if viewModel.hasActiveSearch {
+                                    Button("Clear Search") {
+                                        searchText = ""
+                                        viewModel.clearSearch()
+                                    }
+                                }
+
+                                if viewModel.hasActiveSearch && viewModel.hasActiveFilters {
+                                    Spacer(minLength: 12)
+                                }
+
+                                if viewModel.hasActiveFilters {
+                                    Button("Reset Filters") {
+                                        selectedCategory = nil
+                                        selectedMuscleGroup = nil
+                                        viewModel.clearFilters()
+                                    }
+                                }
+                            }
+                            .font(.caption)
+                            .buttonStyle(.borderless)
+                            .foregroundStyle(.secondary)
+                        }
                     }
                 }
                 .listStyle(.plain)

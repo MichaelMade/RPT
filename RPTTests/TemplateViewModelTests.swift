@@ -98,6 +98,20 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.hasActiveSearch)
     }
 
+    func testShouldShowResultsRecoveryActions_onlyAppearsWhenSearchStillHasResults() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"])
+        ]
+
+        XCTAssertFalse(viewModel.shouldShowResultsRecoveryActions(filteredCount: 2))
+
+        viewModel.searchText = "push"
+        XCTAssertTrue(viewModel.shouldShowResultsRecoveryActions(filteredCount: 1))
+        XCTAssertFalse(viewModel.shouldShowResultsRecoveryActions(filteredCount: 0))
+    }
+
     private func makeTemplate(name: String, exerciseNames: [String], notes: String = "") -> WorkoutTemplate {
         WorkoutTemplate(
             name: name,

@@ -61,6 +61,10 @@ class TemplateViewModel: ObservableObject {
         return "Showing \(filteredCount) of \(templates.count) templates for “\(normalizedSearchText)”"
     }
 
+    func shouldShowResultsRecoveryActions(filteredCount: Int) -> Bool {
+        hasActiveSearch && filteredCount > 0 && !templates.isEmpty
+    }
+
     static func searchMatchPriority(template: WorkoutTemplate, normalizedQuery: String) -> Int? {
         guard !normalizedQuery.isEmpty else {
             return 0

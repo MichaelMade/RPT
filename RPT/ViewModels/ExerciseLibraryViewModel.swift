@@ -88,6 +88,10 @@ class ExerciseLibraryViewModel: ObservableObject {
         return summary
     }
 
+    func shouldShowResultsRecoveryActions(filteredCount: Int) -> Bool {
+        hasActiveQuery && filteredCount > 0 && !exercises.isEmpty
+    }
+
     func selectableResultsSummary(availableCount: Int, excludedCount: Int) -> String? {
         guard hasActiveQuery, !exercises.isEmpty else {
             return nil

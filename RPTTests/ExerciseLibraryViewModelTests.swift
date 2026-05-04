@@ -266,6 +266,24 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testShouldShowResultsRecoveryActions_onlyAppearsWhenAnActiveQueryStillHasResults() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+
+        XCTAssertFalse(viewModel.shouldShowResultsRecoveryActions(filteredCount: 2))
+
+        viewModel.searchText = "bench"
+        XCTAssertTrue(viewModel.shouldShowResultsRecoveryActions(filteredCount: 1))
+        XCTAssertFalse(viewModel.shouldShowResultsRecoveryActions(filteredCount: 0))
+
+        viewModel.searchText = ""
+        viewModel.selectedCategory = .compound
+        XCTAssertTrue(viewModel.shouldShowResultsRecoveryActions(filteredCount: 2))
+    }
+
     func testSelectableResultsSummary_includesTemplateExclusions() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
