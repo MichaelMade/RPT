@@ -114,7 +114,7 @@ struct WorkoutRow: View {
         }
 
         if workout.sets.isEmpty {
-            return "No sets logged"
+            return workout.isCompleted ? "No sets logged" : "No exercises added yet"
         }
 
         if workout.isCompleted, workout.workingSetsCount == 0 {

@@ -1,5 +1,6 @@
 # RPT
 
+- Recent workout cards now say `No exercises added yet` for saved blank drafts instead of the misleading history-style `No sets logged`, so untouched in-progress sessions are easier to distinguish from empty completed imports.
 - Active workout progress now uses clearer status copy like `No exercises completed yet`, `1 of 3 exercises completed`, and `All exercises completed`, so the top progress bar reads like guidance instead of a raw fraction.
 - Exercise picker sheets now keep `Clear Search` and `Reset Filters` visible even while results are still showing, so users can immediately broaden a narrowed add-exercise list without manually backing out of search text or filter chips.
 - Workout Detail now distinguishes truly empty completed imports from placeholder-only completed histories, so the empty-state copy stays honest when a workout saved planned exercises but never logged any real sets.

@@ -324,6 +324,13 @@ final class FormattingTests: XCTestCase {
         let emptyWorkout = Workout(name: "Imported Workout", isCompleted: true)
         XCTAssertEqual(WorkoutRow.countsFallbackText(for: emptyWorkout), "No sets logged")
 
+        let blankDraftWorkout = Workout(name: "Blank Draft", isCompleted: false)
+        XCTAssertEqual(
+            WorkoutRow.countsFallbackText(for: blankDraftWorkout),
+            "No exercises added yet",
+            "Incomplete drafts with no sets should explain that nothing has been added yet instead of looking like empty workout history"
+        )
+
         let placeholderWorkout = Workout(name: "Legacy Placeholder Workout", isCompleted: true)
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         _ = placeholderWorkout.addSet(exercise: exercise, weight: 225, reps: 0)
