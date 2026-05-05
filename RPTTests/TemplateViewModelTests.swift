@@ -112,6 +112,57 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.shouldShowResultsRecoveryActions(filteredCount: 0))
     }
 
+    func testPersistActiveWorkoutBeforeTemplateStart_saveForLaterMarksWorkoutSavedOnlyAfterSuccess() {
+        let viewModel = TemplateViewModel()
+        let workoutStateManager = WorkoutStateManager.shared
+        workoutStateManager.clearDiscardedState()
+        defer { workoutStateManager.clearDiscardedState() }
+
+        workoutStateManager.markWorkoutAsDiscarded(UUID())
+        let workout = Workout(name: "Push Day")
+
+        let didPersist = viewModel.persistActiveWorkoutBeforeTemplateStart(
+            workout,
+            action: .saveForLater,
+            persist: { _ in true }
+        )
+
+        XCTAssertTrue(didPersist)
+        XCTAssertFalse(workoutStateManager.wasAnyWorkoutDiscarded(), "Successful save-for-later protection should clear discarded state so the workout can still be resumed later")
+    }
+
+    func testPersistActiveWorkoutBeforeTemplateStart_discardDoesNotMutateStateWhenDeleteFails() {
+        let viewModel = TemplateViewModel()
+        let workoutStateManager = WorkoutStateManager.shared
+        workoutStateManager.clearDiscardedState()
+        defer { workoutStateManager.clearDiscardedState() }
+
+        let workout = Workout(name: "Push Day")
+
+        let didPersist = viewModel.persistActiveWorkoutBeforeTemplateStart(
+            workout,
+            action: .discard,
+            persist: { _ in false }
+        )
+
+        XCTAssertFalse(didPersist)
+        XCTAssertFalse(workoutStateManager.wasAnyWorkoutDiscarded(), "Failed discard protection should leave workout state untouched so the current draft stays resumable")
+    }
+
+    func testActiveWorkoutPersistenceFailureMessage_matchesActionContext() {
+        let viewModel = TemplateViewModel()
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureMessage(for: .saveForLater),
+            "Couldn’t save the current workout. Keep it open, then try starting from the template again."
+        )
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureMessage(for: .discard),
+            "Couldn’t discard the current workout. Keep it open, then try starting from the template again."
+        )
+    }
+
     private func makeTemplate(name: String, exerciseNames: [String], notes: String = "") -> WorkoutTemplate {
         WorkoutTemplate(
             name: name,

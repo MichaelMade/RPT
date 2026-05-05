@@ -22,6 +22,7 @@ struct TemplatesListView: View {
     @State private var showingActiveWorkoutAlert = false
     @State private var templateToStartWorkout: WorkoutTemplate?
     @State private var resumableWorkoutToProtect: Workout?
+    @State private var activeWorkoutFailureMessage: String?
     
     // Bindings for active workout
     @Binding var activeWorkoutBinding: Workout?
@@ -197,30 +198,11 @@ struct TemplatesListView: View {
             // Alert shown when user taps a template while an active workout is in progress.
             .alert("Active Workout In Progress", isPresented: $showingActiveWorkoutAlert) {
                 Button("Save & Continue Later") {
-                    if let workout = resumableWorkoutToProtect {
-                        _ = WorkoutManager.shared.saveWorkoutSafely(workout)
-                        activeWorkoutBinding = nil
-                        WorkoutStateManager.shared.markWorkoutAsSaved(workout.id)
-                    }
-                    if let template = templateToStartWorkout {
-                        selectedTemplate = template
-                        currentAction = .detail
-                    }
-                    templateToStartWorkout = nil
-                    resumableWorkoutToProtect = nil
+                    saveCurrentWorkoutAndOpenTemplate()
                 }
 
                 Button("Discard Workout", role: .destructive) {
-                    if let workout = resumableWorkoutToProtect {
-                        _ = WorkoutManager.shared.deleteWorkoutSafely(workout)
-                        activeWorkoutBinding = nil
-                    }
-                    if let template = templateToStartWorkout {
-                        selectedTemplate = template
-                        currentAction = .detail
-                    }
-                    templateToStartWorkout = nil
-                    resumableWorkoutToProtect = nil
+                    discardCurrentWorkoutAndOpenTemplate()
                 }
 
                 Button("Continue Workout") {
@@ -239,6 +221,20 @@ struct TemplatesListView: View {
             } message: {
                 Text("You have an active workout. What would you like to do?")
             }
+            .alert("Workout Action Failed", isPresented: Binding(
+                get: { activeWorkoutFailureMessage != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        activeWorkoutFailureMessage = nil
+                    }
+                }
+            )) {
+                Button("OK", role: .cancel) {
+                    activeWorkoutFailureMessage = nil
+                }
+            } message: {
+                Text(activeWorkoutFailureMessage ?? "")
+            }
         }
     }
 
@@ -247,6 +243,47 @@ struct TemplatesListView: View {
             currentBinding: activeWorkoutBinding,
             fallbackWorkouts: WorkoutManager.shared.getIncompleteWorkouts()
         )
+    }
+
+    private func openPendingTemplateIfPossible() {
+        guard let template = templateToStartWorkout else { return }
+
+        selectedTemplate = template
+        currentAction = .detail
+        templateToStartWorkout = nil
+        resumableWorkoutToProtect = nil
+    }
+
+    private func saveCurrentWorkoutAndOpenTemplate() {
+        guard let resumableWorkoutToProtect else { return }
+
+        guard viewModel.persistActiveWorkoutBeforeTemplateStart(
+            resumableWorkoutToProtect,
+            action: .saveForLater,
+            persist: { WorkoutManager.shared.saveWorkoutSafely($0) }
+        ) else {
+            activeWorkoutFailureMessage = viewModel.activeWorkoutPersistenceFailureMessage(for: .saveForLater)
+            return
+        }
+
+        activeWorkoutBinding = nil
+        openPendingTemplateIfPossible()
+    }
+
+    private func discardCurrentWorkoutAndOpenTemplate() {
+        guard let resumableWorkoutToProtect else { return }
+
+        guard viewModel.persistActiveWorkoutBeforeTemplateStart(
+            resumableWorkoutToProtect,
+            action: .discard,
+            persist: { WorkoutManager.shared.deleteWorkoutSafely($0) }
+        ) else {
+            activeWorkoutFailureMessage = viewModel.activeWorkoutPersistenceFailureMessage(for: .discard)
+            return
+        }
+
+        activeWorkoutBinding = nil
+        openPendingTemplateIfPossible()
     }
 }
 

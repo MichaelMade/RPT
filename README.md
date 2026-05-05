@@ -1,5 +1,6 @@
 # RPT
 
+- Template start protection now keeps the current workout open and shows a `Workout Action Failed` alert if `Save & Continue Later` or `Discard Workout` fails while opening a template, instead of silently clearing context and proceeding into template flow anyway.
 - Home’s `Start Fresh Instead` flow now keeps the current draft in place and shows a `Workout Action Failed` alert if save-for-later or discard fails, instead of silently clearing the workout and starting fresh anyway.
 - Active Workout now stays open when save, finish, or discard operations fail, so the existing `Workout Action Failed` alert can actually be seen and users are not dropped out of the workout after a failed persistence action.
 - Active Workout now surfaces a clear `Workout Action Failed` alert whenever save/add/delete actions fail (including duplicate exercise picks caught by safety backstops), so errors no longer fail silently inside the workout screen.

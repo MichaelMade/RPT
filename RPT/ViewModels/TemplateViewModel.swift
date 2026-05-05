@@ -11,6 +11,11 @@ import SwiftData
 
 @MainActor
 class TemplateViewModel: ObservableObject {
+    enum ActiveWorkoutPersistenceAction {
+        case saveForLater
+        case discard
+    }
+
     private let templateManager: TemplateManager
     
     @Published var templates: [WorkoutTemplate] = []
@@ -63,6 +68,34 @@ class TemplateViewModel: ObservableObject {
 
     func shouldShowResultsRecoveryActions(filteredCount: Int) -> Bool {
         hasActiveSearch && filteredCount > 0 && !templates.isEmpty
+    }
+
+    func persistActiveWorkoutBeforeTemplateStart(
+        _ workout: Workout,
+        action: ActiveWorkoutPersistenceAction,
+        persist: (Workout) -> Bool
+    ) -> Bool {
+        guard persist(workout) else {
+            return false
+        }
+
+        switch action {
+        case .saveForLater:
+            WorkoutStateManager.shared.markWorkoutAsSaved(workout.id)
+        case .discard:
+            WorkoutStateManager.shared.markWorkoutAsDiscarded(workout.id)
+        }
+
+        return true
+    }
+
+    func activeWorkoutPersistenceFailureMessage(for action: ActiveWorkoutPersistenceAction) -> String {
+        switch action {
+        case .saveForLater:
+            return "Couldn’t save the current workout. Keep it open, then try starting from the template again."
+        case .discard:
+            return "Couldn’t discard the current workout. Keep it open, then try starting from the template again."
+        }
     }
 
     static func searchMatchPriority(template: WorkoutTemplate, normalizedQuery: String) -> Int? {
