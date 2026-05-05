@@ -156,10 +156,19 @@ class ActiveWorkoutViewModel: ObservableObject {
     // MARK: - Workout Management
     
     func updateWorkoutName() throws {
+        let originalWorkoutName = workout.name
+        let originalFieldValue = workoutName
         let sanitizedName = workoutManager.sanitizedWorkoutName(workoutName)
         workoutName = sanitizedName
         workout.name = sanitizedName
-        try workoutManager.saveWorkout(workout)
+
+        do {
+            try workoutManager.saveWorkout(workout)
+        } catch {
+            workout.name = originalWorkoutName
+            workoutName = originalFieldValue
+            throw error
+        }
     }
     
     // Safe version that doesn't throw
@@ -373,6 +382,10 @@ class ActiveWorkoutViewModel: ObservableObject {
             throw WorkoutError.invalidSetData
         }
 
+        let originalWeight = set.weight
+        let originalReps = set.reps
+        let originalRPE = set.rpe
+        let originalCompletedAt = set.completedAt
         let wasIncomplete = !set.hasCompletedValues || set.completedAt == .distantPast
         set.weight = weight
         set.reps = reps
@@ -389,7 +402,15 @@ class ActiveWorkoutViewModel: ObservableObject {
             set.completedAt = Date()
         }
 
-        try saveWorkout()
+        do {
+            try saveWorkout()
+        } catch {
+            set.weight = originalWeight
+            set.reps = originalReps
+            set.rpe = originalRPE
+            set.completedAt = originalCompletedAt
+            throw error
+        }
 
         updateExerciseGroupsAndOrder(maintainOrder: true)
     }

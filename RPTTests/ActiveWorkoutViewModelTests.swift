@@ -1,8 +1,25 @@
 import XCTest
+import SwiftData
 @testable import RPT
 
 @MainActor
 final class ActiveWorkoutViewModelTests: XCTestCase {
+    private final class FailingDataManager: DataManaging {
+        private let wrappedContext: ModelContext
+
+        init(context: ModelContext) {
+            self.wrappedContext = context
+        }
+
+        func getModelContext() -> ModelContext {
+            wrappedContext
+        }
+
+        func saveChanges() throws {
+            throw DataManager.DataError.saveFailed
+        }
+    }
+
     private var workoutManager: WorkoutManager!
 
     override func setUp() {
@@ -69,6 +86,24 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertNotEqual(set.completedAt, .distantPast, "Saving a valid autofilled set should mark it complete")
     }
 
+    func testUpdateSet_failedSaveRestoresPriorValues() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = workout.addSet(exercise: exercise, weight: 185, reps: 5)
+        let originalCompletedAt = set.completedAt
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        XCTAssertThrowsError(try viewModel.updateSet(set, weight: 205, reps: 6, rpe: 8))
+        XCTAssertEqual(set.weight, 185)
+        XCTAssertEqual(set.reps, 5)
+        XCTAssertNil(set.rpe)
+        XCTAssertEqual(set.completedAt, originalCompletedAt)
+    }
+
     func testUpdateWorkoutName_trimsWhitespaceAndFallsBackWhenEmpty() throws {
         // Given
         let workout = workoutManager.createWorkout(name: "Original")
@@ -99,6 +134,21 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.workoutName.count, 80)
         XCTAssertFalse(viewModel.workoutName.contains("\n"))
         XCTAssertFalse(viewModel.workoutName.contains("  "))
+    }
+
+    func testUpdateWorkoutName_failedSaveRestoresPriorModelAndFieldValue() {
+        let workout = workoutManager.createWorkout(name: "Original")
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        viewModel.workoutName = "  New   Workout Name  "
+
+        XCTAssertThrowsError(try viewModel.updateWorkoutName())
+        XCTAssertEqual(workout.name, "Original")
+        XCTAssertEqual(viewModel.workoutName, "  New   Workout Name  ")
     }
 
     func testAddExerciseToWorkout_createsIncompleteStarterSet() throws {

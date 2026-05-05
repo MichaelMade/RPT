@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout now rolls back unsaved edits if SwiftData fails during set or workout-name saves, so failed persistence no longer leaves the screen showing changes that never actually stuck.
 - Home’s main `Start New Workout` action now fails safely too: if SwiftData cannot persist the new workout draft, Home stays put, does not open an unsaved session sheet, and shows a retryable `Workout Action Failed` alert instead.
 - Workout Templates now make draft conflicts much clearer: when you tap a template with an active workout in progress, the alert names the current workout and destination template, and the actions now read `Save & Open Template` / `Discard & Open Template` so the next step is explicit.
 - Starting a workout from Template Details now fails safely: if SwiftData cannot persist the new workout, RPT keeps the template screen open and shows a retryable `Workout Action Failed` alert instead of silently navigating into an unsaved session.
@@ -114,6 +115,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened Active Workout edit failure handling so failed set saves now restore the prior logged values/completion state, and failed workout-name saves restore both the persisted workout name and the text-field draft instead of leaving unsaved in-memory drift behind. Added regression coverage in `ActiveWorkoutViewModelTests`.
 - Clarified the Templates active-workout conflict alert so it now names the in-progress workout plus the template being opened, and renamed the action buttons to `Save & Open Template` / `Discard & Open Template` for a safer handoff when users browse templates mid-session; added regression coverage in `TemplateViewModelTests`.
 - Hardened Settings persistence failure handling so failed save/reset attempts now restore the previous settings state, avoid desynchronizing `showRPE` from `UserDefaults`, and surface an `Unable to Save Settings` alert instead of silently reverting or leaving unsaved toggles behind. Added rollback coverage in `ErrorHandlingTests` plus failure-alert coverage in `SettingsViewModelTests`.
 - Fixed Home’s `Start Fresh Instead` replacement flow so failed `Save & Start New Workout` or `Discard & Start New Workout` operations no longer clear the current draft and launch a fresh session anyway; Home now keeps the existing workout in place, shows a `Workout Action Failed` alert, and only updates discard/saved state after the persistence step succeeds. Added regression coverage in `HomeViewModelTests`.
