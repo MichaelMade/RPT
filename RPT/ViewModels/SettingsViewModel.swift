@@ -11,8 +11,10 @@ import SwiftData
 
 @MainActor
 class SettingsViewModel: ObservableObject {
-    private let settingsManager: SettingsManager
+    private let settingsManager: SettingsManaging
     private var isSyncingFromPersistedSettings = false
+
+    @Published var saveErrorMessage: String?
     
     @Published var restTimerDuration: Int {
         didSet {
@@ -20,6 +22,7 @@ class SettingsViewModel: ObservableObject {
 
             if !settingsManager.updateRestTimerDurationSafely(seconds: restTimerDuration) {
                 syncFromPersistedSettings()
+                presentSaveError("Rest timer changes could not be saved.")
             }
         }
     }
@@ -30,6 +33,7 @@ class SettingsViewModel: ObservableObject {
 
             if !settingsManager.updateRPTPercentageDropsSafely(drops: defaultRPTPercentageDrops) {
                 syncFromPersistedSettings()
+                presentSaveError("RPT drop changes could not be saved.")
             }
         }
     }
@@ -40,6 +44,7 @@ class SettingsViewModel: ObservableObject {
 
             if !settingsManager.updateShowRPESafely(show: showRPE) {
                 syncFromPersistedSettings()
+                presentSaveError("RPE visibility changes could not be saved.")
             }
         }
     }
@@ -50,11 +55,12 @@ class SettingsViewModel: ObservableObject {
 
             if !settingsManager.updateDarkModePreferenceSafely(preference: darkModePreference) {
                 syncFromPersistedSettings()
+                presentSaveError("Appearance changes could not be saved.")
             }
         }
     }
-    
-    init(settingsManager: SettingsManager? = nil) {
+
+    init(settingsManager: SettingsManaging? = nil) {
         self.settingsManager = settingsManager ?? SettingsManager.shared
                 
         // Initialize published properties from settings
@@ -63,11 +69,17 @@ class SettingsViewModel: ObservableObject {
         self.showRPE = self.settingsManager.settings.showRPE
         self.darkModePreference = self.settingsManager.settings.darkModePreference
     }
-    
+
     func resetToDefaults() {
-        _ = settingsManager.resetToDefaultsSafely()
+        if !settingsManager.resetToDefaultsSafely() {
+            presentSaveError("Settings could not be reset right now.")
+        }
 
         syncFromPersistedSettings()
+    }
+
+    func clearSaveError() {
+        saveErrorMessage = nil
     }
     
     func calculateExample(firstWeight: Int = 225) -> String {
@@ -118,5 +130,9 @@ class SettingsViewModel: ObservableObject {
         showRPE = settingsManager.settings.showRPE
         darkModePreference = settingsManager.settings.darkModePreference
         isSyncingFromPersistedSettings = false
+    }
+
+    private func presentSaveError(_ message: String) {
+        saveErrorMessage = message
     }
 }

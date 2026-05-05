@@ -1,6 +1,7 @@
 # RPT
 
 - New/Edit Template now stays on-screen when SwiftData persistence fails, restores the previous saved template state for edit attempts, and shows a retryable alert instead of dismissing as if the save succeeded.
+- Settings now fail safely too: if SwiftData save/reset operations fail, RPT restores the prior in-memory settings, keeps `showRPE` / `UserDefaults` in sync with the last persisted value, and shows an `Unable to Save Settings` alert instead of silently drifting UI state.
 - Add/Edit Exercise now stays on-screen when persistence fails, restores unsaved edits instead of dismissing or leaving half-applied model changes behind, and shows a retryable save alert so custom exercise edits are safer under storage errors.
 - Template start protection now keeps the current workout open and shows a `Workout Action Failed` alert if `Save & Continue Later` or `Discard Workout` fails while opening a template, instead of silently clearing context and proceeding into template flow anyway.
 - Home’s `Start Fresh Instead` flow now keeps the current draft in place and shows a `Workout Action Failed` alert if save-for-later or discard fails, instead of silently clearing the workout and starting fresh anyway.
@@ -110,6 +111,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened Settings persistence failure handling so failed save/reset attempts now restore the previous settings state, avoid desynchronizing `showRPE` from `UserDefaults`, and surface an `Unable to Save Settings` alert instead of silently reverting or leaving unsaved toggles behind. Added rollback coverage in `ErrorHandlingTests` plus failure-alert coverage in `SettingsViewModelTests`.
 - Fixed Home’s `Start Fresh Instead` replacement flow so failed `Save & Start New Workout` or `Discard & Start New Workout` operations no longer clear the current draft and launch a fresh session anyway; Home now keeps the existing workout in place, shows a `Workout Action Failed` alert, and only updates discard/saved state after the persistence step succeeds. Added regression coverage in `HomeViewModelTests`.
 - Fixed Active Workout persistence failure handling so `Minimize`, `Save for Later`, `Complete Workout`, and discard flows only dismiss after a successful save/delete; failed actions now keep the sheet open and preserve workout-state markers instead of hiding the new error alert behind an unintended dismiss. Added regression coverage in `ErrorHandlingTests` for the new success-path state transitions.
 - Hardened template editing against duplicate exercises by making `TemplateManager.addExerciseToTemplate(...)` reject normalized name collisions (`Bench Press` vs ` bench\npress `), so stale callbacks or future non-picker add paths cannot silently create duplicate template rows; added regression coverage in `TemplateManagerTests`.

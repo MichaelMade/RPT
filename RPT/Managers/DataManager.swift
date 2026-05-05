@@ -9,6 +9,12 @@ import Foundation
 import SwiftData
 
 @MainActor
+protocol DataManaging {
+    func getModelContext() -> ModelContext
+    func saveChanges() throws
+}
+
+@MainActor
 class DataManager {
     private let modelContainer: ModelContainer
     private let modelContext: ModelContext

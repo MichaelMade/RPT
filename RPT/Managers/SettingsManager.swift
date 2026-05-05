@@ -10,7 +10,25 @@ import SwiftUI
 import SwiftData
 
 @MainActor
-class SettingsManager: ObservableObject {
+protocol SettingsManaging: AnyObject {
+    var settings: UserSettings { get }
+    func updateSettings() throws
+    func updateSettingsSafely() -> Bool
+    func updateRestTimerDuration(seconds: Int) throws
+    func updateRestTimerDurationSafely(seconds: Int) -> Bool
+    func updateRPTPercentageDrops(drops: [Double]) throws
+    func updateRPTPercentageDropsSafely(drops: [Double]) -> Bool
+    func updateShowRPE(show: Bool) throws
+    func updateShowRPESafely(show: Bool) -> Bool
+    func updateDarkModePreference(preference: DarkModePreference) throws
+    func updateDarkModePreferenceSafely(preference: DarkModePreference) -> Bool
+    func resetToDefaults() throws
+    func resetToDefaultsSafely() -> Bool
+    func calculateRPTExample(firstSetWeight: Int) -> String
+}
+
+@MainActor
+class SettingsManager: ObservableObject, SettingsManaging {
     enum SettingsError: Error {
         case fetchFailed
         case saveFailed
@@ -28,13 +46,13 @@ class SettingsManager: ObservableObject {
     }
     
     private let modelContext: ModelContext
-    private let dataManager: DataManager
+    private let dataManager: DataManaging
     static let shared = SettingsManager()
     
     @Published var settings: UserSettings
     
-    private init() {
-        self.dataManager = DataManager.shared
+    init(dataManager: DataManaging = DataManager.shared) {
+        self.dataManager = dataManager
         self.modelContext = dataManager.getModelContext()
         
         // Initialize with default settings (will be replaced if we can fetch from database)
@@ -99,14 +117,44 @@ class SettingsManager: ObservableObject {
         }
     }
     
-    func updateSettings() throws {
+    private struct SettingsSnapshot {
+        let restTimerDuration: Int
+        let defaultRPTPercentageDrops: [Double]
+        let showRPE: Bool
+        let darkModePreference: DarkModePreference
+    }
+
+    private func makeSnapshot() -> SettingsSnapshot {
+        SettingsSnapshot(
+            restTimerDuration: settings.restTimerDuration,
+            defaultRPTPercentageDrops: settings.defaultRPTPercentageDrops,
+            showRPE: settings.showRPE,
+            darkModePreference: settings.darkModePreference
+        )
+    }
+
+    private func restore(_ snapshot: SettingsSnapshot) {
+        settings.restTimerDuration = snapshot.restTimerDuration
+        settings.defaultRPTPercentageDrops = snapshot.defaultRPTPercentageDrops
+        settings.showRPE = snapshot.showRPE
+        settings.darkModePreference = snapshot.darkModePreference
+    }
+
+    private func commitSettingsChange(syncUserDefaults: Bool = true) throws {
         do {
             try dataManager.saveChanges()
+            if syncUserDefaults {
+                syncWithUserDefaults()
+            }
             objectWillChange.send()
         } catch {
             print("Error updating settings: \(error)")
             throw SettingsError.saveFailed
         }
+    }
+
+    func updateSettings() throws {
+        try commitSettingsChange()
     }
     
     // Safe version that doesn't throw (for backward compatibility)
@@ -121,9 +169,15 @@ class SettingsManager: ObservableObject {
     
     func updateRestTimerDuration(seconds: Int) throws {
         guard seconds > 0 && seconds <= 3600 else { throw SettingsError.invalidValue }
-        
+
+        let snapshot = makeSnapshot()
         settings.restTimerDuration = seconds
-        try updateSettings()
+        do {
+            try commitSettingsChange(syncUserDefaults: false)
+        } catch {
+            restore(snapshot)
+            throw error
+        }
     }
     
     // Safe version that doesn't throw
@@ -144,8 +198,14 @@ class SettingsManager: ObservableObject {
             throw SettingsError.invalidValue
         }
 
+        let snapshot = makeSnapshot()
         settings.defaultRPTPercentageDrops = drops
-        try updateSettings()
+        do {
+            try commitSettingsChange(syncUserDefaults: false)
+        } catch {
+            restore(snapshot)
+            throw error
+        }
     }
     
     // Safe version that doesn't throw
@@ -159,12 +219,16 @@ class SettingsManager: ObservableObject {
     }
     
     func updateShowRPE(show: Bool) throws {
+        let snapshot = makeSnapshot()
         settings.showRPE = show
-        
-        // Sync with UserDefaults for @AppStorage to work
-        UserDefaults.standard.set(show, forKey: "showRPE")
-        
-        try updateSettings()
+
+        do {
+            try commitSettingsChange()
+        } catch {
+            restore(snapshot)
+            syncWithUserDefaults()
+            throw error
+        }
     }
     
     // Safe version that doesn't throw
@@ -178,8 +242,14 @@ class SettingsManager: ObservableObject {
     }
     
     func updateDarkModePreference(preference: DarkModePreference) throws {
+        let snapshot = makeSnapshot()
         settings.darkModePreference = preference
-        try updateSettings()
+        do {
+            try commitSettingsChange(syncUserDefaults: false)
+        } catch {
+            restore(snapshot)
+            throw error
+        }
     }
     
     // Safe version that doesn't throw
@@ -193,15 +263,19 @@ class SettingsManager: ObservableObject {
     }
     
     func resetToDefaults() throws {
+        let snapshot = makeSnapshot()
         settings.restTimerDuration = UserSettings.defaultRestTimerDuration
         settings.defaultRPTPercentageDrops = UserSettings.defaultRPTPercentageDrops
         settings.showRPE = true
         settings.darkModePreference = .system
-        
-        // Sync RPE setting with UserDefaults for @AppStorage to work
-        UserDefaults.standard.set(true, forKey: "showRPE")
-        
-        try updateSettings()
+
+        do {
+            try commitSettingsChange()
+        } catch {
+            restore(snapshot)
+            syncWithUserDefaults()
+            throw error
+        }
     }
     
     // Safe version that doesn't throw

@@ -6,10 +6,27 @@
 //
 
 import XCTest
+import SwiftData
 @testable import RPT
 
 @MainActor
 final class ErrorHandlingTests: XCTestCase {
+    private final class FailingDataManager: DataManaging {
+        private let wrappedContext: ModelContext
+
+        init(context: ModelContext) {
+            self.wrappedContext = context
+        }
+
+        func getModelContext() -> ModelContext {
+            wrappedContext
+        }
+
+        func saveChanges() throws {
+            throw DataManager.DataError.saveFailed
+        }
+    }
+
     
     override func setUp() {
         super.setUp()
@@ -135,6 +152,39 @@ final class ErrorHandlingTests: XCTestCase {
             settingsManager.updateRPTPercentageDropsSafely(drops: [0.0, 0.10, 0.15, 0.20]),
             "RPT percentage drops should reject arrays longer than the supported three-set schema"
         )
+    }
+
+    func testSettingsManagerShowRPE_failedSaveRestoresPriorStateAndUserDefaults() {
+        let originalShowRPE = SettingsManager.shared.settings.showRPE
+        UserDefaults.standard.set(originalShowRPE, forKey: "showRPE")
+
+        let failingManager = SettingsManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext())
+        )
+
+        XCTAssertThrowsError(try failingManager.updateShowRPE(show: !originalShowRPE))
+        XCTAssertEqual(failingManager.settings.showRPE, originalShowRPE)
+        XCTAssertEqual(UserDefaults.standard.bool(forKey: "showRPE"), originalShowRPE)
+    }
+
+    func testSettingsManagerResetToDefaults_failedSaveRestoresPriorState() {
+        let sharedSettings = SettingsManager.shared.settings
+        let originalRestTimer = sharedSettings.restTimerDuration
+        let originalDrops = sharedSettings.defaultRPTPercentageDrops
+        let originalShowRPE = sharedSettings.showRPE
+        let originalDarkMode = sharedSettings.darkModePreference
+        UserDefaults.standard.set(originalShowRPE, forKey: "showRPE")
+
+        let failingManager = SettingsManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext())
+        )
+
+        XCTAssertThrowsError(try failingManager.resetToDefaults())
+        XCTAssertEqual(failingManager.settings.restTimerDuration, originalRestTimer)
+        XCTAssertEqual(failingManager.settings.defaultRPTPercentageDrops, originalDrops)
+        XCTAssertEqual(failingManager.settings.showRPE, originalShowRPE)
+        XCTAssertEqual(failingManager.settings.darkModePreference, originalDarkMode)
+        XCTAssertEqual(UserDefaults.standard.bool(forKey: "showRPE"), originalShowRPE)
     }
 
     func testUserSettingsRestTimerDuration_normalizesInvalidValues() {
