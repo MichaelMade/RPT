@@ -106,21 +106,21 @@ class TemplateManager {
         self.exerciseManager = ExerciseManager.shared
         createDefaultTemplatesIfNeeded()
     }
-    
+
     // MARK: - Fetch Operations
-    
+
     func fetchAllTemplates() -> [WorkoutTemplate] {
         let descriptor = FetchDescriptor<WorkoutTemplate>(sortBy: [SortDescriptor(\.name)])
         return (try? modelContext.fetch(descriptor)) ?? []
     }
-    
+
     func fetchTemplateByName(_ name: String) -> WorkoutTemplate? {
         let descriptor = FetchDescriptor<WorkoutTemplate>(
             predicate: #Predicate<WorkoutTemplate> { $0.name == name }
         )
         return try? modelContext.fetch(descriptor).first
     }
-    
+
     func fetchTemplate(byId id: String) -> WorkoutTemplate? {
         let descriptor = FetchDescriptor<WorkoutTemplate>(
             predicate: #Predicate<WorkoutTemplate> { $0.id == id }
@@ -187,10 +187,10 @@ class TemplateManager {
         // Update the template properties
         template.name = sanitizedName
         template.notes = WorkoutTemplate.normalizedDisplayNotes(notes) ?? ""
-        
+
         // Force SwiftData to recognize the change by completely replacing the exercises array
         var updatedExercises: [TemplateExercise] = []
-        
+
         // Create a fresh copy of each exercise to ensure all changes are captured
         for exercise in exercises {
             let newExercise = TemplateExercise(
@@ -200,14 +200,14 @@ class TemplateManager {
                 repRanges: exercise.repRanges,
                 notes: exercise.notes
             )
-            
+
             updatedExercises.append(newExercise)
         }
-        
+
         // Replace the entire array to force SwiftData to detect the change
         template.exercises = []
         template.exercises = updatedExercises
-        
+
         do {
             try modelContext.save()
             return .success
@@ -218,61 +218,66 @@ class TemplateManager {
             return .persistenceFailure
         }
     }
-    
+
     func deleteTemplate(_ template: WorkoutTemplate) {
         modelContext.delete(template)
         try? modelContext.save()
     }
-    
-    // MARK: - Workout Creation
-    
-func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout {
-    // Create the workout with the template name
-    let workout = Workout(name: template.name, startedFromTemplate: template.name)
-    modelContext.insert(workout)
-    
-    // Get current date/time to stagger completion times slightly for ordering
-    let now = Date()
-    
-    // Find exercises for template exercise names and add them to the workout
-    // Process exercises in the order they appear in the template
-    for (index, templateExercise) in template.exercises.enumerated() {
-        // Find the actual exercise object
-        guard let exercise = exerciseManager.fetchExercise(withName: templateExercise.exerciseName) else {
-            continue
-        }
-        
-        // Create sets based on rep ranges
-        for (setIndex, repRange) in templateExercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber }).enumerated() {
-            // Use the middle of the rep range as the target
-            let targetReps = (repRange.minReps + repRange.maxReps) / 2
-            
-            // Preserve deterministic set ordering while ensuring unstarted sets remain incomplete.
-            let completionTime = now.addingTimeInterval(Double(index) + (Double(setIndex) / 10.0))
-            let initialWeight = 0
 
-            let newSet = ExerciseSet(
-                weight: initialWeight, // User will input actual weight during workout
-                reps: targetReps,
-                exercise: exercise,
-                workout: workout,
-                completedAt: Self.initialCompletedAt(
-                    weight: initialWeight,
+    // MARK: - Workout Creation
+
+    func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout? {
+        // Create the workout with the template name
+        let workout = Workout(name: template.name, startedFromTemplate: template.name)
+        modelContext.insert(workout)
+
+        // Get current date/time to stagger completion times slightly for ordering
+        let now = Date()
+
+        // Find exercises for template exercise names and add them to the workout
+        // Process exercises in the order they appear in the template
+        for (index, templateExercise) in template.exercises.enumerated() {
+            // Find the actual exercise object
+            guard let exercise = exerciseManager.fetchExercise(withName: templateExercise.exerciseName) else {
+                continue
+            }
+
+            // Create sets based on rep ranges
+            for (setIndex, repRange) in templateExercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber }).enumerated() {
+                // Use the middle of the rep range as the target
+                let targetReps = (repRange.minReps + repRange.maxReps) / 2
+
+                // Preserve deterministic set ordering while ensuring unstarted sets remain incomplete.
+                let completionTime = now.addingTimeInterval(Double(index) + (Double(setIndex) / 10.0))
+                let initialWeight = 0
+
+                let newSet = ExerciseSet(
+                    weight: initialWeight, // User will input actual weight during workout
                     reps: targetReps,
-                    fallbackDate: completionTime
+                    exercise: exercise,
+                    workout: workout,
+                    completedAt: Self.initialCompletedAt(
+                        weight: initialWeight,
+                        reps: targetReps,
+                        fallbackDate: completionTime
+                    )
                 )
-            )
-            
-            workout.sets.append(newSet)
+
+                workout.sets.append(newSet)
+            }
+        }
+
+        do {
+            try modelContext.save()
+            return workout
+        } catch {
+            modelContext.delete(workout)
+            return nil
         }
     }
-    
-    try? modelContext.save()
-    return workout
-}
-    
+
     // MARK: - Template Management
-    
+
     @discardableResult
     func addExerciseToTemplate(_ template: WorkoutTemplate, exerciseName: String) -> Bool {
         let normalizedExerciseName = ExerciseManager.normalizedNameLookupKey(exerciseName)
@@ -293,35 +298,35 @@ func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout {
             ],
             notes: ""
         )
-        
+
         template.exercises.append(newExercise)
         try? modelContext.save()
         return true
     }
-    
+
     func updateTemplateExercise(_ template: WorkoutTemplate, exerciseId: UUID, updatedExercise: TemplateExercise) {
         if let index = template.exercises.firstIndex(where: { $0.id == exerciseId }) {
             template.exercises[index] = updatedExercise
             try? modelContext.save()
         }
     }
-    
+
     func removeExerciseFromTemplate(_ template: WorkoutTemplate, exerciseId: UUID) {
         template.exercises.removeAll { $0.id == exerciseId }
         try? modelContext.save()
     }
-    
+
     // MARK: - Private Helpers
-    
+
     private func createDefaultTemplatesIfNeeded() {
         var descriptor = FetchDescriptor<WorkoutTemplate>()
         descriptor.fetchLimit = 1
-        
+
         // Check if any templates exist
         if let count = try? modelContext.fetchCount(descriptor), count > 0 {
             return // Templates already exist
         }
-        
+
         // Create default template
         let upperBodyRPT = WorkoutTemplate(
             name: "Upper Body RPT",
@@ -349,7 +354,7 @@ func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout {
             ],
             notes: "Rest 2-3 minutes between exercises"
         )
-        
+
         // Insert template
         modelContext.insert(upperBodyRPT)
         try? modelContext.save()

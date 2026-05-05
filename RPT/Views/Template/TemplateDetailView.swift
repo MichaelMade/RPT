@@ -12,7 +12,7 @@ struct TemplateDetailView: View {
     let template: WorkoutTemplate
     let onStartWorkout: (Workout) -> Void
     @Environment(\.dismiss) private var dismiss
-    @State private var navigatingToWorkout = false
+    @State private var startWorkoutFailureMessage: String?
     
     private let templateManager = TemplateManager.shared
     
@@ -86,7 +86,11 @@ struct TemplateDetailView: View {
                     Spacer()
                     
                     Button(action: {
-                        let workout = templateManager.createWorkoutFromTemplate(template)
+                        guard let workout = templateManager.createWorkoutFromTemplate(template) else {
+                            startWorkoutFailureMessage = "Your workout could not be started right now. Please try again."
+                            return
+                        }
+
                         // Pass the workout to the callback which will handle navigation
                         onStartWorkout(workout)
                     }) {
@@ -119,6 +123,20 @@ struct TemplateDetailView: View {
                         dismiss()
                     }
                 }
+            }
+            .alert("Workout Action Failed", isPresented: Binding(
+                get: { startWorkoutFailureMessage != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        startWorkoutFailureMessage = nil
+                    }
+                }
+            )) {
+                Button("OK", role: .cancel) {
+                    startWorkoutFailureMessage = nil
+                }
+            } message: {
+                Text(startWorkoutFailureMessage ?? "")
             }
         }
     }
