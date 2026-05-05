@@ -58,13 +58,12 @@ struct HomeView: View {
                         Button(action: {
                             if let resumableWorkout {
                                 activeWorkoutBinding = resumableWorkout
-                            } else {
-                                viewModel.startNewWorkout()
+                                showActiveWorkoutSheet = true
+                            } else if viewModel.startNewWorkout() {
                                 workoutStateManager.clearDiscardedState()
                                 activeWorkoutBinding = viewModel.currentWorkout
+                                showActiveWorkoutSheet = true
                             }
-
-                            showActiveWorkoutSheet = true
                         }) {
                             HStack {
                                 Image(systemName: canContinueWorkout ? "arrow.clockwise.circle.fill" : "plus.circle.fill")
@@ -324,18 +323,18 @@ struct HomeView: View {
                 }
             }
             .alert("Workout Action Failed", isPresented: Binding(
-                get: { startFreshFailureMessage != nil },
+                get: { currentFailureMessage != nil },
                 set: { isPresented in
                     if !isPresented {
-                        startFreshFailureMessage = nil
+                        clearFailureMessages()
                     }
                 }
             )) {
                 Button("OK", role: .cancel) {
-                    startFreshFailureMessage = nil
+                    clearFailureMessages()
                 }
             } message: {
-                Text(startFreshFailureMessage ?? "")
+                Text(currentFailureMessage ?? "")
             }
             .onAppear {
                 reloadHomeState()
@@ -358,8 +357,21 @@ struct HomeView: View {
         )
     }
 
+    private var currentFailureMessage: String? {
+        startFreshFailureMessage ?? viewModel.startWorkoutFailureMessage
+    }
+
+    private func clearFailureMessages() {
+        startFreshFailureMessage = nil
+        viewModel.startWorkoutFailureMessage = nil
+    }
+
     private func startFreshWorkout() {
-        viewModel.startNewWorkout()
+        guard viewModel.startNewWorkout() else {
+            resumableWorkoutToReplace = nil
+            return
+        }
+
         workoutStateManager.clearDiscardedState()
         activeWorkoutBinding = viewModel.currentWorkout
         showActiveWorkoutSheet = true

@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s main `Start New Workout` action now fails safely too: if SwiftData cannot persist the new workout draft, Home stays put, does not open an unsaved session sheet, and shows a retryable `Workout Action Failed` alert instead.
 - Workout Templates now make draft conflicts much clearer: when you tap a template with an active workout in progress, the alert names the current workout and destination template, and the actions now read `Save & Open Template` / `Discard & Open Template` so the next step is explicit.
 - Starting a workout from Template Details now fails safely: if SwiftData cannot persist the new workout, RPT keeps the template screen open and shows a retryable `Workout Action Failed` alert instead of silently navigating into an unsaved session.
 - New/Edit Template now stays on-screen when SwiftData persistence fails, restores the previous saved template state for edit attempts, and shows a retryable alert instead of dismissing as if the save succeeded.

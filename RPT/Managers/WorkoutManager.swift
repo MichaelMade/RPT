@@ -10,14 +10,15 @@ import SwiftData
 
 @MainActor
 class WorkoutManager: ObservableObject {
+    private let dataManager: DataManaging
     private let modelContext: ModelContext
     private let userManager: UserManager
     static let shared = WorkoutManager()
     
-    private init() {
-        let dataManager = DataManager.shared
+    init(dataManager: DataManaging = DataManager.shared, userManager: UserManager = UserManager.shared) {
+        self.dataManager = dataManager
         self.modelContext = dataManager.getModelContext()
-        self.userManager = UserManager.shared
+        self.userManager = userManager
     }
     
     // MARK: - Workout CRUD Operations
@@ -33,6 +34,23 @@ class WorkoutManager: ObservableObject {
         try? modelContext.save()
         
         return workout
+    }
+
+    func createWorkoutSafely(name: String = "Workout", fromTemplate templateName: String? = nil) -> Workout? {
+        let workout = Workout(
+            name: sanitizedWorkoutName(name),
+            startedFromTemplate: templateName
+        )
+
+        modelContext.insert(workout)
+
+        do {
+            try dataManager.saveChanges()
+            return workout
+        } catch {
+            modelContext.delete(workout)
+            return nil
+        }
     }
     
     // Save a workout

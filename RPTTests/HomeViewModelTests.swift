@@ -6,10 +6,27 @@
 //
 
 import XCTest
+import SwiftData
 @testable import RPT
 
 @MainActor
 final class HomeViewModelTests: XCTestCase {
+    private final class FailingDataManager: DataManaging {
+        private let wrappedContext: ModelContext
+
+        init(context: ModelContext) {
+            self.wrappedContext = context
+        }
+
+        func getModelContext() -> ModelContext {
+            wrappedContext
+        }
+
+        func saveChanges() throws {
+            throw DataManager.DataError.saveFailed
+        }
+    }
+
     var viewModel: HomeViewModel!
     
     override func setUp() {
@@ -783,6 +800,33 @@ final class HomeViewModelTests: XCTestCase {
         )
 
         XCTAssertFalse(shouldResume, "Should not resume when there is no incomplete workout")
+    }
+
+    func testStartNewWorkout_failureLeavesCurrentWorkoutNilAndSetsRetryMessage() {
+        let failingManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext())
+        )
+        let failingViewModel = HomeViewModel(workoutManager: failingManager)
+
+        let didStart = failingViewModel.startNewWorkout()
+
+        XCTAssertFalse(didStart, "Failed workout creation should keep Home on the current screen instead of opening an unsaved draft")
+        XCTAssertNil(failingViewModel.currentWorkout, "Failed workout creation should not hand the UI an unsaved workout instance")
+        XCTAssertEqual(
+            failingViewModel.startWorkoutFailureMessage,
+            "Your workout could not be started right now. Please try again.",
+            "Failed workout creation should surface a retryable alert message"
+        )
+    }
+
+    func testStartNewWorkout_successClearsPriorFailureAndSetsCurrentWorkout() {
+        viewModel.startWorkoutFailureMessage = "Old error"
+
+        let didStart = viewModel.startNewWorkout()
+
+        XCTAssertTrue(didStart, "Starting a workout should succeed in the normal shared data context")
+        XCTAssertNotNil(viewModel.currentWorkout, "Successful workout creation should expose the new draft")
+        XCTAssertNil(viewModel.startWorkoutFailureMessage, "Successful workout creation should clear stale failure alerts")
     }
 
     func testPersistWorkoutForFreshStart_saveForLaterFailureDoesNotClearDiscardState() {

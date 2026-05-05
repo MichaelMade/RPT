@@ -25,6 +25,7 @@ class HomeViewModel: ObservableObject {
     @Published var lifetimeWorkMetricTitle: String = "Volume"
     @Published var lifetimeWorkMetricValue: String = "0"
     @Published var lifetimeWorkMetricSubtitle: String = "lb lifted"
+    @Published var startWorkoutFailureMessage: String?
     
     init(workoutManager: WorkoutManager? = nil,
          userManager: UserManager? = nil) {
@@ -58,8 +59,17 @@ class HomeViewModel: ObservableObject {
         currentWorkout = workoutStateManager.firstResumableWorkout(in: workoutManager.getIncompleteWorkouts())
     }
     
-    func startNewWorkout() {
-        currentWorkout = workoutManager.createWorkout()
+    @discardableResult
+    func startNewWorkout() -> Bool {
+        guard let workout = workoutManager.createWorkoutSafely() else {
+            currentWorkout = nil
+            startWorkoutFailureMessage = "Your workout could not be started right now. Please try again."
+            return false
+        }
+
+        currentWorkout = workout
+        startWorkoutFailureMessage = nil
+        return true
     }
     
     func resumeWorkout(_ workout: Workout) {
