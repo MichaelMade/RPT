@@ -149,6 +149,28 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertFalse(workoutStateManager.wasAnyWorkoutDiscarded(), "Failed discard protection should leave workout state untouched so the current draft stays resumable")
     }
 
+    func testActiveWorkoutPromptMessage_namesWorkoutAndDestinationTemplate() {
+        let viewModel = TemplateViewModel()
+        let workout = Workout(name: "Upper A")
+        let template = makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPromptMessage(for: workout, opening: template),
+            "You already have Upper A in progress. Save it for later, discard it, or keep going before opening Lower Day."
+        )
+    }
+
+    func testActiveWorkoutPromptMessage_fallsBackForGenericWorkoutAndTemplateNames() {
+        let viewModel = TemplateViewModel()
+        let workout = Workout(name: "   \n  ")
+        let template = makeTemplate(name: "   ", exerciseNames: ["Squat"])
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPromptMessage(for: workout, opening: template),
+            "You already have a workout in progress. Save it for later, discard it, or keep going before opening this template."
+        )
+    }
+
     func testActiveWorkoutPersistenceFailureMessage_matchesActionContext() {
         let viewModel = TemplateViewModel()
 

@@ -89,6 +89,22 @@ class TemplateViewModel: ObservableObject {
         return true
     }
 
+    func activeWorkoutPromptPrefix(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "You already have a workout in progress."
+            : "You already have \(displayName) in progress."
+    }
+
+    func activeWorkoutPromptMessage(for workout: Workout, opening template: WorkoutTemplate) -> String {
+        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let templateSuffix = templateName == "Template"
+            ? "before opening this template."
+            : "before opening \(templateName)."
+
+        return "\(activeWorkoutPromptPrefix(for: workout)) Save it for later, discard it, or keep going \(templateSuffix)"
+    }
+
     func activeWorkoutPersistenceFailureMessage(for action: ActiveWorkoutPersistenceAction) -> String {
         switch action {
         case .saveForLater:

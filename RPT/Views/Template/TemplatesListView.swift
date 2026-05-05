@@ -197,11 +197,11 @@ struct TemplatesListView: View {
             }
             // Alert shown when user taps a template while an active workout is in progress.
             .alert("Active Workout In Progress", isPresented: $showingActiveWorkoutAlert) {
-                Button("Save & Continue Later") {
+                Button("Save & Open Template") {
                     saveCurrentWorkoutAndOpenTemplate()
                 }
 
-                Button("Discard Workout", role: .destructive) {
+                Button("Discard & Open Template", role: .destructive) {
                     discardCurrentWorkoutAndOpenTemplate()
                 }
 
@@ -219,7 +219,7 @@ struct TemplatesListView: View {
                     resumableWorkoutToProtect = nil
                 }
             } message: {
-                Text("You have an active workout. What would you like to do?")
+                Text(activeWorkoutAlertMessage)
             }
             .alert("Workout Action Failed", isPresented: Binding(
                 get: { activeWorkoutFailureMessage != nil },
@@ -236,6 +236,17 @@ struct TemplatesListView: View {
                 Text(activeWorkoutFailureMessage ?? "")
             }
         }
+    }
+
+    private var activeWorkoutAlertMessage: String {
+        guard let resumableWorkoutToProtect, let templateToStartWorkout else {
+            return "You have an active workout. What would you like to do?"
+        }
+
+        return viewModel.activeWorkoutPromptMessage(
+            for: resumableWorkoutToProtect,
+            opening: templateToStartWorkout
+        )
     }
 
     private func protectedResumableWorkout() -> Workout? {
