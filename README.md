@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s `Start Fresh Instead` flow now keeps the current draft in place and shows a `Workout Action Failed` alert if save-for-later or discard fails, instead of silently clearing the workout and starting fresh anyway.
 - Active Workout now stays open when save, finish, or discard operations fail, so the existing `Workout Action Failed` alert can actually be seen and users are not dropped out of the workout after a failed persistence action.
 - Active Workout now surfaces a clear `Workout Action Failed` alert whenever save/add/delete actions fail (including duplicate exercise picks caught by safety backstops), so errors no longer fail silently inside the workout screen.
 - The active workout progress bar now says exercises are `marked complete` instead of implying set logging alone finishes them, matching the manual completion-circle behavior needed to enable `Finish`.
@@ -106,6 +107,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Home’s `Start Fresh Instead` replacement flow so failed `Save & Start New Workout` or `Discard & Start New Workout` operations no longer clear the current draft and launch a fresh session anyway; Home now keeps the existing workout in place, shows a `Workout Action Failed` alert, and only updates discard/saved state after the persistence step succeeds. Added regression coverage in `HomeViewModelTests`.
 - Fixed Active Workout persistence failure handling so `Minimize`, `Save for Later`, `Complete Workout`, and discard flows only dismiss after a successful save/delete; failed actions now keep the sheet open and preserve workout-state markers instead of hiding the new error alert behind an unintended dismiss. Added regression coverage in `ErrorHandlingTests` for the new success-path state transitions.
 - Hardened template editing against duplicate exercises by making `TemplateManager.addExerciseToTemplate(...)` reject normalized name collisions (`Bench Press` vs ` bench\npress `), so stale callbacks or future non-picker add paths cannot silently create duplicate template rows; added regression coverage in `TemplateManagerTests`.
 - Clarified the active workout progress bar so it now says exercises are `marked complete` rather than just `completed`, matching the manual completion-circle workflow that unlocks `Finish`; updated `WorkoutProgressView` and regression coverage in `WorkoutProgressViewTests`.

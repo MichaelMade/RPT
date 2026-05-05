@@ -784,4 +784,59 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertFalse(shouldResume, "Should not resume when there is no incomplete workout")
     }
+
+    func testPersistWorkoutForFreshStart_saveForLaterFailureDoesNotClearDiscardState() {
+        WorkoutStateManager.shared.markWorkoutAsDiscarded("older-draft")
+        let workout = Workout(name: "Current Draft")
+
+        let result = viewModel.persistWorkoutForFreshStart(
+            workout,
+            action: .saveForLater,
+            persist: { _ in false }
+        )
+
+        XCTAssertFalse(result, "Failed save-for-later should keep the current workout in place")
+        XCTAssertTrue(WorkoutStateManager.shared.wasAnyWorkoutDiscarded(), "Failed save-for-later should not clear discard state or pretend the workout was saved")
+    }
+
+    func testPersistWorkoutForFreshStart_discardFailureDoesNotMarkWorkoutDiscarded() {
+        WorkoutStateManager.shared.clearDiscardedState()
+        let workout = Workout(name: "Current Draft")
+
+        let result = viewModel.persistWorkoutForFreshStart(
+            workout,
+            action: .discard,
+            persist: { _ in false }
+        )
+
+        XCTAssertFalse(result, "Failed discard should keep the current workout in place")
+        XCTAssertFalse(WorkoutStateManager.shared.wasAnyWorkoutDiscarded(), "Failed discard should not mark the workout as discarded")
+    }
+
+    func testPersistWorkoutForFreshStart_discardSuccessMarksWorkoutDiscarded() {
+        WorkoutStateManager.shared.clearDiscardedState()
+        let workout = Workout(name: "Current Draft")
+
+        let result = viewModel.persistWorkoutForFreshStart(
+            workout,
+            action: .discard,
+            persist: { _ in true }
+        )
+
+        XCTAssertTrue(result, "Successful discard should allow the fresh-start flow to continue")
+        XCTAssertTrue(WorkoutStateManager.shared.wasAnyWorkoutDiscarded(), "Successful discard should mark discard state so the old workout does not immediately resurface")
+    }
+
+    func testStartFreshFailureMessage_matchesAction() {
+        XCTAssertEqual(
+            viewModel.startFreshFailureMessage(for: .saveForLater),
+            "Couldn’t save the current workout. Keep this draft open, then try again.",
+            "Save-for-later failures should explain that the current draft stayed open"
+        )
+        XCTAssertEqual(
+            viewModel.startFreshFailureMessage(for: .discard),
+            "Couldn’t discard the current workout. Keep this draft open, then try again.",
+            "Discard failures should explain that the current draft stayed open"
+        )
+    }
 }

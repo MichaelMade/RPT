@@ -15,6 +15,7 @@ struct HomeView: View {
     @State private var selectedWorkout: Workout?
     @State private var showingStartFreshAlert = false
     @State private var resumableWorkoutToReplace: Workout?
+    @State private var startFreshFailureMessage: String?
     @StateObject private var workoutStateManager = WorkoutStateManager.shared
     
     // Bindings for active workout
@@ -322,6 +323,20 @@ struct HomeView: View {
                     Text(viewModel.startFreshWorkoutMessage(for: resumableWorkoutToReplace))
                 }
             }
+            .alert("Workout Action Failed", isPresented: Binding(
+                get: { startFreshFailureMessage != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        startFreshFailureMessage = nil
+                    }
+                }
+            )) {
+                Button("OK", role: .cancel) {
+                    startFreshFailureMessage = nil
+                }
+            } message: {
+                Text(startFreshFailureMessage ?? "")
+            }
             .onAppear {
                 reloadHomeState()
             }
@@ -354,16 +369,31 @@ struct HomeView: View {
     private func saveCurrentWorkoutAndStartFresh() {
         guard let resumableWorkoutToReplace else { return }
 
-        _ = WorkoutManager.shared.saveWorkoutSafely(resumableWorkoutToReplace)
+        guard viewModel.persistWorkoutForFreshStart(
+            resumableWorkoutToReplace,
+            action: .saveForLater,
+            persist: { WorkoutManager.shared.saveWorkoutSafely($0) }
+        ) else {
+            startFreshFailureMessage = viewModel.startFreshFailureMessage(for: .saveForLater)
+            return
+        }
+
         activeWorkoutBinding = nil
-        workoutStateManager.markWorkoutAsSaved(resumableWorkoutToReplace.id)
         startFreshWorkout()
     }
 
     private func discardCurrentWorkoutAndStartFresh() {
         guard let resumableWorkoutToReplace else { return }
 
-        _ = WorkoutManager.shared.deleteWorkoutSafely(resumableWorkoutToReplace)
+        guard viewModel.persistWorkoutForFreshStart(
+            resumableWorkoutToReplace,
+            action: .discard,
+            persist: { WorkoutManager.shared.deleteWorkoutSafely($0) }
+        ) else {
+            startFreshFailureMessage = viewModel.startFreshFailureMessage(for: .discard)
+            return
+        }
+
         activeWorkoutBinding = nil
         startFreshWorkout()
     }

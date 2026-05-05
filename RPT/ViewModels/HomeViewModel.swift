@@ -11,6 +11,11 @@ import SwiftData
 
 @MainActor
 class HomeViewModel: ObservableObject {
+    enum StartFreshPersistenceAction {
+        case saveForLater
+        case discard
+    }
+
     private let workoutManager: WorkoutManager
     private let userManager: UserManager
     
@@ -310,6 +315,34 @@ class HomeViewModel: ObservableObject {
         }
 
         return workoutDate >= discardTimestamp
+    }
+
+    func persistWorkoutForFreshStart(
+        _ workout: Workout,
+        action: StartFreshPersistenceAction,
+        persist: (Workout) -> Bool
+    ) -> Bool {
+        guard persist(workout) else {
+            return false
+        }
+
+        switch action {
+        case .saveForLater:
+            WorkoutStateManager.shared.markWorkoutAsSaved(workout.id)
+        case .discard:
+            WorkoutStateManager.shared.markWorkoutAsDiscarded(workout.id)
+        }
+
+        return true
+    }
+
+    func startFreshFailureMessage(for action: StartFreshPersistenceAction) -> String {
+        switch action {
+        case .saveForLater:
+            return "Couldn’t save the current workout. Keep this draft open, then try again."
+        case .discard:
+            return "Couldn’t discard the current workout. Keep this draft open, then try again."
+        }
     }
     
     func lifetimeWorkMetric(totalVolume: Double, totalBodyweightReps: Int) -> (title: String, value: String, subtitle: String) {
