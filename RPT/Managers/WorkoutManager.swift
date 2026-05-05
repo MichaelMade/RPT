@@ -62,7 +62,7 @@ class WorkoutManager: ObservableObject {
             startDate: workout.date
         )
 
-        try modelContext.save()
+        try dataManager.saveChanges()
     }
 
     func sanitizedDurationSinceWorkoutStart(_ startDate: Date, now: Date = Date()) -> TimeInterval {
@@ -114,7 +114,7 @@ class WorkoutManager: ObservableObject {
     func completeWorkout(_ workout: Workout) throws {
         workout.complete()
         userManager.processCompletedWorkout(workout)
-        try modelContext.save()
+        try dataManager.saveChanges()
     }
     
     // Non-throwing version for backward compatibility
@@ -131,7 +131,7 @@ class WorkoutManager: ObservableObject {
     // Delete a workout
     func deleteWorkout(_ workout: Workout) throws {
         modelContext.delete(workout)
-        try modelContext.save()
+        try dataManager.saveChanges()
     }
     
     // Non-throwing version for backward compatibility

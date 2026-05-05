@@ -293,8 +293,13 @@ class ActiveWorkoutViewModel: ObservableObject {
         
         // Automatically expand the newly added exercise
         expandedExercises.insert(exercise.id)
-        
-        try saveWorkout()
+
+        do {
+            try saveWorkout()
+        } catch {
+            rollbackInsertedSet(newSet, for: exercise)
+            throw error
+        }
     }
     
     // Safe version that doesn't throw
@@ -359,8 +364,13 @@ class ActiveWorkoutViewModel: ObservableObject {
                 exerciseOrder.append(exercise)
             }
         }
-        
-        try saveWorkout()
+
+        do {
+            try saveWorkout()
+        } catch {
+            rollbackInsertedSet(newSet, for: exercise)
+            throw error
+        }
     }
     
     // Safe version that doesn't throw
@@ -506,6 +516,22 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
     
     // MARK: - Helper Methods
+
+    private func rollbackInsertedSet(_ set: ExerciseSet, for exercise: Exercise) {
+        exerciseGroups[exercise]?.removeAll { $0.id == set.id }
+
+        if exerciseGroups[exercise]?.isEmpty == true {
+            exerciseGroups.removeValue(forKey: exercise)
+            exerciseOrder.removeAll { $0.id == exercise.id }
+            expandedExercises.remove(exercise.id)
+            completedExercises.remove(exercise.id)
+        }
+
+        workout.sets.removeAll { $0.id == set.id }
+        exercise.sets.removeAll { $0.id == set.id }
+        set.workout = nil
+        set.exercise = nil
+    }
 
     private func helperTextForIncompleteExercises(enableActionLabel: String) -> String? {
         guard !exerciseOrder.isEmpty, !allExercisesCompleted else {

@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout now rolls back unsaved newly added exercises/sets too if SwiftData fails during save, so persistence errors no longer leave phantom starter rows or extra set suggestions stuck on screen.
 - Active Workout now rolls back unsaved edits if SwiftData fails during set or workout-name saves, so failed persistence no longer leaves the screen showing changes that never actually stuck.
 - Home’s main `Start New Workout` action now fails safely too: if SwiftData cannot persist the new workout draft, Home stays put, does not open an unsaved session sheet, and shows a retryable `Workout Action Failed` alert instead.
 - Workout Templates now make draft conflicts much clearer: when you tap a template with an active workout in progress, the alert names the current workout and destination template, and the actions now read `Save & Open Template` / `Discard & Open Template` so the next step is explicit.
@@ -115,6 +116,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened Active Workout add-item failure handling so failed starter-exercise adds and auto-suggested set adds now roll back their unsaved insertions instead of leaving phantom rows in the workout after a SwiftData save failure. Also switched core workout save/complete/delete persistence through the shared `DataManaging` path so injected failure coverage is real in tests; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Hardened Active Workout edit failure handling so failed set saves now restore the prior logged values/completion state, and failed workout-name saves restore both the persisted workout name and the text-field draft instead of leaving unsaved in-memory drift behind. Added regression coverage in `ActiveWorkoutViewModelTests`.
 - Clarified the Templates active-workout conflict alert so it now names the in-progress workout plus the template being opened, and renamed the action buttons to `Save & Open Template` / `Discard & Open Template` for a safer handoff when users browse templates mid-session; added regression coverage in `TemplateViewModelTests`.
 - Hardened Settings persistence failure handling so failed save/reset attempts now restore the previous settings state, avoid desynchronizing `showRPE` from `UserDefaults`, and surface an `Unable to Save Settings` alert instead of silently reverting or leaving unsaved toggles behind. Added rollback coverage in `ErrorHandlingTests` plus failure-alert coverage in `SettingsViewModelTests`.

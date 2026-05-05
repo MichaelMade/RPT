@@ -187,6 +187,22 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         )
     }
 
+    func testAddExerciseToWorkout_failedSaveRollsBackInsertedStarterSet() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Overhead Press", category: .compound, primaryMuscleGroups: [.shoulders])
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        XCTAssertThrowsError(try viewModel.addExerciseToWorkout(exercise))
+        XCTAssertFalse(workout.sets.contains(where: { $0.exercise?.id == exercise.id }))
+        XCTAssertFalse(exercise.sets.contains(where: { $0.workout?.id == workout.id }))
+        XCTAssertFalse(viewModel.exerciseOrder.contains(where: { $0.id == exercise.id }))
+        XCTAssertNil(viewModel.exerciseGroups[exercise])
+    }
+
     func testAddSetToExercise_keepsAutoSuggestedSetIncomplete() throws {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")
@@ -201,6 +217,22 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let addedSet = workout.sets.first { $0.id != existingSet.id && $0.exercise?.id == exercise.id }
         XCTAssertNotNil(addedSet)
         XCTAssertEqual(addedSet?.completedAt, .distantPast, "Auto-suggested set should not be marked complete until user logs it")
+    }
+
+    func testAddSetToExercise_failedSaveRollsBackInsertedSet() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let originalSet = workout.addSet(exercise: exercise, weight: 185, reps: 6)
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        XCTAssertThrowsError(try viewModel.addSetToExercise(exercise))
+        XCTAssertEqual(workout.sets.filter { $0.exercise?.id == exercise.id }.count, 1)
+        XCTAssertTrue(workout.sets.contains(where: { $0.id == originalSet.id }))
+        XCTAssertEqual(viewModel.exerciseGroups[exercise]?.count, 1)
     }
 
     func testAddSetToExercise_usesLastSetNumberNotLatestCompletionTimestamp() throws {
