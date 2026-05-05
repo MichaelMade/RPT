@@ -57,6 +57,22 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(result, .duplicateName)
     }
 
+    func testMutationResult_duplicateNameUsesSpecificAlertCopy() {
+        XCTAssertEqual(TemplateManager.MutationResult.duplicateName.alertTitle, "Template Already Exists")
+        XCTAssertEqual(
+            TemplateManager.MutationResult.duplicateName.alertMessage,
+            "A template with this name already exists. Please choose a different name."
+        )
+    }
+
+    func testMutationResult_persistenceFailureUsesRetryAlertCopy() {
+        XCTAssertEqual(TemplateManager.MutationResult.persistenceFailure.alertTitle, "Unable to Save Template")
+        XCTAssertEqual(
+            TemplateManager.MutationResult.persistenceFailure.alertMessage,
+            "Your template changes could not be saved right now. Please try again."
+        )
+    }
+
     func testHasDuplicateExerciseNames_ignoresCaseWhitespaceAndWidthVariants() {
         XCTAssertTrue(
             TemplateManager.hasDuplicateExerciseNames([

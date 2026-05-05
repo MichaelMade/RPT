@@ -15,7 +15,7 @@ struct TemplateEditView: View {
     @State private var exercises: [TemplateExercise] = []
     @State private var showingExerciseSelector = false
     @State private var showingExerciseEditor: TemplateExercise?
-    @State private var showingDuplicateTemplateAlert = false
+    @State private var saveResult: TemplateManager.MutationResult?
     
     let isNewTemplate: Bool
     let existingTemplate: WorkoutTemplate?
@@ -111,10 +111,11 @@ struct TemplateEditView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        if saveTemplate() {
+                        let result = saveTemplate()
+                        if result == .success {
                             dismiss()
                         } else {
-                            showingDuplicateTemplateAlert = true
+                            saveResult = result
                         }
                     }
                     .disabled(!canSave)
@@ -147,22 +148,35 @@ struct TemplateEditView: View {
                     }
                 )
             }
-            .alert("Duplicate Template Name", isPresented: $showingDuplicateTemplateAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("A template with this name already exists. Please choose a unique name.")
+            .alert(
+                saveResult?.alertTitle ?? "Unable to Save Template",
+                isPresented: Binding(
+                    get: { saveResult != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            saveResult = nil
+                        }
+                    }
+                ),
+                presenting: saveResult
+            ) { _ in
+                Button("OK", role: .cancel) {
+                    saveResult = nil
+                }
+            } message: { result in
+                Text(result.alertMessage)
             }
         }
     }
     
-    private func saveTemplate() -> Bool {
+    private func saveTemplate() -> TemplateManager.MutationResult {
         if isNewTemplate {
             return templateManager.createTemplate(name: templateName, exercises: exercises, notes: templateNotes)
         } else if let template = existingTemplate {
             return templateManager.updateTemplate(template, name: templateName, exercises: exercises, notes: templateNotes)
         }
 
-        return false
+        return .persistenceFailure
     }
     
     private func addExerciseToTemplate(_ exerciseName: String) {

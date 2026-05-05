@@ -1,5 +1,6 @@
 # RPT
 
+- New/Edit Template now stays on-screen when SwiftData persistence fails, restores the previous saved template state for edit attempts, and shows a retryable alert instead of dismissing as if the save succeeded.
 - Add/Edit Exercise now stays on-screen when persistence fails, restores unsaved edits instead of dismissing or leaving half-applied model changes behind, and shows a retryable save alert so custom exercise edits are safer under storage errors.
 - Template start protection now keeps the current workout open and shows a `Workout Action Failed` alert if `Save & Continue Later` or `Discard Workout` fails while opening a template, instead of silently clearing context and proceeding into template flow anyway.
 - Home’s `Start Fresh Instead` flow now keeps the current draft in place and shows a `Workout Action Failed` alert if save-for-later or discard fails, instead of silently clearing the workout and starting fresh anyway.

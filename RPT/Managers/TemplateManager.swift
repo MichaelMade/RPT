@@ -11,6 +11,32 @@ import SwiftData
 
 @MainActor
 class TemplateManager {
+    enum MutationResult: Equatable {
+        case success
+        case duplicateName
+        case persistenceFailure
+
+        var alertTitle: String {
+            switch self {
+            case .duplicateName:
+                return "Template Already Exists"
+            case .persistenceFailure, .success:
+                return "Unable to Save Template"
+            }
+        }
+
+        var alertMessage: String {
+            switch self {
+            case .duplicateName:
+                return "A template with this name already exists. Please choose a different name."
+            case .persistenceFailure:
+                return "Your template changes could not be saved right now. Please try again."
+            case .success:
+                return ""
+            }
+        }
+    }
+
     enum DraftValidationResult: Equatable {
         case valid
         case missingName
@@ -128,26 +154,35 @@ class TemplateManager {
     // MARK: - Mutation Operations
 
     @discardableResult
-    func createTemplate(name: String, exercises: [TemplateExercise], notes: String = "") -> Bool {
+    func createTemplate(name: String, exercises: [TemplateExercise], notes: String = "") -> MutationResult {
         guard validateDraft(name: name, exercises: exercises) == .valid else {
-            return false
+            return .duplicateName
         }
 
         let sanitizedName = Self.sanitizeTemplateName(name)
 
         let template = WorkoutTemplate(name: sanitizedName, exercises: exercises, notes: notes)
         modelContext.insert(template)
-        try? modelContext.save()
-        return true
+
+        do {
+            try modelContext.save()
+            return .success
+        } catch {
+            modelContext.delete(template)
+            return .persistenceFailure
+        }
     }
 
     @discardableResult
-    func updateTemplate(_ template: WorkoutTemplate, name: String, exercises: [TemplateExercise], notes: String) -> Bool {
+    func updateTemplate(_ template: WorkoutTemplate, name: String, exercises: [TemplateExercise], notes: String) -> MutationResult {
         guard validateDraft(name: name, exercises: exercises, excludingTemplateId: template.id) == .valid else {
-            return false
+            return .duplicateName
         }
 
         let sanitizedName = Self.sanitizeTemplateName(name)
+        let originalName = template.name
+        let originalNotes = template.notes
+        let originalExercises = template.exercises
 
         // Update the template properties
         template.name = sanitizedName
@@ -173,9 +208,15 @@ class TemplateManager {
         template.exercises = []
         template.exercises = updatedExercises
         
-        // Save the changes
-        try? modelContext.save()
-        return true
+        do {
+            try modelContext.save()
+            return .success
+        } catch {
+            template.name = originalName
+            template.notes = originalNotes
+            template.exercises = originalExercises
+            return .persistenceFailure
+        }
     }
     
     func deleteTemplate(_ template: WorkoutTemplate) {

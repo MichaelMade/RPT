@@ -183,20 +183,22 @@ class TemplateViewModel: ObservableObject {
     
     @discardableResult
     func createTemplate(name: String, exercises: [TemplateExercise], notes: String = "") -> Bool {
-        let didCreate = templateManager.createTemplate(name: name, exercises: exercises, notes: notes)
-        if didCreate {
+        let result = templateManager.createTemplate(name: name, exercises: exercises, notes: notes)
+        if result == .success {
             refreshTemplates()
+            return true
         }
-        return didCreate
+        return false
     }
     
     @discardableResult
     func updateTemplate(_ template: WorkoutTemplate, name: String, exercises: [TemplateExercise], notes: String) -> Bool {
-        let didUpdate = templateManager.updateTemplate(template, name: name, exercises: exercises, notes: notes)
-        if didUpdate {
+        let result = templateManager.updateTemplate(template, name: name, exercises: exercises, notes: notes)
+        if result == .success {
             refreshTemplates()
+            return true
         }
-        return didUpdate
+        return false
     }
     
     func deleteTemplate(_ template: WorkoutTemplate) {
