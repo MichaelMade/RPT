@@ -60,4 +60,12 @@ final class ExerciseManagerTests: XCTestCase {
             "Your changes could not be saved right now. Please try again."
         )
     }
+
+    func testDeletionResult_persistenceFailureUsesRetryAlertCopy() {
+        XCTAssertEqual(ExerciseManager.DeletionResult.persistenceFailure.alertTitle, "Unable to Delete Exercise")
+        XCTAssertEqual(
+            ExerciseManager.DeletionResult.persistenceFailure.alertMessage,
+            "This exercise could not be deleted right now. Please try again."
+        )
+    }
 }

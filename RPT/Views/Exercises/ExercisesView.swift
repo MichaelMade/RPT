@@ -17,6 +17,7 @@ struct ExercisesView: View {
     @State private var exerciseToDelete: Exercise?
     @State private var exerciseDeletionImpact = ExerciseManager.DeletionImpact(loggedSetCount: 0, workoutCount: 0, templateCount: 0)
     @State private var showingDeleteConfirmation = false
+    @State private var deleteResult: ExerciseManager.DeletionResult?
     
     var body: some View {
         NavigationStack {
@@ -202,10 +203,30 @@ struct ExercisesView: View {
                 presenting: exerciseToDelete
             ) { exercise in
                 Button("Delete \(exercise.displayName)", role: .destructive) {
-                    viewModel.deleteExercise(exercise)
+                    let result = viewModel.deleteExercise(exercise)
+                    if result != .success {
+                        deleteResult = result
+                    }
                 }
             } message: { exercise in
                 Text(ExerciseLibraryViewModel.deletionConfirmationMessage(for: exerciseDeletionImpact))
+            }
+            .alert(
+                deleteResult?.alertTitle ?? "Unable to Delete Exercise",
+                isPresented: Binding(
+                    get: { deleteResult != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            deleteResult = nil
+                        }
+                    }
+                )
+            ) {
+                Button("OK", role: .cancel) {
+                    deleteResult = nil
+                }
+            } message: {
+                Text(deleteResult?.alertMessage ?? "This exercise could not be deleted right now. Please try again.")
             }
             .onAppear {
                 viewModel.refreshExercises()

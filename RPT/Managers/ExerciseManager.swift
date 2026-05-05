@@ -47,6 +47,29 @@ class ExerciseManager {
         }
     }
 
+    enum DeletionResult: Equatable {
+        case success
+        case persistenceFailure
+
+        var alertTitle: String {
+            switch self {
+            case .success:
+                return ""
+            case .persistenceFailure:
+                return "Unable to Delete Exercise"
+            }
+        }
+
+        var alertMessage: String {
+            switch self {
+            case .success:
+                return ""
+            case .persistenceFailure:
+                return "This exercise could not be deleted right now. Please try again."
+            }
+        }
+    }
+
     enum DraftValidationResult: Equatable {
         case valid
         case missingName
@@ -67,6 +90,7 @@ class ExerciseManager {
         }
     }
 
+    private let dataManager: DataManaging
     private let modelContext: ModelContext
     static let shared = ExerciseManager()
     private static let stableComparisonLocale = Locale(identifier: "en_US_POSIX")
@@ -95,8 +119,8 @@ class ExerciseManager {
         normalizedNameLookupKey(lhs) == normalizedNameLookupKey(rhs)
     }
 
-    private init() {
-        let dataManager = DataManager.shared
+    init(dataManager: DataManaging = DataManager.shared) {
+        self.dataManager = dataManager
         self.modelContext = dataManager.getModelContext()
         // Default exercises are seeded by DataManager at container init time.
     }
@@ -190,7 +214,7 @@ class ExerciseManager {
         modelContext.insert(exercise)
 
         do {
-            try modelContext.save()
+            try dataManager.saveChanges()
             return .success
         } catch {
             modelContext.delete(exercise)
@@ -218,7 +242,7 @@ class ExerciseManager {
         exercise.instructions = instructions
 
         do {
-            try modelContext.save()
+            try dataManager.saveChanges()
             return .success
         } catch {
             exercise.name = originalName
@@ -230,11 +254,21 @@ class ExerciseManager {
         }
     }
     
-    func deleteExercise(_ exercise: Exercise) {
+    @discardableResult
+    func deleteExercise(_ exercise: Exercise) -> DeletionResult {
         // Only allow deletion of custom exercises
-        if exercise.isCustom {
-            modelContext.delete(exercise)
-            try? modelContext.save()
+        guard exercise.isCustom else {
+            return .persistenceFailure
+        }
+
+        modelContext.delete(exercise)
+
+        do {
+            try dataManager.saveChanges()
+            return .success
+        } catch {
+            modelContext.insert(exercise)
+            return .persistenceFailure
         }
     }
 

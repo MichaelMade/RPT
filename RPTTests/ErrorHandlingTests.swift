@@ -254,6 +254,35 @@ final class ErrorHandlingTests: XCTestCase {
         )
     }
 
+    func testExerciseManagerDeleteExercise_failedSaveRestoresExercise() {
+        let context = DataManager.shared.getModelContext()
+        let exercise = Exercise(
+            name: "Delete Failure Test",
+            category: .compound,
+            primaryMuscleGroups: [.back],
+            secondaryMuscleGroups: [],
+            instructions: "",
+            isCustom: true
+        )
+        context.insert(exercise)
+        XCTAssertNoThrow(try context.save())
+
+        let failingManager = ExerciseManager(
+            dataManager: FailingDataManager(context: context)
+        )
+
+        let result = failingManager.deleteExercise(exercise)
+
+        XCTAssertEqual(result, .persistenceFailure)
+        XCTAssertNotNil(
+            ExerciseManager.shared.fetchExercise(withName: "Delete Failure Test"),
+            "Failed deletes should restore the custom exercise instead of silently dropping it from the library"
+        )
+
+        context.delete(exercise)
+        XCTAssertNoThrow(try context.save())
+    }
+
     func testTemplateManagerSanitizeTemplateName_normalizesWhitespaceAndLength() {
         let raw = "   Push   Day\n\n"
 

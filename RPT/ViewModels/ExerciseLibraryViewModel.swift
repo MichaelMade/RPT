@@ -308,9 +308,15 @@ class ExerciseLibraryViewModel: ObservableObject {
         return result
     }
     
-    func deleteExercise(_ exercise: Exercise) {
-        exerciseManager.deleteExercise(exercise)
-        refreshExercises()
+    @discardableResult
+    func deleteExercise(_ exercise: Exercise) -> ExerciseManager.DeletionResult {
+        let result = exerciseManager.deleteExercise(exercise)
+
+        if result == .success {
+            refreshExercises()
+        }
+
+        return result
     }
 
     func deletionImpact(for exercise: Exercise) -> ExerciseManager.DeletionImpact {
