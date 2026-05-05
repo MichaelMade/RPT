@@ -44,4 +44,20 @@ final class ExerciseManagerTests: XCTestCase {
 
         XCTAssertEqual(result, .duplicateName)
     }
+
+    func testMutationResult_duplicateNameUsesSpecificAlertCopy() {
+        XCTAssertEqual(ExerciseManager.MutationResult.duplicateName.alertTitle, "Exercise Already Exists")
+        XCTAssertEqual(
+            ExerciseManager.MutationResult.duplicateName.alertMessage,
+            "An exercise with this name already exists. Please choose a different name."
+        )
+    }
+
+    func testMutationResult_persistenceFailureUsesRetryAlertCopy() {
+        XCTAssertEqual(ExerciseManager.MutationResult.persistenceFailure.alertTitle, "Unable to Save Exercise")
+        XCTAssertEqual(
+            ExerciseManager.MutationResult.persistenceFailure.alertMessage,
+            "Your changes could not be saved right now. Please try again."
+        )
+    }
 }

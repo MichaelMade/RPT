@@ -1,5 +1,6 @@
 # RPT
 
+- Add/Edit Exercise now stays on-screen when persistence fails, restores unsaved edits instead of dismissing or leaving half-applied model changes behind, and shows a retryable save alert so custom exercise edits are safer under storage errors.
 - Template start protection now keeps the current workout open and shows a `Workout Action Failed` alert if `Save & Continue Later` or `Discard Workout` fails while opening a template, instead of silently clearing context and proceeding into template flow anyway.
 - Home’s `Start Fresh Instead` flow now keeps the current draft in place and shows a `Workout Action Failed` alert if save-for-later or discard fails, instead of silently clearing the workout and starting fresh anyway.
 - Active Workout now stays open when save, finish, or discard operations fail, so the existing `Workout Action Failed` alert can actually be seen and users are not dropped out of the workout after a failed persistence action.

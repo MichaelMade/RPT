@@ -273,19 +273,26 @@ class ExerciseLibraryViewModel: ObservableObject {
             .map(\.exercise)
     }
     
-    func addExercise(name: String, category: ExerciseCategory, primaryMuscles: [MuscleGroup], secondaryMuscles: [MuscleGroup], instructions: String) {
-        exerciseManager.addExercise(
+    @discardableResult
+    func addExercise(name: String, category: ExerciseCategory, primaryMuscles: [MuscleGroup], secondaryMuscles: [MuscleGroup], instructions: String) -> ExerciseManager.MutationResult {
+        let result = exerciseManager.addExercise(
             name: name,
             category: category,
             primaryMuscleGroups: primaryMuscles,
             secondaryMuscleGroups: secondaryMuscles,
             instructions: instructions
         )
-        refreshExercises()
+
+        if result == .success {
+            refreshExercises()
+        }
+
+        return result
     }
     
-    func updateExercise(_ exercise: Exercise, name: String, category: ExerciseCategory, primaryMuscles: [MuscleGroup], secondaryMuscles: [MuscleGroup], instructions: String) {
-        exerciseManager.updateExercise(
+    @discardableResult
+    func updateExercise(_ exercise: Exercise, name: String, category: ExerciseCategory, primaryMuscles: [MuscleGroup], secondaryMuscles: [MuscleGroup], instructions: String) -> ExerciseManager.MutationResult {
+        let result = exerciseManager.updateExercise(
             exercise,
             name: name,
             category: category,
@@ -293,7 +300,12 @@ class ExerciseLibraryViewModel: ObservableObject {
             secondaryMuscleGroups: secondaryMuscles,
             instructions: instructions
         )
-        refreshExercises()
+
+        if result == .success {
+            refreshExercises()
+        }
+
+        return result
     }
     
     func deleteExercise(_ exercise: Exercise) {

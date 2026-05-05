@@ -21,6 +21,32 @@ class ExerciseManager {
         }
     }
 
+    enum MutationResult: Equatable {
+        case success
+        case duplicateName
+        case persistenceFailure
+
+        var alertTitle: String {
+            switch self {
+            case .duplicateName:
+                return "Exercise Already Exists"
+            case .persistenceFailure, .success:
+                return "Unable to Save Exercise"
+            }
+        }
+
+        var alertMessage: String {
+            switch self {
+            case .duplicateName:
+                return "An exercise with this name already exists. Please choose a different name."
+            case .persistenceFailure:
+                return "Your changes could not be saved right now. Please try again."
+            case .success:
+                return ""
+            }
+        }
+    }
+
     enum DraftValidationResult: Equatable {
         case valid
         case missingName
@@ -145,9 +171,9 @@ class ExerciseManager {
     // MARK: - Mutation Operations
 
     @discardableResult
-    func addExercise(name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) -> Bool {
+    func addExercise(name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) -> MutationResult {
         guard validateDraft(name: name, primaryMuscleGroups: primaryMuscleGroups) == .valid else {
-            return false
+            return .duplicateName
         }
 
         let sanitizedName = Self.sanitizeExerciseName(name)
@@ -162,26 +188,46 @@ class ExerciseManager {
         )
         
         modelContext.insert(exercise)
-        try? modelContext.save()
-        return true
+
+        do {
+            try modelContext.save()
+            return .success
+        } catch {
+            modelContext.delete(exercise)
+            return .persistenceFailure
+        }
     }
     
     @discardableResult
-    func updateExercise(_ exercise: Exercise, name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) -> Bool {
+    func updateExercise(_ exercise: Exercise, name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) -> MutationResult {
         guard validateDraft(name: name, primaryMuscleGroups: primaryMuscleGroups, excludingExerciseId: exercise.id) == .valid else {
-            return false
+            return .duplicateName
         }
 
         let sanitizedName = Self.sanitizeExerciseName(name)
+        let originalName = exercise.name
+        let originalCategory = exercise.category
+        let originalPrimaryMuscles = exercise.primaryMuscleGroups
+        let originalSecondaryMuscles = exercise.secondaryMuscleGroups
+        let originalInstructions = exercise.instructions
 
         exercise.name = sanitizedName
         exercise.category = category
         exercise.primaryMuscleGroups = primaryMuscleGroups
         exercise.secondaryMuscleGroups = secondaryMuscleGroups
         exercise.instructions = instructions
-        
-        try? modelContext.save()
-        return true
+
+        do {
+            try modelContext.save()
+            return .success
+        } catch {
+            exercise.name = originalName
+            exercise.category = originalCategory
+            exercise.primaryMuscleGroups = originalPrimaryMuscles
+            exercise.secondaryMuscleGroups = originalSecondaryMuscles
+            exercise.instructions = originalInstructions
+            return .persistenceFailure
+        }
     }
     
     func deleteExercise(_ exercise: Exercise) {

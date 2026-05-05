@@ -17,7 +17,7 @@ struct EditExerciseView: View {
     @State private var selectedPrimaryMuscles: [MuscleGroup]
     @State private var selectedSecondaryMuscles: [MuscleGroup]
     @State private var instructions: String
-    @State private var showDuplicateNameAlert = false
+    @State private var saveResult: ExerciseManager.MutationResult?
     
     private let exerciseManager = ExerciseManager.shared
 
@@ -95,10 +95,22 @@ struct EditExerciseView: View {
             }
             .navigationTitle("Edit Exercise")
             .navigationBarTitleDisplayMode(.inline)
-            .alert("Exercise Already Exists", isPresented: $showDuplicateNameAlert) {
-                Button("OK", role: .cancel) { }
+            .alert(
+                saveResult?.alertTitle ?? "Unable to Save Exercise",
+                isPresented: Binding(
+                    get: { saveResult != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            saveResult = nil
+                        }
+                    }
+                )
+            ) {
+                Button("OK", role: .cancel) {
+                    saveResult = nil
+                }
             } message: {
-                Text("An exercise with this name already exists. Please choose a different name.")
+                Text(saveResult?.alertMessage ?? "Your changes could not be saved right now. Please try again.")
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -118,7 +130,7 @@ struct EditExerciseView: View {
     }
     
     private func saveExercise() {
-        let didSave = exerciseManager.updateExercise(
+        let result = exerciseManager.updateExercise(
             exercise,
             name: exerciseName,
             category: selectedCategory,
@@ -127,10 +139,10 @@ struct EditExerciseView: View {
             instructions: instructions
         )
 
-        if didSave {
+        if result == .success {
             dismiss()
         } else {
-            showDuplicateNameAlert = true
+            saveResult = result
         }
     }
 }
