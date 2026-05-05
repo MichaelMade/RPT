@@ -242,6 +242,8 @@ final class ErrorHandlingTests: XCTestCase {
     // MARK: - ActiveWorkoutViewModel Tests
     
     func testActiveWorkoutViewModelErrorHandling() throws {
+        WorkoutStateManager.shared.clearDiscardedState()
+
         // Create a workout for testing
         let workout = Workout(name: "Test Workout")
         let viewModel = ActiveWorkoutViewModel(workout: workout)
@@ -255,6 +257,19 @@ final class ErrorHandlingTests: XCTestCase {
         // Test saving
         let saveResult = viewModel.saveWorkoutSafely()
         XCTAssertTrue(saveResult, "Saving a valid workout should succeed")
+
+        WorkoutStateManager.shared.markWorkoutAsDiscarded(workout.id)
+        XCTAssertTrue(WorkoutStateManager.shared.wasAnyWorkoutDiscarded(), "Precondition: discard state should be set before save-for-later recovery")
+
+        let saveForLaterResult = viewModel.saveWorkoutForLaterSafely()
+        XCTAssertTrue(saveForLaterResult, "Save for later should succeed for a valid workout")
+        XCTAssertFalse(WorkoutStateManager.shared.wasAnyWorkoutDiscarded(), "Successful save-for-later should clear stale discard state")
+
+        WorkoutStateManager.shared.clearDiscardedState()
+        let completeAndSaveResult = viewModel.completeAndMarkSavedSafely()
+        XCTAssertTrue(completeAndSaveResult, "Completing a valid workout should succeed")
+        XCTAssertTrue(workout.isCompleted, "Successful complete-and-save should finish the workout")
+        XCTAssertFalse(WorkoutStateManager.shared.wasAnyWorkoutDiscarded(), "Successful complete-and-save should keep discard state cleared")
         
         // Test error message
         XCTAssertNil(viewModel.errorMessage, "There should be no error message after successful operations")
@@ -273,6 +288,18 @@ final class ErrorHandlingTests: XCTestCase {
         
         viewModel.clearError()
         XCTAssertNil(viewModel.errorMessage, "Error message should be cleared")
+    }
+
+    func testDiscardAndMarkDiscardedSafely_marksWorkoutStateAsDiscarded() {
+        WorkoutStateManager.shared.clearDiscardedState()
+
+        let workout = Workout(name: "Throwaway Workout")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        let result = viewModel.discardAndMarkDiscardedSafely()
+
+        XCTAssertTrue(result, "Discarding a valid workout should succeed")
+        XCTAssertTrue(WorkoutStateManager.shared.wasAnyWorkoutDiscarded(), "Successful discard should mark discard state so the workout does not immediately resurface")
     }
     
     // MARK: - Error Types Tests

@@ -152,8 +152,10 @@ struct ActiveWorkoutView: View {
                 // Minimize button to temporarily hide the workout
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
-                        _ = viewModel.saveWorkoutSafely()
-                        WorkoutStateManager.shared.markWorkoutAsSaved(viewModel.workout.id)
+                        guard viewModel.saveWorkoutForLaterSafely() else {
+                            return
+                        }
+
                         dismiss()
                     }) {
                         HStack {
@@ -202,24 +204,30 @@ struct ActiveWorkoutView: View {
                 isPresented: $showingExitConfirmation
             ) {
                 Button("Save for Later") {
-                    _ = viewModel.saveWorkoutSafely()
-                    WorkoutStateManager.shared.markWorkoutAsSaved(viewModel.workout.id)
+                    guard viewModel.saveWorkoutForLaterSafely() else {
+                        return
+                    }
+
                     onCompleteWorkout?()
                     dismiss()
                 }
 
                 if viewModel.canCompleteWorkoutFromExitDialog {
                     Button("Complete Workout") {
-                        _ = viewModel.completeWorkoutSafely()
-                        WorkoutStateManager.shared.markWorkoutAsSaved(viewModel.workout.id)
+                        guard viewModel.completeAndMarkSavedSafely() else {
+                            return
+                        }
+
                         onCompleteWorkout?()
                         dismiss()
                     }
                 }
 
                 Button("Discard Workout", role: .destructive) {
-                    _ = viewModel.discardWorkoutSafely()
-                    WorkoutStateManager.shared.markWorkoutAsDiscarded(viewModel.workout.id)
+                    guard viewModel.discardAndMarkDiscardedSafely() else {
+                        return
+                    }
+
                     onCompleteWorkout?()
                     dismiss()
                 }
@@ -234,16 +242,14 @@ struct ActiveWorkoutView: View {
                 isPresented: $showingConfirmationDialog
             ) {
                 Button("Discard Workout", role: .destructive) {
-                    _ = viewModel.discardWorkoutSafely()
-                    
-                    // Explicitly mark as discarded
-                    WorkoutStateManager.shared.markWorkoutAsDiscarded(viewModel.workout.id)
-                    
-                    // Call completion callback if provided
+                    guard viewModel.discardAndMarkDiscardedSafely() else {
+                        return
+                    }
+
                     if let callback = onCompleteWorkout {
                         callback()
                     }
-                    
+
                     dismiss()
                 }
             } message: {
@@ -255,16 +261,14 @@ struct ActiveWorkoutView: View {
                 isPresented: $showingCompleteConfirmation
             ) {
                 Button("Complete and Save") {
-                    _ = viewModel.completeWorkoutSafely()
+                    guard viewModel.completeAndMarkSavedSafely() else {
+                        return
+                    }
 
-                    // Explicitly clear discard state so this workout is treated as saved
-                    WorkoutStateManager.shared.markWorkoutAsSaved(viewModel.workout.id)
-                    
-                    // Call completion callback if provided
                     if let callback = onCompleteWorkout {
                         callback()
                     }
-                    
+
                     dismiss()
                 }
                 Button("Continue Workout", role: .cancel) { }

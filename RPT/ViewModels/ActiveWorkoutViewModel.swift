@@ -192,6 +192,15 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
     }
 
+    func saveWorkoutForLaterSafely() -> Bool {
+        guard saveWorkoutSafely() else {
+            return false
+        }
+
+        WorkoutStateManager.shared.markWorkoutAsSaved(workout.id)
+        return true
+    }
+
     func completeWorkout() throws {
         do {
             try workoutManager.completeWorkout(workout)
@@ -211,6 +220,15 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
     }
 
+    func completeAndMarkSavedSafely() -> Bool {
+        guard completeWorkoutSafely() else {
+            return false
+        }
+
+        WorkoutStateManager.shared.markWorkoutAsSaved(workout.id)
+        return true
+    }
+
     func discardWorkout() throws {
         do {
             try workoutManager.deleteWorkout(workout)
@@ -228,6 +246,15 @@ class ActiveWorkoutViewModel: ObservableObject {
             errorMessage = "Failed to discard workout: \(error.localizedDescription)"
             return false
         }
+    }
+
+    func discardAndMarkDiscardedSafely() -> Bool {
+        guard discardWorkoutSafely() else {
+            return false
+        }
+
+        WorkoutStateManager.shared.markWorkoutAsDiscarded(workout.id)
+        return true
     }
     
     // MARK: - Exercise Management

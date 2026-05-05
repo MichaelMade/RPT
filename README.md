@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout now stays open when save, finish, or discard operations fail, so the existing `Workout Action Failed` alert can actually be seen and users are not dropped out of the workout after a failed persistence action.
 - Active Workout now surfaces a clear `Workout Action Failed` alert whenever save/add/delete actions fail (including duplicate exercise picks caught by safety backstops), so errors no longer fail silently inside the workout screen.
 - The active workout progress bar now says exercises are `marked complete` instead of implying set logging alone finishes them, matching the manual completion-circle behavior needed to enable `Finish`.
 - The active workout exercise picker now hides movements that are already in the current workout and explains when every search match is already added, preventing the misleading `Add Exercise` flow from silently creating surprise extra starter sets on an existing movement.
@@ -105,6 +106,7 @@ RPT/
 
 ## Recent Improvements
 
+- Fixed Active Workout persistence failure handling so `Minimize`, `Save for Later`, `Complete Workout`, and discard flows only dismiss after a successful save/delete; failed actions now keep the sheet open and preserve workout-state markers instead of hiding the new error alert behind an unintended dismiss. Added regression coverage in `ErrorHandlingTests` for the new success-path state transitions.
 - Hardened template editing against duplicate exercises by making `TemplateManager.addExerciseToTemplate(...)` reject normalized name collisions (`Bench Press` vs ` bench\npress `), so stale callbacks or future non-picker add paths cannot silently create duplicate template rows; added regression coverage in `TemplateManagerTests`.
 - Clarified the active workout progress bar so it now says exercises are `marked complete` rather than just `completed`, matching the manual completion-circle workflow that unlocks `Finish`; updated `WorkoutProgressView` and regression coverage in `WorkoutProgressViewTests`.
 - The active workout `Add Exercise` picker now filters out movements that are already in the current workout, explains when every current search match is already present, and rejects duplicate selections in `ActiveWorkoutViewModel` as a safety backstop; updated `ExerciseSelectorView`, `ExerciseLibraryViewModel`, `ActiveWorkoutView`, `ActiveWorkoutViewModel`, and regression coverage in `ActiveWorkoutViewModelTests` / `ExerciseLibraryViewModelTests`.
