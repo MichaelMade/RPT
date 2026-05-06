@@ -555,6 +555,22 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertFalse(exercise.sets.contains(where: { $0.id == set.id }), "Deleting from active workout should also remove the set from exercise history links")
     }
 
+    func testDeleteSet_failedSaveRestoresSetAndRelationships() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = workout.addSet(exercise: exercise, weight: 185, reps: 6)
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        XCTAssertThrowsError(try viewModel.deleteSet(set))
+        XCTAssertTrue(workout.sets.contains(where: { $0.id == set.id }))
+        XCTAssertTrue(exercise.sets.contains(where: { $0.id == set.id }))
+        XCTAssertEqual(viewModel.exerciseGroups[exercise]?.count, 1)
+    }
+
     func testDeleteExerciseFromWorkout_removesLinkedExerciseSets() throws {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")
@@ -574,5 +590,28 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertFalse(workout.sets.contains(where: { $0.exercise?.id == targetExercise.id }))
         XCTAssertFalse(targetExercise.sets.contains(where: { $0.id == targetSet1.id || $0.id == targetSet2.id }), "Deleting an exercise from workout should delete its linked ExerciseSet records")
         XCTAssertTrue(workout.sets.contains(where: { $0.exercise?.id == keepExercise.id }), "Deleting one exercise should not remove unrelated exercise sets")
+    }
+
+    func testDeleteExerciseFromWorkout_failedSaveRestoresExerciseSetsAndOrder() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let targetExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let keepExercise = Exercise(name: "Row", category: .compound, primaryMuscleGroups: [.lats])
+
+        let targetSet1 = workout.addSet(exercise: targetExercise, weight: 185, reps: 6)
+        let targetSet2 = workout.addSet(exercise: targetExercise, weight: 170, reps: 8)
+        _ = workout.addSet(exercise: keepExercise, weight: 155, reps: 10)
+
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        XCTAssertThrowsError(try viewModel.deleteExerciseFromWorkout(targetExercise))
+        XCTAssertEqual(viewModel.exerciseOrder.map(\.id), [targetExercise.id, keepExercise.id])
+        XCTAssertTrue(workout.sets.contains(where: { $0.id == targetSet1.id }))
+        XCTAssertTrue(workout.sets.contains(where: { $0.id == targetSet2.id }))
+        XCTAssertTrue(targetExercise.sets.contains(where: { $0.id == targetSet1.id || $0.id == targetSet2.id }))
+        XCTAssertEqual(viewModel.exerciseGroups[targetExercise]?.count, 2)
     }
 }

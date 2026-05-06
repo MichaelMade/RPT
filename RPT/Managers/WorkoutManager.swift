@@ -228,20 +228,64 @@ class WorkoutManager: ObservableObject {
     }
     
     // Delete a set
-    func deleteSet(_ set: ExerciseSet) {
+    func deleteSet(_ set: ExerciseSet) throws {
+        let originalWorkout = set.workout
+        let originalExercise = set.exercise
+
         modelContext.delete(set)
-        try? modelContext.save()
+
+        do {
+            try dataManager.saveChanges()
+        } catch {
+            modelContext.insert(set)
+            set.workout = originalWorkout
+            set.exercise = originalExercise
+            throw error
+        }
+    }
+
+    func deleteSetSafely(_ set: ExerciseSet) -> Bool {
+        do {
+            try deleteSet(set)
+            return true
+        } catch {
+            print("Failed to delete set: \(error)")
+            return false
+        }
     }
     
     // Remove an exercise from a workout (removes all sets)
-    func removeExercise(_ exercise: Exercise, from workout: Workout) {
+    func removeExercise(_ exercise: Exercise, from workout: Workout) throws {
         let exerciseId = exercise.id
         let setsToRemove = workout.sets.filter { $0.exercise?.id == exerciseId }
+        let originalWorkoutSets = workout.sets
+
         for set in setsToRemove {
             modelContext.delete(set)
         }
         workout.sets.removeAll { $0.exercise?.id == exerciseId }
-        try? modelContext.save()
+
+        do {
+            try dataManager.saveChanges()
+        } catch {
+            for set in setsToRemove {
+                modelContext.insert(set)
+                set.workout = workout
+                set.exercise = exercise
+            }
+            workout.sets = originalWorkoutSets
+            throw error
+        }
+    }
+
+    func removeExerciseSafely(_ exercise: Exercise, from workout: Workout) -> Bool {
+        do {
+            try removeExercise(exercise, from: workout)
+            return true
+        } catch {
+            print("Failed to remove exercise from workout: \(error)")
+            return false
+        }
     }
     
     // MARK: - Workout Queries

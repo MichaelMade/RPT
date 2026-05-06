@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout set/exercise deletion now fails safely too: if SwiftData cannot persist a delete, RPT restores the removed set or exercise in place instead of silently dropping it from the live workout screen.
 - Template deletion now fails safely: if SwiftData cannot delete a template, RPT restores it in the list and shows a retryable `Unable to Delete Template` alert instead of silently dropping it from the UI.
 - Active Workout now rolls back unsaved newly added exercises/sets too if SwiftData fails during save, so persistence errors no longer leave phantom starter rows or extra set suggestions stuck on screen.
 - Active Workout now rolls back unsaved edits if SwiftData fails during set or workout-name saves, so failed persistence no longer leaves the screen showing changes that never actually stuck.

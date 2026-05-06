@@ -444,7 +444,7 @@ class ActiveWorkoutViewModel: ObservableObject {
 
         // Delete through manager so SwiftData does not keep orphaned sets
         // linked to exercises after workout-only removal.
-        workoutManager.deleteSet(set)
+        try workoutManager.deleteSet(set)
         updateExerciseGroupsAndOrder(maintainOrder: true)
 
         // If that was the last set for this exercise, clear UI state too.
@@ -473,7 +473,7 @@ class ActiveWorkoutViewModel: ObservableObject {
 
         // Delete through manager so backing ExerciseSet records are removed,
         // not just detached from this workout.
-        workoutManager.removeExercise(exercise, from: workout)
+        try workoutManager.removeExercise(exercise, from: workout)
         updateExerciseGroupsAndOrder(maintainOrder: true)
 
         // Also remove from expanded exercises and completed
