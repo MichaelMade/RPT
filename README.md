@@ -1,5 +1,6 @@
 # RPT
 
+- Discarding a workout now fails safely too: if SwiftData cannot persist a delete, RPT restores the workout and its logged sets instead of silently dropping the draft from memory/UI.
 - Completing a workout now fails safely too: if SwiftData cannot persist the completion, RPT restores the workout to its in-progress state and rolls back the user’s lifetime stats/personal bests instead of leaving a phantom completed session in memory.
 - Active Workout set/exercise deletion now fails safely too: if SwiftData cannot persist a delete, RPT restores the removed set or exercise in place instead of silently dropping it from the live workout screen.
 - Template deletion now fails safely: if SwiftData cannot delete a template, RPT restores it in the list and shows a retryable `Unable to Delete Template` alert instead of silently dropping it from the UI.
@@ -119,6 +120,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened workout deletion failure handling so a failed SwiftData delete now restores the workout plus its logged sets instead of silently dropping the draft from memory/UI. Updated `WorkoutManager` and added regression coverage in `ErrorHandlingTests`.
 - Hardened workout completion failure handling so a failed SwiftData save now restores the workout’s prior in-progress state and rolls back any just-added user stats/personal bests instead of leaving phantom completed state in memory. Updated `WorkoutManager` and added regression coverage in `ErrorHandlingTests`.
 - Hardened template deletion so a SwiftData save failure no longer silently removes the row from Workout Templates; failed deletes now restore the template in place and show a retryable `Unable to Delete Template` alert instead. Updated `TemplateManager`, `TemplateViewModel`, `TemplatesListView`, and regression coverage in `ErrorHandlingTests` / `TemplateManagerTests`.
 - Hardened Active Workout add-item failure handling so failed starter-exercise adds and auto-suggested set adds now roll back their unsaved insertions instead of leaving phantom rows in the workout after a SwiftData save failure. Also switched core workout save/complete/delete persistence through the shared `DataManaging` path so injected failure coverage is real in tests; added regression coverage in `ActiveWorkoutViewModelTests`.

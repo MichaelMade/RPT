@@ -144,8 +144,24 @@ class WorkoutManager: ObservableObject {
     
     // Delete a workout
     func deleteWorkout(_ workout: Workout) throws {
+        let originalUser = workout.user
+        let originalSets = workout.sets
+
         modelContext.delete(workout)
-        try dataManager.saveChanges()
+
+        do {
+            try dataManager.saveChanges()
+        } catch {
+            modelContext.insert(workout)
+            workout.user = originalUser
+            workout.sets = originalSets
+
+            for set in originalSets {
+                set.workout = workout
+            }
+
+            throw error
+        }
     }
     
     // Non-throwing version for backward compatibility

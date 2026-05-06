@@ -441,6 +441,39 @@ final class ErrorHandlingTests: XCTestCase {
         XCTAssertNil(workout.user, "Failed completion should not leave a dangling user link on the workout")
     }
 
+    func testDeleteWorkout_failedSaveRestoresWorkoutAndSets() {
+        let context = DataManager.shared.getModelContext()
+        let workout = Workout(name: "Delete Failure Workout")
+        let exercise = Exercise(name: "Delete Failure Bench", category: .compound, primaryMuscleGroups: [.chest])
+        let set = ExerciseSet(weight: 185, reps: 6, exercise: exercise, workout: workout, completedAt: Date())
+        workout.sets = [set]
+
+        context.insert(exercise)
+        context.insert(workout)
+        XCTAssertNoThrow(try context.save())
+
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: context),
+            userManager: UserManager.shared
+        )
+
+        XCTAssertThrowsError(try failingWorkoutManager.deleteWorkout(workout))
+        XCTAssertNotNil(
+            context.model(for: workout.id) as? Workout,
+            "Failed deletes should restore the workout instead of silently dropping it from persistence"
+        )
+        XCTAssertEqual(
+            (context.model(for: workout.id) as? Workout)?.sets.count,
+            1,
+            "Failed deletes should restore the workout's sets too"
+        )
+        XCTAssertEqual(set.workout?.id, workout.id, "Failed deletes should relink restored sets to the workout")
+
+        context.delete(workout)
+        context.delete(exercise)
+        XCTAssertNoThrow(try context.save())
+    }
+
     func testDiscardAndMarkDiscardedSafely_marksWorkoutStateAsDiscarded() {
         WorkoutStateManager.shared.clearDiscardedState()
 
