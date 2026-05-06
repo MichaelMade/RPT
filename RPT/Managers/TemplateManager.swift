@@ -184,6 +184,46 @@ class TemplateManager {
         }
     }
 
+    func availableExerciseCount(in template: WorkoutTemplate) -> Int {
+        max(0, template.exercises.count - unavailableExerciseNames(in: template).count)
+    }
+
+    func startWorkoutActionTitle(for template: WorkoutTemplate) -> String {
+        let availableCount = availableExerciseCount(in: template)
+        let unavailableCount = unavailableExerciseNames(in: template).count
+
+        guard unavailableCount > 0, availableCount > 0 else {
+            return "Start Workout"
+        }
+
+        return "Start Partial Workout"
+    }
+
+    func partialStartConfirmationMessage(for template: WorkoutTemplate) -> String? {
+        let unavailableExerciseNames = unavailableExerciseNames(in: template)
+        let availableCount = max(0, template.exercises.count - unavailableExerciseNames.count)
+
+        guard !unavailableExerciseNames.isEmpty, availableCount > 0 else {
+            return nil
+        }
+
+        let skippedSummary: String
+        if unavailableExerciseNames.count == 1 {
+            skippedSummary = "1 template exercise will be skipped for now: \(unavailableExerciseNames[0])."
+        } else {
+            let previewNames = unavailableExerciseNames.prefix(3).joined(separator: ", ")
+            let remainingCount = unavailableExerciseNames.count - min(unavailableExerciseNames.count, 3)
+            let suffix = remainingCount > 0 ? ", and \(remainingCount) more" : ""
+            skippedSummary = "\(unavailableExerciseNames.count) template exercises will be skipped for now: \(previewNames)\(suffix)."
+        }
+
+        let availableSummary = availableCount == 1
+            ? "Start this workout with the remaining 1 available exercise?"
+            : "Start this workout with the remaining \(availableCount) available exercises?"
+
+        return "\(skippedSummary) \(availableSummary)"
+    }
+
     func validateDraft(name: String, exercises: [TemplateExercise], excludingTemplateId excludedTemplateId: String? = nil) -> DraftValidationResult {
         let sanitizedName = Self.sanitizeTemplateName(name)
         let hasMeaningfulName = !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

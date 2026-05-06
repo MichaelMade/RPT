@@ -13,7 +13,8 @@ struct TemplateDetailView: View {
     let onStartWorkout: (Workout) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var startWorkoutFailureMessage: String?
-    
+    @State private var showingPartialStartConfirmation = false
+
     private let templateManager = TemplateManager.shared
 
     private var unavailableExerciseNames: [String] {
@@ -22,6 +23,21 @@ struct TemplateDetailView: View {
 
     private var allTemplateExercisesUnavailable: Bool {
         !template.exercises.isEmpty && unavailableExerciseNames.count == template.exercises.count
+    }
+
+    private var partialStartConfirmationMessage: String? {
+        templateManager.partialStartConfirmationMessage(for: template)
+    }
+
+    private func startWorkout() {
+        guard let workout = templateManager.createWorkoutFromTemplate(template) else {
+            startWorkoutFailureMessage = allTemplateExercisesUnavailable
+                ? "This template can’t start right now because none of its exercises are currently available in your library."
+                : "Your workout could not be started right now. Please try again."
+            return
+        }
+
+        onStartWorkout(workout)
     }
     
     var body: some View {
@@ -111,19 +127,15 @@ struct TemplateDetailView: View {
                     Spacer()
                     
                     Button(action: {
-                        guard let workout = templateManager.createWorkoutFromTemplate(template) else {
-                            startWorkoutFailureMessage = allTemplateExercisesUnavailable
-                                ? "This template can’t start right now because none of its exercises are currently available in your library."
-                                : "Your workout could not be started right now. Please try again."
-                            return
+                        if partialStartConfirmationMessage != nil {
+                            showingPartialStartConfirmation = true
+                        } else {
+                            startWorkout()
                         }
-
-                        // Pass the workout to the callback which will handle navigation
-                        onStartWorkout(workout)
                     }) {
                         HStack {
                             Image(systemName: "figure.strengthtraining.traditional")
-                            Text("Start Workout")
+                            Text(templateManager.startWorkoutActionTitle(for: template))
                                 .fontWeight(.semibold)
                         }
                         .frame(maxWidth: .infinity)
@@ -151,6 +163,14 @@ struct TemplateDetailView: View {
                         dismiss()
                     }
                 }
+            }
+            .alert("Start Partial Workout?", isPresented: $showingPartialStartConfirmation) {
+                Button("Cancel", role: .cancel) {}
+                Button("Start Partial Workout") {
+                    startWorkout()
+                }
+            } message: {
+                Text(partialStartConfirmationMessage ?? "")
             }
             .alert("Workout Action Failed", isPresented: Binding(
                 get: { startWorkoutFailureMessage != nil },

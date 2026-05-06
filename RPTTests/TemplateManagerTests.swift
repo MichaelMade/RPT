@@ -408,6 +408,50 @@ final class TemplateManagerTests: XCTestCase {
             TemplateManager.shared.unavailableExerciseNames(in: template),
             ["Incline Dumbbell Press"]
         )
+        XCTAssertEqual(TemplateManager.shared.availableExerciseCount(in: template), 1)
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Partial Workout")
+        XCTAssertEqual(
+            TemplateManager.shared.partialStartConfirmationMessage(for: template),
+            "1 template exercise will be skipped for now: Incline Dumbbell Press. Start this workout with the remaining 1 available exercise?"
+        )
+
+        context.delete(availableExercise)
+        XCTAssertNoThrow(try context.save())
+    }
+
+    func testStartWorkoutActionTitle_staysDefaultWhenNothingWillBeSkipped() {
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Workout")
+        XCTAssertNil(TemplateManager.shared.partialStartConfirmationMessage(for: template))
+    }
+
+    func testPartialStartConfirmationMessage_summarizesSeveralMissingExercises() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "Ghost Lift"),
+                sampleTemplateExercise(named: "Phantom Row"),
+                sampleTemplateExercise(named: "Missing Curl"),
+                sampleTemplateExercise(named: "Lost Press")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.partialStartConfirmationMessage(for: template),
+            "4 template exercises will be skipped for now: Ghost Lift, Phantom Row, Missing Curl, and 1 more. Start this workout with the remaining 1 available exercise?"
+        )
 
         context.delete(availableExercise)
         XCTAssertNoThrow(try context.save())

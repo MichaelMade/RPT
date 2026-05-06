@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details is now clearer and safer when some template exercises are missing from the library: the primary action switches to `Start Partial Workout` and asks for confirmation before launching a shortened session that skips unavailable exercises.
 - Exercise and template saves now surface the right validation failure even on stale or programmatic save attempts, so missing names, missing required selections, and duplicate template exercises no longer collapse into a misleading duplicate-name error.
 - Template exercise edits now fail safely too: if SwiftData cannot persist an add/update/remove change, RPT restores the template’s exercise list in place instead of leaving phantom additions, lost edits, or silent deletions in memory.
 - Template Details now warns when one or more template exercises are missing from the library, disables `Start Workout` if all template exercises are unavailable, and prevents empty workouts from being created when a template cannot resolve any exercises.
@@ -124,6 +125,7 @@ RPT/
 
 ## Recent Improvements
 
+- Clarified partial template starts in `TemplateDetailView`: when some template exercises are missing from the library, the primary action now changes to `Start Partial Workout` and shows a confirmation that names the skipped exercises before launching the shortened session; added regression coverage in `TemplateManagerTests` for the new copy helpers.
 - Hardened save-result validation mapping for both custom exercises and workout templates, so stale or programmatic save attempts now return the correct missing-name / missing-selection / duplicate-exercise failure instead of collapsing everything into duplicate-name copy; added regression coverage in `ExerciseManagerTests` and `TemplateManagerTests`.
 - Hardened template exercise mutations so failed SwiftData saves now roll back added, edited, or removed template exercises instead of leaving in-memory drift behind; added regression coverage in `TemplateManagerTests`.
 - Hardened template-start safety for stale/deleted exercise references: Template Details now surfaces missing library exercises before launch, disables `Start Workout` when none of the template’s exercises are currently available, and `TemplateManager.createWorkoutFromTemplate(...)` now refuses to create an empty workout if every referenced exercise is missing. Added regression coverage in `TemplateManagerTests`.
