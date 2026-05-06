@@ -175,8 +175,13 @@ class TemplateManager {
     }
 
     func unavailableExerciseNames(in template: WorkoutTemplate) -> [String] {
-        template.exercises.compactMap { templateExercise in
-            guard exerciseManager.fetchExercise(withName: templateExercise.exerciseName) == nil else {
+        var seenMissingExercises = Set<String>()
+
+        return template.exercises.compactMap { templateExercise in
+            let normalizedExerciseName = ExerciseManager.normalizedNameLookupKey(templateExercise.exerciseName)
+
+            guard exerciseManager.fetchExercise(withName: templateExercise.exerciseName) == nil,
+                  seenMissingExercises.insert(normalizedExerciseName).inserted else {
                 return nil
             }
 
@@ -185,7 +190,7 @@ class TemplateManager {
     }
 
     func availableExerciseCount(in template: WorkoutTemplate) -> Int {
-        max(0, template.exercises.count - unavailableExerciseNames(in: template).count)
+        uniqueResolvableTemplateExercises(in: template).count
     }
 
     func startWorkoutActionTitle(for template: WorkoutTemplate) -> String {
@@ -341,13 +346,12 @@ class TemplateManager {
         // Get current date/time to stagger completion times slightly for ordering
         let now = Date()
 
-        // Find exercises for template exercise names and add them to the workout
-        // Process exercises in the order they appear in the template
-        for (index, templateExercise) in template.exercises.enumerated() {
-            // Find the actual exercise object
-            guard let exercise = exerciseManager.fetchExercise(withName: templateExercise.exerciseName) else {
-                continue
-            }
+        // Find exercises for template exercise names and add them to the workout.
+        // If stale/imported data contains duplicate template exercises, keep the first
+        // resolvable entry so starts stay deterministic instead of duplicating sections.
+        for (index, resolvedTemplateExercise) in uniqueResolvableTemplateExercises(in: template).enumerated() {
+            let templateExercise = resolvedTemplateExercise.templateExercise
+            let exercise = resolvedTemplateExercise.exercise
 
             // Create sets based on rep ranges
             for (setIndex, repRange) in templateExercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber }).enumerated() {
@@ -472,6 +476,21 @@ class TemplateManager {
             return .duplicateName
         case .duplicateExercise:
             return .duplicateExercise
+        }
+    }
+
+    private func uniqueResolvableTemplateExercises(in template: WorkoutTemplate) -> [(templateExercise: TemplateExercise, exercise: Exercise)] {
+        var seenExerciseNames = Set<String>()
+
+        return template.exercises.compactMap { templateExercise in
+            let normalizedExerciseName = ExerciseManager.normalizedNameLookupKey(templateExercise.exerciseName)
+
+            guard seenExerciseNames.insert(normalizedExerciseName).inserted,
+                  let exercise = exerciseManager.fetchExercise(withName: templateExercise.exerciseName) else {
+                return nil
+            }
+
+            return (templateExercise: templateExercise, exercise: exercise)
         }
     }
 

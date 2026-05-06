@@ -457,6 +457,42 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertNoThrow(try context.save())
     }
 
+    func testTemplateStartHelpers_dedupeStaleDuplicateTemplateExercises() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "  bench\npress  "),
+                sampleTemplateExercise(named: "Ghost Lift"),
+                sampleTemplateExercise(named: "  ghost\nlift  ")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(TemplateManager.shared.unavailableExerciseNames(in: template), ["Ghost Lift"])
+        XCTAssertEqual(TemplateManager.shared.availableExerciseCount(in: template), 1)
+        XCTAssertEqual(
+            TemplateManager.shared.partialStartConfirmationMessage(for: template),
+            "1 template exercise will be skipped for now: Ghost Lift. Start this workout with the remaining 1 available exercise?"
+        )
+
+        let workout = TemplateManager.shared.createWorkoutFromTemplate(template)
+        XCTAssertEqual(workout?.exerciseCount, 1)
+        XCTAssertEqual(workout?.sets.count, 1)
+        XCTAssertEqual(workout?.sets.first?.exercise?.name, "Bench Press")
+
+        if let workout {
+            context.delete(workout)
+        }
+        context.delete(availableExercise)
+        XCTAssertNoThrow(try context.save())
+    }
+
     func testCreateWorkoutFromTemplate_returnsNilWhenNoTemplateExercisesExistInLibrary() {
         let template = WorkoutTemplate(
             name: "Missing Exercises",
