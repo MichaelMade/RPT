@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise and template saves now surface the right validation failure even on stale or programmatic save attempts, so missing names, missing required selections, and duplicate template exercises no longer collapse into a misleading duplicate-name error.
 - Template exercise edits now fail safely too: if SwiftData cannot persist an add/update/remove change, RPT restores the template’s exercise list in place instead of leaving phantom additions, lost edits, or silent deletions in memory.
 - Template Details now warns when one or more template exercises are missing from the library, disables `Start Workout` if all template exercises are unavailable, and prevents empty workouts from being created when a template cannot resolve any exercises.
 - Discarding a workout now fails safely too: if SwiftData cannot persist a delete, RPT restores the workout and its logged sets instead of silently dropping the draft from memory/UI.
@@ -123,6 +124,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened save-result validation mapping for both custom exercises and workout templates, so stale or programmatic save attempts now return the correct missing-name / missing-selection / duplicate-exercise failure instead of collapsing everything into duplicate-name copy; added regression coverage in `ExerciseManagerTests` and `TemplateManagerTests`.
 - Hardened template exercise mutations so failed SwiftData saves now roll back added, edited, or removed template exercises instead of leaving in-memory drift behind; added regression coverage in `TemplateManagerTests`.
 - Hardened template-start safety for stale/deleted exercise references: Template Details now surfaces missing library exercises before launch, disables `Start Workout` when none of the template’s exercises are currently available, and `TemplateManager.createWorkoutFromTemplate(...)` now refuses to create an empty workout if every referenced exercise is missing. Added regression coverage in `TemplateManagerTests`.
 - Hardened workout deletion failure handling so a failed SwiftData delete now restores the workout plus its logged sets instead of silently dropping the draft from memory/UI. Updated `WorkoutManager` and added regression coverage in `ErrorHandlingTests`.

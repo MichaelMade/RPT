@@ -13,13 +13,22 @@ import SwiftData
 class TemplateManager {
     enum MutationResult: Equatable {
         case success
+        case missingName
+        case noExercises
         case duplicateName
+        case duplicateExercise
         case persistenceFailure
 
         var alertTitle: String {
             switch self {
+            case .missingName:
+                return "Template Name Required"
+            case .noExercises:
+                return "Add an Exercise First"
             case .duplicateName:
                 return "Template Already Exists"
+            case .duplicateExercise:
+                return "Duplicate Exercise in Template"
             case .persistenceFailure, .success:
                 return "Unable to Save Template"
             }
@@ -27,8 +36,14 @@ class TemplateManager {
 
         var alertMessage: String {
             switch self {
+            case .missingName:
+                return "Enter a template name before saving this workout plan."
+            case .noExercises:
+                return "Add at least one exercise before saving this template."
             case .duplicateName:
                 return "A template with this name already exists. Please choose a different name."
+            case .duplicateExercise:
+                return "Each exercise can only appear once in a template. Remove or replace the duplicate entry before saving."
             case .persistenceFailure:
                 return "Your template changes could not be saved right now. Please try again."
             case .success:
@@ -196,8 +211,9 @@ class TemplateManager {
 
     @discardableResult
     func createTemplate(name: String, exercises: [TemplateExercise], notes: String = "") -> MutationResult {
-        guard validateDraft(name: name, exercises: exercises) == .valid else {
-            return .duplicateName
+        let validationResult = validateDraft(name: name, exercises: exercises)
+        guard validationResult == .valid else {
+            return mutationResult(for: validationResult)
         }
 
         let sanitizedName = Self.sanitizeTemplateName(name)
@@ -216,8 +232,9 @@ class TemplateManager {
 
     @discardableResult
     func updateTemplate(_ template: WorkoutTemplate, name: String, exercises: [TemplateExercise], notes: String) -> MutationResult {
-        guard validateDraft(name: name, exercises: exercises, excludingTemplateId: template.id) == .valid else {
-            return .duplicateName
+        let validationResult = validateDraft(name: name, exercises: exercises, excludingTemplateId: template.id)
+        guard validationResult == .valid else {
+            return mutationResult(for: validationResult)
         }
 
         let sanitizedName = Self.sanitizeTemplateName(name)
@@ -402,6 +419,21 @@ class TemplateManager {
     }
 
     // MARK: - Private Helpers
+
+    private func mutationResult(for validationResult: DraftValidationResult) -> MutationResult {
+        switch validationResult {
+        case .valid:
+            return .success
+        case .missingName:
+            return .missingName
+        case .noExercises:
+            return .noExercises
+        case .duplicateName:
+            return .duplicateName
+        case .duplicateExercise:
+            return .duplicateExercise
+        }
+    }
 
     private func createDefaultTemplatesIfNeeded() {
         var descriptor = FetchDescriptor<WorkoutTemplate>()

@@ -23,11 +23,17 @@ class ExerciseManager {
 
     enum MutationResult: Equatable {
         case success
+        case missingName
+        case noPrimaryMuscles
         case duplicateName
         case persistenceFailure
 
         var alertTitle: String {
             switch self {
+            case .missingName:
+                return "Exercise Name Required"
+            case .noPrimaryMuscles:
+                return "Primary Muscle Required"
             case .duplicateName:
                 return "Exercise Already Exists"
             case .persistenceFailure, .success:
@@ -37,6 +43,10 @@ class ExerciseManager {
 
         var alertMessage: String {
             switch self {
+            case .missingName:
+                return "Enter an exercise name before saving it to your library."
+            case .noPrimaryMuscles:
+                return "Select at least one primary muscle group before saving this exercise."
             case .duplicateName:
                 return "An exercise with this name already exists. Please choose a different name."
             case .persistenceFailure:
@@ -196,8 +206,9 @@ class ExerciseManager {
 
     @discardableResult
     func addExercise(name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) -> MutationResult {
-        guard validateDraft(name: name, primaryMuscleGroups: primaryMuscleGroups) == .valid else {
-            return .duplicateName
+        let validationResult = validateDraft(name: name, primaryMuscleGroups: primaryMuscleGroups)
+        guard validationResult == .valid else {
+            return mutationResult(for: validationResult)
         }
 
         let sanitizedName = Self.sanitizeExerciseName(name)
@@ -224,8 +235,13 @@ class ExerciseManager {
     
     @discardableResult
     func updateExercise(_ exercise: Exercise, name: String, category: ExerciseCategory, primaryMuscleGroups: [MuscleGroup], secondaryMuscleGroups: [MuscleGroup], instructions: String) -> MutationResult {
-        guard validateDraft(name: name, primaryMuscleGroups: primaryMuscleGroups, excludingExerciseId: exercise.id) == .valid else {
-            return .duplicateName
+        let validationResult = validateDraft(
+            name: name,
+            primaryMuscleGroups: primaryMuscleGroups,
+            excludingExerciseId: exercise.id
+        )
+        guard validationResult == .valid else {
+            return mutationResult(for: validationResult)
         }
 
         let sanitizedName = Self.sanitizeExerciseName(name)
@@ -316,6 +332,19 @@ class ExerciseManager {
             template.exercises.contains { templateExercise in
                 Self.namesCollide(templateExercise.exerciseName, exerciseName)
             }
+        }
+    }
+
+    private func mutationResult(for validationResult: DraftValidationResult) -> MutationResult {
+        switch validationResult {
+        case .valid:
+            return .success
+        case .missingName:
+            return .missingName
+        case .noPrimaryMuscles:
+            return .noPrimaryMuscles
+        case .duplicateName:
+            return .duplicateName
         }
     }
     

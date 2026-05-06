@@ -74,12 +74,69 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(result, .duplicateName)
     }
 
+    func testMutationResult_missingNameUsesSpecificAlertCopy() {
+        XCTAssertEqual(TemplateManager.MutationResult.missingName.alertTitle, "Template Name Required")
+        XCTAssertEqual(
+            TemplateManager.MutationResult.missingName.alertMessage,
+            "Enter a template name before saving this workout plan."
+        )
+    }
+
+    func testMutationResult_noExercisesUsesSpecificAlertCopy() {
+        XCTAssertEqual(TemplateManager.MutationResult.noExercises.alertTitle, "Add an Exercise First")
+        XCTAssertEqual(
+            TemplateManager.MutationResult.noExercises.alertMessage,
+            "Add at least one exercise before saving this template."
+        )
+    }
+
+    func testMutationResult_duplicateExerciseUsesSpecificAlertCopy() {
+        XCTAssertEqual(TemplateManager.MutationResult.duplicateExercise.alertTitle, "Duplicate Exercise in Template")
+        XCTAssertEqual(
+            TemplateManager.MutationResult.duplicateExercise.alertMessage,
+            "Each exercise can only appear once in a template. Remove or replace the duplicate entry before saving."
+        )
+    }
+
     func testMutationResult_duplicateNameUsesSpecificAlertCopy() {
         XCTAssertEqual(TemplateManager.MutationResult.duplicateName.alertTitle, "Template Already Exists")
         XCTAssertEqual(
             TemplateManager.MutationResult.duplicateName.alertMessage,
             "A template with this name already exists. Please choose a different name."
         )
+    }
+
+    func testCreateTemplate_returnsValidationSpecificFailureForMissingName() {
+        let result = TemplateManager.shared.createTemplate(
+            name: "   ",
+            exercises: [sampleTemplateExercise()],
+            notes: ""
+        )
+
+        XCTAssertEqual(result, .missingName)
+    }
+
+    func testCreateTemplate_returnsValidationSpecificFailureForNoExercises() {
+        let result = TemplateManager.shared.createTemplate(
+            name: "Upper Body",
+            exercises: [],
+            notes: ""
+        )
+
+        XCTAssertEqual(result, .noExercises)
+    }
+
+    func testCreateTemplate_returnsValidationSpecificFailureForDuplicateExercises() {
+        let result = TemplateManager.shared.createTemplate(
+            name: "Upper Body",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "  bench\npress  ")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(result, .duplicateExercise)
     }
 
     func testMutationResult_persistenceFailureUsesRetryAlertCopy() {

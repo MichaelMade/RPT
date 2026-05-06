@@ -45,12 +45,52 @@ final class ExerciseManagerTests: XCTestCase {
         XCTAssertEqual(result, .duplicateName)
     }
 
+    func testMutationResult_missingNameUsesSpecificAlertCopy() {
+        XCTAssertEqual(ExerciseManager.MutationResult.missingName.alertTitle, "Exercise Name Required")
+        XCTAssertEqual(
+            ExerciseManager.MutationResult.missingName.alertMessage,
+            "Enter an exercise name before saving it to your library."
+        )
+    }
+
+    func testMutationResult_noPrimaryMusclesUsesSpecificAlertCopy() {
+        XCTAssertEqual(ExerciseManager.MutationResult.noPrimaryMuscles.alertTitle, "Primary Muscle Required")
+        XCTAssertEqual(
+            ExerciseManager.MutationResult.noPrimaryMuscles.alertMessage,
+            "Select at least one primary muscle group before saving this exercise."
+        )
+    }
+
     func testMutationResult_duplicateNameUsesSpecificAlertCopy() {
         XCTAssertEqual(ExerciseManager.MutationResult.duplicateName.alertTitle, "Exercise Already Exists")
         XCTAssertEqual(
             ExerciseManager.MutationResult.duplicateName.alertMessage,
             "An exercise with this name already exists. Please choose a different name."
         )
+    }
+
+    func testAddExercise_returnsValidationSpecificFailureForMissingName() {
+        let result = ExerciseManager.shared.addExercise(
+            name: "   ",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [],
+            instructions: ""
+        )
+
+        XCTAssertEqual(result, .missingName)
+    }
+
+    func testAddExercise_returnsValidationSpecificFailureForMissingPrimaryMuscles() {
+        let result = ExerciseManager.shared.addExercise(
+            name: "Bench Press",
+            category: .compound,
+            primaryMuscleGroups: [],
+            secondaryMuscleGroups: [],
+            instructions: ""
+        )
+
+        XCTAssertEqual(result, .noPrimaryMuscles)
     }
 
     func testMutationResult_persistenceFailureUsesRetryAlertCopy() {
