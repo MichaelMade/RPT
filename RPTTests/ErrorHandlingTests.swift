@@ -406,6 +406,41 @@ final class ErrorHandlingTests: XCTestCase {
         XCTAssertNil(viewModel.errorMessage, "Error message should be cleared")
     }
 
+    func testCompleteWorkout_failedSaveRollsBackWorkoutAndUserStats() {
+        let workout = Workout(name: "Rollback Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: exercise, weight: 185, reps: 6)
+
+        let userManager = UserManager.shared
+        guard let user = userManager.getCurrentUser() else {
+            XCTFail("Expected a default user for rollback test")
+            return
+        }
+
+        let originalTotalWorkouts = user.totalWorkouts
+        let originalTotalVolume = user.totalVolume
+        let originalWorkoutStreak = user.workoutStreak
+        let originalLastActive = user.lastActive
+        let originalPersonalBests = user.personalBests
+        let originalWorkoutIDs = Set(user.workouts.map(\.id))
+
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: userManager
+        )
+
+        XCTAssertThrowsError(try failingWorkoutManager.completeWorkout(workout))
+        XCTAssertFalse(workout.isCompleted, "Failed completion should leave the workout in-progress")
+        XCTAssertEqual(workout.duration, 0, "Failed completion should restore the prior duration")
+        XCTAssertEqual(user.totalWorkouts, originalTotalWorkouts, "Failed completion should not inflate lifetime workout count")
+        XCTAssertEqual(user.totalVolume, originalTotalVolume, "Failed completion should not inflate lifetime volume")
+        XCTAssertEqual(user.workoutStreak, originalWorkoutStreak, "Failed completion should not mutate workout streak")
+        XCTAssertEqual(user.lastActive, originalLastActive, "Failed completion should restore last-active timestamp")
+        XCTAssertEqual(user.personalBests, originalPersonalBests, "Failed completion should restore personal bests")
+        XCTAssertEqual(Set(user.workouts.map(\.id)), originalWorkoutIDs, "Failed completion should not leave the workout registered on the user")
+        XCTAssertNil(workout.user, "Failed completion should not leave a dangling user link on the workout")
+    }
+
     func testDiscardAndMarkDiscardedSafely_marksWorkoutStateAsDiscarded() {
         WorkoutStateManager.shared.clearDiscardedState()
 

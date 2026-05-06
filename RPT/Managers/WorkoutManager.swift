@@ -112,9 +112,23 @@ class WorkoutManager: ObservableObject {
     
     // Complete a workout
     func completeWorkout(_ workout: Workout) throws {
+        let originalIsCompleted = workout.isCompleted
+        let originalDuration = workout.duration
+        let originalUser = workout.user
+        let userSnapshot = userManager.getCurrentUser().map(UserCompletionSnapshot.init)
+
         workout.complete()
-        userManager.processCompletedWorkout(workout)
-        try dataManager.saveChanges()
+        userManager.getCurrentUser()?.registerCompletedWorkoutIfNeeded(workout)
+
+        do {
+            try dataManager.saveChanges()
+        } catch {
+            workout.isCompleted = originalIsCompleted
+            workout.duration = originalDuration
+            workout.user = originalUser
+            userSnapshot?.restore()
+            throw error
+        }
     }
     
     // Non-throwing version for backward compatibility
@@ -288,6 +302,35 @@ class WorkoutManager: ObservableObject {
         }
     }
     
+    private struct UserCompletionSnapshot {
+        let user: User
+        let lastActive: Date
+        let workoutStreak: Int
+        let totalWorkouts: Int
+        let totalVolume: Double
+        let personalBests: [String: Int]
+        let workouts: [Workout]
+
+        init(user: User) {
+            self.user = user
+            self.lastActive = user.lastActive
+            self.workoutStreak = user.workoutStreak
+            self.totalWorkouts = user.totalWorkouts
+            self.totalVolume = user.totalVolume
+            self.personalBests = user.personalBests
+            self.workouts = user.workouts
+        }
+
+        func restore() {
+            user.lastActive = lastActive
+            user.workoutStreak = workoutStreak
+            user.totalWorkouts = totalWorkouts
+            user.totalVolume = totalVolume
+            user.personalBests = personalBests
+            user.workouts = workouts
+        }
+    }
+
     // MARK: - Workout Queries
     
     // Get recent workouts
