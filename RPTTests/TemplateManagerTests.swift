@@ -1,8 +1,25 @@
 import XCTest
+import SwiftData
 @testable import RPT
 
 @MainActor
 final class TemplateManagerTests: XCTestCase {
+    private final class FailingDataManager: DataManaging {
+        private let wrappedContext: ModelContext
+
+        init(context: ModelContext) {
+            self.wrappedContext = context
+        }
+
+        func getModelContext() -> ModelContext {
+            wrappedContext
+        }
+
+        func saveChanges() throws {
+            throw DataManager.DataError.saveFailed
+        }
+    }
+
     func testValidateDraft_requiresNonEmptyName() {
         let result = TemplateManager.shared.validateDraft(
             name: "   \n  ",
@@ -229,6 +246,90 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(template.exercises.count, 2)
         XCTAssertEqual(template.exercises.last?.exerciseName, "Incline Bench Press")
         XCTAssertEqual(template.exercises.last?.repRanges.map(\.setNumber), [1, 2, 3])
+    }
+
+    func testAddExerciseToTemplate_failedSaveRollsBackInsertedExercise() {
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+
+        let failingManager = TemplateManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            exerciseManager: ExerciseManager.shared,
+            seedDefaultTemplates: false
+        )
+
+        let didAddExercise = failingManager.addExerciseToTemplate(
+            template,
+            exerciseName: "Incline Bench Press"
+        )
+
+        XCTAssertFalse(didAddExercise)
+        XCTAssertEqual(template.exercises.count, 1)
+        XCTAssertEqual(template.exercises.first?.exerciseName, "Bench Press")
+    }
+
+    func testUpdateTemplateExercise_failedSaveRestoresOriginalExercise() {
+        let originalExercise = sampleTemplateExercise(named: "Bench Press")
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [originalExercise],
+            notes: ""
+        )
+
+        let updatedExercise = TemplateExercise(
+            id: originalExercise.id,
+            exerciseName: "Incline Bench Press",
+            suggestedSets: 4,
+            repRanges: [
+                TemplateRepRange(setNumber: 1, minReps: 8, maxReps: 10, percentageOfFirstSet: 1.0)
+            ],
+            notes: "Pause at the bottom"
+        )
+
+        let failingManager = TemplateManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            exerciseManager: ExerciseManager.shared,
+            seedDefaultTemplates: false
+        )
+
+        let didUpdateExercise = failingManager.updateTemplateExercise(
+            template,
+            exerciseId: originalExercise.id,
+            updatedExercise: updatedExercise
+        )
+
+        XCTAssertFalse(didUpdateExercise)
+        XCTAssertEqual(template.exercises.count, 1)
+        XCTAssertEqual(template.exercises[0].exerciseName, originalExercise.exerciseName)
+        XCTAssertEqual(template.exercises[0].suggestedSets, originalExercise.suggestedSets)
+        XCTAssertEqual(template.exercises[0].notes, originalExercise.notes)
+    }
+
+    func testRemoveExerciseFromTemplate_failedSaveRestoresRemovedExerciseInPlace() {
+        let firstExercise = sampleTemplateExercise(named: "Bench Press")
+        let secondExercise = sampleTemplateExercise(named: "Pull-Up")
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [firstExercise, secondExercise],
+            notes: ""
+        )
+
+        let failingManager = TemplateManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            exerciseManager: ExerciseManager.shared,
+            seedDefaultTemplates: false
+        )
+
+        let didRemoveExercise = failingManager.removeExerciseFromTemplate(
+            template,
+            exerciseId: firstExercise.id
+        )
+
+        XCTAssertFalse(didRemoveExercise)
+        XCTAssertEqual(template.exercises.map(\.exerciseName), ["Bench Press", "Pull-Up"])
     }
 
     func testUnavailableExerciseNames_returnsOnlyMissingTemplateExercises() throws {

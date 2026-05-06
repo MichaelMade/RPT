@@ -1,5 +1,6 @@
 # RPT
 
+- Template exercise edits now fail safely too: if SwiftData cannot persist an add/update/remove change, RPT restores the template’s exercise list in place instead of leaving phantom additions, lost edits, or silent deletions in memory.
 - Template Details now warns when one or more template exercises are missing from the library, disables `Start Workout` if all template exercises are unavailable, and prevents empty workouts from being created when a template cannot resolve any exercises.
 - Discarding a workout now fails safely too: if SwiftData cannot persist a delete, RPT restores the workout and its logged sets instead of silently dropping the draft from memory/UI.
 - Completing a workout now fails safely too: if SwiftData cannot persist the completion, RPT restores the workout to its in-progress state and rolls back the user’s lifetime stats/personal bests instead of leaving a phantom completed session in memory.
@@ -122,6 +123,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened template exercise mutations so failed SwiftData saves now roll back added, edited, or removed template exercises instead of leaving in-memory drift behind; added regression coverage in `TemplateManagerTests`.
 - Hardened template-start safety for stale/deleted exercise references: Template Details now surfaces missing library exercises before launch, disables `Start Workout` when none of the template’s exercises are currently available, and `TemplateManager.createWorkoutFromTemplate(...)` now refuses to create an empty workout if every referenced exercise is missing. Added regression coverage in `TemplateManagerTests`.
 - Hardened workout deletion failure handling so a failed SwiftData delete now restores the workout plus its logged sets instead of silently dropping the draft from memory/UI. Updated `WorkoutManager` and added regression coverage in `ErrorHandlingTests`.
 - Hardened workout completion failure handling so a failed SwiftData save now restores the workout’s prior in-progress state and rolls back any just-added user stats/personal bests instead of leaving phantom completed state in memory. Updated `WorkoutManager` and added regression coverage in `ErrorHandlingTests`.

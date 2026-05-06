@@ -356,20 +356,49 @@ class TemplateManager {
         )
 
         template.exercises.append(newExercise)
-        try? modelContext.save()
-        return true
-    }
 
-    func updateTemplateExercise(_ template: WorkoutTemplate, exerciseId: UUID, updatedExercise: TemplateExercise) {
-        if let index = template.exercises.firstIndex(where: { $0.id == exerciseId }) {
-            template.exercises[index] = updatedExercise
-            try? modelContext.save()
+        do {
+            try dataManager.saveChanges()
+            return true
+        } catch {
+            template.exercises.removeAll { $0.id == newExercise.id }
+            return false
         }
     }
 
-    func removeExerciseFromTemplate(_ template: WorkoutTemplate, exerciseId: UUID) {
-        template.exercises.removeAll { $0.id == exerciseId }
-        try? modelContext.save()
+    @discardableResult
+    func updateTemplateExercise(_ template: WorkoutTemplate, exerciseId: UUID, updatedExercise: TemplateExercise) -> Bool {
+        guard let index = template.exercises.firstIndex(where: { $0.id == exerciseId }) else {
+            return false
+        }
+
+        let originalExercise = template.exercises[index]
+        template.exercises[index] = updatedExercise
+
+        do {
+            try dataManager.saveChanges()
+            return true
+        } catch {
+            template.exercises[index] = originalExercise
+            return false
+        }
+    }
+
+    @discardableResult
+    func removeExerciseFromTemplate(_ template: WorkoutTemplate, exerciseId: UUID) -> Bool {
+        guard let index = template.exercises.firstIndex(where: { $0.id == exerciseId }) else {
+            return false
+        }
+
+        let removedExercise = template.exercises.remove(at: index)
+
+        do {
+            try dataManager.saveChanges()
+            return true
+        } catch {
+            template.exercises.insert(removedExercise, at: index)
+            return false
+        }
     }
 
     // MARK: - Private Helpers
