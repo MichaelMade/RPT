@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details now warns when one or more template exercises are missing from the library, disables `Start Workout` if all template exercises are unavailable, and prevents empty workouts from being created when a template cannot resolve any exercises.
 - Discarding a workout now fails safely too: if SwiftData cannot persist a delete, RPT restores the workout and its logged sets instead of silently dropping the draft from memory/UI.
 - Completing a workout now fails safely too: if SwiftData cannot persist the completion, RPT restores the workout to its in-progress state and rolls back the user’s lifetime stats/personal bests instead of leaving a phantom completed session in memory.
 - Active Workout set/exercise deletion now fails safely too: if SwiftData cannot persist a delete, RPT restores the removed set or exercise in place instead of silently dropping it from the live workout screen.
@@ -121,6 +122,7 @@ RPT/
 
 ## Recent Improvements
 
+- Hardened template-start safety for stale/deleted exercise references: Template Details now surfaces missing library exercises before launch, disables `Start Workout` when none of the template’s exercises are currently available, and `TemplateManager.createWorkoutFromTemplate(...)` now refuses to create an empty workout if every referenced exercise is missing. Added regression coverage in `TemplateManagerTests`.
 - Hardened workout deletion failure handling so a failed SwiftData delete now restores the workout plus its logged sets instead of silently dropping the draft from memory/UI. Updated `WorkoutManager` and added regression coverage in `ErrorHandlingTests`.
 - Hardened workout completion failure handling so a failed SwiftData save now restores the workout’s prior in-progress state and rolls back any just-added user stats/personal bests instead of leaving phantom completed state in memory. Updated `WorkoutManager` and added regression coverage in `ErrorHandlingTests`.
 - Hardened template deletion so a SwiftData save failure no longer silently removes the row from Workout Templates; failed deletes now restore the template in place and show a retryable `Unable to Delete Template` alert instead. Updated `TemplateManager`, `TemplateViewModel`, `TemplatesListView`, and regression coverage in `ErrorHandlingTests` / `TemplateManagerTests`.

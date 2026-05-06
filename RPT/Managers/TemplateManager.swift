@@ -159,6 +159,16 @@ class TemplateManager {
         return try? modelContext.fetch(descriptor).first
     }
 
+    func unavailableExerciseNames(in template: WorkoutTemplate) -> [String] {
+        template.exercises.compactMap { templateExercise in
+            guard exerciseManager.fetchExercise(withName: templateExercise.exerciseName) == nil else {
+                return nil
+            }
+
+            return TemplateExercise.normalizedDisplayName(templateExercise.exerciseName)
+        }
+    }
+
     func validateDraft(name: String, exercises: [TemplateExercise], excludingTemplateId excludedTemplateId: String? = nil) -> DraftValidationResult {
         let sanitizedName = Self.sanitizeTemplateName(name)
         let hasMeaningfulName = !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -269,6 +279,7 @@ class TemplateManager {
         // Create the workout with the template name
         let workout = Workout(name: template.name, startedFromTemplate: template.name)
         modelContext.insert(workout)
+        var createdSetCount = 0
 
         // Get current date/time to stagger completion times slightly for ordering
         let now = Date()
@@ -303,7 +314,13 @@ class TemplateManager {
                 )
 
                 workout.sets.append(newSet)
+                createdSetCount += 1
             }
+        }
+
+        guard createdSetCount > 0 else {
+            modelContext.delete(workout)
+            return nil
         }
 
         do {

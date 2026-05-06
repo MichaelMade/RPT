@@ -231,6 +231,72 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(template.exercises.last?.repRanges.map(\.setNumber), [1, 2, 3])
     }
 
+    func testUnavailableExerciseNames_returnsOnlyMissingTemplateExercises() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "Incline Dumbbell Press")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.unavailableExerciseNames(in: template),
+            ["Incline Dumbbell Press"]
+        )
+
+        context.delete(availableExercise)
+        XCTAssertNoThrow(try context.save())
+    }
+
+    func testCreateWorkoutFromTemplate_returnsNilWhenNoTemplateExercisesExistInLibrary() {
+        let template = WorkoutTemplate(
+            name: "Missing Exercises",
+            exercises: [sampleTemplateExercise(named: "Ghost Lift")],
+            notes: ""
+        )
+
+        XCTAssertNil(
+            TemplateManager.shared.createWorkoutFromTemplate(template),
+            "Starting a template with no resolvable exercises should fail instead of creating an empty workout"
+        )
+    }
+
+    func testCreateWorkoutFromTemplate_skipsMissingExercisesButStartsWhenAtLeastOneExists() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "Ghost Lift")
+            ],
+            notes: ""
+        )
+
+        let workout = TemplateManager.shared.createWorkoutFromTemplate(template)
+
+        XCTAssertNotNil(workout)
+        XCTAssertEqual(workout?.exerciseCount, 1)
+        XCTAssertEqual(workout?.sets.count, 1)
+        XCTAssertEqual(workout?.sets.first?.exercise?.name, "Bench Press")
+
+        if let workout {
+            context.delete(workout)
+        }
+        context.delete(availableExercise)
+        XCTAssertNoThrow(try context.save())
+    }
+
     private func sampleTemplateExercise(named name: String = "Bench Press") -> TemplateExercise {
         TemplateExercise(
             exerciseName: name,

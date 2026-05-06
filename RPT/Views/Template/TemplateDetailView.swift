@@ -15,6 +15,14 @@ struct TemplateDetailView: View {
     @State private var startWorkoutFailureMessage: String?
     
     private let templateManager = TemplateManager.shared
+
+    private var unavailableExerciseNames: [String] {
+        templateManager.unavailableExerciseNames(in: template)
+    }
+
+    private var allTemplateExercisesUnavailable: Bool {
+        !template.exercises.isEmpty && unavailableExerciseNames.count == template.exercises.count
+    }
     
     var body: some View {
         NavigationStack {
@@ -77,6 +85,23 @@ struct TemplateDetailView: View {
                             .padding(.vertical, 4)
                         }
                     }
+
+                    if !unavailableExerciseNames.isEmpty {
+                        Section(header: Text("Unavailable Right Now")) {
+                            Text(
+                                unavailableExerciseNames.count == 1
+                                ? "1 template exercise is missing from your library and will be skipped until you restore or replace it."
+                                : "\(unavailableExerciseNames.count) template exercises are missing from your library and will be skipped until you restore or replace them."
+                            )
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                            ForEach(unavailableExerciseNames, id: \.self) { exerciseName in
+                                Label(exerciseName, systemImage: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                    }
                 }
                 .listStyle(.insetGrouped)
                 .padding(.bottom, 80) // Add padding at the bottom to make room for the button
@@ -87,7 +112,9 @@ struct TemplateDetailView: View {
                     
                     Button(action: {
                         guard let workout = templateManager.createWorkoutFromTemplate(template) else {
-                            startWorkoutFailureMessage = "Your workout could not be started right now. Please try again."
+                            startWorkoutFailureMessage = allTemplateExercisesUnavailable
+                                ? "This template can’t start right now because none of its exercises are currently available in your library."
+                                : "Your workout could not be started right now. Please try again."
                             return
                         }
 
@@ -105,6 +132,7 @@ struct TemplateDetailView: View {
                         .foregroundColor(.white)
                         .cornerRadius(12)
                     }
+                    .disabled(allTemplateExercisesUnavailable)
                     .padding(.horizontal)
                     .padding(.bottom, 16)
                     .background(
