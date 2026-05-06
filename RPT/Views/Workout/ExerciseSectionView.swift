@@ -67,33 +67,10 @@ struct ExerciseSectionView: View {
         // Dialog moved to the parent view to avoid duplication
     }
     
-    // Method to update drop sets based on first set weight - updated to round to nearest 5 pounds
+    // Method to update drop sets based on first set weight
     private func updateDropSets(exercise: Exercise, firstSetWeight: Int, sets: [ExerciseSet]) {
-        // Only update if there are multiple sets
         guard sets.count > 1 else { return }
-        
-        // Get settings manager to access drop percentages
-        let settingsManager = SettingsManager.shared
-        let dropPercentages = settingsManager.settings.defaultRPTPercentageDrops
-        let workoutManager = WorkoutManager.shared
-        
-        // Update each subsequent set based on the drop percentages
-        for index in 1..<min(sets.count, dropPercentages.count) {
-            if let dropPercentage = dropPercentages[safe: index] {
-                let calculatedWeight = Double(firstSetWeight) * (1.0 - dropPercentage)
-                
-                // Round to nearest 5 pounds for practical weight values in the gym
-                let roundedWeight = workoutManager.roundToNearest5(calculatedWeight)
-                
-                // Update the set
-                _ = viewModel.updateSetSafely(
-                    sets[index],
-                    weight: roundedWeight,
-                    reps: sets[index].reps,
-                    rpe: sets[index].rpe
-                )
-            }
-        }
+        _ = viewModel.updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: firstSetWeight)
     }
 }
 

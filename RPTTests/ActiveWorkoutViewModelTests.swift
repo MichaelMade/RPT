@@ -332,6 +332,42 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(addedSet?.weight, 0, "Corrupted negative previous weight should never produce negative auto-suggested weights")
     }
 
+    func testUpdateDropSetSuggestions_updatesBackoffSetsInOnePass() throws {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let topSet = workout.addSet(exercise: exercise, weight: 225, reps: 6)
+        let backoffSet1 = workout.addSet(exercise: exercise, weight: 205, reps: 8)
+        let backoffSet2 = workout.addSet(exercise: exercise, weight: 185, reps: 10)
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        try viewModel.updateDropSetSuggestions(for: exercise, firstSetWeight: 245)
+
+        XCTAssertEqual(topSet.weight, 225, "Updating drop-set suggestions should not mutate the logged top set")
+        XCTAssertEqual(backoffSet1.weight, 220, "First backoff set should follow the configured 10% drop and round to the nearest 5 lb")
+        XCTAssertEqual(backoffSet2.weight, 210, "Second backoff set should follow the configured 15% drop and round to the nearest 5 lb")
+    }
+
+    func testUpdateDropSetSuggestions_failedSaveRollsBackAllBackoffSets() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: exercise, weight: 225, reps: 6)
+        let backoffSet1 = workout.addSet(exercise: exercise, weight: 205, reps: 8)
+        let backoffSet2 = workout.addSet(exercise: exercise, weight: 185, reps: 10)
+        let originalCompletedAt1 = backoffSet1.completedAt
+        let originalCompletedAt2 = backoffSet2.completedAt
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        XCTAssertThrowsError(try viewModel.updateDropSetSuggestions(for: exercise, firstSetWeight: 245))
+        XCTAssertEqual(backoffSet1.weight, 205)
+        XCTAssertEqual(backoffSet2.weight, 185)
+        XCTAssertEqual(backoffSet1.completedAt, originalCompletedAt1)
+        XCTAssertEqual(backoffSet2.completedAt, originalCompletedAt2)
+    }
+
     func testViewModelPreservesExerciseInsertionOrderWhenTimestampsMatch() {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")

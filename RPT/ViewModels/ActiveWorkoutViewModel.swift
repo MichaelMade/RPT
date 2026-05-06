@@ -624,6 +624,79 @@ class ActiveWorkoutViewModel: ObservableObject {
         orderSetsForDisplay(exerciseGroups[exercise] ?? [])
     }
 
+    func updateDropSetSuggestions(for exercise: Exercise, firstSetWeight: Int) throws {
+        let sets = orderedSetsForDisplay(in: exercise)
+        guard sets.count > 1 else { return }
+
+        let dropPercentages = settingsManager.settings.defaultRPTPercentageDrops
+        let affectedSetCount = min(sets.count, dropPercentages.count)
+        guard affectedSetCount > 1 else { return }
+
+        struct SetSnapshot {
+            let set: ExerciseSet
+            let weight: Int
+            let reps: Int
+            let rpe: Int?
+            let completedAt: Date
+        }
+
+        let snapshots = (1..<affectedSetCount).map { index in
+            let set = sets[index]
+            return SetSnapshot(
+                set: set,
+                weight: set.weight,
+                reps: set.reps,
+                rpe: set.rpe,
+                completedAt: set.completedAt
+            )
+        }
+
+        for index in 1..<affectedSetCount {
+            let dropPercentage = min(max(dropPercentages[index], 0), 1)
+            let calculatedWeight = Double(firstSetWeight) * (1.0 - dropPercentage)
+            let roundedWeight = max(0, workoutManager.roundToNearest5(calculatedWeight))
+            let set = sets[index]
+            let wasIncomplete = !set.hasCompletedValues || set.completedAt == .distantPast
+
+            set.weight = roundedWeight
+
+            let isComplete = ExerciseSet.hasCompletedValues(
+                weight: roundedWeight,
+                reps: set.reps,
+                exerciseCategory: set.exercise?.category
+            )
+            if !isComplete {
+                set.completedAt = .distantPast
+            } else if wasIncomplete {
+                set.completedAt = Date()
+            }
+        }
+
+        do {
+            try saveWorkout()
+        } catch {
+            for snapshot in snapshots {
+                snapshot.set.weight = snapshot.weight
+                snapshot.set.reps = snapshot.reps
+                snapshot.set.rpe = snapshot.rpe
+                snapshot.set.completedAt = snapshot.completedAt
+            }
+            throw error
+        }
+
+        updateExerciseGroupsAndOrder(maintainOrder: true)
+    }
+
+    func updateDropSetSuggestionsSafely(for exercise: Exercise, firstSetWeight: Int) -> Bool {
+        do {
+            try updateDropSetSuggestions(for: exercise, firstSetWeight: firstSetWeight)
+            return true
+        } catch {
+            errorMessage = "Failed to update drop sets: \(error.localizedDescription)"
+            return false
+        }
+    }
+
     private func setOrderIndex(_ set: ExerciseSet) -> Int {
         set.workout?.sets.firstIndex(where: { $0.id == set.id }) ?? Int.max
     }
