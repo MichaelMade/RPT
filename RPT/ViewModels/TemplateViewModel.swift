@@ -217,9 +217,15 @@ class TemplateViewModel: ObservableObject {
         return false
     }
     
-    func deleteTemplate(_ template: WorkoutTemplate) {
-        templateManager.deleteTemplate(template)
-        refreshTemplates()
+    @discardableResult
+    func deleteTemplate(_ template: WorkoutTemplate) -> TemplateManager.DeletionResult {
+        let result = templateManager.deleteTemplate(template)
+
+        if result == .success {
+            refreshTemplates()
+        }
+
+        return result
     }
     
     func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout {

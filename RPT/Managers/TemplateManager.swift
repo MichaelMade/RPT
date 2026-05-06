@@ -37,6 +37,29 @@ class TemplateManager {
         }
     }
 
+    enum DeletionResult: Equatable {
+        case success
+        case persistenceFailure
+
+        var alertTitle: String {
+            switch self {
+            case .success:
+                return ""
+            case .persistenceFailure:
+                return "Unable to Delete Template"
+            }
+        }
+
+        var alertMessage: String {
+            switch self {
+            case .success:
+                return ""
+            case .persistenceFailure:
+                return "This template could not be deleted right now. Please try again."
+            }
+        }
+    }
+
     enum DraftValidationResult: Equatable {
         case valid
         case missingName
@@ -60,6 +83,7 @@ class TemplateManager {
         }
     }
 
+    private let dataManager: DataManaging
     private let modelContext: ModelContext
     private let exerciseManager: ExerciseManager
     static let shared = TemplateManager()
@@ -100,11 +124,18 @@ class TemplateManager {
         return false
     }
 
-    private init() {
-        let dataManager = DataManager.shared
+    init(
+        dataManager: DataManaging = DataManager.shared,
+        exerciseManager: ExerciseManager = ExerciseManager.shared,
+        seedDefaultTemplates: Bool = true
+    ) {
+        self.dataManager = dataManager
         self.modelContext = dataManager.getModelContext()
-        self.exerciseManager = ExerciseManager.shared
-        createDefaultTemplatesIfNeeded()
+        self.exerciseManager = exerciseManager
+
+        if seedDefaultTemplates {
+            createDefaultTemplatesIfNeeded()
+        }
     }
 
     // MARK: - Fetch Operations
@@ -219,9 +250,17 @@ class TemplateManager {
         }
     }
 
-    func deleteTemplate(_ template: WorkoutTemplate) {
+    @discardableResult
+    func deleteTemplate(_ template: WorkoutTemplate) -> DeletionResult {
         modelContext.delete(template)
-        try? modelContext.save()
+
+        do {
+            try dataManager.saveChanges()
+            return .success
+        } catch {
+            modelContext.insert(template)
+            return .persistenceFailure
+        }
     }
 
     // MARK: - Workout Creation

@@ -16,6 +16,7 @@ struct TemplatesListView: View {
     @State private var currentAction: TemplateAction?
     @State private var showingConfirmationDialog = false
     @State private var templateToDelete: WorkoutTemplate?
+    @State private var deleteResult: TemplateManager.DeletionResult?
     @State private var searchText = ""
     
     // State for active workout handling
@@ -187,7 +188,10 @@ struct TemplatesListView: View {
                 presenting: templateToDelete
             ) { template in
                 Button("Delete \(WorkoutTemplate.normalizedDisplayName(template.name))", role: .destructive) {
-                    viewModel.deleteTemplate(template)
+                    let result = viewModel.deleteTemplate(template)
+                    if result != .success {
+                        deleteResult = result
+                    }
                 }
             } message: { template in
                 Text("Are you sure you want to delete this template? This action cannot be undone.")
@@ -234,6 +238,24 @@ struct TemplatesListView: View {
                 }
             } message: {
                 Text(activeWorkoutFailureMessage ?? "")
+            }
+            .alert(
+                deleteResult?.alertTitle ?? "Unable to Delete Template",
+                isPresented: Binding(
+                    get: { deleteResult != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            deleteResult = nil
+                        }
+                    }
+                ),
+                presenting: deleteResult
+            ) { _ in
+                Button("OK", role: .cancel) {
+                    deleteResult = nil
+                }
+            } message: { result in
+                Text(result.alertMessage)
             }
         }
     }

@@ -73,6 +73,14 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
+    func testDeletionResult_persistenceFailureUsesRetryAlertCopy() {
+        XCTAssertEqual(TemplateManager.DeletionResult.persistenceFailure.alertTitle, "Unable to Delete Template")
+        XCTAssertEqual(
+            TemplateManager.DeletionResult.persistenceFailure.alertMessage,
+            "This template could not be deleted right now. Please try again."
+        )
+    }
+
     func testHasDuplicateExerciseNames_ignoresCaseWhitespaceAndWidthVariants() {
         XCTAssertTrue(
             TemplateManager.hasDuplicateExerciseNames([

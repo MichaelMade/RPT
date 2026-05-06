@@ -317,6 +317,43 @@ final class ErrorHandlingTests: XCTestCase {
             "Template duplicate checks should still allow distinct template names"
         )
     }
+
+    func testTemplateManagerDeleteTemplate_failedSaveRestoresTemplate() {
+        let context = DataManager.shared.getModelContext()
+        let template = WorkoutTemplate(
+            name: "Delete Failure Template",
+            exercises: [
+                TemplateExercise(
+                    exerciseName: "Bench Press",
+                    suggestedSets: 3,
+                    repRanges: [
+                        TemplateRepRange(setNumber: 1, minReps: 6, maxReps: 8, percentageOfFirstSet: 1.0)
+                    ],
+                    notes: ""
+                )
+            ],
+            notes: ""
+        )
+        context.insert(template)
+        XCTAssertNoThrow(try context.save())
+
+        let failingManager = TemplateManager(
+            dataManager: FailingDataManager(context: context),
+            exerciseManager: ExerciseManager.shared,
+            seedDefaultTemplates: false
+        )
+
+        let result = failingManager.deleteTemplate(template)
+
+        XCTAssertEqual(result, .persistenceFailure)
+        XCTAssertNotNil(
+            TemplateManager.shared.fetchTemplateByName("Delete Failure Template"),
+            "Failed deletes should restore the template instead of silently dropping it from the list"
+        )
+
+        context.delete(template)
+        XCTAssertNoThrow(try context.save())
+    }
     
     // MARK: - ActiveWorkoutViewModel Tests
     
