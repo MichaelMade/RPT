@@ -228,8 +228,8 @@ class TemplateViewModel: ObservableObject {
         return result
     }
     
-    func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout {
-        return templateManager.createWorkoutFromTemplate(template)
+    func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout? {
+        templateManager.createWorkoutFromTemplate(template)
     }
     
     func addExerciseToTemplate(_ template: WorkoutTemplate, exerciseName: String) {

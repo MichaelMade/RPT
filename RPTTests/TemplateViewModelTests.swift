@@ -3,6 +3,19 @@ import XCTest
 
 @MainActor
 final class TemplateViewModelTests: XCTestCase {
+    private final class StubTemplateManager: TemplateManager {
+        var workoutToReturn: Workout?
+
+        init(workoutToReturn: Workout?) {
+            self.workoutToReturn = workoutToReturn
+            super.init(dataManager: DataManager.shared, exerciseManager: ExerciseManager.shared, seedDefaultTemplates: false)
+        }
+
+        override func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout? {
+            workoutToReturn
+        }
+    }
+
     func testNormalizedSearchQuery_trimsAndCollapsesWhitespace() {
         XCTAssertEqual(
             TemplateViewModel.normalizedSearchQuery("  Push\n\n   Day  "),
@@ -183,6 +196,21 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.activeWorkoutPersistenceFailureMessage(for: .discard),
             "Couldn’t discard the current workout. Keep it open, then try starting from the template again."
         )
+    }
+
+    func testCreateWorkoutFromTemplate_returnsCreatedWorkoutWhenManagerSucceeds() {
+        let expectedWorkout = Workout(name: "Template Workout")
+        let viewModel = TemplateViewModel(templateManager: StubTemplateManager(workoutToReturn: expectedWorkout))
+        let template = makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+
+        XCTAssertTrue(viewModel.createWorkoutFromTemplate(template) === expectedWorkout)
+    }
+
+    func testCreateWorkoutFromTemplate_returnsNilWhenManagerFailsToPersistWorkout() {
+        let viewModel = TemplateViewModel(templateManager: StubTemplateManager(workoutToReturn: nil))
+        let template = makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+
+        XCTAssertNil(viewModel.createWorkoutFromTemplate(template))
     }
 
     private func makeTemplate(name: String, exerciseNames: [String], notes: String = "") -> WorkoutTemplate {
