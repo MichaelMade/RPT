@@ -448,6 +448,31 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(autofilledSet?.weight, 200, "Autofill should ignore newer in-progress workouts and use the most recent completed workout")
     }
 
+    func testTemplateAutofill_failedSaveRestoresPriorSetValues() {
+        let exercise = Exercise(name: "Overhead Press", category: .compound, primaryMuscleGroups: [.shoulders])
+
+        let completedWorkout = workoutManager.createWorkout(name: "Completed Workout")
+        _ = completedWorkout.addSet(exercise: exercise, weight: 135, reps: 6)
+        completedWorkout.isCompleted = true
+
+        let templateWorkout = workoutManager.createWorkout(name: "Template Workout", fromTemplate: "Push Day")
+        let templateSet = templateWorkout.addSet(exercise: exercise, weight: 0, reps: 8)
+        templateSet.completedAt = .distantPast
+
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+
+        let viewModel = ActiveWorkoutViewModel(workout: templateWorkout, workoutManager: failingWorkoutManager)
+
+        XCTAssertEqual(templateSet.weight, 0, "Failed template autofill saves should restore the original placeholder weight")
+        XCTAssertEqual(templateSet.reps, 8, "Failed template autofill saves should preserve the template target reps")
+        XCTAssertNil(templateSet.rpe, "Failed template autofill saves should not leave copied RPE values behind")
+        XCTAssertEqual(templateSet.completedAt, .distantPast, "Failed template autofill saves should keep placeholder sets incomplete")
+        XCTAssertEqual(viewModel.errorMessage, "Error loading previous weights: Failed to save workout")
+    }
+
     func testShouldStartRestTimer_requiresCompletedWorkingSet() {
         XCTAssertTrue(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 5, isWarmup: false, wasCompletedWorkingSet: false))
         XCTAssertFalse(ExerciseSetRowView.shouldStartRestTimer(weight: 225, reps: 0, isWarmup: false, wasCompletedWorkingSet: false))

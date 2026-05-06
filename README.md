@@ -1,5 +1,6 @@
 # RPT
 
+- Template-based workout autofill now fails safely too: if loading previous weights hits a SwiftData save failure, RPT restores the template’s original placeholder set values instead of leaving unsaved copied weights/reps behind in memory.
 - Template Details is now clearer and safer when some template exercises are missing from the library: the primary action switches to `Start Partial Workout` and asks for confirmation before launching a shortened session that skips unavailable exercises.
 - Exercise and template saves now surface the right validation failure even on stale or programmatic save attempts, so missing names, missing required selections, and duplicate template exercises no longer collapse into a misleading duplicate-name error.
 - Template exercise edits now fail safely too: if SwiftData cannot persist an add/update/remove change, RPT restores the template’s exercise list in place instead of leaving phantom additions, lost edits, or silent deletions in memory.

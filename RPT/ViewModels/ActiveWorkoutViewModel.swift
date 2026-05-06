@@ -107,49 +107,80 @@ class ActiveWorkoutViewModel: ObservableObject {
     
     // Updated method to populate workout with previous weights without affecting completion
     private func populateWithPreviousWeights() throws {
-        // Only run this if the workout was created from a template
-        if workout.startedFromTemplate != nil {
-            for exercise in exerciseOrder {
-                // Get the workout history for this exercise - Safe to use without try because the method handles errors internally
-                let history = workoutManager.getWorkoutHistory(for: exercise)
-                
-                // If there's previous workout data
-                if !history.isEmpty {
-                    // Find the most recent workout that has completed working sets
-                    let recentWorkouts = history.filter { workout, sets in
-                        workout.isCompleted && sets.contains(where: Self.shouldUseForTemplateAutofill)
-                    }
-                    
-                    if let mostRecent = recentWorkouts.first {
-                        // Use completed working sets only (exclude warmups/placeholders)
-                        let sortedSets = orderSetsForDisplay(
-                            mostRecent.sets.filter(Self.shouldUseForTemplateAutofill)
-                        )
-                        
-                        // Get current sets for this exercise in the current workout
-                        if let currentSets = exerciseGroups[exercise].map(orderSetsForDisplay) {
-                            // Apply previous weights to the new sets
-                            for (index, currentSet) in currentSets.enumerated() {
-                                if let previousSet = sortedSets[safe: index] {
-                                    // Apply the weight directly to the set
-                                    currentSet.weight = previousSet.weight
-                                    
-                                    // Use the previous reps if currentSet has 0 reps
-                                    if currentSet.reps == 0 {
-                                        currentSet.reps = previousSet.reps
-                                    }
-                                    
-                                    // Copy RPE if available
-                                    currentSet.rpe = previousSet.rpe
+        guard workout.startedFromTemplate != nil else {
+            return
+        }
+
+        struct SetSnapshot {
+            let set: ExerciseSet
+            let weight: Int
+            let reps: Int
+            let rpe: Int?
+            let completedAt: Date
+        }
+
+        var snapshots: [PersistentIdentifier: SetSnapshot] = [:]
+
+        for exercise in exerciseOrder {
+            // Get the workout history for this exercise - Safe to use without try because the method handles errors internally
+            let history = workoutManager.getWorkoutHistory(for: exercise)
+
+            // If there's previous workout data
+            if !history.isEmpty {
+                // Find the most recent workout that has completed working sets
+                let recentWorkouts = history.filter { workout, sets in
+                    workout.isCompleted && sets.contains(where: Self.shouldUseForTemplateAutofill)
+                }
+
+                if let mostRecent = recentWorkouts.first {
+                    // Use completed working sets only (exclude warmups/placeholders)
+                    let sortedSets = orderSetsForDisplay(
+                        mostRecent.sets.filter(Self.shouldUseForTemplateAutofill)
+                    )
+
+                    // Get current sets for this exercise in the current workout
+                    if let currentSets = exerciseGroups[exercise].map(orderSetsForDisplay) {
+                        // Apply previous weights to the new sets
+                        for (index, currentSet) in currentSets.enumerated() {
+                            if let previousSet = sortedSets[safe: index] {
+                                if snapshots[currentSet.id] == nil {
+                                    snapshots[currentSet.id] = SetSnapshot(
+                                        set: currentSet,
+                                        weight: currentSet.weight,
+                                        reps: currentSet.reps,
+                                        rpe: currentSet.rpe,
+                                        completedAt: currentSet.completedAt
+                                    )
                                 }
+
+                                // Apply the weight directly to the set
+                                currentSet.weight = previousSet.weight
+
+                                // Use the previous reps if currentSet has 0 reps
+                                if currentSet.reps == 0 {
+                                    currentSet.reps = previousSet.reps
+                                }
+
+                                // Copy RPE if available
+                                currentSet.rpe = previousSet.rpe
                             }
                         }
                     }
                 }
             }
-            
+        }
+
+        do {
             // Save the workout with the weights but no exercises marked as completed
             try saveWorkout()
+        } catch {
+            for snapshot in snapshots.values {
+                snapshot.set.weight = snapshot.weight
+                snapshot.set.reps = snapshot.reps
+                snapshot.set.rpe = snapshot.rpe
+                snapshot.set.completedAt = snapshot.completedAt
+            }
+            throw error
         }
     }
     
