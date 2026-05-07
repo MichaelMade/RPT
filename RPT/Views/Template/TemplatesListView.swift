@@ -69,7 +69,7 @@ struct TemplatesListView: View {
                     } description: {
                         Text(
                             viewModel.hasActiveSearch
-                            ? "Try a different search or clear it to browse every workout template."
+                            ? "Try a different search or clear it to browse every workout template. You can search names, exercises, notes, and issue labels like missing or repeated."
                             : "Create your first workout template to quickly start repeatable RPT sessions."
                         )
                     } actions: {

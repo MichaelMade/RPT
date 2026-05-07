@@ -88,6 +88,43 @@ class TemplateViewModel: ObservableObject {
         return nil
     }
 
+    private static func searchTermMatchPriority(
+        query: String,
+        queryTokens: [String],
+        compactedQuery: String,
+        in searchTerms: [String]
+    ) -> Int? {
+        let normalizedTerms = searchTerms
+            .map(normalizedSearchLookupKey)
+            .filter { !$0.isEmpty }
+
+        guard !normalizedTerms.isEmpty else {
+            return nil
+        }
+
+        if normalizedTerms.contains(query) {
+            return 0
+        }
+
+        if normalizedTerms.contains(where: { $0.hasPrefix(query) }) {
+            return 1
+        }
+
+        if normalizedTerms.contains(where: { matchesQueryTokens(queryTokens, in: $0) }) {
+            return 2
+        }
+
+        if normalizedTerms.contains(where: { compactedMatchPriority(query: compactedQuery, in: $0) != nil }) {
+            return 3
+        }
+
+        if normalizedTerms.contains(where: { $0.contains(query) }) {
+            return 4
+        }
+
+        return nil
+    }
+
     var normalizedSearchText: String {
         Self.normalizedSearchQuery(searchText)
     }
@@ -241,13 +278,81 @@ class TemplateViewModel: ObservableObject {
         return nil
     }
 
+    private func issueSearchTerms(for template: WorkoutTemplate) -> [String] {
+        let unavailableCount = templateManager.unavailableExerciseNames(in: template).count
+        let duplicateCount = templateManager.duplicateExerciseNames(in: template).count
+        let availableCount = templateManager.availableExerciseCount(in: template)
+
+        var terms: [String] = []
+
+        if unavailableCount > 0 {
+            terms.append(contentsOf: [
+                "missing",
+                "unavailable",
+                "missing exercises",
+                "unavailable exercises"
+            ])
+
+            if availableCount > 0 {
+                terms.append(contentsOf: [
+                    "partial",
+                    "partial workout",
+                    "skipped exercises"
+                ])
+            } else {
+                terms.append(contentsOf: [
+                    "blocked",
+                    "cannot start"
+                ])
+            }
+        }
+
+        if duplicateCount > 0 {
+            terms.append(contentsOf: [
+                "repeated",
+                "duplicate",
+                "repeated entries",
+                "duplicate exercises"
+            ])
+        }
+
+        if unavailableCount == 0, duplicateCount == 0, !template.exercises.isEmpty {
+            terms.append(contentsOf: [
+                "ready",
+                "ready to start"
+            ])
+        }
+
+        return terms
+    }
+
+    private func searchMatchPriority(template: WorkoutTemplate, normalizedQuery: String) -> Int? {
+        if let basePriority = Self.searchMatchPriority(template: template, normalizedQuery: normalizedQuery) {
+            return basePriority
+        }
+
+        let queryTokens = Self.normalizedSearchTokens(normalizedQuery)
+        let compactedQuery = Self.compactedSearchLookupKey(normalizedQuery)
+
+        if let issuePriority = Self.searchTermMatchPriority(
+            query: normalizedQuery,
+            queryTokens: queryTokens,
+            compactedQuery: compactedQuery,
+            in: issueSearchTerms(for: template)
+        ) {
+            return 17 + issuePriority
+        }
+
+        return nil
+    }
+
     func fetchTemplates() -> [WorkoutTemplate] {
         let normalizedSearchLookup = Self.normalizedSearchLookupKey(normalizedSearchText)
 
         return templates
             .enumerated()
             .compactMap { index, template in
-                let searchPriority = Self.searchMatchPriority(
+                let searchPriority = searchMatchPriority(
                     template: template,
                     normalizedQuery: normalizedSearchLookup
                 )

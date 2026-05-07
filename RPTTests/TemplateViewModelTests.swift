@@ -1,4 +1,5 @@
 import XCTest
+import SwiftData
 @testable import RPT
 
 @MainActor
@@ -124,6 +125,77 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
             ["Push Day"]
+        )
+    }
+
+    func testFetchTemplates_matchesMissingIssueKeywords() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(
+            name: "Available Bench \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest]
+        )
+        context.insert(availableExercise)
+        try context.save()
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Broken Template", exerciseNames: ["Missing Lift \(UUID().uuidString)"]),
+            makeTemplate(name: "Ready Template", exerciseNames: [availableExercise.name])
+        ]
+        viewModel.searchText = "missing"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Broken Template"]
+        )
+    }
+
+    func testFetchTemplates_matchesPartialIssueKeywords() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(
+            name: "Available Row \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.lats]
+        )
+        context.insert(availableExercise)
+        try context.save()
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(
+                name: "Partial Template",
+                exerciseNames: [availableExercise.name, "Missing Squat \(UUID().uuidString)"]
+            ),
+            makeTemplate(name: "Ready Template", exerciseNames: [availableExercise.name])
+        ]
+        viewModel.searchText = "partial"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Partial Template"]
+        )
+    }
+
+    func testFetchTemplates_matchesRepeatedIssueKeywords() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Duplicate Template", exerciseNames: ["Bench Press", " bench\npress "]),
+            makeTemplate(name: "Clean Template", exerciseNames: ["Squat"])
+        ]
+        viewModel.searchText = "duplicate"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Duplicate Template"]
         )
     }
 
