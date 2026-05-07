@@ -161,10 +161,19 @@ class TemplateManager {
     }
 
     func fetchTemplateByName(_ name: String) -> WorkoutTemplate? {
+        let sanitizedName = Self.sanitizeTemplateName(name)
         let descriptor = FetchDescriptor<WorkoutTemplate>(
-            predicate: #Predicate<WorkoutTemplate> { $0.name == name }
+            predicate: #Predicate<WorkoutTemplate> { $0.name == sanitizedName }
         )
-        return try? modelContext.fetch(descriptor).first
+
+        if let exactMatch = try? modelContext.fetch(descriptor).first {
+            return exactMatch
+        }
+
+        let normalizedLookup = Self.normalizedNameLookupKey(sanitizedName)
+        return fetchAllTemplates().first {
+            Self.normalizedNameLookupKey($0.name) == normalizedLookup
+        }
     }
 
     func fetchTemplate(byId id: String) -> WorkoutTemplate? {

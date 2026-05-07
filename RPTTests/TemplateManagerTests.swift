@@ -213,6 +213,25 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
+    func testFetchTemplateByName_matchesWhitespaceAndWidthVariants() throws {
+        let context = DataManager.shared.getModelContext()
+        let uniqueSuffix = UUID().uuidString
+        let template = WorkoutTemplate(
+            name: "Upper Body Lookup \(uniqueSuffix)",
+            exercises: [sampleTemplateExercise()],
+            notes: ""
+        )
+        context.insert(template)
+        XCTAssertNoThrow(try context.save())
+
+        let fetched = TemplateManager.shared.fetchTemplateByName("  Ｕｐｐｅｒ   Ｂｏｄｙ   Ｌｏｏｋｕｐ \(uniqueSuffix)  ")
+
+        XCTAssertEqual(fetched?.id, template.id)
+
+        context.delete(template)
+        XCTAssertNoThrow(try context.save())
+    }
+
     func testWorkoutTemplateInitializer_normalizesNameAndNotes() {
         let template = WorkoutTemplate(
             name: "  Upper   Body\nDay  ",
