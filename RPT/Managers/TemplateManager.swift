@@ -229,8 +229,9 @@ class TemplateManager {
     func startWorkoutActionTitle(for template: WorkoutTemplate) -> String {
         let availableCount = availableExerciseCount(in: template)
         let unavailableCount = unavailableExerciseNames(in: template).count
+        let duplicateCount = duplicateExerciseNames(in: template).count
 
-        guard unavailableCount > 0, availableCount > 0 else {
+        guard availableCount > 0, unavailableCount > 0 || duplicateCount > 0 else {
             return "Start Workout"
         }
 
@@ -238,28 +239,48 @@ class TemplateManager {
     }
 
     func partialStartConfirmationMessage(for template: WorkoutTemplate) -> String? {
+        startWorkoutConfirmationMessage(for: template)
+    }
+
+    func startWorkoutConfirmationMessage(for template: WorkoutTemplate) -> String? {
         let unavailableExerciseNames = unavailableExerciseNames(in: template)
+        let duplicateExerciseNames = duplicateExerciseNames(in: template)
         let availableCount = availableExerciseCount(in: template)
 
-        guard !unavailableExerciseNames.isEmpty, availableCount > 0 else {
+        guard availableCount > 0, !unavailableExerciseNames.isEmpty || !duplicateExerciseNames.isEmpty else {
             return nil
         }
 
-        let skippedSummary: String
-        if unavailableExerciseNames.count == 1 {
-            skippedSummary = "1 template exercise will be skipped for now: \(unavailableExerciseNames[0])."
-        } else {
-            let previewNames = unavailableExerciseNames.prefix(3).joined(separator: ", ")
-            let remainingCount = unavailableExerciseNames.count - min(unavailableExerciseNames.count, 3)
-            let suffix = remainingCount > 0 ? ", and \(remainingCount) more" : ""
-            skippedSummary = "\(unavailableExerciseNames.count) template exercises will be skipped for now: \(previewNames)\(suffix)."
+        var summaryParts: [String] = []
+
+        if !unavailableExerciseNames.isEmpty {
+            if unavailableExerciseNames.count == 1 {
+                summaryParts.append("1 template exercise will be skipped for now: \(unavailableExerciseNames[0]).")
+            } else {
+                let previewNames = unavailableExerciseNames.prefix(3).joined(separator: ", ")
+                let remainingCount = unavailableExerciseNames.count - min(unavailableExerciseNames.count, 3)
+                let suffix = remainingCount > 0 ? ", and \(remainingCount) more" : ""
+                summaryParts.append("\(unavailableExerciseNames.count) template exercises will be skipped for now: \(previewNames)\(suffix).")
+            }
+        }
+
+        if !duplicateExerciseNames.isEmpty {
+            if duplicateExerciseNames.count == 1 {
+                summaryParts.append("Repeated entries for \(duplicateExerciseNames[0]) will only be added once.")
+            } else {
+                let previewNames = duplicateExerciseNames.prefix(3).joined(separator: ", ")
+                let remainingCount = duplicateExerciseNames.count - min(duplicateExerciseNames.count, 3)
+                let suffix = remainingCount > 0 ? ", and \(remainingCount) more" : ""
+                summaryParts.append("Repeated entries for \(previewNames)\(suffix) will only be added once each.")
+            }
         }
 
         let availableSummary = availableCount == 1
-            ? "Start this workout with the remaining 1 available exercise?"
-            : "Start this workout with the remaining \(availableCount) available exercises?"
+            ? "Start this workout with the remaining 1 unique available exercise?"
+            : "Start this workout with the remaining \(availableCount) unique available exercises?"
 
-        return "\(skippedSummary) \(availableSummary)"
+        summaryParts.append(availableSummary)
+        return summaryParts.joined(separator: " ")
     }
 
     func validateDraft(name: String, exercises: [TemplateExercise], excludingTemplateId excludedTemplateId: String? = nil) -> DraftValidationResult {

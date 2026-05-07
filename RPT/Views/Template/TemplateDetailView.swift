@@ -13,7 +13,7 @@ struct TemplateDetailView: View {
     let onStartWorkout: (Workout) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var startWorkoutFailureMessage: String?
-    @State private var showingPartialStartConfirmation = false
+    @State private var showingStartWorkoutConfirmation = false
 
     private let templateManager = TemplateManager.shared
 
@@ -29,8 +29,8 @@ struct TemplateDetailView: View {
         !template.exercises.isEmpty && templateManager.availableExerciseCount(in: template) == 0
     }
 
-    private var partialStartConfirmationMessage: String? {
-        templateManager.partialStartConfirmationMessage(for: template)
+    private var startWorkoutConfirmationMessage: String? {
+        templateManager.startWorkoutConfirmationMessage(for: template)
     }
 
     private func startWorkout() {
@@ -148,8 +148,8 @@ struct TemplateDetailView: View {
                     Spacer()
                     
                     Button(action: {
-                        if partialStartConfirmationMessage != nil {
-                            showingPartialStartConfirmation = true
+                        if startWorkoutConfirmationMessage != nil {
+                            showingStartWorkoutConfirmation = true
                         } else {
                             startWorkout()
                         }
@@ -185,13 +185,13 @@ struct TemplateDetailView: View {
                     }
                 }
             }
-            .alert("Start Partial Workout?", isPresented: $showingPartialStartConfirmation) {
+            .alert(templateManager.startWorkoutActionTitle(for: template), isPresented: $showingStartWorkoutConfirmation) {
                 Button("Cancel", role: .cancel) {}
-                Button("Start Partial Workout") {
+                Button(templateManager.startWorkoutActionTitle(for: template)) {
                     startWorkout()
                 }
             } message: {
-                Text(partialStartConfirmationMessage ?? "")
+                Text(startWorkoutConfirmationMessage ?? "")
             }
             .alert("Workout Action Failed", isPresented: Binding(
                 get: { startWorkoutFailureMessage != nil },

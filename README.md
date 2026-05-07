@@ -1,5 +1,6 @@
 # RPT
 
+- Template starts now ask for confirmation when a corrupted/imported template would skip missing or repeated exercises, and the primary action switches to `Start Partial Workout` so users know exactly which movements will be omitted before launch.
 - Template Details now warns when a corrupted/imported template contains repeated exercise entries, so users can see which movements will only be added once at workout start and clean up the template instead of being surprised by silent deduping.
 - Template exercise updates now reject normalized duplicate exercise names too, so stale/programmatic edit paths cannot rename one row into another existing movement and silently re-corrupt a template.
 - Template lookup now uses the same normalized name-matching rules as exercise lookup, so whitespace, case, diacritic, and full-width keyboard variants still resolve the correct saved template instead of acting like it is missing.
@@ -132,6 +133,7 @@ RPT/
 
 ## Recent Improvements
 
+- Template starts now confirm skipped entries before launch whenever a template would omit missing or repeated exercises, and the primary action switches to `Start Partial Workout` so corrupted/imported templates no longer silently drop duplicate movements at workout start; added regression coverage in `TemplateManagerTests`.
 - Template Details now surfaces a `Repeated Entries` warning whenever a corrupted/imported template contains duplicate exercise names, so users can see which movements will only be added once at start and clean up the template instead of being surprised by silent deduping; added regression coverage in `TemplateManagerTests`.
 - Hardened `TemplateManager.updateTemplateExercise(...)` against normalized duplicate exercise names, so stale or future rename/edit paths cannot turn one template row into a duplicate of another existing movement; added regression coverage in `TemplateManagerTests`.
 - Normalized template lookup now matches the same whitespace/case/diacritic/full-width variants that the app already treats as equivalent during validation, so callers can still find a saved template even if the incoming name formatting is messy; added regression coverage in `TemplateManagerTests`.
