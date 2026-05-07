@@ -22,7 +22,7 @@ struct TemplateDetailView: View {
     }
 
     private var allTemplateExercisesUnavailable: Bool {
-        !template.exercises.isEmpty && unavailableExerciseNames.count == template.exercises.count
+        !template.exercises.isEmpty && templateManager.availableExerciseCount(in: template) == 0
     }
 
     private var partialStartConfirmationMessage: String? {

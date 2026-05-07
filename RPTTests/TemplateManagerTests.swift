@@ -419,6 +419,53 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertNoThrow(try context.save())
     }
 
+    func testPartialStartConfirmationMessage_usesUniqueResolvableExerciseCountForCorruptedDuplicates() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+
+        let template = WorkoutTemplate(
+            name: "Corrupted Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: " bench\npress "),
+                sampleTemplateExercise(named: "Incline Dumbbell Press")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.availableExerciseCount(in: template),
+            1,
+            "Template starts should count only unique resolvable exercises when corrupted duplicates exist"
+        )
+        XCTAssertEqual(
+            TemplateManager.shared.partialStartConfirmationMessage(for: template),
+            "1 template exercise will be skipped for now: Incline Dumbbell Press. Start this workout with the remaining 1 available exercise?"
+        )
+
+        context.delete(availableExercise)
+        XCTAssertNoThrow(try context.save())
+    }
+
+    func testAvailableExerciseCount_returnsZeroWhenOnlyDuplicateMissingExercisesRemain() {
+        let template = WorkoutTemplate(
+            name: "Missing Only",
+            exercises: [
+                sampleTemplateExercise(named: "Ghost Lift"),
+                sampleTemplateExercise(named: "  ghost\nlift ")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(TemplateManager.shared.availableExerciseCount(in: template), 0)
+        XCTAssertNil(
+            TemplateManager.shared.partialStartConfirmationMessage(for: template),
+            "If a corrupted template cannot resolve any unique exercises, partial-start confirmation should not pretend there is anything launchable"
+        )
+    }
+
     func testStartWorkoutActionTitle_staysDefaultWhenNothingWillBeSkipped() {
         let template = WorkoutTemplate(
             name: "Push Day",

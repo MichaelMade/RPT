@@ -1,6 +1,6 @@
 # RPT
 
-- Template starts now dedupe stale duplicate template exercises before launch, so corrupted/imported templates can’t create duplicate workout sections or repeated missing-exercise warnings from the same movement.
+- Template starts now dedupe stale duplicate template exercises before launch, so corrupted/imported templates can’t create duplicate workout sections, overstate how many exercises will survive a partial start, or show repeated missing-exercise warnings from the same movement.
 - TemplateViewModel now correctly treats template-start creation as a fallible operation, returning an optional workout instead of exposing an API that pretended a failed template launch could never happen.
 - Template-based workout autofill now fails safely too: if loading previous weights hits a SwiftData save failure, RPT restores the template’s original placeholder set values instead of leaving unsaved copied weights/reps behind in memory.
 - Template Details is now clearer and safer when some template exercises are missing from the library: the primary action switches to `Start Partial Workout` and asks for confirmation before launching a shortened session that skips unavailable exercises.

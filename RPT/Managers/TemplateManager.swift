@@ -206,7 +206,7 @@ class TemplateManager {
 
     func partialStartConfirmationMessage(for template: WorkoutTemplate) -> String? {
         let unavailableExerciseNames = unavailableExerciseNames(in: template)
-        let availableCount = max(0, template.exercises.count - unavailableExerciseNames.count)
+        let availableCount = availableExerciseCount(in: template)
 
         guard !unavailableExerciseNames.isEmpty, availableCount > 0 else {
             return nil
