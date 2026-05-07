@@ -442,6 +442,14 @@ class TemplateManager {
             return false
         }
 
+        let normalizedUpdatedExerciseName = ExerciseManager.normalizedNameLookupKey(updatedExercise.exerciseName)
+        guard !template.exercises.contains(where: {
+            $0.id != exerciseId &&
+            ExerciseManager.normalizedNameLookupKey($0.exerciseName) == normalizedUpdatedExerciseName
+        }) else {
+            return false
+        }
+
         let originalExercise = template.exercises[index]
         template.exercises[index] = updatedExercise
 

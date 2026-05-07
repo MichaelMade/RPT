@@ -365,6 +365,37 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(template.exercises.first?.exerciseName, "Bench Press")
     }
 
+    func testUpdateTemplateExercise_rejectsNormalizedDuplicateNameAndLeavesOriginalExerciseUntouched() {
+        let originalExercise = sampleTemplateExercise(named: "Bench Press")
+        let secondExercise = sampleTemplateExercise(named: "Incline Bench Press")
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [originalExercise, secondExercise],
+            notes: ""
+        )
+
+        let updatedExercise = TemplateExercise(
+            id: originalExercise.id,
+            exerciseName: "  incline\nbench   press  ",
+            suggestedSets: 4,
+            repRanges: [
+                TemplateRepRange(setNumber: 1, minReps: 8, maxReps: 10, percentageOfFirstSet: 1.0)
+            ],
+            notes: "Pause at the bottom"
+        )
+
+        let didUpdateExercise = TemplateManager.shared.updateTemplateExercise(
+            template,
+            exerciseId: originalExercise.id,
+            updatedExercise: updatedExercise
+        )
+
+        XCTAssertFalse(didUpdateExercise)
+        XCTAssertEqual(template.exercises.map(\.exerciseName), ["Bench Press", "Incline Bench Press"])
+        XCTAssertEqual(template.exercises[0].suggestedSets, originalExercise.suggestedSets)
+        XCTAssertEqual(template.exercises[0].notes, originalExercise.notes)
+    }
+
     func testUpdateTemplateExercise_failedSaveRestoresOriginalExercise() {
         let originalExercise = sampleTemplateExercise(named: "Bench Press")
         let template = WorkoutTemplate(
