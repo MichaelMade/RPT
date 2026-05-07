@@ -199,6 +199,51 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesReadyKeywordForPartialAndReadyTemplates() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(
+            name: "Available Press \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest]
+        )
+        context.insert(availableExercise)
+        try context.save()
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(
+                name: "Partial Template",
+                exerciseNames: [availableExercise.name, "Missing Row \(UUID().uuidString)"]
+            ),
+            makeTemplate(name: "Ready Template", exerciseNames: [availableExercise.name]),
+            makeTemplate(name: "Blocked Template", exerciseNames: ["Missing Squat \(UUID().uuidString)"])
+        ]
+        viewModel.searchText = "ready"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Partial Template", "Ready Template"]
+        )
+    }
+
+    func testFetchTemplates_matchesCantStartKeywordForBlockedTemplates() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Blocked Template", exerciseNames: ["Missing Lift \(UUID().uuidString)"]),
+            makeTemplate(name: "Ready Template", exerciseNames: ["Bench Press"])
+        ]
+        viewModel.searchText = "cant start"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Blocked Template"]
+        )
+    }
+
     func testFetchTemplates_prioritizesNameMatchesBeforeExerciseMatches() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also matches the readiness language shown in template rows and alerts — including `ready`, `available`, `skipped`, and blocked-start phrases like `can't start` / `cant start` — so status-word searches line up better with what users actually see on screen.
 - Workout Templates search now also finds readiness/problem states like `missing`, `partial`, and `duplicate`, so users can quickly surface broken or partially startable templates using the same issue language shown in the UI.
 - Workout Templates search now also matches space-free mobile-style queries like `upperbody`, `benchpress`, and `heavychest` across template names, exercise names, and notes, while still keeping stronger direct-name matches ranked first.
 - Workout Templates search now matches out-of-order multi-word queries across template names, exercise names, and notes (for example `press bench` or `focus heavy`), so finding the right saved plan is less brittle in larger libraries.
@@ -136,6 +137,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates search now also matches the readiness language shown in template rows and alerts — including `ready`, `available`, `skipped`, and blocked-start phrases like `can't start` / `cant start` — so status-word searches line up better with what users actually see on screen; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also finds readiness/problem states like `missing`, `partial`, and `duplicate`, so users can quickly surface broken or partially startable templates using the same issue language shown in the UI; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also matches space-free queries like `upperbody`, `benchpress`, and `heavychest` across template names, exercise names, and notes, while still keeping stronger direct-name matches ranked first; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates list rows now surface corrupted-template readiness at a glance (`1 of 3 exercises ready • 1 missing • 1 repeated`) instead of overstating raw exercise counts, so users can spot broken templates before opening them; added regression coverage in `TemplateManagerTests`.

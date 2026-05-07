@@ -285,12 +285,23 @@ class TemplateViewModel: ObservableObject {
 
         var terms: [String] = []
 
+        if availableCount > 0 {
+            terms.append(contentsOf: [
+                "ready",
+                "ready to start",
+                "available",
+                "available exercises"
+            ])
+        }
+
         if unavailableCount > 0 {
             terms.append(contentsOf: [
                 "missing",
                 "unavailable",
                 "missing exercises",
-                "unavailable exercises"
+                "unavailable exercises",
+                "skipped",
+                "skip"
             ])
 
             if availableCount > 0 {
@@ -302,7 +313,10 @@ class TemplateViewModel: ObservableObject {
             } else {
                 terms.append(contentsOf: [
                     "blocked",
-                    "cannot start"
+                    "cannot start",
+                    "can't start",
+                    "cant start",
+                    "not ready"
                 ])
             }
         }
@@ -313,13 +327,6 @@ class TemplateViewModel: ObservableObject {
                 "duplicate",
                 "repeated entries",
                 "duplicate exercises"
-            ])
-        }
-
-        if unavailableCount == 0, duplicateCount == 0, !template.exercises.isEmpty {
-            terms.append(contentsOf: [
-                "ready",
-                "ready to start"
             ])
         }
 
