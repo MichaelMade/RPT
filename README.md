@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also matches space-free mobile-style queries like `upperbody`, `benchpress`, and `heavychest` across template names, exercise names, and notes, while still keeping stronger direct-name matches ranked first.
 - Workout Templates search now matches out-of-order multi-word queries across template names, exercise names, and notes (for example `press bench` or `focus heavy`), so finding the right saved plan is less brittle in larger libraries.
 - Template starts now ask for confirmation when a corrupted/imported template would skip missing or repeated exercises, and the primary action switches to `Start Partial Workout` so users know exactly which movements will be omitted before launch.
 - Template Details now warns when a corrupted/imported template contains repeated exercise entries, so users can see which movements will only be added once at workout start and clean up the template instead of being surprised by silent deduping.
@@ -134,6 +135,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates search now also matches space-free queries like `upperbody`, `benchpress`, and `heavychest` across template names, exercise names, and notes, while still keeping stronger direct-name matches ranked first; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates list rows now surface corrupted-template readiness at a glance (`1 of 3 exercises ready • 1 missing • 1 repeated`) instead of overstating raw exercise counts, so users can spot broken templates before opening them; added regression coverage in `TemplateManagerTests`.
 - Improved Workout Templates search so out-of-order multi-word queries now also match exercise names and notes (`press bench`, `focus heavy`) instead of only exact-order substrings, making larger template libraries easier to browse; added regression coverage in `TemplateViewModelTests`.
 - Template starts now confirm skipped entries before launch whenever a template would omit missing or repeated exercises, and the primary action switches to `Start Partial Workout` so corrupted/imported templates no longer silently drop duplicate movements at workout start; added regression coverage in `TemplateManagerTests`.

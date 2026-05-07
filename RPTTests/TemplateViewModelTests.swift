@@ -84,6 +84,35 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesCompactedTemplateNameAndExerciseQueries() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper Body", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"])
+        ]
+
+        viewModel.searchText = "upperbody"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body"])
+
+        viewModel.searchText = "benchpress"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body"])
+    }
+
+    func testFetchTemplates_matchesCompactedNotesQueries() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"], notes: "Heavy chest focus"),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"], notes: "Controlled back volume")
+        ]
+
+        viewModel.searchText = "heavychest"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Push Day"]
+        )
+    }
+
     func testFetchTemplates_matchesNotesOutOfOrderTokens() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -110,6 +139,20 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
             ["Row Focus", "Pull Day", "Conditioning"]
+        )
+    }
+
+    func testFetchTemplates_prioritizesDirectNameMatchesBeforeCompactedMatches() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Bench Press", exerciseNames: ["Squat"]),
+            makeTemplate(name: "Benchpress Accessories", exerciseNames: ["Row"])
+        ]
+        viewModel.searchText = "benchpress"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Benchpress Accessories", "Bench Press"]
         )
     }
 
