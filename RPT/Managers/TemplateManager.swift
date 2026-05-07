@@ -267,7 +267,7 @@ class TemplateManager {
         modelContext.insert(template)
 
         do {
-            try modelContext.save()
+            try dataManager.saveChanges()
             return .success
         } catch {
             modelContext.delete(template)
@@ -312,7 +312,7 @@ class TemplateManager {
         template.exercises = updatedExercises
 
         do {
-            try modelContext.save()
+            try dataManager.saveChanges()
             return .success
         } catch {
             template.name = originalName
@@ -385,7 +385,7 @@ class TemplateManager {
         }
 
         do {
-            try modelContext.save()
+            try dataManager.saveChanges()
             return workout
         } catch {
             modelContext.delete(workout)

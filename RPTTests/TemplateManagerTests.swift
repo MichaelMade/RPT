@@ -139,6 +139,24 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(result, .duplicateExercise)
     }
 
+    func testCreateTemplate_failedSaveReturnsPersistenceFailureAndDoesNotPersistTemplate() {
+        let context = DataManager.shared.getModelContext()
+        let manager = TemplateManager(
+            dataManager: FailingDataManager(context: context),
+            seedDefaultTemplates: false
+        )
+        let templateName = "Failure Template \(UUID().uuidString)"
+
+        let result = manager.createTemplate(
+            name: templateName,
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+
+        XCTAssertEqual(result, .persistenceFailure)
+        XCTAssertNil(manager.fetchTemplateByName(templateName))
+    }
+
     func testMutationResult_persistenceFailureUsesRetryAlertCopy() {
         XCTAssertEqual(TemplateManager.MutationResult.persistenceFailure.alertTitle, "Unable to Save Template")
         XCTAssertEqual(
@@ -578,6 +596,65 @@ final class TemplateManagerTests: XCTestCase {
         if let workout {
             context.delete(workout)
         }
+        context.delete(availableExercise)
+        XCTAssertNoThrow(try context.save())
+    }
+
+    func testUpdateTemplate_failedSaveRestoresOriginalTemplateState() {
+        let context = DataManager.shared.getModelContext()
+        let manager = TemplateManager(
+            dataManager: FailingDataManager(context: context),
+            seedDefaultTemplates: false
+        )
+        let template = WorkoutTemplate(
+            name: "Original Template",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: "Original notes"
+        )
+        context.insert(template)
+        XCTAssertNoThrow(try context.save())
+
+        let result = manager.updateTemplate(
+            template,
+            name: "Updated Template",
+            exercises: [sampleTemplateExercise(named: "Incline Press")],
+            notes: "Updated notes"
+        )
+
+        XCTAssertEqual(result, .persistenceFailure)
+        XCTAssertEqual(template.name, "Original Template")
+        XCTAssertEqual(template.notes, "Original notes")
+        XCTAssertEqual(template.exercises.map(\.exerciseName), ["Bench Press"])
+
+        context.delete(template)
+        XCTAssertNoThrow(try context.save())
+    }
+
+    func testCreateWorkoutFromTemplate_failedSaveReturnsNilAndCleansUpDraftWorkout() throws {
+        let context = DataManager.shared.getModelContext()
+        let manager = TemplateManager(
+            dataManager: FailingDataManager(context: context),
+            seedDefaultTemplates: false
+        )
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+
+        let templateName = "Push Day \(UUID().uuidString)"
+        let template = WorkoutTemplate(
+            name: templateName,
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+
+        let workout = manager.createWorkoutFromTemplate(template)
+
+        XCTAssertNil(workout)
+        XCTAssertFalse(
+            (try context.fetch(FetchDescriptor<Workout>())).contains { $0.name == templateName && $0.startedFromTemplate == templateName },
+            "A failed template start should not leave behind an unsaved workout draft"
+        )
+
         context.delete(availableExercise)
         XCTAssertNoThrow(try context.save())
     }
