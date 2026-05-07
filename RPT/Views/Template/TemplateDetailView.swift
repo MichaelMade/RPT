@@ -21,6 +21,10 @@ struct TemplateDetailView: View {
         templateManager.unavailableExerciseNames(in: template)
     }
 
+    private var duplicateExerciseNames: [String] {
+        templateManager.duplicateExerciseNames(in: template)
+    }
+
     private var allTemplateExercisesUnavailable: Bool {
         !template.exercises.isEmpty && templateManager.availableExerciseCount(in: template) == 0
     }
@@ -114,6 +118,23 @@ struct TemplateDetailView: View {
 
                             ForEach(unavailableExerciseNames, id: \.self) { exerciseName in
                                 Label(exerciseName, systemImage: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                    }
+
+                    if !duplicateExerciseNames.isEmpty {
+                        Section(header: Text("Repeated Entries")) {
+                            Text(
+                                duplicateExerciseNames.count == 1
+                                ? "1 repeated template exercise will only be added once when this workout starts. Edit the template to remove or replace the duplicate entry."
+                                : "\(duplicateExerciseNames.count) repeated template exercises will only be added once when this workout starts. Edit the template to remove or replace the duplicate entries."
+                            )
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                            ForEach(duplicateExerciseNames, id: \.self) { exerciseName in
+                                Label(exerciseName, systemImage: "square.on.square.fill")
                                     .foregroundColor(.orange)
                             }
                         }

@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details now warns when a corrupted/imported template contains repeated exercise entries, so users can see which movements will only be added once at workout start and clean up the template instead of being surprised by silent deduping.
 - Template exercise updates now reject normalized duplicate exercise names too, so stale/programmatic edit paths cannot rename one row into another existing movement and silently re-corrupt a template.
 - Template lookup now uses the same normalized name-matching rules as exercise lookup, so whitespace, case, diacritic, and full-width keyboard variants still resolve the correct saved template instead of acting like it is missing.
 - Template create/edit/start persistence now all run through the shared save path, so failure handling stays consistent and failed template saves or starts reliably roll back without leaving phantom drafts behind.
@@ -131,6 +132,7 @@ RPT/
 
 ## Recent Improvements
 
+- Template Details now surfaces a `Repeated Entries` warning whenever a corrupted/imported template contains duplicate exercise names, so users can see which movements will only be added once at start and clean up the template instead of being surprised by silent deduping; added regression coverage in `TemplateManagerTests`.
 - Hardened `TemplateManager.updateTemplateExercise(...)` against normalized duplicate exercise names, so stale or future rename/edit paths cannot turn one template row into a duplicate of another existing movement; added regression coverage in `TemplateManagerTests`.
 - Normalized template lookup now matches the same whitespace/case/diacritic/full-width variants that the app already treats as equivalent during validation, so callers can still find a saved template even if the incoming name formatting is messy; added regression coverage in `TemplateManagerTests`.
 - Routed template create/edit/start persistence through the shared `DataManaging` save path so failed template saves or starts now follow the same rollback/error-handling path as the rest of the app, avoiding phantom template drafts and adding regression coverage in `TemplateManagerTests`.

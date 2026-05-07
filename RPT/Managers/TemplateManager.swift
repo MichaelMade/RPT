@@ -198,6 +198,30 @@ class TemplateManager {
         }
     }
 
+    func duplicateExerciseNames(in template: WorkoutTemplate) -> [String] {
+        var firstDisplayNameByKey: [String: String] = [:]
+        var duplicateExerciseNames: [String] = []
+        var recordedDuplicateNames = Set<String>()
+
+        for templateExercise in template.exercises {
+            let normalizedExerciseName = ExerciseManager.normalizedNameLookupKey(templateExercise.exerciseName)
+            let displayName = TemplateExercise.normalizedDisplayName(templateExercise.exerciseName)
+
+            if let firstDisplayName = firstDisplayNameByKey[normalizedExerciseName] {
+                guard recordedDuplicateNames.insert(normalizedExerciseName).inserted else {
+                    continue
+                }
+
+                duplicateExerciseNames.append(firstDisplayName)
+                continue
+            }
+
+            firstDisplayNameByKey[normalizedExerciseName] = displayName
+        }
+
+        return duplicateExerciseNames
+    }
+
     func availableExerciseCount(in template: WorkoutTemplate) -> Int {
         uniqueResolvableTemplateExercises(in: template).count
     }
