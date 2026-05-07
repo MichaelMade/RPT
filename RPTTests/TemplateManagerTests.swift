@@ -584,6 +584,41 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertNoThrow(try context.save())
     }
 
+    func testTemplateListPreviewExerciseNames_skipsDuplicateDisplayNamesAndPreservesOrder() {
+        let template = WorkoutTemplate(
+            name: "Corrupted Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: " bench\npress "),
+                sampleTemplateExercise(named: "Incline Dumbbell Press"),
+                sampleTemplateExercise(named: "PULL-UP")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateListPreviewExerciseNames(for: template),
+            ["Bench Press", "Incline Dumbbell Press"]
+        )
+    }
+
+    func testTemplateListPreviewExerciseNames_respectsRequestedPreviewCount() {
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "Incline Dumbbell Press"),
+                sampleTemplateExercise(named: "Pull-Up")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateListPreviewExerciseNames(for: template, maxCount: 1),
+            ["Bench Press"]
+        )
+    }
+
     func testPartialStartConfirmationMessage_usesUniqueResolvableExerciseCountForCorruptedDuplicates() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

@@ -251,6 +251,30 @@ class TemplateManager {
         return ([readySummary] + issueParts).joined(separator: " • ")
     }
 
+    func templateListPreviewExerciseNames(for template: WorkoutTemplate, maxCount: Int = 2) -> [String] {
+        guard maxCount > 0 else {
+            return []
+        }
+
+        var seenNames = Set<String>()
+        var previewNames: [String] = []
+
+        for exercise in template.exercises {
+            let normalizedName = ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
+            guard seenNames.insert(normalizedName).inserted else {
+                continue
+            }
+
+            previewNames.append(TemplateExercise.normalizedDisplayName(exercise.exerciseName))
+
+            if previewNames.count == maxCount {
+                break
+            }
+        }
+
+        return previewNames
+    }
+
     func startWorkoutActionTitle(for template: WorkoutTemplate) -> String {
         let availableCount = availableExerciseCount(in: template)
         let unavailableCount = unavailableExerciseNames(in: template).count

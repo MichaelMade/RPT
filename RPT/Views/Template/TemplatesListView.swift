@@ -113,9 +113,9 @@ struct TemplatesListView: View {
 
                                     // Preview of first few exercises
                                     if !template.exercises.isEmpty {
-                                        let previewExercises = template.exercises.prefix(2)
-                                        Text(previewExercises.map { TemplateExercise.normalizedDisplayName($0.exerciseName) }.joined(separator: ", ") +
-                                             (template.exercises.count > 2 ? "..." : ""))
+                                        let previewExerciseNames = templateManager.templateListPreviewExerciseNames(for: template)
+                                        Text(previewExerciseNames.joined(separator: ", ") +
+                                             (template.exercises.count > previewExerciseNames.count ? "..." : ""))
                                             .font(.caption)
                                             .foregroundColor(.gray)
                                             .lineLimit(1)
