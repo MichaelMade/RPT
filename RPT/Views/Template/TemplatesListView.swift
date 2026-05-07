@@ -24,6 +24,8 @@ struct TemplatesListView: View {
     @State private var templateToStartWorkout: WorkoutTemplate?
     @State private var resumableWorkoutToProtect: Workout?
     @State private var activeWorkoutFailureMessage: String?
+
+    private let templateManager = TemplateManager.shared
     
     // Bindings for active workout
     @Binding var activeWorkoutBinding: Workout?
@@ -94,14 +96,18 @@ struct TemplatesListView: View {
                                 currentAction = .detail
                             }
                         }) {
+                            let unavailableCount = templateManager.unavailableExerciseNames(in: template).count
+                            let duplicateCount = templateManager.duplicateExerciseNames(in: template).count
+                            let hasTemplateIssues = unavailableCount > 0 || duplicateCount > 0
+
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(WorkoutTemplate.normalizedDisplayName(template.name))
                                     .font(.headline)
 
                                 HStack {
-                                    Text("\(template.exercises.count) exercises")
+                                    Text(templateManager.templateListExerciseSummary(for: template))
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(hasTemplateIssues ? .orange : .secondary)
 
                                     Spacer()
 

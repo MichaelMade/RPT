@@ -543,6 +543,47 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertNoThrow(try context.save())
     }
 
+    func testTemplateListExerciseSummary_showsPlainExerciseCountWhenTemplateIsClean() {
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "Incline Dumbbell Press")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateListExerciseSummary(for: template),
+            "2 exercises"
+        )
+    }
+
+    func testTemplateListExerciseSummary_callsOutMissingAndRepeatedEntries() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+
+        let template = WorkoutTemplate(
+            name: "Corrupted Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: " bench\npress "),
+                sampleTemplateExercise(named: "Ghost Lift")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateListExerciseSummary(for: template),
+            "1 of 3 exercises ready • 1 missing • 1 repeated"
+        )
+
+        context.delete(availableExercise)
+        XCTAssertNoThrow(try context.save())
+    }
+
     func testPartialStartConfirmationMessage_usesUniqueResolvableExerciseCountForCorruptedDuplicates() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

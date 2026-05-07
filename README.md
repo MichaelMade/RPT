@@ -134,6 +134,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates list rows now surface corrupted-template readiness at a glance (`1 of 3 exercises ready • 1 missing • 1 repeated`) instead of overstating raw exercise counts, so users can spot broken templates before opening them; added regression coverage in `TemplateManagerTests`.
 - Improved Workout Templates search so out-of-order multi-word queries now also match exercise names and notes (`press bench`, `focus heavy`) instead of only exact-order substrings, making larger template libraries easier to browse; added regression coverage in `TemplateViewModelTests`.
 - Template starts now confirm skipped entries before launch whenever a template would omit missing or repeated exercises, and the primary action switches to `Start Partial Workout` so corrupted/imported templates no longer silently drop duplicate movements at workout start; added regression coverage in `TemplateManagerTests`.
 - Template Details now surfaces a `Repeated Entries` warning whenever a corrupted/imported template contains duplicate exercise names, so users can see which movements will only be added once at start and clean up the template instead of being surprised by silent deduping; added regression coverage in `TemplateManagerTests`.

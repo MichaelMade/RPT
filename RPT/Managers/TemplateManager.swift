@@ -226,6 +226,31 @@ class TemplateManager {
         uniqueResolvableTemplateExercises(in: template).count
     }
 
+    func templateListExerciseSummary(for template: WorkoutTemplate) -> String {
+        let totalCount = template.exercises.count
+        let availableCount = availableExerciseCount(in: template)
+        let unavailableCount = unavailableExerciseNames(in: template).count
+        let duplicateCount = duplicateExerciseNames(in: template).count
+
+        guard unavailableCount > 0 || duplicateCount > 0 else {
+            return totalCount == 1 ? "1 exercise" : "\(totalCount) exercises"
+        }
+
+        let readySummary = totalCount == 1
+            ? "\(availableCount) of 1 exercise ready"
+            : "\(availableCount) of \(totalCount) exercises ready"
+
+        var issueParts: [String] = []
+        if unavailableCount > 0 {
+            issueParts.append(unavailableCount == 1 ? "1 missing" : "\(unavailableCount) missing")
+        }
+        if duplicateCount > 0 {
+            issueParts.append(duplicateCount == 1 ? "1 repeated" : "\(duplicateCount) repeated")
+        }
+
+        return ([readySummary] + issueParts).joined(separator: " • ")
+    }
+
     func startWorkoutActionTitle(for template: WorkoutTemplate) -> String {
         let availableCount = availableExerciseCount(in: template)
         let unavailableCount = unavailableExerciseNames(in: template).count
