@@ -70,12 +70,40 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
     }
 
+    func testFetchTemplates_matchesExerciseNameOutOfOrderTokens() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"])
+        ]
+        viewModel.searchText = "press bench"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Push Day"]
+        )
+    }
+
+    func testFetchTemplates_matchesNotesOutOfOrderTokens() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"], notes: "Heavy chest focus"),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"], notes: "Controlled back volume")
+        ]
+        viewModel.searchText = "focus heavy"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Push Day"]
+        )
+    }
+
     func testFetchTemplates_prioritizesNameMatchesBeforeExerciseMatches() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
             makeTemplate(name: "Row Focus", exerciseNames: ["Bench Press"]),
             makeTemplate(name: "Pull Day", exerciseNames: ["Cable Row"]),
-            makeTemplate(name: "Conditioning", exerciseNames: ["Farmer Row Carry"])
+            makeTemplate(name: "Conditioning", exerciseNames: ["Farmer Row Carry"], notes: "Row intervals finisher")
         ]
         viewModel.searchText = "row"
 

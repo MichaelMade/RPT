@@ -37,6 +37,27 @@ class TemplateViewModel: ObservableObject {
             .map(String.init)
     }
 
+    private static func normalizedSearchWords(_ rawValue: String) -> [String] {
+        normalizedSearchLookupKey(rawValue)
+            .split(separator: " ")
+            .map(String.init)
+    }
+
+    private static func matchesQueryTokens(_ queryTokens: [String], in rawValue: String) -> Bool {
+        guard !queryTokens.isEmpty else {
+            return false
+        }
+
+        let words = normalizedSearchWords(rawValue)
+        guard !words.isEmpty else {
+            return false
+        }
+
+        return queryTokens.allSatisfy { token in
+            words.contains(where: { $0.hasPrefix(token) })
+        }
+    }
+
     var normalizedSearchText: String {
         Self.normalizedSearchQuery(searchText)
     }
@@ -121,7 +142,6 @@ class TemplateViewModel: ObservableObject {
 
         let normalizedName = normalizedSearchLookupKey(template.name)
         let queryTokens = normalizedSearchTokens(normalizedQuery)
-        let nameWords = normalizedName.split(separator: " ")
 
         if normalizedName == normalizedQuery {
             return 0
@@ -131,10 +151,7 @@ class TemplateViewModel: ObservableObject {
             return 1
         }
 
-        if !queryTokens.isEmpty,
-           queryTokens.allSatisfy({ token in
-               nameWords.contains(where: { $0.hasPrefix(token) })
-           }) {
+        if matchesQueryTokens(queryTokens, in: template.name) {
             return 2
         }
 
@@ -142,9 +159,8 @@ class TemplateViewModel: ObservableObject {
             return 3
         }
 
-        let normalizedExerciseNames = template.exercises
-            .map(\.exerciseName)
-            .map { normalizedSearchLookupKey($0) }
+        let exerciseNames = template.exercises.map(\.exerciseName)
+        let normalizedExerciseNames = exerciseNames.map { normalizedSearchLookupKey($0) }
 
         if normalizedExerciseNames.contains(where: { $0 == normalizedQuery }) {
             return 4
@@ -154,13 +170,29 @@ class TemplateViewModel: ObservableObject {
             return 5
         }
 
-        if normalizedExerciseNames.contains(where: { $0.contains(normalizedQuery) }) {
+        if exerciseNames.contains(where: { matchesQueryTokens(queryTokens, in: $0) }) {
             return 6
         }
 
-        let normalizedNotes = normalizedSearchLookupKey(template.notes)
-        if !normalizedNotes.isEmpty, normalizedNotes.contains(normalizedQuery) {
+        if normalizedExerciseNames.contains(where: { $0.contains(normalizedQuery) }) {
             return 7
+        }
+
+        let normalizedNotes = normalizedSearchLookupKey(template.notes)
+        if !normalizedNotes.isEmpty, normalizedNotes == normalizedQuery {
+            return 8
+        }
+
+        if !normalizedNotes.isEmpty, normalizedNotes.hasPrefix(normalizedQuery) {
+            return 9
+        }
+
+        if matchesQueryTokens(queryTokens, in: template.notes) {
+            return 10
+        }
+
+        if !normalizedNotes.isEmpty, normalizedNotes.contains(normalizedQuery) {
+            return 11
         }
 
         return nil
