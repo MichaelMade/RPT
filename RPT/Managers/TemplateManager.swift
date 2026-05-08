@@ -232,6 +232,10 @@ class TemplateManager {
         let unavailableCount = unavailableExerciseNames(in: template).count
         let duplicateCount = duplicateExerciseNames(in: template).count
 
+        if totalCount == 0 {
+            return "No exercises yet • add at least 1 to start"
+        }
+
         guard unavailableCount > 0 || duplicateCount > 0 else {
             return totalCount == 1 ? "1 exercise" : "\(totalCount) exercises"
         }

@@ -272,6 +272,35 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesCantStartKeywordForDuplicateOnlyAndEmptyTemplates() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Duplicate Only", exerciseNames: ["Bench Press", " bench\npress "]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: ""),
+            makeTemplate(name: "Ready Template", exerciseNames: ["Bench Press", "Pull-Up"])
+        ]
+        viewModel.searchText = "can't start"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Duplicate Only", "Empty Template"]
+        )
+    }
+
+    func testFetchTemplates_matchesEmptyTemplateKeywords() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: ""),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+        viewModel.searchText = "empty"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Empty Template"]
+        )
+    }
+
     func testFetchTemplates_prioritizesNameMatchesBeforeExerciseMatches() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

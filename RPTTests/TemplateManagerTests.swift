@@ -584,6 +584,19 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertNoThrow(try context.save())
     }
 
+    func testTemplateListExerciseSummary_callsOutEmptyTemplateAsNotStartable() {
+        let template = WorkoutTemplate(
+            name: "Empty Template",
+            exercises: [],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateListExerciseSummary(for: template),
+            "No exercises yet • add at least 1 to start"
+        )
+    }
+
     func testTemplateListPreviewExerciseNames_skipsDuplicateDisplayNamesAndPreservesOrder() {
         let template = WorkoutTemplate(
             name: "Corrupted Push Day",

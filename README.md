@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates list rows now flag empty templates as not startable with `No exercises yet • add at least 1 to start`, and template search now also finds fully blocked edge cases like empty or duplicate-only templates via terms such as `empty` and `can't start`.
 - Template Details now makes fully blocked templates explicit with a disabled `Can't Start Workout` CTA plus fix-it helper copy when none of the template’s unique exercises are currently startable.
 - Workout Templates search now also matches initialism-style shorthand like `ubp` for `Upper Body Push`, `bp` for `Bench Press`, and `hcf` for note text like `Heavy chest focus`, making one-handed mobile search much more forgiving.
 - Workout Templates list rows now dedupe repeated exercise names inside the inline preview, so corrupted/imported templates no longer waste that glanceable space showing the same movement twice while hiding the next unique exercise.

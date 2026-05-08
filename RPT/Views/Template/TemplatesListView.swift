@@ -98,7 +98,9 @@ struct TemplatesListView: View {
                         }) {
                             let unavailableCount = templateManager.unavailableExerciseNames(in: template).count
                             let duplicateCount = templateManager.duplicateExerciseNames(in: template).count
-                            let hasTemplateIssues = unavailableCount > 0 || duplicateCount > 0
+                            let hasTemplateIssues = unavailableCount > 0
+                                || duplicateCount > 0
+                                || templateManager.startWorkoutDisabledMessage(for: template) != nil
 
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(WorkoutTemplate.normalizedDisplayName(template.name))

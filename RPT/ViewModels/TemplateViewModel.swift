@@ -317,18 +317,30 @@ class TemplateViewModel: ObservableObject {
     }
 
     private func issueSearchTerms(for template: WorkoutTemplate) -> [String] {
+        let totalCount = template.exercises.count
         let unavailableCount = templateManager.unavailableExerciseNames(in: template).count
         let duplicateCount = templateManager.duplicateExerciseNames(in: template).count
         let availableCount = templateManager.availableExerciseCount(in: template)
+        let canStartWorkout = availableCount > 0
 
         var terms: [String] = []
 
-        if availableCount > 0 {
+        if canStartWorkout {
             terms.append(contentsOf: [
                 "ready",
                 "ready to start",
                 "available",
                 "available exercises"
+            ])
+        }
+
+        if totalCount == 0 {
+            terms.append(contentsOf: [
+                "empty",
+                "no exercises",
+                "empty template",
+                "add exercises",
+                "needs exercises"
             ])
         }
 
@@ -342,19 +354,11 @@ class TemplateViewModel: ObservableObject {
                 "skip"
             ])
 
-            if availableCount > 0 {
+            if canStartWorkout {
                 terms.append(contentsOf: [
                     "partial",
                     "partial workout",
                     "skipped exercises"
-                ])
-            } else {
-                terms.append(contentsOf: [
-                    "blocked",
-                    "cannot start",
-                    "can't start",
-                    "cant start",
-                    "not ready"
                 ])
             }
         }
@@ -365,6 +369,16 @@ class TemplateViewModel: ObservableObject {
                 "duplicate",
                 "repeated entries",
                 "duplicate exercises"
+            ])
+        }
+
+        if !canStartWorkout {
+            terms.append(contentsOf: [
+                "blocked",
+                "cannot start",
+                "can't start",
+                "cant start",
+                "not ready"
             ])
         }
 
