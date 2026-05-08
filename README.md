@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details now makes fully blocked templates explicit with a disabled `Can't Start Workout` CTA plus fix-it helper copy when none of the template’s unique exercises are currently startable.
 - Workout Templates search now also matches initialism-style shorthand like `ubp` for `Upper Body Push`, `bp` for `Bench Press`, and `hcf` for note text like `Heavy chest focus`, making one-handed mobile search much more forgiving.
 - Workout Templates list rows now dedupe repeated exercise names inside the inline preview, so corrupted/imported templates no longer waste that glanceable space showing the same movement twice while hiding the next unique exercise.
 - Workout Templates search now also matches the readiness language shown in template rows and alerts — including `ready`, `available`, `skipped`, and blocked-start phrases like `can't start` / `cant start` — so status-word searches line up better with what users actually see on screen.

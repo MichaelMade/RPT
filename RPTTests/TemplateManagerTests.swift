@@ -660,9 +660,43 @@ final class TemplateManagerTests: XCTestCase {
         )
 
         XCTAssertEqual(TemplateManager.shared.availableExerciseCount(in: template), 0)
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Can't Start Workout")
+        XCTAssertEqual(
+            TemplateManager.shared.startWorkoutDisabledMessage(for: template),
+            "None of this template’s unique exercises are currently available in your library. Restore or replace the missing exercises before starting."
+        )
         XCTAssertNil(
             TemplateManager.shared.partialStartConfirmationMessage(for: template),
             "If a corrupted template cannot resolve any unique exercises, partial-start confirmation should not pretend there is anything launchable"
+        )
+    }
+
+    func testStartWorkoutDisabledMessage_explainsSingleMissingOnlyExercise() {
+        let template = WorkoutTemplate(
+            name: "Missing Only",
+            exercises: [sampleTemplateExercise(named: "Ghost Lift")],
+            notes: ""
+        )
+
+        XCTAssertEqual(TemplateManager.shared.availableExerciseCount(in: template), 0)
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Can't Start Workout")
+        XCTAssertEqual(
+            TemplateManager.shared.startWorkoutDisabledMessage(for: template),
+            "This template can’t start right now because its only exercise is missing from your library. Restore or replace it before starting."
+        )
+    }
+
+    func testStartWorkoutDisabledMessage_explainsEmptyTemplate() {
+        let template = WorkoutTemplate(
+            name: "Empty Template",
+            exercises: [],
+            notes: ""
+        )
+
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Can't Start Workout")
+        XCTAssertEqual(
+            TemplateManager.shared.startWorkoutDisabledMessage(for: template),
+            "This template doesn’t have any exercises yet. Edit it to add at least one exercise before starting."
         )
     }
 

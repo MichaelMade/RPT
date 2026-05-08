@@ -33,11 +33,16 @@ struct TemplateDetailView: View {
         templateManager.startWorkoutConfirmationMessage(for: template)
     }
 
+    private var startWorkoutDisabledMessage: String? {
+        templateManager.startWorkoutDisabledMessage(for: template)
+    }
+
     private func startWorkout() {
         guard let workout = templateManager.createWorkoutFromTemplate(template) else {
-            startWorkoutFailureMessage = allTemplateExercisesUnavailable
-                ? "This template can’t start right now because none of its exercises are currently available in your library."
-                : "Your workout could not be started right now. Please try again."
+            startWorkoutFailureMessage = startWorkoutDisabledMessage
+                ?? (allTemplateExercisesUnavailable
+                    ? "This template can’t start right now because none of its exercises are currently available in your library."
+                    : "Your workout could not be started right now. Please try again.")
             return
         }
 
@@ -147,25 +152,34 @@ struct TemplateDetailView: View {
                 VStack {
                     Spacer()
                     
-                    Button(action: {
-                        if startWorkoutConfirmationMessage != nil {
-                            showingStartWorkoutConfirmation = true
-                        } else {
-                            startWorkout()
+                    VStack(alignment: .leading, spacing: 8) {
+                        Button(action: {
+                            if startWorkoutConfirmationMessage != nil {
+                                showingStartWorkoutConfirmation = true
+                            } else {
+                                startWorkout()
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "figure.strengthtraining.traditional")
+                                Text(templateManager.startWorkoutActionTitle(for: template))
+                                    .fontWeight(.semibold)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
                         }
-                    }) {
-                        HStack {
-                            Image(systemName: "figure.strengthtraining.traditional")
-                            Text(templateManager.startWorkoutActionTitle(for: template))
-                                .fontWeight(.semibold)
+                        .disabled(allTemplateExercisesUnavailable)
+
+                        if let startWorkoutDisabledMessage, allTemplateExercisesUnavailable {
+                            Text(startWorkoutDisabledMessage)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
                     }
-                    .disabled(allTemplateExercisesUnavailable)
                     .padding(.horizontal)
                     .padding(.bottom, 16)
                     .background(

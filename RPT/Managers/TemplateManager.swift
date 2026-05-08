@@ -280,11 +280,45 @@ class TemplateManager {
         let unavailableCount = unavailableExerciseNames(in: template).count
         let duplicateCount = duplicateExerciseNames(in: template).count
 
-        guard availableCount > 0, unavailableCount > 0 || duplicateCount > 0 else {
+        if availableCount == 0 {
+            return "Can't Start Workout"
+        }
+
+        guard unavailableCount > 0 || duplicateCount > 0 else {
             return "Start Workout"
         }
 
         return "Start Partial Workout"
+    }
+
+    func startWorkoutDisabledMessage(for template: WorkoutTemplate) -> String? {
+        let availableCount = availableExerciseCount(in: template)
+        guard availableCount == 0 else {
+            return nil
+        }
+
+        if template.exercises.isEmpty {
+            return "This template doesn’t have any exercises yet. Edit it to add at least one exercise before starting."
+        }
+
+        let unavailableCount = unavailableExerciseNames(in: template).count
+        let duplicateCount = duplicateExerciseNames(in: template).count
+
+        if unavailableCount > 0 {
+            if duplicateCount > 0 {
+                return "None of this template’s unique exercises are currently available in your library. Restore or replace the missing exercises before starting."
+            }
+
+            return unavailableCount == 1
+                ? "This template can’t start right now because its only exercise is missing from your library. Restore or replace it before starting."
+                : "This template can’t start right now because none of its exercises are currently available in your library. Restore or replace them before starting."
+        }
+
+        if duplicateCount > 0 {
+            return "This template only contains repeated exercise entries right now. Edit it to keep at least one unique exercise before starting."
+        }
+
+        return "This template can’t start right now. Edit it and try again."
     }
 
     func partialStartConfirmationMessage(for template: WorkoutTemplate) -> String? {
