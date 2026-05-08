@@ -699,13 +699,14 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
-    func testStartWorkoutDisabledMessage_explainsEmptyTemplate() {
+    func testCanStartWorkout_returnsFalseForEmptyTemplate() {
         let template = WorkoutTemplate(
             name: "Empty Template",
             exercises: [],
             notes: ""
         )
 
+        XCTAssertFalse(TemplateManager.shared.canStartWorkout(for: template))
         XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Can't Start Workout")
         XCTAssertEqual(
             TemplateManager.shared.startWorkoutDisabledMessage(for: template),
@@ -713,13 +714,23 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
-    func testStartWorkoutActionTitle_staysDefaultWhenNothingWillBeSkipped() {
+    func testCanStartWorkout_returnsTrueWhenTemplateHasAtLeastOneResolvableExercise() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
         let template = WorkoutTemplate(
             name: "Push Day",
             exercises: [sampleTemplateExercise(named: "Bench Press")],
             notes: ""
         )
 
+        XCTAssertTrue(TemplateManager.shared.canStartWorkout(for: template))
         XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Workout")
         XCTAssertNil(TemplateManager.shared.partialStartConfirmationMessage(for: template))
     }

@@ -279,12 +279,15 @@ class TemplateManager {
         return previewNames
     }
 
+    func canStartWorkout(for template: WorkoutTemplate) -> Bool {
+        availableExerciseCount(in: template) > 0
+    }
+
     func startWorkoutActionTitle(for template: WorkoutTemplate) -> String {
-        let availableCount = availableExerciseCount(in: template)
         let unavailableCount = unavailableExerciseNames(in: template).count
         let duplicateCount = duplicateExerciseNames(in: template).count
 
-        if availableCount == 0 {
+        guard canStartWorkout(for: template) else {
             return "Can't Start Workout"
         }
 

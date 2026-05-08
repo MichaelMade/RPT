@@ -25,8 +25,8 @@ struct TemplateDetailView: View {
         templateManager.duplicateExerciseNames(in: template)
     }
 
-    private var allTemplateExercisesUnavailable: Bool {
-        !template.exercises.isEmpty && templateManager.availableExerciseCount(in: template) == 0
+    private var cannotStartWorkout: Bool {
+        !templateManager.canStartWorkout(for: template)
     }
 
     private var startWorkoutConfirmationMessage: String? {
@@ -40,7 +40,7 @@ struct TemplateDetailView: View {
     private func startWorkout() {
         guard let workout = templateManager.createWorkoutFromTemplate(template) else {
             startWorkoutFailureMessage = startWorkoutDisabledMessage
-                ?? (allTemplateExercisesUnavailable
+                ?? (cannotStartWorkout
                     ? "This template can’t start right now because none of its exercises are currently available in your library."
                     : "Your workout could not be started right now. Please try again.")
             return
@@ -171,9 +171,9 @@ struct TemplateDetailView: View {
                             .foregroundColor(.white)
                             .cornerRadius(12)
                         }
-                        .disabled(allTemplateExercisesUnavailable)
+                        .disabled(cannotStartWorkout)
 
-                        if let startWorkoutDisabledMessage, allTemplateExercisesUnavailable {
+                        if let startWorkoutDisabledMessage, cannotStartWorkout {
                             Text(startWorkoutDisabledMessage)
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
