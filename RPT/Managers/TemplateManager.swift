@@ -279,6 +279,27 @@ class TemplateManager {
         return previewNames
     }
 
+    func templateListHasMoreUniqueExercisesToPreview(for template: WorkoutTemplate, maxCount: Int = 2) -> Bool {
+        guard maxCount >= 0 else {
+            return !template.exercises.isEmpty
+        }
+
+        var seenNames = Set<String>()
+
+        for exercise in template.exercises {
+            let normalizedName = ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
+            guard seenNames.insert(normalizedName).inserted else {
+                continue
+            }
+
+            if seenNames.count > maxCount {
+                return true
+            }
+        }
+
+        return false
+    }
+
     func canStartWorkout(for template: WorkoutTemplate) -> Bool {
         availableExerciseCount(in: template) > 0
     }

@@ -632,6 +632,37 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
+    func testTemplateListHasMoreUniqueExercisesToPreview_ignoresDuplicateRowsWhenDecidingEllipsis() {
+        let duplicateOnlyTemplate = WorkoutTemplate(
+            name: "Corrupted Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: " bench\npress ")
+            ],
+            notes: ""
+        )
+
+        XCTAssertFalse(
+            TemplateManager.shared.templateListHasMoreUniqueExercisesToPreview(for: duplicateOnlyTemplate),
+            "Repeated exercise rows should not force an ellipsis when there are no additional unique preview items."
+        )
+
+        let templateWithRealOverflow = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "Incline Dumbbell Press"),
+                sampleTemplateExercise(named: "Pull-Up")
+            ],
+            notes: ""
+        )
+
+        XCTAssertTrue(
+            TemplateManager.shared.templateListHasMoreUniqueExercisesToPreview(for: templateWithRealOverflow),
+            "Rows should still show an ellipsis when more unique exercise names exist beyond the preview limit."
+        )
+    }
+
     func testPartialStartConfirmationMessage_usesUniqueResolvableExerciseCountForCorruptedDuplicates() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

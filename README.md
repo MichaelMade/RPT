@@ -141,6 +141,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates row previews now only show a trailing `...` when more unique exercise names really exist beyond the preview limit, so corrupted/repeated template rows no longer imply hidden exercises that are just duplicate entries; added regression coverage in `TemplateManagerTests`.
 - Template Details now truly disables the blocked `Can't Start Workout` CTA for empty templates too, so users see the existing fix-it guidance immediately instead of tapping into a failure alert; added regression coverage in `TemplateManagerTests` for the shared startability rule.
 - Workout Templates search now also matches initialism-style shorthand like `ubp` (`Upper Body Push`), `bp` (`Bench Press`), and `hcf` (`Heavy chest focus`), making one-handed mobile search more forgiving across template names, exercise names, and notes; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also matches the readiness language shown in template rows and alerts — including `ready`, `available`, `skipped`, and blocked-start phrases like `can't start` / `cant start` — so status-word searches line up better with what users actually see on screen; added regression coverage in `TemplateViewModelTests`.
