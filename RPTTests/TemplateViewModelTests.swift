@@ -429,6 +429,28 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testActiveWorkoutBlocksTemplateStartMessage_namesWorkoutAndTemplate() {
+        let viewModel = TemplateViewModel()
+        let workout = Workout(name: "Upper A")
+        let template = makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutBlocksTemplateStartMessage(for: workout, opening: template),
+            "You already have Upper A in progress. Continue it, save it for later, or discard it before starting Lower Day."
+        )
+    }
+
+    func testActiveWorkoutBlocksTemplateStartMessage_fallsBackForGenericWorkoutAndTemplateNames() {
+        let viewModel = TemplateViewModel()
+        let workout = Workout(name: "   ")
+        let template = makeTemplate(name: "\n", exerciseNames: ["Squat"])
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutBlocksTemplateStartMessage(for: workout, opening: template),
+            "You already have a workout in progress. Continue it, save it for later, or discard it before starting this template."
+        )
+    }
+
     func testActiveWorkoutPersistenceFailureMessage_matchesActionContext() {
         let viewModel = TemplateViewModel()
 

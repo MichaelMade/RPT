@@ -141,6 +141,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates now lets users safely open Template Details even while another workout is in progress, while the start CTA stays disabled with explicit guidance until that current workout is continued, saved, or discarded; added regression coverage for the new active-workout guidance copy in `TemplateViewModelTests`.
 - Template Details now marks broken exercise rows inline, so missing library exercises and repeated duplicate copies are called out directly inside the exercise list instead of forcing users to cross-reference the warning sections below; added regression coverage in `TemplateManagerTests`.
 - Workout Templates row previews now only show a trailing `...` when more unique exercise names really exist beyond the preview limit, so corrupted/repeated template rows no longer imply hidden exercises that are just duplicate entries; added regression coverage in `TemplateManagerTests`.
 - Template Details now truly disables the blocked `Can't Start Workout` CTA for empty templates too, so users see the existing fix-it guidance immediately instead of tapping into a failure alert; added regression coverage in `TemplateManagerTests` for the shared startability rule.

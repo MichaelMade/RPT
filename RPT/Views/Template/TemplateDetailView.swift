@@ -11,6 +11,7 @@ import SwiftData
 struct TemplateDetailView: View {
     let template: WorkoutTemplate
     let onStartWorkout: (Workout) -> Void
+    let activeWorkoutBlockMessage: String?
     @Environment(\.dismiss) private var dismiss
     @State private var startWorkoutFailureMessage: String?
     @State private var showingStartWorkoutConfirmation = false
@@ -35,6 +36,14 @@ struct TemplateDetailView: View {
 
     private var startWorkoutDisabledMessage: String? {
         templateManager.startWorkoutDisabledMessage(for: template)
+    }
+
+    private var isBlockedByActiveWorkout: Bool {
+        activeWorkoutBlockMessage != nil
+    }
+
+    private var resolvedStartWorkoutHelperMessage: String? {
+        startWorkoutDisabledMessage ?? activeWorkoutBlockMessage
     }
 
     private func startWorkout() {
@@ -182,10 +191,10 @@ struct TemplateDetailView: View {
                             .foregroundColor(.white)
                             .cornerRadius(12)
                         }
-                        .disabled(cannotStartWorkout)
+                        .disabled(cannotStartWorkout || isBlockedByActiveWorkout)
 
-                        if let startWorkoutDisabledMessage, cannotStartWorkout {
-                            Text(startWorkoutDisabledMessage)
+                        if let resolvedStartWorkoutHelperMessage {
+                            Text(resolvedStartWorkoutHelperMessage)
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -271,6 +280,7 @@ struct TemplateDetailView: View {
         template: template,
         onStartWorkout: { _ in
             // Preview doesn't need to handle the workout callback
-        }
+        },
+        activeWorkoutBlockMessage: nil
     )
 }
