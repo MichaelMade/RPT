@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details now adds a `Ready Right Now` section for partial/broken templates, explicitly listing the unique exercises that will still make it into the workout so users can see what *will* start, not just what will be skipped.
 - Workout Templates list rows now flag empty templates as not startable with `No exercises yet • add at least 1 to start`, and template search now also finds fully blocked edge cases like empty or duplicate-only templates via terms such as `empty` and `can't start`.
 - Template Details now makes fully blocked templates explicit with a disabled `Can't Start Workout` CTA plus fix-it helper copy when none of the template’s unique exercises are currently startable.
 - Workout Templates search now also matches initialism-style shorthand like `ubp` for `Upper Body Push`, `bp` for `Bench Press`, and `hcf` for note text like `Heavy chest focus`, making one-handed mobile search much more forgiving.
@@ -141,6 +142,7 @@ RPT/
 
 ## Recent Improvements
 
+- Template Details now adds a `Ready Right Now` section for partial/broken templates, explicitly listing the unique exercises that will still make it into the workout so users can confirm what will launch instead of only seeing what will be skipped; added regression coverage in `TemplateManagerTests`.
 - Template Details now shows an explicit empty-state message inside the `Exercises` section when a template has no movements yet, so blocked empty templates read as intentional fix-up work instead of a blank/broken screen.
 - Template Details now replaces the disabled `Start Workout` / `Start Partial Workout` CTA with a clearer `Current Workout In Progress` label when another session is blocking template start, and the blocked button now tints gray instead of looking tappable; added regression coverage in `TemplateManagerTests`.
 - Workout Templates now lets users safely open Template Details even while another workout is in progress, while the start CTA stays disabled with explicit guidance until that current workout is continued, saved, or discarded; added regression coverage for the new active-workout guidance copy in `TemplateViewModelTests`.

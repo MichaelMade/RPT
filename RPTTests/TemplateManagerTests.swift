@@ -518,6 +518,36 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertTrue(TemplateManager.shared.duplicateExerciseNames(in: template).isEmpty)
     }
 
+    func testStartableExerciseNames_returnsUniqueResolvableNamesInTemplateOrder() throws {
+        let context = DataManager.shared.getModelContext()
+        let firstExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let secondExercise = Exercise(name: "Pull-Up", category: .compound, primaryMuscleGroups: [.lats])
+        context.insert(firstExercise)
+        context.insert(secondExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(firstExercise)
+            context.delete(secondExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "  bench\npress  "),
+                sampleTemplateExercise(named: "Ghost Lift"),
+                sampleTemplateExercise(named: "Pull-Up")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.startableExerciseNames(in: template),
+            ["Bench Press", "Pull-Up"]
+        )
+    }
+
     func testStartWorkoutActionTitle_usesPartialCopyWhenRepeatedEntriesWillBeSkipped() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

@@ -236,8 +236,13 @@ class TemplateManager {
         return duplicateExerciseNames
     }
 
+    func startableExerciseNames(in template: WorkoutTemplate) -> [String] {
+        uniqueResolvableTemplateExercises(in: template)
+            .map { TemplateExercise.normalizedDisplayName($0.templateExercise.exerciseName) }
+    }
+
     func availableExerciseCount(in template: WorkoutTemplate) -> Int {
-        uniqueResolvableTemplateExercises(in: template).count
+        startableExerciseNames(in: template).count
     }
 
     func issues(for template: WorkoutTemplate, exerciseId: UUID) -> [TemplateExerciseIssue] {

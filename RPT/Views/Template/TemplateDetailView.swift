@@ -26,6 +26,10 @@ struct TemplateDetailView: View {
         templateManager.duplicateExerciseNames(in: template)
     }
 
+    private var startableExerciseNames: [String] {
+        templateManager.startableExerciseNames(in: template)
+    }
+
     private var cannotStartWorkout: Bool {
         !templateManager.canStartWorkout(for: template)
     }
@@ -183,6 +187,23 @@ struct TemplateDetailView: View {
                             ForEach(duplicateExerciseNames, id: \.self) { exerciseName in
                                 Label(exerciseName, systemImage: "square.on.square.fill")
                                     .foregroundColor(.orange)
+                            }
+                        }
+                    }
+
+                    if !startableExerciseNames.isEmpty && (!unavailableExerciseNames.isEmpty || !duplicateExerciseNames.isEmpty) {
+                        Section(header: Text("Ready Right Now")) {
+                            Text(
+                                startableExerciseNames.count == 1
+                                ? "This template can currently start with 1 unique exercise."
+                                : "This template can currently start with \(startableExerciseNames.count) unique exercises."
+                            )
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                            ForEach(startableExerciseNames, id: \.self) { exerciseName in
+                                Label(exerciseName, systemImage: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
                             }
                         }
                     }
