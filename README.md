@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details now shows an always-visible `Status` summary near the top, so users can immediately tell whether a template is fully ready, partially startable, completely blocked, or blocked by another in-progress workout without scrolling down to piece the state together.
 - Template Details now adds a `Ready Right Now` section for partial/broken templates, explicitly listing the unique exercises that will still make it into the workout so users can see what *will* start, not just what will be skipped.
 - Workout Templates list rows now flag empty templates as not startable with `No exercises yet • add at least 1 to start`, and template search now also finds fully blocked edge cases like empty or duplicate-only templates via terms such as `empty` and `can't start`.
 - Template Details now makes fully blocked templates explicit with a disabled `Can't Start Workout` CTA plus fix-it helper copy when none of the template’s unique exercises are currently startable.

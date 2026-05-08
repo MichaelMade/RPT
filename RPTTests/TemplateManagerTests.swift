@@ -870,7 +870,33 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertTrue(TemplateManager.shared.canStartWorkout(for: template))
         XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Workout")
+        XCTAssertEqual(
+            TemplateManager.shared.templateDetailStatusSummary(for: template),
+            "Ready to start with 1 exercise."
+        )
         XCTAssertNil(TemplateManager.shared.partialStartConfirmationMessage(for: template))
+    }
+
+    func testTemplateDetailStatusSummary_mentionsCurrentWorkoutBlockForOtherwiseReadyTemplate() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateDetailStatusSummary(for: template, blockedByActiveWorkout: true),
+            "Ready to start with 1 exercise. Finish the current workout before starting this template."
+        )
     }
 
     func testStartWorkoutActionTitle_usesCurrentWorkoutLabelWhenAnotherWorkoutBlocksStart() throws {
@@ -955,6 +981,10 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(TemplateManager.shared.unavailableExerciseNames(in: template), ["Ghost Lift"])
         XCTAssertEqual(TemplateManager.shared.availableExerciseCount(in: template), 1)
         XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Partial Workout")
+        XCTAssertEqual(
+            TemplateManager.shared.templateDetailStatusSummary(for: template),
+            "Starts with 1 of 2 unique exercises right now. 1 missing from your library • 1 repeated entry."
+        )
         XCTAssertEqual(
             TemplateManager.shared.partialStartConfirmationMessage(for: template),
             "1 template exercise will be skipped for now: Ghost Lift. Repeated entries for Bench Press will only be added once. Start this workout with the remaining 1 unique available exercise?"

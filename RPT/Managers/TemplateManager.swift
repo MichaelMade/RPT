@@ -355,6 +355,50 @@ class TemplateManager {
         availableExerciseCount(in: template) > 0
     }
 
+    func templateDetailStatusSummary(for template: WorkoutTemplate, blockedByActiveWorkout: Bool = false) -> String {
+        let availableCount = availableExerciseCount(in: template)
+        let uniqueCount = uniqueTemplateExerciseCount(in: template)
+        let unavailableCount = unavailableExerciseNames(in: template).count
+        let duplicateCount = duplicateExerciseNames(in: template).count
+
+        if availableCount == 0 {
+            return startWorkoutDisabledMessage(for: template)
+                ?? "This template can’t start right now. Edit it and try again."
+        }
+
+        let readySummary: String
+        if unavailableCount == 0 && duplicateCount == 0 {
+            readySummary = availableCount == 1
+                ? "Ready to start with 1 exercise."
+                : "Ready to start with \(availableCount) exercises."
+        } else {
+            let uniqueExerciseLabel = uniqueCount == 1 ? "exercise" : "exercises"
+            readySummary = availableCount == uniqueCount
+                ? (uniqueCount == 1
+                    ? "Starts with its 1 unique exercise right now."
+                    : "Starts with all \(uniqueCount) unique \(uniqueExerciseLabel) right now.")
+                : "Starts with \(availableCount) of \(uniqueCount) unique \(uniqueExerciseLabel) right now."
+        }
+
+        var issueParts: [String] = []
+        if unavailableCount > 0 {
+            issueParts.append(unavailableCount == 1 ? "1 missing from your library" : "\(unavailableCount) missing from your library")
+        }
+        if duplicateCount > 0 {
+            issueParts.append(duplicateCount == 1 ? "1 repeated entry" : "\(duplicateCount) repeated entries")
+        }
+
+        if blockedByActiveWorkout {
+            issueParts.append("Finish the current workout before starting this template")
+        }
+
+        guard !issueParts.isEmpty else {
+            return readySummary
+        }
+
+        return readySummary + " " + issueParts.joined(separator: " • ") + "."
+    }
+
     func startWorkoutActionTitle(for template: WorkoutTemplate, blockedByActiveWorkout: Bool = false) -> String {
         let unavailableCount = unavailableExerciseNames(in: template).count
         let duplicateCount = duplicateExerciseNames(in: template).count

@@ -54,6 +54,32 @@ struct TemplateDetailView: View {
         templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
     }
 
+    private var templateStatusSummary: String {
+        templateManager.templateDetailStatusSummary(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
+    }
+
+    private var statusTint: Color {
+        if isBlockedByActiveWorkout {
+            return .gray
+        }
+
+        return cannotStartWorkout || !unavailableExerciseNames.isEmpty || !duplicateExerciseNames.isEmpty
+            ? .orange
+            : .green
+    }
+
+    private var statusIcon: String {
+        if isBlockedByActiveWorkout {
+            return "pause.circle.fill"
+        }
+
+        return cannotStartWorkout
+            ? "xmark.circle.fill"
+            : (!unavailableExerciseNames.isEmpty || !duplicateExerciseNames.isEmpty)
+                ? "exclamationmark.circle.fill"
+                : "checkmark.circle.fill"
+    }
+
     private var startWorkoutButtonBackgroundColor: Color {
         cannotStartWorkout || isBlockedByActiveWorkout ? .gray : .blue
     }
@@ -88,6 +114,17 @@ struct TemplateDetailView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
+                    }
+
+                    Section(header: Text("Status")) {
+                        Label(startWorkoutActionTitle, systemImage: statusIcon)
+                            .font(.headline)
+                            .foregroundColor(statusTint)
+
+                        Text(templateStatusSummary)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     
                     Section(header: Text("Exercises")) {
