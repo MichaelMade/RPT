@@ -638,11 +638,27 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(
             TemplateManager.shared.templateListExerciseSummary(for: template),
-            "1 of 3 exercises ready • 1 missing • 1 repeated"
+            "1 of 2 unique exercises ready • 1 missing • 1 repeated"
         )
 
         context.delete(availableExercise)
         XCTAssertNoThrow(try context.save())
+    }
+
+    func testTemplateListExerciseSummary_callsOutDuplicateOnlyTemplateInUniqueTerms() {
+        let template = WorkoutTemplate(
+            name: "Duplicate Only",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "  bench\npress  ")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateListExerciseSummary(for: template),
+            "1 unique exercise ready • 1 repeated"
+        )
     }
 
     func testTemplateListExerciseSummary_callsOutEmptyTemplateAsNotStartable() {

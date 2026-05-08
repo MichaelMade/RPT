@@ -265,6 +265,7 @@ class TemplateManager {
 
     func templateListExerciseSummary(for template: WorkoutTemplate) -> String {
         let totalCount = template.exercises.count
+        let uniqueCount = uniqueTemplateExerciseCount(in: template)
         let availableCount = availableExerciseCount(in: template)
         let unavailableCount = unavailableExerciseNames(in: template).count
         let duplicateCount = duplicateExerciseNames(in: template).count
@@ -277,9 +278,17 @@ class TemplateManager {
             return totalCount == 1 ? "1 exercise" : "\(totalCount) exercises"
         }
 
-        let readySummary = totalCount == 1
-            ? "\(availableCount) of 1 exercise ready"
-            : "\(availableCount) of \(totalCount) exercises ready"
+        let readySummary: String
+        if duplicateCount > 0 {
+            let uniqueLabel = uniqueCount == 1 ? "exercise" : "exercises"
+            readySummary = availableCount == uniqueCount
+                ? "\(availableCount) unique \(uniqueLabel) ready"
+                : "\(availableCount) of \(uniqueCount) unique \(uniqueLabel) ready"
+        } else {
+            readySummary = totalCount == 1
+                ? "\(availableCount) of 1 exercise ready"
+                : "\(availableCount) of \(totalCount) exercises ready"
+        }
 
         var issueParts: [String] = []
         if unavailableCount > 0 {
@@ -687,6 +696,17 @@ class TemplateManager {
         case .duplicateExercise:
             return .duplicateExercise
         }
+    }
+
+    private func uniqueTemplateExerciseCount(in template: WorkoutTemplate) -> Int {
+        var seenExerciseNames = Set<String>()
+
+        for templateExercise in template.exercises {
+            let normalizedExerciseName = ExerciseManager.normalizedNameLookupKey(templateExercise.exerciseName)
+            seenExerciseNames.insert(normalizedExerciseName)
+        }
+
+        return seenExerciseNames.count
     }
 
     private func uniqueResolvableTemplateExercises(in template: WorkoutTemplate) -> [(templateExercise: TemplateExercise, exercise: Exercise)] {
