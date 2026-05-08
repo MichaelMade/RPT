@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also matches initialism-style shorthand like `ubp` for `Upper Body Push`, `bp` for `Bench Press`, and `hcf` for note text like `Heavy chest focus`, making one-handed mobile search much more forgiving.
 - Workout Templates list rows now dedupe repeated exercise names inside the inline preview, so corrupted/imported templates no longer waste that glanceable space showing the same movement twice while hiding the next unique exercise.
 - Workout Templates search now also matches the readiness language shown in template rows and alerts — including `ready`, `available`, `skipped`, and blocked-start phrases like `can't start` / `cant start` — so status-word searches line up better with what users actually see on screen.
 - Workout Templates search now also finds readiness/problem states like `missing`, `partial`, and `duplicate`, so users can quickly surface broken or partially startable templates using the same issue language shown in the UI.
@@ -138,6 +139,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates search now also matches initialism-style shorthand like `ubp` (`Upper Body Push`), `bp` (`Bench Press`), and `hcf` (`Heavy chest focus`), making one-handed mobile search more forgiving across template names, exercise names, and notes; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also matches the readiness language shown in template rows and alerts — including `ready`, `available`, `skipped`, and blocked-start phrases like `can't start` / `cant start` — so status-word searches line up better with what users actually see on screen; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates list rows now dedupe repeated exercise names inside the inline preview, so corrupted/imported templates no longer show the same movement twice while hiding the next unique exercise; added regression coverage in `TemplateManagerTests`.
 - Workout Templates search now also finds readiness/problem states like `missing`, `partial`, and `duplicate`, so users can quickly surface broken or partially startable templates using the same issue language shown in the UI; added regression coverage in `TemplateViewModelTests`.

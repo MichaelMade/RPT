@@ -48,6 +48,13 @@ class TemplateViewModel: ObservableObject {
             .replacingOccurrences(of: " ", with: "")
     }
 
+    private static func initialismLookupKey(_ rawValue: String) -> String {
+        normalizedSearchWords(rawValue)
+            .compactMap(\.first)
+            .map(String.init)
+            .joined()
+    }
+
     private static func matchesQueryTokens(_ queryTokens: [String], in rawValue: String) -> Bool {
         guard !queryTokens.isEmpty else {
             return false
@@ -92,6 +99,7 @@ class TemplateViewModel: ObservableObject {
         query: String,
         queryTokens: [String],
         compactedQuery: String,
+        initialismQuery: String,
         in searchTerms: [String]
     ) -> Int? {
         let normalizedTerms = searchTerms
@@ -114,12 +122,19 @@ class TemplateViewModel: ObservableObject {
             return 2
         }
 
-        if normalizedTerms.contains(where: { compactedMatchPriority(query: compactedQuery, in: $0) != nil }) {
+        if !initialismQuery.isEmpty, normalizedTerms.contains(where: {
+            let initialism = initialismLookupKey($0)
+            return !initialism.isEmpty && initialism.hasPrefix(initialismQuery)
+        }) {
             return 3
         }
 
-        if normalizedTerms.contains(where: { $0.contains(query) }) {
+        if normalizedTerms.contains(where: { compactedMatchPriority(query: compactedQuery, in: $0) != nil }) {
             return 4
+        }
+
+        if normalizedTerms.contains(where: { $0.contains(query) }) {
+            return 5
         }
 
         return nil
@@ -209,6 +224,7 @@ class TemplateViewModel: ObservableObject {
 
         let normalizedName = normalizedSearchLookupKey(template.name)
         let compactedQuery = compactedSearchLookupKey(normalizedQuery)
+        let initialismQuery = compactedQuery
         let queryTokens = normalizedSearchTokens(normalizedQuery)
 
         if normalizedName == normalizedQuery {
@@ -223,56 +239,78 @@ class TemplateViewModel: ObservableObject {
             return 2
         }
 
+        let nameInitialism = initialismLookupKey(template.name)
+        if !initialismQuery.isEmpty,
+           !nameInitialism.isEmpty,
+           nameInitialism.hasPrefix(initialismQuery) {
+            return 3
+        }
+
         if let compactedNamePriority = compactedMatchPriority(query: compactedQuery, in: template.name) {
-            return 3 + compactedNamePriority
+            return 4 + compactedNamePriority
         }
 
         if normalizedName.contains(normalizedQuery) {
-            return 6
+            return 7
         }
 
         let exerciseNames = template.exercises.map(\.exerciseName)
         let normalizedExerciseNames = exerciseNames.map { normalizedSearchLookupKey($0) }
 
         if normalizedExerciseNames.contains(where: { $0 == normalizedQuery }) {
-            return 7
-        }
-
-        if normalizedExerciseNames.contains(where: { $0.hasPrefix(normalizedQuery) }) {
             return 8
         }
 
-        if exerciseNames.contains(where: { matchesQueryTokens(queryTokens, in: $0) }) {
+        if normalizedExerciseNames.contains(where: { $0.hasPrefix(normalizedQuery) }) {
             return 9
         }
 
-        if exerciseNames.contains(where: { compactedMatchPriority(query: compactedQuery, in: $0) != nil }) {
+        if exerciseNames.contains(where: { matchesQueryTokens(queryTokens, in: $0) }) {
             return 10
         }
 
-        if normalizedExerciseNames.contains(where: { $0.contains(normalizedQuery) }) {
+        if !initialismQuery.isEmpty,
+           exerciseNames.contains(where: {
+               let initialism = initialismLookupKey($0)
+               return !initialism.isEmpty && initialism.hasPrefix(initialismQuery)
+           }) {
             return 11
+        }
+
+        if exerciseNames.contains(where: { compactedMatchPriority(query: compactedQuery, in: $0) != nil }) {
+            return 12
+        }
+
+        if normalizedExerciseNames.contains(where: { $0.contains(normalizedQuery) }) {
+            return 13
         }
 
         let normalizedNotes = normalizedSearchLookupKey(template.notes)
         if !normalizedNotes.isEmpty, normalizedNotes == normalizedQuery {
-            return 12
-        }
-
-        if !normalizedNotes.isEmpty, normalizedNotes.hasPrefix(normalizedQuery) {
-            return 13
-        }
-
-        if matchesQueryTokens(queryTokens, in: template.notes) {
             return 14
         }
 
-        if compactedMatchPriority(query: compactedQuery, in: template.notes) != nil {
+        if !normalizedNotes.isEmpty, normalizedNotes.hasPrefix(normalizedQuery) {
             return 15
         }
 
-        if !normalizedNotes.isEmpty, normalizedNotes.contains(normalizedQuery) {
+        if matchesQueryTokens(queryTokens, in: template.notes) {
             return 16
+        }
+
+        let notesInitialism = initialismLookupKey(template.notes)
+        if !initialismQuery.isEmpty,
+           !notesInitialism.isEmpty,
+           notesInitialism.hasPrefix(initialismQuery) {
+            return 17
+        }
+
+        if compactedMatchPriority(query: compactedQuery, in: template.notes) != nil {
+            return 18
+        }
+
+        if !normalizedNotes.isEmpty, normalizedNotes.contains(normalizedQuery) {
+            return 19
         }
 
         return nil
@@ -340,14 +378,16 @@ class TemplateViewModel: ObservableObject {
 
         let queryTokens = Self.normalizedSearchTokens(normalizedQuery)
         let compactedQuery = Self.compactedSearchLookupKey(normalizedQuery)
+        let initialismQuery = compactedQuery
 
         if let issuePriority = Self.searchTermMatchPriority(
             query: normalizedQuery,
             queryTokens: queryTokens,
             compactedQuery: compactedQuery,
+            initialismQuery: initialismQuery,
             in: issueSearchTerms(for: template)
         ) {
-            return 17 + issuePriority
+            return 20 + issuePriority
         }
 
         return nil

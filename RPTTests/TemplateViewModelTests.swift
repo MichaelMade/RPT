@@ -99,6 +99,20 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body"])
     }
 
+    func testFetchTemplates_matchesTemplateAndExerciseInitialisms() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper Body Push", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Leg Day", exerciseNames: ["Romanian Deadlift"])
+        ]
+
+        viewModel.searchText = "ubp"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
+
+        viewModel.searchText = "bp"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
+    }
+
     func testFetchTemplates_matchesCompactedNotesQueries() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -121,6 +135,20 @@ final class TemplateViewModelTests: XCTestCase {
             makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"], notes: "Controlled back volume")
         ]
         viewModel.searchText = "focus heavy"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Push Day"]
+        )
+    }
+
+    func testFetchTemplates_matchesNotesInitialisms() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"], notes: "Heavy chest focus"),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"], notes: "Controlled back volume")
+        ]
+        viewModel.searchText = "hcf"
 
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
