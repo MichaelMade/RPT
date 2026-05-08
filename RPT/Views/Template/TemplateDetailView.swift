@@ -46,6 +46,14 @@ struct TemplateDetailView: View {
         startWorkoutDisabledMessage ?? activeWorkoutBlockMessage
     }
 
+    private var startWorkoutActionTitle: String {
+        templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
+    }
+
+    private var startWorkoutButtonBackgroundColor: Color {
+        cannotStartWorkout || isBlockedByActiveWorkout ? .gray : .blue
+    }
+
     private func startWorkout() {
         guard let workout = templateManager.createWorkoutFromTemplate(template) else {
             startWorkoutFailureMessage = startWorkoutDisabledMessage
@@ -182,12 +190,12 @@ struct TemplateDetailView: View {
                         }) {
                             HStack {
                                 Image(systemName: "figure.strengthtraining.traditional")
-                                Text(templateManager.startWorkoutActionTitle(for: template))
+                                Text(startWorkoutActionTitle)
                                     .fontWeight(.semibold)
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.blue)
+                            .background(startWorkoutButtonBackgroundColor)
                             .foregroundColor(.white)
                             .cornerRadius(12)
                         }
@@ -219,9 +227,9 @@ struct TemplateDetailView: View {
                     }
                 }
             }
-            .alert(templateManager.startWorkoutActionTitle(for: template), isPresented: $showingStartWorkoutConfirmation) {
+            .alert(startWorkoutActionTitle, isPresented: $showingStartWorkoutConfirmation) {
                 Button("Cancel", role: .cancel) {}
-                Button(templateManager.startWorkoutActionTitle(for: template)) {
+                Button(startWorkoutActionTitle) {
                     startWorkout()
                 }
             } message: {
