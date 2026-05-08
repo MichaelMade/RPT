@@ -87,55 +87,69 @@ struct TemplateDetailView: View {
                     }
                     
                     Section(header: Text("Exercises")) {
-                        ForEach(template.exercises.indices, id: \.self) { index in
-                            let exercise = template.exercises[index]
-                            let exerciseIssues = templateManager.issues(for: template, exerciseId: exercise.id)
+                        if template.exercises.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("\(index + 1). \(TemplateExercise.normalizedDisplayName(exercise.exerciseName))")
+                                Label("No exercises added yet", systemImage: "list.bullet.clipboard")
                                     .font(.headline)
+                                    .foregroundColor(.secondary)
 
-                                if !exerciseIssues.isEmpty {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        ForEach(Array(exerciseIssues.enumerated()), id: \.offset) { _, issue in
-                                            Label(issue.summary, systemImage: issue == .missingFromLibrary ? "exclamationmark.triangle.fill" : "square.on.square.fill")
-                                                .font(.caption)
-                                                .foregroundColor(.orange)
-                                        }
-                                    }
-                                }
-
-                                Text("\(exercise.suggestedSets) sets")
+                                Text("Add at least 1 exercise to this template before starting a workout.")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
-                                
-                                // Rep ranges
-                                VStack(alignment: .leading, spacing: 4) {
-                                    ForEach(exercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber }), id: \.setNumber) { repRange in
-                                        HStack {
-                                            Text("Set \(repRange.setNumber):")
-                                                .font(.caption)
-                                                .fontWeight(.medium)
-                                            
-                                            Text("\(repRange.minReps)-\(repRange.maxReps) reps")
-                                                .font(.caption)
-                                            
-                                            if repRange.percentageOfFirstSet != nil && repRange.setNumber > 1 {
-                                                Text("(\(Int((repRange.percentageOfFirstSet ?? 1.0) * 100))% of first set)")
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(.vertical, 8)
+                        } else {
+                            ForEach(template.exercises.indices, id: \.self) { index in
+                                let exercise = template.exercises[index]
+                                let exerciseIssues = templateManager.issues(for: template, exerciseId: exercise.id)
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("\(index + 1). \(TemplateExercise.normalizedDisplayName(exercise.exerciseName))")
+                                        .font(.headline)
+
+                                    if !exerciseIssues.isEmpty {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            ForEach(Array(exerciseIssues.enumerated()), id: \.offset) { _, issue in
+                                                Label(issue.summary, systemImage: issue == .missingFromLibrary ? "exclamationmark.triangle.fill" : "square.on.square.fill")
                                                     .font(.caption)
-                                                    .foregroundColor(.blue)
+                                                    .foregroundColor(.orange)
                                             }
                                         }
                                     }
-                                }
-                                
-                                if let normalizedNotes = TemplateExercise.normalizedDisplayNotes(exercise.notes) {
-                                    Text(normalizedNotes)
-                                        .font(.caption)
+
+                                    Text("\(exercise.suggestedSets) sets")
+                                        .font(.subheadline)
                                         .foregroundColor(.secondary)
-                                        .padding(.top, 4)
+
+                                    // Rep ranges
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        ForEach(exercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber }), id: \.setNumber) { repRange in
+                                            HStack {
+                                                Text("Set \(repRange.setNumber):")
+                                                    .font(.caption)
+                                                    .fontWeight(.medium)
+
+                                                Text("\(repRange.minReps)-\(repRange.maxReps) reps")
+                                                    .font(.caption)
+
+                                                if repRange.percentageOfFirstSet != nil && repRange.setNumber > 1 {
+                                                    Text("(\(Int((repRange.percentageOfFirstSet ?? 1.0) * 100))% of first set)")
+                                                        .font(.caption)
+                                                        .foregroundColor(.blue)
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if let normalizedNotes = TemplateExercise.normalizedDisplayNotes(exercise.notes) {
+                                        Text(normalizedNotes)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .padding(.top, 4)
+                                    }
                                 }
+                                .padding(.vertical, 4)
                             }
-                            .padding(.vertical, 4)
                         }
                     }
 

@@ -141,6 +141,7 @@ RPT/
 
 ## Recent Improvements
 
+- Template Details now shows an explicit empty-state message inside the `Exercises` section when a template has no movements yet, so blocked empty templates read as intentional fix-up work instead of a blank/broken screen.
 - Template Details now replaces the disabled `Start Workout` / `Start Partial Workout` CTA with a clearer `Current Workout In Progress` label when another session is blocking template start, and the blocked button now tints gray instead of looking tappable; added regression coverage in `TemplateManagerTests`.
 - Workout Templates now lets users safely open Template Details even while another workout is in progress, while the start CTA stays disabled with explicit guidance until that current workout is continued, saved, or discarded; added regression coverage for the new active-workout guidance copy in `TemplateViewModelTests`.
 - Template Details now marks broken exercise rows inline, so missing library exercises and repeated duplicate copies are called out directly inside the exercise list instead of forcing users to cross-reference the warning sections below; added regression coverage in `TemplateManagerTests`.
