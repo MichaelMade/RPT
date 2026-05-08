@@ -11,6 +11,20 @@ import SwiftData
 
 @MainActor
 class TemplateManager {
+    enum TemplateExerciseIssue: Equatable {
+        case missingFromLibrary
+        case repeatedEntry
+
+        var summary: String {
+            switch self {
+            case .missingFromLibrary:
+                return "Missing from library • skipped until restored"
+            case .repeatedEntry:
+                return "Repeated entry • only the first copy will be added"
+            }
+        }
+    }
+
     enum MutationResult: Equatable {
         case success
         case missingName
@@ -224,6 +238,29 @@ class TemplateManager {
 
     func availableExerciseCount(in template: WorkoutTemplate) -> Int {
         uniqueResolvableTemplateExercises(in: template).count
+    }
+
+    func issues(for template: WorkoutTemplate, exerciseId: UUID) -> [TemplateExerciseIssue] {
+        guard let exercise = template.exercises.first(where: { $0.id == exerciseId }) else {
+            return []
+        }
+
+        let normalizedExerciseName = ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
+        let firstOccurrenceId = template.exercises.first(where: {
+            ExerciseManager.normalizedNameLookupKey($0.exerciseName) == normalizedExerciseName
+        })?.id
+
+        var issues: [TemplateExerciseIssue] = []
+
+        if exerciseManager.fetchExercise(withName: exercise.exerciseName) == nil {
+            issues.append(.missingFromLibrary)
+        }
+
+        if firstOccurrenceId != exercise.id {
+            issues.append(.repeatedEntry)
+        }
+
+        return issues
     }
 
     func templateListExerciseSummary(for template: WorkoutTemplate) -> String {

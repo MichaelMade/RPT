@@ -72,10 +72,21 @@ struct TemplateDetailView: View {
                     Section(header: Text("Exercises")) {
                         ForEach(template.exercises.indices, id: \.self) { index in
                             let exercise = template.exercises[index]
+                            let exerciseIssues = templateManager.issues(for: template, exerciseId: exercise.id)
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("\(index + 1). \(TemplateExercise.normalizedDisplayName(exercise.exerciseName))")
                                     .font(.headline)
-                                
+
+                                if !exerciseIssues.isEmpty {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        ForEach(Array(exerciseIssues.enumerated()), id: \.offset) { _, issue in
+                                            Label(issue.summary, systemImage: issue == .missingFromLibrary ? "exclamationmark.triangle.fill" : "square.on.square.fill")
+                                                .font(.caption)
+                                                .foregroundColor(.orange)
+                                        }
+                                    }
+                                }
+
                                 Text("\(exercise.suggestedSets) sets")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)

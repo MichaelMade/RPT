@@ -543,6 +543,67 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertNoThrow(try context.save())
     }
 
+    func testIssues_returnsMissingOnlyForUnavailableFirstOccurrence() {
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Ghost Lift"),
+                sampleTemplateExercise(named: "Bench Press")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.issues(for: template, exerciseId: template.exercises[0].id),
+            [.missingFromLibrary]
+        )
+    }
+
+    func testIssues_marksOnlyRepeatedCopyForDuplicateTemplateEntries() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "  bench\npress  ")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.issues(for: template, exerciseId: template.exercises[0].id),
+            []
+        )
+        XCTAssertEqual(
+            TemplateManager.shared.issues(for: template, exerciseId: template.exercises[1].id),
+            [.repeatedEntry]
+        )
+    }
+
+    func testIssues_combinesMissingAndRepeatedForStaleDuplicateCopies() {
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Ghost Lift"),
+                sampleTemplateExercise(named: "  ghost\nlift  ")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.issues(for: template, exerciseId: template.exercises[1].id),
+            [.missingFromLibrary, .repeatedEntry]
+        )
+    }
+
     func testTemplateListExerciseSummary_showsPlainExerciseCountWhenTemplateIsClean() {
         let template = WorkoutTemplate(
             name: "Push Day",

@@ -141,6 +141,7 @@ RPT/
 
 ## Recent Improvements
 
+- Template Details now marks broken exercise rows inline, so missing library exercises and repeated duplicate copies are called out directly inside the exercise list instead of forcing users to cross-reference the warning sections below; added regression coverage in `TemplateManagerTests`.
 - Workout Templates row previews now only show a trailing `...` when more unique exercise names really exist beyond the preview limit, so corrupted/repeated template rows no longer imply hidden exercises that are just duplicate entries; added regression coverage in `TemplateManagerTests`.
 - Template Details now truly disables the blocked `Can't Start Workout` CTA for empty templates too, so users see the existing fix-it guidance immediately instead of tapping into a failure alert; added regression coverage in `TemplateManagerTests` for the shared startability rule.
 - Workout Templates search now also matches initialism-style shorthand like `ubp` (`Upper Body Push`), `bp` (`Bench Press`), and `hcf` (`Heavy chest focus`), making one-handed mobile search more forgiving across template names, exercise names, and notes; added regression coverage in `TemplateViewModelTests`.
