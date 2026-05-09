@@ -113,6 +113,21 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
     }
 
+    func testFetchTemplates_matchesPunctuationInsensitiveExerciseQueries() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Pull Day", exerciseNames: ["Pull-Up"]),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "pullup"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Pull Day"]
+        )
+    }
+
     func testFetchTemplates_matchesCompactedNotesQueries() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -280,6 +295,21 @@ final class TemplateViewModelTests: XCTestCase {
             makeTemplate(name: "Ready Template", exerciseNames: ["Bench Press", "Pull-Up"])
         ]
         viewModel.searchText = "can't start"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Duplicate Only", "Empty Template"]
+        )
+    }
+
+    func testFetchTemplates_matchesCantStartKeywordWithoutPunctuationOrSpaces() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Duplicate Only", exerciseNames: ["Bench Press", " bench\npress "]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: ""),
+            makeTemplate(name: "Ready Template", exerciseNames: ["Bench Press", "Pull-Up"])
+        ]
+        viewModel.searchText = "cantstart"
 
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),

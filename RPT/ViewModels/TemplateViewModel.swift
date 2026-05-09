@@ -39,13 +39,12 @@ class TemplateViewModel: ObservableObject {
 
     private static func normalizedSearchWords(_ rawValue: String) -> [String] {
         normalizedSearchLookupKey(rawValue)
-            .split(separator: " ")
-            .map(String.init)
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .filter { !$0.isEmpty }
     }
 
     private static func compactedSearchLookupKey(_ rawValue: String) -> String {
-        normalizedSearchLookupKey(rawValue)
-            .replacingOccurrences(of: " ", with: "")
+        normalizedSearchWords(rawValue).joined()
     }
 
     private static func initialismLookupKey(_ rawValue: String) -> String {
@@ -129,7 +128,7 @@ class TemplateViewModel: ObservableObject {
             return 3
         }
 
-        if normalizedTerms.contains(where: { compactedMatchPriority(query: compactedQuery, in: $0) != nil }) {
+        if searchTerms.contains(where: { compactedMatchPriority(query: compactedQuery, in: $0) != nil }) {
             return 4
         }
 

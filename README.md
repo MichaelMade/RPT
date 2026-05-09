@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search is now punctuation-tolerant too, so shorthand queries like `pullup`, `tbarrow`, and `cantstart` still match `Pull-Up`, `T-Bar Row`, and `can't start` status text without needing exact punctuation or spacing.
 - Workout Templates search now also finds otherwise-ready templates by live active-workout status phrases like `current workout` and `in progress` whenever another session is open, matching the `current workout in progress` row messaging so blocked templates are easier to filter intentionally.
 - Workout Templates list rows now append `current workout in progress` for otherwise-startable templates whenever another session is already open, so list browsing stays honest about which templates are view-only until the active workout is continued, saved, or discarded.
 - Template Details now shows an always-visible `Status` summary near the top, so users can immediately tell whether a template is fully ready, partially startable, completely blocked, or blocked by another in-progress workout without scrolling down to piece the state together.
@@ -146,6 +147,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates search is now more punctuation-tolerant, so compact queries like `pullup`, `tbarrow`, and `cantstart` still match exercise names and blocked-state phrases such as `Pull-Up`, `T-Bar Row`, and `can't start`; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also finds otherwise-ready templates by active-workout status terms like `current workout` and `in progress` whenever another session is already open, matching the row-level `current workout in progress` messaging; added regression coverage in `TemplateViewModelTests`.
 - Template Details now adds a `Ready Right Now` section for partial/broken templates, explicitly listing the unique exercises that will still make it into the workout so users can confirm what will launch instead of only seeing what will be skipped; added regression coverage in `TemplateManagerTests`.
 - Template Details now shows an explicit empty-state message inside the `Exercises` section when a template has no movements yet, so blocked empty templates read as intentional fix-up work instead of a blank/broken screen.
