@@ -173,15 +173,18 @@ struct TemplatesListView: View {
                 if currentAction == .edit {
                     TemplateEditView(isNewTemplate: false, existingTemplate: template)
                 } else {
+                    let templateCannotStartOnItsOwn = templateManager.startWorkoutDisabledMessage(for: template) != nil
                     TemplateDetailView(
                         template: template,
                         onStartWorkout: { workout in
                             activeWorkoutBinding = workout
                             selectedTemplate = nil
                         },
-                        activeWorkoutBlockMessage: protectedResumableWorkout().map {
-                            viewModel.activeWorkoutBlocksTemplateStartMessage(for: $0, opening: template)
-                        }
+                        activeWorkoutBlockMessage: templateCannotStartOnItsOwn
+                            ? nil
+                            : protectedResumableWorkout().map {
+                                viewModel.activeWorkoutBlocksTemplateStartMessage(for: $0, opening: template)
+                            }
                     )
                 }
             }

@@ -969,6 +969,19 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
+    func testTemplateDetailStatusSummary_doesNotMentionCurrentWorkoutWhenTemplateCannotStartOnItsOwn() {
+        let template = WorkoutTemplate(
+            name: "Blocked Template",
+            exercises: [sampleTemplateExercise(named: "Ghost Lift")],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateDetailStatusSummary(for: template, blockedByActiveWorkout: true),
+            "This template can’t start right now because its only exercise is missing from your library. Restore or replace it before starting."
+        )
+    }
+
     func testPartialStartConfirmationMessage_summarizesSeveralMissingExercises() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

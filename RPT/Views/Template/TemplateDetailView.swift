@@ -43,7 +43,7 @@ struct TemplateDetailView: View {
     }
 
     private var isBlockedByActiveWorkout: Bool {
-        activeWorkoutBlockMessage != nil
+        activeWorkoutBlockMessage != nil && !cannotStartWorkout
     }
 
     private var resolvedStartWorkoutHelperMessage: String? {
