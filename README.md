@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also indexes the exact issue and section copy shown in Template Details — including phrases like `missing from library`, `ready right now`, `included when this workout starts`, and `only the first copy will be added` — so searching with the UI’s own wording finds the right template faster.
 - Workout Templates search now also indexes the live template status, CTA, disabled-helper, and partial-start confirmation copy that users actually see on screen, so phrases like `finish the current workout`, `add at least one exercise before starting`, or `remaining 1 unique available exercise` jump straight to the relevant template.
 - Workout Templates search is now punctuation-tolerant too, so shorthand queries like `pullup`, `tbarrow`, and `cantstart` still match `Pull-Up`, `T-Bar Row`, and `can't start` status text without needing exact punctuation or spacing.
 - Workout Templates search now also finds otherwise-ready templates by live active-workout status phrases like `current workout` and `in progress` whenever another session is open, matching the `current workout in progress` row messaging so blocked templates are easier to filter intentionally.
@@ -148,6 +149,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates search now also indexes the exact issue and section copy shown in Template Details — including phrases like `missing from library`, `ready right now`, `included when this workout starts`, and `only the first copy will be added` — so searches using the UI’s own wording still find the right template; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also indexes the live template status, CTA, disabled-helper, and partial-start confirmation copy shown in Template rows/details, so real on-screen phrases like `finish the current workout`, `add at least one exercise before starting`, or `remaining 1 unique available exercise` can find the right template directly; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search is now more punctuation-tolerant, so compact queries like `pullup`, `tbarrow`, and `cantstart` still match exercise names and blocked-state phrases such as `Pull-Up`, `T-Bar Row`, and `can't start`; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also finds otherwise-ready templates by active-workout status terms like `current workout` and `in progress` whenever another session is already open, matching the row-level `current workout in progress` messaging; added regression coverage in `TemplateViewModelTests`.

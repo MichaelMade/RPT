@@ -326,9 +326,12 @@ class TemplateViewModel: ObservableObject {
 
     private func issueSearchTerms(for template: WorkoutTemplate, blockedByActiveWorkout: Bool) -> [String] {
         let totalCount = template.exercises.count
-        let unavailableCount = templateManager.unavailableExerciseNames(in: template).count
-        let duplicateCount = templateManager.duplicateExerciseNames(in: template).count
-        let availableCount = templateManager.availableExerciseCount(in: template)
+        let unavailableExerciseNames = templateManager.unavailableExerciseNames(in: template)
+        let duplicateExerciseNames = templateManager.duplicateExerciseNames(in: template)
+        let startableExerciseNames = templateManager.startableExerciseNames(in: template)
+        let unavailableCount = unavailableExerciseNames.count
+        let duplicateCount = duplicateExerciseNames.count
+        let availableCount = startableExerciseNames.count
         let canStartWorkout = availableCount > 0
         let isOnlyBlockedByActiveWorkout = blockedByActiveWorkout && canStartWorkout
 
@@ -370,9 +373,12 @@ class TemplateViewModel: ObservableObject {
                 "unavailable",
                 "missing exercises",
                 "unavailable exercises",
+                "unavailable right now",
+                "missing from library",
                 "skipped",
                 "skip"
             ])
+            terms.append(contentsOf: unavailableExerciseNames)
 
             if canStartWorkout {
                 terms.append(contentsOf: [
@@ -388,8 +394,20 @@ class TemplateViewModel: ObservableObject {
                 "repeated",
                 "duplicate",
                 "repeated entries",
-                "duplicate exercises"
+                "duplicate exercises",
+                "repeated entry",
+                "only the first copy will be added"
             ])
+            terms.append(contentsOf: duplicateExerciseNames)
+        }
+
+        if !startableExerciseNames.isEmpty && (unavailableCount > 0 || duplicateCount > 0) {
+            terms.append(contentsOf: [
+                "ready right now",
+                "included when this workout starts",
+                "included"
+            ])
+            terms.append(contentsOf: startableExerciseNames)
         }
 
         if !canStartWorkout {

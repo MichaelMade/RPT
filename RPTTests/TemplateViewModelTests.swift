@@ -417,6 +417,43 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesVisibleTemplateDetailIssueAndSectionCopy() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(
+            name: "Available Press \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest]
+        )
+        context.insert(availableExercise)
+        try context.save()
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(
+                name: "Partial Template",
+                exerciseNames: [availableExercise.name, "Missing Row \(UUID().uuidString)"]
+            ),
+            makeTemplate(name: "Repeated Template", exerciseNames: [availableExercise.name, "  \(availableExercise.name)  "]),
+            makeTemplate(name: "Ready Template", exerciseNames: [availableExercise.name])
+        ]
+
+        viewModel.searchText = "missing from library"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Partial Template"])
+
+        viewModel.searchText = "ready right now"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Partial Template"])
+
+        viewModel.searchText = "included when this workout starts"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Partial Template"])
+
+        viewModel.searchText = "only the first copy will be added"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Repeated Template"])
+    }
+
     func testFetchTemplates_prioritizesNameMatchesBeforeExerciseMatches() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
