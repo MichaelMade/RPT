@@ -79,6 +79,8 @@ struct TemplatesListView: View {
                         }
                     }
                 } else {
+                    let activeWorkoutBlocksTemplateStart = protectedResumableWorkout() != nil
+
                     ForEach(filteredTemplates) { template in
                         Button(action: {
                             selectedTemplate = template
@@ -86,18 +88,20 @@ struct TemplatesListView: View {
                         }) {
                             let unavailableCount = templateManager.unavailableExerciseNames(in: template).count
                             let duplicateCount = templateManager.duplicateExerciseNames(in: template).count
+                            let templateCannotStartOnItsOwn = templateManager.startWorkoutDisabledMessage(for: template) != nil
+                            let isBlockedByActiveWorkout = activeWorkoutBlocksTemplateStart && !templateCannotStartOnItsOwn
                             let hasTemplateIssues = unavailableCount > 0
                                 || duplicateCount > 0
-                                || templateManager.startWorkoutDisabledMessage(for: template) != nil
+                                || templateCannotStartOnItsOwn
 
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(WorkoutTemplate.normalizedDisplayName(template.name))
                                     .font(.headline)
 
                                 HStack {
-                                    Text(templateManager.templateListExerciseSummary(for: template))
+                                    Text(templateManager.templateListExerciseSummary(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout))
                                         .font(.caption)
-                                        .foregroundColor(hasTemplateIssues ? .orange : .secondary)
+                                        .foregroundColor(isBlockedByActiveWorkout ? .gray : (hasTemplateIssues ? .orange : .secondary))
 
                                     Spacer()
 

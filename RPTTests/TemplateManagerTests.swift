@@ -704,6 +704,41 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
+    func testTemplateListExerciseSummary_mentionsActiveWorkoutBlockForOtherwiseReadyTemplate() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateListExerciseSummary(for: template, blockedByActiveWorkout: true),
+            "1 exercise • current workout in progress"
+        )
+    }
+
+    func testTemplateListExerciseSummary_doesNotAddActiveWorkoutSuffixWhenTemplateCannotStartAnyway() {
+        let template = WorkoutTemplate(
+            name: "Empty Template",
+            exercises: [],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateListExerciseSummary(for: template, blockedByActiveWorkout: true),
+            "No exercises yet • add at least 1 to start"
+        )
+    }
+
     func testTemplateListPreviewExerciseNames_skipsDuplicateDisplayNamesAndPreservesOrder() {
         let template = WorkoutTemplate(
             name: "Corrupted Push Day",

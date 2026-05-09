@@ -268,42 +268,47 @@ class TemplateManager {
         return issues
     }
 
-    func templateListExerciseSummary(for template: WorkoutTemplate) -> String {
+    func templateListExerciseSummary(for template: WorkoutTemplate, blockedByActiveWorkout: Bool = false) -> String {
         let totalCount = template.exercises.count
         let uniqueCount = uniqueTemplateExerciseCount(in: template)
         let availableCount = availableExerciseCount(in: template)
         let unavailableCount = unavailableExerciseNames(in: template).count
         let duplicateCount = duplicateExerciseNames(in: template).count
 
+        let baseSummary: String
         if totalCount == 0 {
-            return "No exercises yet • add at least 1 to start"
-        }
-
-        guard unavailableCount > 0 || duplicateCount > 0 else {
-            return totalCount == 1 ? "1 exercise" : "\(totalCount) exercises"
-        }
-
-        let readySummary: String
-        if duplicateCount > 0 {
-            let uniqueLabel = uniqueCount == 1 ? "exercise" : "exercises"
-            readySummary = availableCount == uniqueCount
-                ? "\(availableCount) unique \(uniqueLabel) ready"
-                : "\(availableCount) of \(uniqueCount) unique \(uniqueLabel) ready"
+            baseSummary = "No exercises yet • add at least 1 to start"
+        } else if unavailableCount == 0 && duplicateCount == 0 {
+            baseSummary = totalCount == 1 ? "1 exercise" : "\(totalCount) exercises"
         } else {
-            readySummary = totalCount == 1
-                ? "\(availableCount) of 1 exercise ready"
-                : "\(availableCount) of \(totalCount) exercises ready"
+            let readySummary: String
+            if duplicateCount > 0 {
+                let uniqueLabel = uniqueCount == 1 ? "exercise" : "exercises"
+                readySummary = availableCount == uniqueCount
+                    ? "\(availableCount) unique \(uniqueLabel) ready"
+                    : "\(availableCount) of \(uniqueCount) unique \(uniqueLabel) ready"
+            } else {
+                readySummary = totalCount == 1
+                    ? "\(availableCount) of 1 exercise ready"
+                    : "\(availableCount) of \(totalCount) exercises ready"
+            }
+
+            var issueParts: [String] = []
+            if unavailableCount > 0 {
+                issueParts.append(unavailableCount == 1 ? "1 missing" : "\(unavailableCount) missing")
+            }
+            if duplicateCount > 0 {
+                issueParts.append(duplicateCount == 1 ? "1 repeated" : "\(duplicateCount) repeated")
+            }
+
+            baseSummary = ([readySummary] + issueParts).joined(separator: " • ")
         }
 
-        var issueParts: [String] = []
-        if unavailableCount > 0 {
-            issueParts.append(unavailableCount == 1 ? "1 missing" : "\(unavailableCount) missing")
-        }
-        if duplicateCount > 0 {
-            issueParts.append(duplicateCount == 1 ? "1 repeated" : "\(duplicateCount) repeated")
+        guard blockedByActiveWorkout, canStartWorkout(for: template) else {
+            return baseSummary
         }
 
-        return ([readySummary] + issueParts).joined(separator: " • ")
+        return baseSummary + " • current workout in progress"
     }
 
     func templateListPreviewExerciseNames(for template: WorkoutTemplate, maxCount: Int = 2) -> [String] {
