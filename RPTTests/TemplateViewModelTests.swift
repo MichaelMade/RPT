@@ -93,6 +93,33 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Pull Day"])
     }
 
+    func testFetchTemplates_matchesExercisePrescriptionTerms() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(
+                name: "Strength Day",
+                exerciseNames: ["Bench Press"],
+                suggestedSets: 4,
+                repRangesByExercise: [[
+                    TemplateRepRange(setNumber: 1, minReps: 4, maxReps: 6, percentageOfFirstSet: 1.0),
+                    TemplateRepRange(setNumber: 2, minReps: 6, maxReps: 8, percentageOfFirstSet: 0.9),
+                    TemplateRepRange(setNumber: 3, minReps: 8, maxReps: 10, percentageOfFirstSet: 0.8),
+                    TemplateRepRange(setNumber: 4, minReps: 10, maxReps: 12, percentageOfFirstSet: 0.7)
+                ]]
+            ),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"])
+        ]
+
+        viewModel.searchText = "4 sets"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Strength Day"])
+
+        viewModel.searchText = "10-12 reps"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Strength Day"])
+
+        viewModel.searchText = "70 of first set"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Strength Day"])
+    }
+
     func testFetchTemplates_matchesExerciseNameOutOfOrderTokens() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -658,6 +685,8 @@ final class TemplateViewModelTests: XCTestCase {
     private func makeTemplate(
         name: String,
         exerciseNames: [String],
+        suggestedSets: Int = 3,
+        repRangesByExercise: [[TemplateRepRange]]? = nil,
         exerciseNotes: [String]? = nil,
         notes: String = ""
     ) -> WorkoutTemplate {
@@ -666,8 +695,8 @@ final class TemplateViewModelTests: XCTestCase {
             exercises: exerciseNames.enumerated().map { index, exerciseName in
                 TemplateExercise(
                     exerciseName: exerciseName,
-                    suggestedSets: 3,
-                    repRanges: [
+                    suggestedSets: suggestedSets,
+                    repRanges: repRangesByExercise?[safe: index] ?? [
                         TemplateRepRange(setNumber: 1, minReps: 6, maxReps: 8, percentageOfFirstSet: 1.0)
                     ],
                     notes: exerciseNotes?[safe: index] ?? ""

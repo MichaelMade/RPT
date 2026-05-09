@@ -54,6 +54,28 @@ class TemplateViewModel: ObservableObject {
             .joined()
     }
 
+    private static func exercisePrescriptionSearchTerms(for exercise: TemplateExercise) -> [String] {
+        var terms: [String] = []
+
+        let setLabel = exercise.suggestedSets == 1 ? "set" : "sets"
+        terms.append("\(exercise.suggestedSets) \(setLabel)")
+
+        for repRange in exercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber }) {
+            terms.append("Set \(repRange.setNumber)")
+            terms.append("\(repRange.minReps)-\(repRange.maxReps) reps")
+            terms.append("Set \(repRange.setNumber): \(repRange.minReps)-\(repRange.maxReps) reps")
+
+            if let percentageOfFirstSet = repRange.percentageOfFirstSet, repRange.setNumber > 1 {
+                let percentage = Int(percentageOfFirstSet * 100)
+                terms.append("\(percentage)% of first set")
+                terms.append("\(percentage) percent of first set")
+                terms.append("Set \(repRange.setNumber): \(repRange.minReps)-\(repRange.maxReps) reps (\(percentage)% of first set)")
+            }
+        }
+
+        return terms
+    }
+
     private static func matchesQueryTokens(_ queryTokens: [String], in rawValue: String) -> Bool {
         guard !queryTokens.isEmpty else {
             return false
@@ -324,32 +346,43 @@ class TemplateViewModel: ObservableObject {
             return 19
         }
 
+        let exercisePrescriptionTerms = template.exercises.flatMap { exercisePrescriptionSearchTerms(for: $0) }
+        if let prescriptionPriority = searchTermMatchPriority(
+            query: normalizedQuery,
+            queryTokens: queryTokens,
+            compactedQuery: compactedQuery,
+            initialismQuery: initialismQuery,
+            in: exercisePrescriptionTerms
+        ) {
+            return 20 + prescriptionPriority
+        }
+
         let normalizedNotes = normalizedSearchLookupKey(template.notes)
         if !normalizedNotes.isEmpty, normalizedNotes == normalizedQuery {
-            return 20
+            return 26
         }
 
         if !normalizedNotes.isEmpty, normalizedNotes.hasPrefix(normalizedQuery) {
-            return 21
+            return 27
         }
 
         if matchesQueryTokens(queryTokens, in: template.notes) {
-            return 22
+            return 28
         }
 
         let notesInitialism = initialismLookupKey(template.notes)
         if !initialismQuery.isEmpty,
            !notesInitialism.isEmpty,
            notesInitialism.hasPrefix(initialismQuery) {
-            return 23
+            return 29
         }
 
         if compactedMatchPriority(query: compactedQuery, in: template.notes) != nil {
-            return 24
+            return 30
         }
 
         if !normalizedNotes.isEmpty, normalizedNotes.contains(normalizedQuery) {
-            return 25
+            return 31
         }
 
         return nil

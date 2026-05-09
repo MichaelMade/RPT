@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also indexes each exercise’s programmed prescription from Template Details — including visible phrases like `4 sets`, `10-12 reps`, and `70% of first set` — so users can find the right template by the actual loading/rep scheme they remember, not just names or notes.
 - Workout Templates search now also indexes per-exercise notes from Template Details, so cues like `pause on the chest` or shorthand like `deb` for `Drive elbows back` can find the right template without relying only on template-level notes.
 - Workout Templates search now also indexes the exact issue and section copy shown in Template Details — including phrases like `missing from library`, `ready right now`, `included when this workout starts`, and `only the first copy will be added` — so searching with the UI’s own wording finds the right template faster.
 - Workout Templates search now also indexes the live template status, CTA, disabled-helper, and partial-start confirmation copy that users actually see on screen, so phrases like `finish the current workout`, `add at least one exercise before starting`, or `remaining 1 unique available exercise` jump straight to the relevant template.
@@ -150,6 +151,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates search now also indexes the visible per-exercise prescription copy shown in Template Details — including phrases like `4 sets`, `10-12 reps`, and `70% of first set` — so users can find templates by the programmed scheme they remember; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also indexes per-exercise notes shown in Template Details, so exercise-level cues like `pause on the chest` or shorthand like `deb` for `Drive elbows back` can find the right template too; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also indexes the exact issue and section copy shown in Template Details — including phrases like `missing from library`, `ready right now`, `included when this workout starts`, and `only the first copy will be added` — so searches using the UI’s own wording still find the right template; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also indexes the live template status, CTA, disabled-helper, and partial-start confirmation copy shown in Template rows/details, so real on-screen phrases like `finish the current workout`, `add at least one exercise before starting`, or `remaining 1 unique available exercise` can find the right template directly; added regression coverage in `TemplateViewModelTests`.
