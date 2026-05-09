@@ -462,6 +462,7 @@ class TemplateViewModel: ObservableObject {
                 "workout in progress",
                 "in progress",
                 "resume current workout",
+                "continue current workout",
                 "blocked"
             ])
         }

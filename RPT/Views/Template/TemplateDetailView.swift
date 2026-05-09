@@ -12,6 +12,7 @@ struct TemplateDetailView: View {
     let template: WorkoutTemplate
     let onStartWorkout: (Workout) -> Void
     let onEditTemplate: (() -> Void)?
+    let onResumeActiveWorkout: (() -> Void)?
     let activeWorkoutBlockMessage: String?
     @Environment(\.dismiss) private var dismiss
     @State private var startWorkoutFailureMessage: String?
@@ -284,6 +285,19 @@ struct TemplateDetailView: View {
                         }
                         .disabled(cannotStartWorkout || isBlockedByActiveWorkout)
 
+                        if isBlockedByActiveWorkout, let onResumeActiveWorkout {
+                            Button(action: onResumeActiveWorkout) {
+                                HStack {
+                                    Image(systemName: "arrow.clockwise.circle")
+                                    Text("Resume Current Workout")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.green)
+                        }
+
                         if shouldSuggestEditingTemplate, let onEditTemplate {
                             Button(action: onEditTemplate) {
                                 HStack {
@@ -391,6 +405,7 @@ struct TemplateDetailView: View {
             // Preview doesn't need to handle the workout callback
         },
         onEditTemplate: {},
+        onResumeActiveWorkout: nil,
         activeWorkoutBlockMessage: nil
     )
 }

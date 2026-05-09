@@ -183,6 +183,12 @@ struct TemplatesListView: View {
                         onEditTemplate: {
                             currentAction = .edit
                         },
+                        onResumeActiveWorkout: protectedResumableWorkout() == nil
+                            ? nil
+                            : {
+                                selectedTemplate = nil
+                                showActiveWorkoutSheet = true
+                            },
                         activeWorkoutBlockMessage: templateCannotStartOnItsOwn
                             ? nil
                             : protectedResumableWorkout().map {
