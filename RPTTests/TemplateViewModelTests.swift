@@ -93,6 +93,76 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Pull Day"])
     }
 
+    func testFetchTemplates_matchesExerciseMuscleGroupAliases() throws {
+        let context = DataManager.shared.getModelContext()
+        let bench = Exercise(
+            name: "Bench Search Alias \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [.triceps, .shoulders]
+        )
+        let row = Exercise(
+            name: "Row Search Alias \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.back],
+            secondaryMuscleGroups: [.biceps]
+        )
+        context.insert(bench)
+        context.insert(row)
+        try context.save()
+        defer {
+            context.delete(bench)
+            context.delete(row)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: [bench.name]),
+            makeTemplate(name: "Pull Day", exerciseNames: [row.name])
+        ]
+
+        viewModel.searchText = "chest"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+
+        viewModel.searchText = "biceps"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Pull Day"])
+    }
+
+    func testFetchTemplates_matchesExerciseCategoryAliases() throws {
+        let context = DataManager.shared.getModelContext()
+        let pullUp = Exercise(
+            name: "Bodyweight Search Alias \(UUID().uuidString)",
+            category: .bodyweight,
+            primaryMuscleGroups: [.back]
+        )
+        let curl = Exercise(
+            name: "Isolation Search Alias \(UUID().uuidString)",
+            category: .isolation,
+            primaryMuscleGroups: [.biceps]
+        )
+        context.insert(pullUp)
+        context.insert(curl)
+        try context.save()
+        defer {
+            context.delete(pullUp)
+            context.delete(curl)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Pull Day", exerciseNames: [pullUp.name]),
+            makeTemplate(name: "Arm Day", exerciseNames: [curl.name])
+        ]
+
+        viewModel.searchText = "bodyweight"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Pull Day"])
+
+        viewModel.searchText = "isolation"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Arm Day"])
+    }
+
     func testFetchTemplates_matchesExercisePrescriptionTerms() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

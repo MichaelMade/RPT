@@ -11,12 +11,17 @@ import SwiftData
 
 @MainActor
 class TemplateViewModel: ObservableObject {
+    private struct ExerciseSearchMetadata {
+        let searchTerms: [String]
+    }
+
     enum ActiveWorkoutPersistenceAction {
         case saveForLater
         case discard
     }
 
     private let templateManager: TemplateManager
+    private let exerciseManager: ExerciseManager
     
     @Published var templates: [WorkoutTemplate] = []
     @Published var searchText = ""
@@ -169,8 +174,9 @@ class TemplateViewModel: ObservableObject {
         !normalizedSearchText.isEmpty
     }
 
-    init(templateManager: TemplateManager? = nil) {
+    init(templateManager: TemplateManager? = nil, exerciseManager: ExerciseManager = ExerciseManager.shared) {
         self.templateManager = templateManager ?? TemplateManager.shared
+        self.exerciseManager = exerciseManager
         refreshTemplates()
     }
     
@@ -388,6 +394,45 @@ class TemplateViewModel: ObservableObject {
         return nil
     }
 
+    private func exerciseSearchMetadataLookup() -> [String: ExerciseSearchMetadata] {
+        var lookup: [String: ExerciseSearchMetadata] = [:]
+
+        for exercise in exerciseManager.fetchAllExercises() {
+            let key = ExerciseManager.normalizedNameLookupKey(exercise.name)
+            let terms = [
+                exercise.category.rawValue,
+                exercise.category.rawValue.capitalized
+            ]
+            + exercise.primaryMuscleGroups.map(\.displayName)
+            + exercise.secondaryMuscleGroups.map(\.displayName)
+
+            lookup[key] = ExerciseSearchMetadata(searchTerms: terms)
+        }
+
+        return lookup
+    }
+
+    private func exerciseMetadataSearchTerms(
+        for template: WorkoutTemplate,
+        lookup: [String: ExerciseSearchMetadata]
+    ) -> [String] {
+        var seen = Set<String>()
+        var terms: [String] = []
+
+        for exercise in template.exercises {
+            let key = ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
+            guard let metadata = lookup[key] else {
+                continue
+            }
+
+            for term in metadata.searchTerms where seen.insert(term).inserted {
+                terms.append(term)
+            }
+        }
+
+        return terms
+    }
+
     private func issueSearchTerms(for template: WorkoutTemplate, blockedByActiveWorkout: Bool) -> [String] {
         let totalCount = template.exercises.count
         let unavailableExerciseNames = templateManager.unavailableExerciseNames(in: template)
@@ -499,7 +544,12 @@ class TemplateViewModel: ObservableObject {
         return terms
     }
 
-    private func searchMatchPriority(template: WorkoutTemplate, normalizedQuery: String, blockedByActiveWorkout: Bool) -> Int? {
+    private func searchMatchPriority(
+        template: WorkoutTemplate,
+        normalizedQuery: String,
+        blockedByActiveWorkout: Bool,
+        exerciseMetadataLookup: [String: ExerciseSearchMetadata]
+    ) -> Int? {
         if let basePriority = Self.searchMatchPriority(template: template, normalizedQuery: normalizedQuery) {
             return basePriority
         }
@@ -508,6 +558,16 @@ class TemplateViewModel: ObservableObject {
         let compactedQuery = Self.compactedSearchLookupKey(normalizedQuery)
         let initialismQuery = compactedQuery
 
+        if let exerciseMetadataPriority = Self.searchTermMatchPriority(
+            query: normalizedQuery,
+            queryTokens: queryTokens,
+            compactedQuery: compactedQuery,
+            initialismQuery: initialismQuery,
+            in: exerciseMetadataSearchTerms(for: template, lookup: exerciseMetadataLookup)
+        ) {
+            return 20 + exerciseMetadataPriority
+        }
+
         if let issuePriority = Self.searchTermMatchPriority(
             query: normalizedQuery,
             queryTokens: queryTokens,
@@ -515,7 +575,7 @@ class TemplateViewModel: ObservableObject {
             initialismQuery: initialismQuery,
             in: issueSearchTerms(for: template, blockedByActiveWorkout: blockedByActiveWorkout)
         ) {
-            return 20 + issuePriority
+            return 26 + issuePriority
         }
 
         return nil
@@ -523,6 +583,7 @@ class TemplateViewModel: ObservableObject {
 
     func fetchTemplates(blockedByActiveWorkout: Bool = false) -> [WorkoutTemplate] {
         let normalizedSearchLookup = Self.normalizedSearchLookupKey(normalizedSearchText)
+        let exerciseMetadataLookup = exerciseSearchMetadataLookup()
 
         return templates
             .enumerated()
@@ -532,7 +593,8 @@ class TemplateViewModel: ObservableObject {
                 let searchPriority = searchMatchPriority(
                     template: template,
                     normalizedQuery: normalizedSearchLookup,
-                    blockedByActiveWorkout: isBlockedByActiveWorkout
+                    blockedByActiveWorkout: isBlockedByActiveWorkout,
+                    exerciseMetadataLookup: exerciseMetadataLookup
                 )
 
                 guard normalizedSearchLookup.isEmpty || searchPriority != nil else {
