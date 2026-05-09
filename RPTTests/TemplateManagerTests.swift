@@ -1002,13 +1002,17 @@ final class TemplateManagerTests: XCTestCase {
         context.insert(availableExercise)
         XCTAssertNoThrow(try context.save())
 
+        let firstBench = sampleTemplateExercise(named: "Bench Press")
+        let duplicateBench = sampleTemplateExercise(named: "  bench\npress  ")
+        let missingGhost = sampleTemplateExercise(named: "Ghost Lift")
+        let duplicateGhost = sampleTemplateExercise(named: "  ghost\nlift  ")
         let template = WorkoutTemplate(
             name: "Push Day",
             exercises: [
-                sampleTemplateExercise(named: "Bench Press"),
-                sampleTemplateExercise(named: "  bench\npress  "),
-                sampleTemplateExercise(named: "Ghost Lift"),
-                sampleTemplateExercise(named: "  ghost\nlift  ")
+                firstBench,
+                duplicateBench,
+                missingGhost,
+                duplicateGhost
             ],
             notes: ""
         )
@@ -1019,6 +1023,22 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(
             TemplateManager.shared.templateDetailStatusSummary(for: template),
             "Starts with 1 of 2 unique exercises right now. 1 missing from your library • 1 repeated entry."
+        )
+        XCTAssertTrue(
+            TemplateManager.shared.isExerciseIncludedWhenStartingWorkout(for: template, exerciseId: firstBench.id),
+            "The first resolvable unique exercise should be marked as included when the workout starts"
+        )
+        XCTAssertFalse(
+            TemplateManager.shared.isExerciseIncludedWhenStartingWorkout(for: template, exerciseId: duplicateBench.id),
+            "Repeated template rows should not be marked as included when only the first occurrence is used"
+        )
+        XCTAssertFalse(
+            TemplateManager.shared.isExerciseIncludedWhenStartingWorkout(for: template, exerciseId: missingGhost.id),
+            "Missing exercises should not be marked as included when the workout starts"
+        )
+        XCTAssertFalse(
+            TemplateManager.shared.isExerciseIncludedWhenStartingWorkout(for: template, exerciseId: duplicateGhost.id),
+            "Missing repeated exercises should not be marked as included when the workout starts"
         )
         XCTAssertEqual(
             TemplateManager.shared.partialStartConfirmationMessage(for: template),

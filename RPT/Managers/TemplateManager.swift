@@ -268,6 +268,23 @@ class TemplateManager {
         return issues
     }
 
+    func isExerciseIncludedWhenStartingWorkout(for template: WorkoutTemplate, exerciseId: UUID) -> Bool {
+        guard let exercise = template.exercises.first(where: { $0.id == exerciseId }) else {
+            return false
+        }
+
+        guard exerciseManager.fetchExercise(withName: exercise.exerciseName) != nil else {
+            return false
+        }
+
+        let normalizedExerciseName = ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
+        let firstOccurrenceId = template.exercises.first(where: {
+            ExerciseManager.normalizedNameLookupKey($0.exerciseName) == normalizedExerciseName
+        })?.id
+
+        return firstOccurrenceId == exercise.id
+    }
+
     func templateListExerciseSummary(for template: WorkoutTemplate, blockedByActiveWorkout: Bool = false) -> String {
         let totalCount = template.exercises.count
         let uniqueCount = uniqueTemplateExerciseCount(in: template)

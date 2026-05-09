@@ -148,6 +148,12 @@ struct TemplateDetailView: View {
                                     Text("\(index + 1). \(TemplateExercise.normalizedDisplayName(exercise.exerciseName))")
                                         .font(.headline)
 
+                                    if templateManager.isExerciseIncludedWhenStartingWorkout(for: template, exerciseId: exercise.id) {
+                                        Label("Included when this workout starts", systemImage: "checkmark.circle.fill")
+                                            .font(.caption)
+                                            .foregroundColor(.green)
+                                    }
+
                                     if !exerciseIssues.isEmpty {
                                         VStack(alignment: .leading, spacing: 4) {
                                             ForEach(Array(exerciseIssues.enumerated()), id: \.offset) { _, issue in
