@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details now gives broken/blocked templates a direct `Edit Template` escape hatch from the detail screen itself, including a toolbar action and inline fix-up button near the disabled start CTA, so users can repair empty/missing/duplicate templates immediately instead of backing out to the list first.
 - Template Details now keeps truly broken templates focused on their own fix-it state even when another workout is already in progress, so empty/missing-exercise templates no longer get mislabeled as merely `Current Workout In Progress` while their real repair guidance is hidden behind that unrelated block.
 - Workout Templates search now also indexes each exercise’s programmed prescription from Template Details — including visible phrases like `4 sets`, `10-12 reps`, and `70% of first set` — so users can find the right template by the actual loading/rep scheme they remember, not just names or notes.
 - Workout Templates search now also indexes per-exercise notes from Template Details, so cues like `pause on the chest` or shorthand like `deb` for `Drive elbows back` can find the right template without relying only on template-level notes.
@@ -152,6 +153,7 @@ RPT/
 
 ## Recent Improvements
 
+- Template Details now includes direct `Edit Template` recovery actions for broken or blocked templates — both in the top-right toolbar and beside the disabled start CTA — so users can jump straight into fixing empty, missing-exercise, or duplicate-heavy templates without backing out to the list first.
 - Workout Templates search now also indexes the visible per-exercise prescription copy shown in Template Details — including phrases like `4 sets`, `10-12 reps`, and `70% of first set` — so users can find templates by the programmed scheme they remember; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also indexes per-exercise notes shown in Template Details, so exercise-level cues like `pause on the chest` or shorthand like `deb` for `Drive elbows back` can find the right template too; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also indexes the exact issue and section copy shown in Template Details — including phrases like `missing from library`, `ready right now`, `included when this workout starts`, and `only the first copy will be added` — so searches using the UI’s own wording still find the right template; added regression coverage in `TemplateViewModelTests`.

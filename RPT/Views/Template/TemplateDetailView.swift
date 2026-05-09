@@ -11,6 +11,7 @@ import SwiftData
 struct TemplateDetailView: View {
     let template: WorkoutTemplate
     let onStartWorkout: (Workout) -> Void
+    let onEditTemplate: (() -> Void)?
     let activeWorkoutBlockMessage: String?
     @Environment(\.dismiss) private var dismiss
     @State private var startWorkoutFailureMessage: String?
@@ -82,6 +83,10 @@ struct TemplateDetailView: View {
 
     private var startWorkoutButtonBackgroundColor: Color {
         cannotStartWorkout || isBlockedByActiveWorkout ? .gray : .blue
+    }
+
+    private var shouldSuggestEditingTemplate: Bool {
+        cannotStartWorkout || !unavailableExerciseNames.isEmpty || !duplicateExerciseNames.isEmpty
     }
 
     private func startWorkout() {
@@ -279,6 +284,18 @@ struct TemplateDetailView: View {
                         }
                         .disabled(cannotStartWorkout || isBlockedByActiveWorkout)
 
+                        if shouldSuggestEditingTemplate, let onEditTemplate {
+                            Button(action: onEditTemplate) {
+                                HStack {
+                                    Image(systemName: "pencil")
+                                    Text("Edit Template")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+
                         if let resolvedStartWorkoutHelperMessage {
                             Text(resolvedStartWorkoutHelperMessage)
                                 .font(.footnote)
@@ -302,6 +319,12 @@ struct TemplateDetailView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
+                    }
+                }
+
+                if let onEditTemplate {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Edit", action: onEditTemplate)
                     }
                 }
             }
@@ -367,6 +390,7 @@ struct TemplateDetailView: View {
         onStartWorkout: { _ in
             // Preview doesn't need to handle the workout callback
         },
+        onEditTemplate: {},
         activeWorkoutBlockMessage: nil
     )
 }

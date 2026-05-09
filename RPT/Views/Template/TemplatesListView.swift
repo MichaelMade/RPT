@@ -180,6 +180,9 @@ struct TemplatesListView: View {
                             activeWorkoutBinding = workout
                             selectedTemplate = nil
                         },
+                        onEditTemplate: {
+                            currentAction = .edit
+                        },
                         activeWorkoutBlockMessage: templateCannotStartOnItsOwn
                             ? nil
                             : protectedResumableWorkout().map {
