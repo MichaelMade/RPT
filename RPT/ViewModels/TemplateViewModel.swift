@@ -402,6 +402,18 @@ class TemplateViewModel: ObservableObject {
             ])
         }
 
+        terms.append(templateManager.templateListExerciseSummary(for: template, blockedByActiveWorkout: isOnlyBlockedByActiveWorkout))
+        terms.append(templateManager.templateDetailStatusSummary(for: template, blockedByActiveWorkout: isOnlyBlockedByActiveWorkout))
+        terms.append(templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: isOnlyBlockedByActiveWorkout))
+
+        if let startWorkoutDisabledMessage = templateManager.startWorkoutDisabledMessage(for: template) {
+            terms.append(startWorkoutDisabledMessage)
+        }
+
+        if let startWorkoutConfirmationMessage = templateManager.startWorkoutConfirmationMessage(for: template) {
+            terms.append(startWorkoutConfirmationMessage)
+        }
+
         return terms
     }
 

@@ -331,6 +331,20 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesTemplateStatusSummaryCopyWhenAnotherWorkoutIsActive() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "finish the current workout"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
+    }
+
     func testFetchTemplates_doesNotMatchCurrentWorkoutKeywordsWhenNoWorkoutBlocksTemplateStart() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -356,6 +370,50 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
             ["Empty Template"]
+        )
+    }
+
+    func testFetchTemplates_matchesTemplateDisabledHelperCopyForEmptyTemplates() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: ""),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+        viewModel.searchText = "add at least one exercise before starting"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Empty Template"]
+        )
+    }
+
+    func testFetchTemplates_matchesPartialStartConfirmationCopy() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(
+            name: "Available Press \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest]
+        )
+        context.insert(availableExercise)
+        try context.save()
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(
+                name: "Partial Template",
+                exerciseNames: [availableExercise.name, "Missing Row \(UUID().uuidString)"]
+            ),
+            makeTemplate(name: "Ready Template", exerciseNames: [availableExercise.name])
+        ]
+        viewModel.searchText = "remaining 1 unique available exercise"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Partial Template"]
         )
     }
 
