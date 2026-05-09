@@ -45,7 +45,8 @@ struct TemplatesListView: View {
     var body: some View {
         NavigationStack {
             List {
-                let filteredTemplates = viewModel.fetchTemplates()
+                let activeWorkoutBlocksTemplateStart = protectedResumableWorkout() != nil
+                let filteredTemplates = viewModel.fetchTemplates(blockedByActiveWorkout: activeWorkoutBlocksTemplateStart)
 
                 if let summary = viewModel.filteredResultsSummary(filteredCount: filteredTemplates.count) {
                     Text(summary)
@@ -79,8 +80,6 @@ struct TemplatesListView: View {
                         }
                     }
                 } else {
-                    let activeWorkoutBlocksTemplateStart = protectedResumableWorkout() != nil
-
                     ForEach(filteredTemplates) { template in
                         Button(action: {
                             selectedTemplate = template
