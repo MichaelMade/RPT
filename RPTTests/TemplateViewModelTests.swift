@@ -71,6 +71,28 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
     }
 
+    func testFetchTemplates_matchesExerciseNotes() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(
+                name: "Push Day",
+                exerciseNames: ["Bench Press"],
+                exerciseNotes: ["Pause on the chest"]
+            ),
+            makeTemplate(
+                name: "Pull Day",
+                exerciseNames: ["Barbell Row"],
+                exerciseNotes: ["Drive elbows back"]
+            )
+        ]
+
+        viewModel.searchText = "pause chest"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+
+        viewModel.searchText = "deb"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Pull Day"])
+    }
+
     func testFetchTemplates_matchesExerciseNameOutOfOrderTokens() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -633,17 +655,22 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.createWorkoutFromTemplate(template))
     }
 
-    private func makeTemplate(name: String, exerciseNames: [String], notes: String = "") -> WorkoutTemplate {
+    private func makeTemplate(
+        name: String,
+        exerciseNames: [String],
+        exerciseNotes: [String]? = nil,
+        notes: String = ""
+    ) -> WorkoutTemplate {
         WorkoutTemplate(
             name: name,
-            exercises: exerciseNames.map {
+            exercises: exerciseNames.enumerated().map { index, exerciseName in
                 TemplateExercise(
-                    exerciseName: $0,
+                    exerciseName: exerciseName,
                     suggestedSets: 3,
                     repRanges: [
                         TemplateRepRange(setNumber: 1, minReps: 6, maxReps: 8, percentageOfFirstSet: 1.0)
                     ],
-                    notes: ""
+                    notes: exerciseNotes?[safe: index] ?? ""
                 )
             },
             notes: notes

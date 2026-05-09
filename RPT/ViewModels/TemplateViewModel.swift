@@ -293,32 +293,63 @@ class TemplateViewModel: ObservableObject {
             return 13
         }
 
-        let normalizedNotes = normalizedSearchLookupKey(template.notes)
-        if !normalizedNotes.isEmpty, normalizedNotes == normalizedQuery {
+        let exerciseNotes = template.exercises.map(\.notes)
+        let normalizedExerciseNotes = exerciseNotes.map { normalizedSearchLookupKey($0) }
+
+        if normalizedExerciseNotes.contains(where: { !$0.isEmpty && $0 == normalizedQuery }) {
             return 14
         }
 
-        if !normalizedNotes.isEmpty, normalizedNotes.hasPrefix(normalizedQuery) {
+        if normalizedExerciseNotes.contains(where: { !$0.isEmpty && $0.hasPrefix(normalizedQuery) }) {
             return 15
         }
 
-        if matchesQueryTokens(queryTokens, in: template.notes) {
+        if exerciseNotes.contains(where: { matchesQueryTokens(queryTokens, in: $0) }) {
             return 16
+        }
+
+        if !initialismQuery.isEmpty,
+           exerciseNotes.contains(where: {
+               let initialism = initialismLookupKey($0)
+               return !initialism.isEmpty && initialism.hasPrefix(initialismQuery)
+           }) {
+            return 17
+        }
+
+        if exerciseNotes.contains(where: { compactedMatchPriority(query: compactedQuery, in: $0) != nil }) {
+            return 18
+        }
+
+        if normalizedExerciseNotes.contains(where: { !$0.isEmpty && $0.contains(normalizedQuery) }) {
+            return 19
+        }
+
+        let normalizedNotes = normalizedSearchLookupKey(template.notes)
+        if !normalizedNotes.isEmpty, normalizedNotes == normalizedQuery {
+            return 20
+        }
+
+        if !normalizedNotes.isEmpty, normalizedNotes.hasPrefix(normalizedQuery) {
+            return 21
+        }
+
+        if matchesQueryTokens(queryTokens, in: template.notes) {
+            return 22
         }
 
         let notesInitialism = initialismLookupKey(template.notes)
         if !initialismQuery.isEmpty,
            !notesInitialism.isEmpty,
            notesInitialism.hasPrefix(initialismQuery) {
-            return 17
+            return 23
         }
 
         if compactedMatchPriority(query: compactedQuery, in: template.notes) != nil {
-            return 18
+            return 24
         }
 
         if !normalizedNotes.isEmpty, normalizedNotes.contains(normalizedQuery) {
-            return 19
+            return 25
         }
 
         return nil
