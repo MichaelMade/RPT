@@ -529,6 +529,18 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
             ["Push Day"]
         )
+
+        viewModel.searchText = "save and open template"
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
+
+        viewModel.searchText = "discard and open template"
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
     }
 
     func testFetchTemplates_doesNotMatchCurrentWorkoutKeywordsWhenNoWorkoutBlocksTemplateStart() {
