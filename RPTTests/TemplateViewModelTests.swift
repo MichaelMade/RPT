@@ -505,6 +505,32 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesActiveWorkoutRecoveryCopyWhenAnotherWorkoutIsActive() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+
+        viewModel.searchText = "save for later"
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
+
+        viewModel.searchText = "discard workout"
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
+
+        viewModel.searchText = "save & open template"
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
+    }
+
     func testFetchTemplates_doesNotMatchCurrentWorkoutKeywordsWhenNoWorkoutBlocksTemplateStart() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

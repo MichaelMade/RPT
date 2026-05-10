@@ -463,7 +463,17 @@ class TemplateViewModel: ObservableObject {
                 "workout in progress",
                 "in progress",
                 "resume current workout",
-                "continue current workout"
+                "continue current workout",
+                "save for later",
+                "save it for later",
+                "discard workout",
+                "discard current workout",
+                "discard it",
+                "keep going",
+                "save open template",
+                "save & open template",
+                "discard open template",
+                "discard & open template"
             ])
         }
 

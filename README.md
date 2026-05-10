@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also indexes active-workout recovery/decision copy like `save for later`, `discard workout`, and `save & open template`, so templates blocked by a live session are easier to refind using the exact wording users just saw on screen.
 - Workout Templates rows and Template Details now keep warning styling for partial/broken templates even when another workout is already in progress, so missing or repeated-entry problems stay visually obvious instead of being washed into a generic paused state.
 - Template Details now keeps a direct `Resume Current Workout` escape hatch visible whenever another session is already open — even if the selected template also needs repair first — and Workout Templates search now indexes that recovery path plus the visible `Edit Template` helper copy so users can quickly jump back to the live session or find fix-up templates by the on-screen actions they remember.
 - Template Details now adds a direct `Resume Current Workout` escape hatch whenever another session is already blocking template start, so users can jump straight back into the in-progress workout from the blocked template screen instead of backing out and hunting for it.
@@ -157,6 +158,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates search now also indexes active-workout recovery/decision copy like `save for later`, `discard workout`, and `save & open template`, so templates blocked by a live session are easier to refind using the exact wording users just saw on screen; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates rows and Template Details now keep warning styling for partial/broken templates even when another workout is already in progress, so missing or repeated-entry problems stay visually obvious instead of being flattened into the same muted paused-state styling as a clean template blocked only by the current workout; added regression coverage in `TemplateManagerTests`.
 - Workout Templates search now also indexes each template’s linked exercise categories and muscle groups from the exercise library, so queries like `chest`, `biceps`, `bodyweight`, or `isolation` can find the right plan even when users remember the target area or movement type rather than the exact exercise name; added regression coverage in `TemplateViewModelTests`.
 - Template Details now includes a direct `Resume Current Workout` recovery action whenever another session is already blocking template start, so users can jump straight back into the in-progress workout from the blocked template screen; Workout Templates search also indexes that visible copy (`resume current workout`) so those blocked templates stay easy to surface intentionally.
