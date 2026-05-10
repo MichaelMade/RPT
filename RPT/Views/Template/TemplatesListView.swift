@@ -85,7 +85,7 @@ struct TemplatesListView: View {
                             }
                         } else {
                             Button("Create Template") {
-                                createTemplatePrefillName = ""
+                                createTemplatePrefillName = viewModel.preferredNewTemplatePrefillName()
                                 showingCreateSheet = true
                             }
                         }
@@ -181,7 +181,7 @@ struct TemplatesListView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        createTemplatePrefillName = ""
+                        createTemplatePrefillName = viewModel.preferredNewTemplatePrefillName()
                         showingCreateSheet = true
                     }) {
                         Image(systemName: "plus")

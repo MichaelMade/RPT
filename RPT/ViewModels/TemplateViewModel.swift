@@ -218,6 +218,10 @@ class TemplateViewModel: ObservableObject {
         return nameAlreadyExists ? nil : normalizedName
     }
 
+    func preferredNewTemplatePrefillName() -> String {
+        suggestedTemplateNameFromSearch() ?? ""
+    }
+
     func suggestedTemplateNameForEmptySearch(filteredCount: Int) -> String? {
         guard filteredCount == 0 else {
             return nil

@@ -753,6 +753,22 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testPreferredNewTemplatePrefillName_reusesSearchWhenSafe() {
+        let viewModel = TemplateViewModel()
+        viewModel.searchText = "  Lower\n Day  "
+
+        XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "Lower Day")
+
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "")
+
+        viewModel.clearSearch()
+        XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "")
+    }
+
     func testPersistActiveWorkoutBeforeTemplateStart_saveForLaterMarksWorkoutSavedOnlyAfterSuccess() {
         let viewModel = TemplateViewModel()
         let workoutStateManager = WorkoutStateManager.shared
