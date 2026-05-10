@@ -484,7 +484,11 @@ class TemplateViewModel: ObservableObject {
         return terms
     }
 
-    private func issueSearchTerms(for template: WorkoutTemplate, activeWorkoutAvailable: Bool) -> [String] {
+    private func issueSearchTerms(
+        for template: WorkoutTemplate,
+        activeWorkoutAvailable: Bool,
+        blockedByActiveWorkout: Bool
+    ) -> [String] {
         let totalCount = template.exercises.count
         let unavailableExerciseNames = templateManager.unavailableExerciseNames(in: template)
         let duplicateExerciseNames = templateManager.duplicateExerciseNames(in: template)
@@ -493,7 +497,7 @@ class TemplateViewModel: ObservableObject {
         let duplicateCount = duplicateExerciseNames.count
         let availableCount = startableExerciseNames.count
         let canStartWorkout = availableCount > 0
-        let isOnlyBlockedByActiveWorkout = activeWorkoutAvailable && canStartWorkout
+        let isOnlyBlockedByActiveWorkout = blockedByActiveWorkout
         let shouldSuggestEditingTemplate = totalCount == 0 || unavailableCount > 0 || duplicateCount > 0 || !canStartWorkout
 
         var terms: [String] = []
@@ -624,6 +628,7 @@ class TemplateViewModel: ObservableObject {
     private func searchMatchPriority(
         template: WorkoutTemplate,
         normalizedQuery: String,
+        activeWorkoutAvailable: Bool,
         blockedByActiveWorkout: Bool,
         exerciseMetadataLookup: [String: ExerciseSearchMetadata]
     ) -> Int? {
@@ -645,12 +650,18 @@ class TemplateViewModel: ObservableObject {
             return 20 + exerciseMetadataPriority
         }
 
+        let issueSearchTerms = issueSearchTerms(
+            for: template,
+            activeWorkoutAvailable: activeWorkoutAvailable,
+            blockedByActiveWorkout: blockedByActiveWorkout
+        )
+
         if let issuePriority = Self.searchTermMatchPriority(
             query: normalizedQuery,
             queryTokens: queryTokens,
             compactedQuery: compactedQuery,
             initialismQuery: initialismQuery,
-            in: issueSearchTerms(for: template, activeWorkoutAvailable: blockedByActiveWorkout)
+            in: issueSearchTerms
         ) {
             return 26 + issuePriority
         }
@@ -670,6 +681,7 @@ class TemplateViewModel: ObservableObject {
                 let searchPriority = searchMatchPriority(
                     template: template,
                     normalizedQuery: normalizedSearchLookup,
+                    activeWorkoutAvailable: blockedByActiveWorkout,
                     blockedByActiveWorkout: isBlockedByActiveWorkout,
                     exerciseMetadataLookup: exerciseMetadataLookup
                 )
