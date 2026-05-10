@@ -85,13 +85,9 @@ struct TemplatesListView: View {
                             selectedTemplate = template
                             currentAction = .detail
                         }) {
-                            let unavailableCount = templateManager.unavailableExerciseNames(in: template).count
-                            let duplicateCount = templateManager.duplicateExerciseNames(in: template).count
                             let templateCannotStartOnItsOwn = templateManager.startWorkoutDisabledMessage(for: template) != nil
                             let isBlockedByActiveWorkout = activeWorkoutBlocksTemplateStart && !templateCannotStartOnItsOwn
-                            let hasTemplateIssues = unavailableCount > 0
-                                || duplicateCount > 0
-                                || templateCannotStartOnItsOwn
+                            let statusTone = templateManager.templateStatusTone(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
 
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(WorkoutTemplate.normalizedDisplayName(template.name))
@@ -100,7 +96,16 @@ struct TemplatesListView: View {
                                 HStack {
                                     Text(templateManager.templateListExerciseSummary(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout))
                                         .font(.caption)
-                                        .foregroundColor(isBlockedByActiveWorkout ? .gray : (hasTemplateIssues ? .orange : .secondary))
+                                        .foregroundColor({
+                                            switch statusTone {
+                                            case .ready:
+                                                return Color.secondary
+                                            case .warning, .blocked:
+                                                return .orange
+                                            case .blockedByActiveWorkout:
+                                                return .gray
+                                            }
+                                        }())
 
                                     Spacer()
 

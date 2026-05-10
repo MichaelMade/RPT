@@ -112,6 +112,13 @@ class TemplateManager {
         }
     }
 
+    enum TemplateStatusTone: Equatable {
+        case ready
+        case warning
+        case blockedByActiveWorkout
+        case blocked
+    }
+
     private let dataManager: DataManaging
     private let modelContext: ModelContext
     private let exerciseManager: ExerciseManager
@@ -375,6 +382,26 @@ class TemplateManager {
 
     func canStartWorkout(for template: WorkoutTemplate) -> Bool {
         availableExerciseCount(in: template) > 0
+    }
+
+    func templateStatusTone(for template: WorkoutTemplate, blockedByActiveWorkout: Bool = false) -> TemplateStatusTone {
+        let unavailableCount = unavailableExerciseNames(in: template).count
+        let duplicateCount = duplicateExerciseNames(in: template).count
+        let canStartWorkout = canStartWorkout(for: template)
+
+        if !canStartWorkout {
+            return .blocked
+        }
+
+        if unavailableCount > 0 || duplicateCount > 0 {
+            return .warning
+        }
+
+        if blockedByActiveWorkout {
+            return .blockedByActiveWorkout
+        }
+
+        return .ready
     }
 
     func templateDetailStatusSummary(for template: WorkoutTemplate, blockedByActiveWorkout: Bool = false) -> String {

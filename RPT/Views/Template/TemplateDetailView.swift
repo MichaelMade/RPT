@@ -74,26 +74,32 @@ struct TemplateDetailView: View {
         templateManager.templateDetailStatusSummary(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
     }
 
+    private var statusTone: TemplateManager.TemplateStatusTone {
+        templateManager.templateStatusTone(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
+    }
+
     private var statusTint: Color {
-        if isBlockedByActiveWorkout {
+        switch statusTone {
+        case .ready:
+            return .green
+        case .warning, .blocked:
+            return .orange
+        case .blockedByActiveWorkout:
             return .gray
         }
-
-        return cannotStartWorkout || !unavailableExerciseNames.isEmpty || !duplicateExerciseNames.isEmpty
-            ? .orange
-            : .green
     }
 
     private var statusIcon: String {
-        if isBlockedByActiveWorkout {
+        switch statusTone {
+        case .ready:
+            return "checkmark.circle.fill"
+        case .warning:
+            return "exclamationmark.circle.fill"
+        case .blockedByActiveWorkout:
             return "pause.circle.fill"
+        case .blocked:
+            return "xmark.circle.fill"
         }
-
-        return cannotStartWorkout
-            ? "xmark.circle.fill"
-            : (!unavailableExerciseNames.isEmpty || !duplicateExerciseNames.isEmpty)
-                ? "exclamationmark.circle.fill"
-                : "checkmark.circle.fill"
     }
 
     private var startWorkoutButtonBackgroundColor: Color {

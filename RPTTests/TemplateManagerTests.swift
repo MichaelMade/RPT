@@ -912,6 +912,53 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertNil(TemplateManager.shared.partialStartConfirmationMessage(for: template))
     }
 
+    func testTemplateStatusTone_usesBlockedByActiveWorkoutOnlyForOtherwiseReadyTemplate() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateStatusTone(for: template, blockedByActiveWorkout: true),
+            .blockedByActiveWorkout
+        )
+    }
+
+    func testTemplateStatusTone_keepsWarningForPartialTemplateEvenWhenCurrentWorkoutBlocksStart() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "Ghost Lift")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateStatusTone(for: template, blockedByActiveWorkout: true),
+            .warning
+        )
+    }
+
     func testTemplateDetailStatusSummary_mentionsCurrentWorkoutBlockForOtherwiseReadyTemplate() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
