@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details now keeps a direct `Resume Current Workout` escape hatch visible whenever another session is already open — even if the selected template also needs repair first — and Workout Templates search now indexes that recovery path plus the visible `Edit Template` helper copy so users can quickly jump back to the live session or find fix-up templates by the on-screen actions they remember.
 - Template Details now adds a direct `Resume Current Workout` escape hatch whenever another session is already blocking template start, so users can jump straight back into the in-progress workout from the blocked template screen instead of backing out and hunting for it.
 - Workout Templates search now also matches each template’s linked exercise categories and muscle groups from the library, so searches like `chest`, `biceps`, `bodyweight`, or `isolation` can surface the right saved plan even when you only remember the movement type, not its exact exercise name.
 - Template Details now gives broken/blocked templates a direct `Edit Template` escape hatch from the detail screen itself, including a toolbar action and inline fix-up button near the disabled start CTA, so users can repair empty/missing/duplicate templates immediately instead of backing out to the list first.

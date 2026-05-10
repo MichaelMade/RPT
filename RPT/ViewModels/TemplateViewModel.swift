@@ -433,7 +433,7 @@ class TemplateViewModel: ObservableObject {
         return terms
     }
 
-    private func issueSearchTerms(for template: WorkoutTemplate, blockedByActiveWorkout: Bool) -> [String] {
+    private func issueSearchTerms(for template: WorkoutTemplate, activeWorkoutAvailable: Bool) -> [String] {
         let totalCount = template.exercises.count
         let unavailableExerciseNames = templateManager.unavailableExerciseNames(in: template)
         let duplicateExerciseNames = templateManager.duplicateExerciseNames(in: template)
@@ -442,7 +442,8 @@ class TemplateViewModel: ObservableObject {
         let duplicateCount = duplicateExerciseNames.count
         let availableCount = startableExerciseNames.count
         let canStartWorkout = availableCount > 0
-        let isOnlyBlockedByActiveWorkout = blockedByActiveWorkout && canStartWorkout
+        let isOnlyBlockedByActiveWorkout = activeWorkoutAvailable && canStartWorkout
+        let shouldSuggestEditingTemplate = totalCount == 0 || unavailableCount > 0 || duplicateCount > 0 || !canStartWorkout
 
         var terms: [String] = []
 
@@ -455,24 +456,29 @@ class TemplateViewModel: ObservableObject {
             ])
         }
 
-        if isOnlyBlockedByActiveWorkout {
+        if activeWorkoutAvailable {
             terms.append(contentsOf: [
                 "current workout",
                 "current workout in progress",
                 "workout in progress",
                 "in progress",
                 "resume current workout",
-                "continue current workout",
-                "blocked"
+                "continue current workout"
             ])
+        }
+
+        if isOnlyBlockedByActiveWorkout {
+            terms.append("blocked")
         }
 
         if totalCount == 0 {
             terms.append(contentsOf: [
                 "empty",
                 "no exercises",
+                "no exercises added yet",
                 "empty template",
                 "add exercises",
+                "add at least 1 exercise",
                 "needs exercises"
             ])
         }
@@ -518,6 +524,13 @@ class TemplateViewModel: ObservableObject {
                 "included"
             ])
             terms.append(contentsOf: startableExerciseNames)
+        }
+
+        if shouldSuggestEditingTemplate {
+            terms.append(contentsOf: [
+                "edit template",
+                "fix template"
+            ])
         }
 
         if !canStartWorkout {
@@ -574,7 +587,7 @@ class TemplateViewModel: ObservableObject {
             queryTokens: queryTokens,
             compactedQuery: compactedQuery,
             initialismQuery: initialismQuery,
-            in: issueSearchTerms(for: template, blockedByActiveWorkout: blockedByActiveWorkout)
+            in: issueSearchTerms(for: template, activeWorkoutAvailable: blockedByActiveWorkout)
         ) {
             return 26 + issuePriority
         }

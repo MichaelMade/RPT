@@ -190,6 +190,33 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Strength Day"])
     }
 
+    func testFetchTemplates_matchesEditTemplateRecoveryCopyForBrokenTemplates() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Empty Draft", exerciseNames: []),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "edit template"
+
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Empty Draft"])
+    }
+
+    func testFetchTemplates_matchesResumeCurrentWorkoutWhenActiveWorkoutExistsEvenIfTemplateNeedsRepair() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Ghost Day", exerciseNames: ["Ghost Lift"]),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "resume current workout"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Ghost Day", "Push Day"]
+        )
+    }
+
     func testFetchTemplates_matchesExerciseNameOutOfOrderTokens() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

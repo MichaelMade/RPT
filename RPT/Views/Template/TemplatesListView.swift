@@ -189,11 +189,9 @@ struct TemplatesListView: View {
                                 selectedTemplate = nil
                                 showActiveWorkoutSheet = true
                             },
-                        activeWorkoutBlockMessage: templateCannotStartOnItsOwn
-                            ? nil
-                            : protectedResumableWorkout().map {
-                                viewModel.activeWorkoutBlocksTemplateStartMessage(for: $0, opening: template)
-                            }
+                        activeWorkoutBlockMessage: protectedResumableWorkout().map {
+                            viewModel.activeWorkoutBlocksTemplateStartMessage(for: $0, opening: template)
+                        }
                     )
                 }
             }

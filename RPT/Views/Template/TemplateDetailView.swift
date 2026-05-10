@@ -48,8 +48,22 @@ struct TemplateDetailView: View {
         activeWorkoutBlockMessage != nil && !cannotStartWorkout
     }
 
-    private var resolvedStartWorkoutHelperMessage: String? {
-        startWorkoutDisabledMessage ?? activeWorkoutBlockMessage
+    private var canResumeActiveWorkout: Bool {
+        activeWorkoutBlockMessage != nil && onResumeActiveWorkout != nil
+    }
+
+    private var resolvedStartWorkoutHelperMessages: [String] {
+        var messages: [String] = []
+
+        if let startWorkoutDisabledMessage {
+            messages.append(startWorkoutDisabledMessage)
+        }
+
+        if let activeWorkoutBlockMessage, !messages.contains(activeWorkoutBlockMessage) {
+            messages.append(activeWorkoutBlockMessage)
+        }
+
+        return messages
     }
 
     private var startWorkoutActionTitle: String {
@@ -285,7 +299,7 @@ struct TemplateDetailView: View {
                         }
                         .disabled(cannotStartWorkout || isBlockedByActiveWorkout)
 
-                        if isBlockedByActiveWorkout, let onResumeActiveWorkout {
+                        if canResumeActiveWorkout, let onResumeActiveWorkout {
                             Button(action: onResumeActiveWorkout) {
                                 HStack {
                                     Image(systemName: "arrow.clockwise.circle")
@@ -310,8 +324,8 @@ struct TemplateDetailView: View {
                             .buttonStyle(.bordered)
                         }
 
-                        if let resolvedStartWorkoutHelperMessage {
-                            Text(resolvedStartWorkoutHelperMessage)
+                        ForEach(Array(resolvedStartWorkoutHelperMessages.enumerated()), id: \.offset) { _, helperMessage in
+                            Text(helperMessage)
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
