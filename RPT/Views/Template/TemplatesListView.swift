@@ -99,24 +99,29 @@ struct TemplatesListView: View {
                             let templateCannotStartOnItsOwn = templateManager.startWorkoutDisabledMessage(for: template) != nil
                             let isBlockedByActiveWorkout = activeWorkoutBlocksTemplateStart && !templateCannotStartOnItsOwn
                             let statusTone = templateManager.templateStatusTone(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
+                            let statusTitle = templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
 
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(WorkoutTemplate.normalizedDisplayName(template.name))
-                                    .font(.headline)
+                                HStack(alignment: .top, spacing: 8) {
+                                    Text(WorkoutTemplate.normalizedDisplayName(template.name))
+                                        .font(.headline)
+
+                                    Spacer(minLength: 8)
+
+                                    Text(statusTitle)
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(statusBadgeForegroundColor(for: statusTone))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(statusBadgeBackgroundColor(for: statusTone))
+                                        .clipShape(Capsule())
+                                        .multilineTextAlignment(.trailing)
+                                }
 
                                 HStack {
                                     Text(templateManager.templateListExerciseSummary(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout))
                                         .font(.caption)
-                                        .foregroundColor({
-                                            switch statusTone {
-                                            case .ready:
-                                                return Color.secondary
-                                            case .warning, .blocked:
-                                                return .orange
-                                            case .blockedByActiveWorkout:
-                                                return .gray
-                                            }
-                                        }())
+                                        .foregroundColor(summaryColor(for: statusTone))
 
                                     Spacer()
 
@@ -265,6 +270,39 @@ struct TemplatesListView: View {
             } message: { result in
                 Text(result.alertMessage)
             }
+        }
+    }
+
+    private func summaryColor(for tone: TemplateManager.TemplateStatusTone) -> Color {
+        switch tone {
+        case .ready:
+            return .secondary
+        case .warning, .blocked:
+            return .orange
+        case .blockedByActiveWorkout:
+            return .gray
+        }
+    }
+
+    private func statusBadgeForegroundColor(for tone: TemplateManager.TemplateStatusTone) -> Color {
+        switch tone {
+        case .ready:
+            return .green
+        case .warning, .blocked:
+            return .orange
+        case .blockedByActiveWorkout:
+            return .gray
+        }
+    }
+
+    private func statusBadgeBackgroundColor(for tone: TemplateManager.TemplateStatusTone) -> Color {
+        switch tone {
+        case .ready:
+            return Color.green.opacity(0.14)
+        case .warning, .blocked:
+            return Color.orange.opacity(0.16)
+        case .blockedByActiveWorkout:
+            return Color.gray.opacity(0.16)
         }
     }
 

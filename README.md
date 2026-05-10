@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates list rows now surface each template’s real start state as a compact status badge (`Start Workout`, `Start Partial Workout`, `Current Workout In Progress`, or `Can’t Start Workout`), so you can scan which plans are ready, partially broken, blocked by another session, or fully unstartable without parsing the smaller summary text first.
 - Workout Templates now gives no-match searches a direct `Create “...”` recovery action that prefills the new-template name from the current query, so when users search for a template that does not exist yet they can turn that failed lookup into a new plan without retyping.
 - Workout Templates search now keeps active-workout recovery phrases like `resume current workout` and `save and open template` discoverable even when a template also needs repair, so broken/partial templates stay findable by the exact handoff copy still visible in Template Details.
 - Workout Templates search now also understands natural-language active-workout handoff phrases like `save and open template` and `discard and open template`, so blocked templates are easier to refind even when users remember the spoken wording instead of the `&` button label.
