@@ -18,6 +18,7 @@ struct TemplatesListView: View {
     @State private var templateToDelete: WorkoutTemplate?
     @State private var deleteResult: TemplateManager.DeletionResult?
     @State private var searchText = ""
+    @State private var createTemplatePrefillName = ""
     
     private let templateManager = TemplateManager.shared
     
@@ -56,6 +57,8 @@ struct TemplatesListView: View {
                 }
 
                 if filteredTemplates.isEmpty {
+                    let createRecoveryTitle = viewModel.createTemplateRecoveryTitle(filteredCount: filteredTemplates.count)
+
                     ContentUnavailableView {
                         Label(
                             viewModel.hasActiveSearch ? "No Matching Templates" : "No Templates Yet",
@@ -64,10 +67,17 @@ struct TemplatesListView: View {
                     } description: {
                         Text(
                             viewModel.hasActiveSearch
-                            ? "Try a different search or clear it to browse every workout template. You can search names, exercises, notes, and issue labels like missing or repeated."
+                            ? "Try a different search, clear it to browse every workout template, or create a new template from this search. You can search names, exercises, notes, and issue labels like missing or repeated."
                             : "Create your first workout template to quickly start repeatable RPT sessions."
                         )
                     } actions: {
+                        if let createRecoveryTitle {
+                            Button(createRecoveryTitle) {
+                                createTemplatePrefillName = viewModel.suggestedTemplateNameForEmptySearch(filteredCount: filteredTemplates.count) ?? ""
+                                showingCreateSheet = true
+                            }
+                        }
+
                         if viewModel.hasActiveSearch {
                             Button("Clear Search") {
                                 searchText = ""
@@ -75,6 +85,7 @@ struct TemplatesListView: View {
                             }
                         } else {
                             Button("Create Template") {
+                                createTemplatePrefillName = ""
                                 showingCreateSheet = true
                             }
                         }
@@ -160,6 +171,7 @@ struct TemplatesListView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
+                        createTemplatePrefillName = ""
                         showingCreateSheet = true
                     }) {
                         Image(systemName: "plus")
@@ -169,14 +181,22 @@ struct TemplatesListView: View {
             .sheet(isPresented: $showingCreateSheet, onDismiss: {
                 viewModel.refreshTemplates() // Refresh on dismiss
             }) {
-                TemplateEditView(isNewTemplate: true, existingTemplate: nil)
+                TemplateEditView(
+                    isNewTemplate: true,
+                    existingTemplate: nil,
+                    initialTemplateName: createTemplatePrefillName
+                )
             }
             .sheet(item: $selectedTemplate, onDismiss: {
                 selectedTemplate = nil
                 viewModel.refreshTemplates() // Refresh on dismiss
             }) { template in
                 if currentAction == .edit {
-                    TemplateEditView(isNewTemplate: false, existingTemplate: template)
+                    TemplateEditView(
+                        isNewTemplate: false,
+                        existingTemplate: template,
+                        initialTemplateName: ""
+                    )
                 } else {
                     let templateCannotStartOnItsOwn = templateManager.startWorkoutDisabledMessage(for: template) != nil
                     TemplateDetailView(

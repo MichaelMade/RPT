@@ -200,6 +200,23 @@ class TemplateViewModel: ObservableObject {
         hasActiveSearch && filteredCount > 0 && !templates.isEmpty
     }
 
+    func suggestedTemplateNameForEmptySearch(filteredCount: Int) -> String? {
+        guard hasActiveSearch, filteredCount == 0 else {
+            return nil
+        }
+
+        let normalizedName = normalizedSearchText
+        return normalizedName.isEmpty ? nil : normalizedName
+    }
+
+    func createTemplateRecoveryTitle(filteredCount: Int) -> String? {
+        guard let suggestedName = suggestedTemplateNameForEmptySearch(filteredCount: filteredCount) else {
+            return nil
+        }
+
+        return "Create “\(suggestedName)”"
+    }
+
     func persistActiveWorkoutBeforeTemplateStart(
         _ workout: Workout,
         action: ActiveWorkoutPersistenceAction,

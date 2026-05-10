@@ -19,6 +19,7 @@ struct TemplateEditView: View {
     
     let isNewTemplate: Bool
     let existingTemplate: WorkoutTemplate?
+    let initialTemplateName: String
     
     private let templateManager = TemplateManager.shared
 
@@ -126,6 +127,8 @@ struct TemplateEditView: View {
                     templateName = WorkoutTemplate.normalizedDisplayName(template.name)
                     templateNotes = WorkoutTemplate.normalizedDisplayNotes(template.notes) ?? ""
                     exercises = template.exercises
+                } else if templateName.isEmpty {
+                    templateName = TemplateViewModel.normalizedSearchQuery(initialTemplateName)
                 }
             }
             .sheet(isPresented: $showingExerciseSelector) {
@@ -218,7 +221,8 @@ struct TemplateEditView: View {
     return NavigationStack {
         TemplateEditView(
             isNewTemplate: false,
-            existingTemplate: template
+            existingTemplate: template,
+            initialTemplateName: ""
         )
         .modelContainer(modelContainer)
     }

@@ -709,6 +709,30 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.shouldShowResultsRecoveryActions(filteredCount: 0))
     }
 
+    func testSuggestedTemplateNameForEmptySearch_usesNormalizedActiveSearchTextOnlyWhenNoResultsRemain() {
+        let viewModel = TemplateViewModel()
+        viewModel.searchText = "  Upper\n Body  "
+
+        XCTAssertEqual(
+            viewModel.suggestedTemplateNameForEmptySearch(filteredCount: 0),
+            "Upper Body"
+        )
+        XCTAssertNil(viewModel.suggestedTemplateNameForEmptySearch(filteredCount: 1))
+
+        viewModel.clearSearch()
+        XCTAssertNil(viewModel.suggestedTemplateNameForEmptySearch(filteredCount: 0))
+    }
+
+    func testCreateTemplateRecoveryTitle_formatsNormalizedSearchText() {
+        let viewModel = TemplateViewModel()
+        viewModel.searchText = "  Lower\n Day  "
+
+        XCTAssertEqual(
+            viewModel.createTemplateRecoveryTitle(filteredCount: 0),
+            "Create “Lower Day”"
+        )
+    }
+
     func testPersistActiveWorkoutBeforeTemplateStart_saveForLaterMarksWorkoutSavedOnlyAfterSuccess() {
         let viewModel = TemplateViewModel()
         let workoutStateManager = WorkoutStateManager.shared

@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates now gives no-match searches a direct `Create “...”` recovery action that prefills the new-template name from the current query, so when users search for a template that does not exist yet they can turn that failed lookup into a new plan without retyping.
 - Workout Templates search now also indexes active-workout recovery/decision copy like `save for later`, `discard workout`, and `save & open template`, so templates blocked by a live session are easier to refind using the exact wording users just saw on screen.
 - Workout Templates rows and Template Details now keep warning styling for partial/broken templates even when another workout is already in progress, so missing or repeated-entry problems stay visually obvious instead of being washed into a generic paused state.
 - Template Details now keeps a direct `Resume Current Workout` escape hatch visible whenever another session is already open — even if the selected template also needs repair first — and Workout Templates search now indexes that recovery path plus the visible `Edit Template` helper copy so users can quickly jump back to the live session or find fix-up templates by the on-screen actions they remember.
@@ -158,6 +159,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates now gives no-match searches a direct `Create “...”` recovery action that opens New Template with the search text prefilled as the draft name, so a failed lookup can immediately become a new saved plan without retyping; added regression coverage in `TemplateViewModelTests` for the search-to-create helper copy.
 - Workout Templates search now also indexes active-workout recovery/decision copy like `save for later`, `discard workout`, and `save & open template`, so templates blocked by a live session are easier to refind using the exact wording users just saw on screen; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates rows and Template Details now keep warning styling for partial/broken templates even when another workout is already in progress, so missing or repeated-entry problems stay visually obvious instead of being flattened into the same muted paused-state styling as a clean template blocked only by the current workout; added regression coverage in `TemplateManagerTests`.
 - Workout Templates search now also indexes each template’s linked exercise categories and muscle groups from the exercise library, so queries like `chest`, `biceps`, `bodyweight`, or `isolation` can find the right plan even when users remember the target area or movement type rather than the exact exercise name; added regression coverage in `TemplateViewModelTests`.
