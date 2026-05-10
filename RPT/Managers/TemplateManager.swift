@@ -438,7 +438,7 @@ class TemplateManager {
         }
 
         if blockedByActiveWorkout {
-            issueParts.append("Finish the current workout before starting this template")
+            issueParts.append("Continue, save, or discard the current workout before starting this template")
         }
 
         guard !issueParts.isEmpty else {

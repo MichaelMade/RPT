@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details’ active-workout status summary now explicitly says users can continue, save, or discard the current workout before starting the selected template, matching the direct `Resume Current Workout`, `Save & Open Template`, and `Discard & Open Template` recovery actions shown on that screen.
 - Template Details now exposes direct `Save & Open Template` and `Discard & Open Template` recovery actions whenever another workout is already blocking start, so users can switch into the selected template in one step instead of backing out to manage the live session first.
 - Workout Templates list rows now surface each template’s real start state as a compact status badge (`Start Workout`, `Start Partial Workout`, `Current Workout In Progress`, or `Can’t Start Workout`), so you can scan which plans are ready, partially broken, blocked by another session, or fully unstartable without parsing the smaller summary text first.
 - Workout Templates now gives no-match searches a direct `Create “...”` recovery action that prefills the new-template name from the current query, so when users search for a template that does not exist yet they can turn that failed lookup into a new plan without retyping.
@@ -163,6 +164,7 @@ RPT/
 
 ## Recent Improvements
 
+- Template Details’ active-workout status summary now explicitly says users can continue, save, or discard the current workout before starting the selected template, matching the direct recovery actions already shown on that screen; added regression coverage in `TemplateManagerTests`.
 - Workout Templates’ standard `+` create action now also reuses the current search as the new-template draft name whenever that normalized name is safe to create, so users don’t lose search context if they reach for the usual toolbar button instead of the inline recovery CTA; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also keeps a direct `Create “...”` action visible even when related matches still exist, as long as no template already uses that exact normalized name, so users can turn a near-match search into a new template without clearing the query or retyping; added regression coverage in `TemplateViewModelTests` for the duplicate-safe create-from-search helper.
 - Workout Templates now gives no-match searches a direct `Create “...”` recovery action that opens New Template with the search text prefilled as the draft name, so a failed lookup can immediately become a new saved plan without retyping; added regression coverage in `TemplateViewModelTests` for the search-to-create helper copy.

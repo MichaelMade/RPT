@@ -977,7 +977,7 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(
             TemplateManager.shared.templateDetailStatusSummary(for: template, blockedByActiveWorkout: true),
-            "Ready to start with 1 exercise. Finish the current workout before starting this template."
+            "Ready to start with 1 exercise. Continue, save, or discard the current workout before starting this template."
         )
     }
 
