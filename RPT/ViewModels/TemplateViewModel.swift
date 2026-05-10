@@ -304,6 +304,23 @@ class TemplateViewModel: ObservableObject {
         }
     }
 
+    func startTemplateAfterPersistingActiveWorkout(
+        _ activeWorkout: Workout,
+        action: ActiveWorkoutPersistenceAction,
+        opening template: WorkoutTemplate,
+        persist: (Workout) -> Bool
+    ) -> Result<Workout, String> {
+        guard persistActiveWorkoutBeforeTemplateStart(activeWorkout, action: action, persist: persist) else {
+            return .failure(activeWorkoutPersistenceFailureMessage(for: action))
+        }
+
+        guard let startedWorkout = createWorkoutFromTemplate(template) else {
+            return .failure("Your template workout could not be started right now. Please try again.")
+        }
+
+        return .success(startedWorkout)
+    }
+
     static func searchMatchPriority(template: WorkoutTemplate, normalizedQuery: String) -> Int? {
         guard !normalizedQuery.isEmpty else {
             return 0

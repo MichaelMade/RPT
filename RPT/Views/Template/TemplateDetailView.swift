@@ -13,6 +13,8 @@ struct TemplateDetailView: View {
     let onStartWorkout: (Workout) -> Void
     let onEditTemplate: (() -> Void)?
     let onResumeActiveWorkout: (() -> Void)?
+    let onSaveActiveWorkoutAndOpenTemplate: (() -> Void)?
+    let onDiscardActiveWorkoutAndOpenTemplate: (() -> Void)?
     let activeWorkoutBlockMessage: String?
     @Environment(\.dismiss) private var dismiss
     @State private var startWorkoutFailureMessage: String?
@@ -318,6 +320,31 @@ struct TemplateDetailView: View {
                             .tint(.green)
                         }
 
+                        if isBlockedByActiveWorkout, let onSaveActiveWorkoutAndOpenTemplate {
+                            Button(action: onSaveActiveWorkoutAndOpenTemplate) {
+                                HStack {
+                                    Image(systemName: "tray.and.arrow.down")
+                                    Text("Save & Open Template")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.blue)
+                        }
+
+                        if isBlockedByActiveWorkout, let onDiscardActiveWorkoutAndOpenTemplate {
+                            Button(role: .destructive, action: onDiscardActiveWorkoutAndOpenTemplate) {
+                                HStack {
+                                    Image(systemName: "trash")
+                                    Text("Discard & Open Template")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+
                         if shouldSuggestEditingTemplate, let onEditTemplate {
                             Button(action: onEditTemplate) {
                                 HStack {
@@ -426,6 +453,8 @@ struct TemplateDetailView: View {
         },
         onEditTemplate: {},
         onResumeActiveWorkout: nil,
+        onSaveActiveWorkoutAndOpenTemplate: nil,
+        onDiscardActiveWorkoutAndOpenTemplate: nil,
         activeWorkoutBlockMessage: nil
     )
 }

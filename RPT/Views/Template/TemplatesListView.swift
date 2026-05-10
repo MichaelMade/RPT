@@ -17,6 +17,7 @@ struct TemplatesListView: View {
     @State private var showingConfirmationDialog = false
     @State private var templateToDelete: WorkoutTemplate?
     @State private var deleteResult: TemplateManager.DeletionResult?
+    @State private var templateStartFailureMessage: String?
     @State private var searchText = ""
     @State private var createTemplatePrefillName = ""
     
@@ -229,6 +230,16 @@ struct TemplatesListView: View {
                                 selectedTemplate = nil
                                 showActiveWorkoutSheet = true
                             },
+                        onSaveActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil
+                            ? nil
+                            : {
+                                saveActiveWorkoutAndOpenTemplate(template)
+                            },
+                        onDiscardActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil
+                            ? nil
+                            : {
+                                discardActiveWorkoutAndOpenTemplate(template)
+                            },
                         activeWorkoutBlockMessage: protectedResumableWorkout().map {
                             viewModel.activeWorkoutBlocksTemplateStartMessage(for: $0, opening: template)
                         }
@@ -269,6 +280,20 @@ struct TemplatesListView: View {
                 }
             } message: { result in
                 Text(result.alertMessage)
+            }
+            .alert("Workout Action Failed", isPresented: Binding(
+                get: { templateStartFailureMessage != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        templateStartFailureMessage = nil
+                    }
+                }
+            )) {
+                Button("OK", role: .cancel) {
+                    templateStartFailureMessage = nil
+                }
+            } message: {
+                Text(templateStartFailureMessage ?? "")
             }
         }
     }
@@ -311,6 +336,40 @@ struct TemplatesListView: View {
             currentBinding: activeWorkoutBinding,
             fallbackWorkouts: WorkoutManager.shared.getIncompleteWorkouts()
         )
+    }
+
+    private func saveActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch viewModel.startTemplateAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .saveForLater,
+            opening: template,
+            persist: { WorkoutManager.shared.saveWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            activeWorkoutBinding = startedWorkout
+            selectedTemplate = nil
+        case .failure(let message):
+            templateStartFailureMessage = message
+        }
+    }
+
+    private func discardActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch viewModel.startTemplateAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .discard,
+            opening: template,
+            persist: { WorkoutManager.shared.deleteWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            activeWorkoutBinding = startedWorkout
+            selectedTemplate = nil
+        case .failure(let message):
+            templateStartFailureMessage = message
+        }
     }
 }
 

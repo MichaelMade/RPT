@@ -891,6 +891,79 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testStartTemplateAfterPersistingActiveWorkout_returnsStartedWorkoutAfterSuccessfulSaveForLater() {
+        let expectedWorkout = Workout(name: "Template Workout")
+        let viewModel = TemplateViewModel(templateManager: StubTemplateManager(workoutToReturn: expectedWorkout))
+        let workoutStateManager = WorkoutStateManager.shared
+        workoutStateManager.clearDiscardedState()
+        defer { workoutStateManager.clearDiscardedState() }
+
+        let activeWorkout = Workout(name: "Current Workout")
+        let template = makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+
+        let result = viewModel.startTemplateAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .saveForLater,
+            opening: template,
+            persist: { _ in true }
+        )
+
+        switch result {
+        case .success(let startedWorkout):
+            XCTAssertTrue(startedWorkout === expectedWorkout)
+        case .failure(let message):
+            XCTFail("Expected success, got failure: \(message)")
+        }
+
+        XCTAssertFalse(workoutStateManager.wasAnyWorkoutDiscarded())
+    }
+
+    func testStartTemplateAfterPersistingActiveWorkout_returnsPersistenceFailureMessageWhenDiscardFails() {
+        let viewModel = TemplateViewModel(templateManager: StubTemplateManager(workoutToReturn: Workout(name: "Template Workout")))
+        let activeWorkout = Workout(name: "Current Workout")
+        let template = makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+
+        let result = viewModel.startTemplateAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .discard,
+            opening: template,
+            persist: { _ in false }
+        )
+
+        switch result {
+        case .success:
+            XCTFail("Expected persistence failure")
+        case .failure(let message):
+            XCTAssertEqual(
+                message,
+                "Couldn’t discard the current workout. Keep it open, then try starting from the template again."
+            )
+        }
+    }
+
+    func testStartTemplateAfterPersistingActiveWorkout_returnsStartFailureMessageWhenTemplateCreationFails() {
+        let viewModel = TemplateViewModel(templateManager: StubTemplateManager(workoutToReturn: nil))
+        let activeWorkout = Workout(name: "Current Workout")
+        let template = makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+
+        let result = viewModel.startTemplateAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .saveForLater,
+            opening: template,
+            persist: { _ in true }
+        )
+
+        switch result {
+        case .success:
+            XCTFail("Expected template start failure")
+        case .failure(let message):
+            XCTAssertEqual(
+                message,
+                "Your template workout could not be started right now. Please try again."
+            )
+        }
+    }
+
     func testCreateWorkoutFromTemplate_returnsCreatedWorkoutWhenManagerSucceeds() {
         let expectedWorkout = Workout(name: "Template Workout")
         let viewModel = TemplateViewModel(templateManager: StubTemplateManager(workoutToReturn: expectedWorkout))
