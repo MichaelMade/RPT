@@ -723,12 +723,32 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.suggestedTemplateNameForEmptySearch(filteredCount: 0))
     }
 
+    func testSuggestedTemplateNameFromSearch_ignoresExistingTemplateNameCollisions() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper Body", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Upper Body Push", exerciseNames: ["Overhead Press"])
+        ]
+
+        viewModel.searchText = "  upper\n body  "
+        XCTAssertNil(viewModel.suggestedTemplateNameFromSearch())
+        XCTAssertFalse(viewModel.shouldShowCreateTemplateFromSearchAction(filteredCount: 1))
+
+        viewModel.searchText = "upper"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "upper")
+        XCTAssertTrue(viewModel.shouldShowCreateTemplateFromSearchAction(filteredCount: 2))
+    }
+
     func testCreateTemplateRecoveryTitle_formatsNormalizedSearchText() {
         let viewModel = TemplateViewModel()
         viewModel.searchText = "  Lower\n Day  "
 
         XCTAssertEqual(
             viewModel.createTemplateRecoveryTitle(filteredCount: 0),
+            "Create “Lower Day”"
+        )
+        XCTAssertEqual(
+            viewModel.createTemplateRecoveryTitle(filteredCount: 2),
             "Create “Lower Day”"
         )
     }

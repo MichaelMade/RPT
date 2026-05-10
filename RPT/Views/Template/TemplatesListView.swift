@@ -152,6 +152,16 @@ struct TemplatesListView: View {
                         }
                     }
 
+                    if viewModel.shouldShowCreateTemplateFromSearchAction(filteredCount: filteredTemplates.count),
+                       let createRecoveryTitle = viewModel.createTemplateRecoveryTitle(filteredCount: filteredTemplates.count) {
+                        Button(createRecoveryTitle) {
+                            createTemplatePrefillName = viewModel.suggestedTemplateNameFromSearch() ?? ""
+                            showingCreateSheet = true
+                        }
+                        .font(.caption)
+                        .buttonStyle(.borderless)
+                    }
+
                     if viewModel.shouldShowResultsRecoveryActions(filteredCount: filteredTemplates.count) {
                         Button("Clear Search") {
                             searchText = ""

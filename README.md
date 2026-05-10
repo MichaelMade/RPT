@@ -159,6 +159,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates search now also keeps a direct `Create “...”` action visible even when related matches still exist, as long as no template already uses that exact normalized name, so users can turn a near-match search into a new template without clearing the query or retyping; added regression coverage in `TemplateViewModelTests` for the duplicate-safe create-from-search helper.
 - Workout Templates now gives no-match searches a direct `Create “...”` recovery action that opens New Template with the search text prefilled as the draft name, so a failed lookup can immediately become a new saved plan without retyping; added regression coverage in `TemplateViewModelTests` for the search-to-create helper copy.
 - Workout Templates search now also indexes active-workout recovery/decision copy like `save for later`, `discard workout`, and `save & open template`, so templates blocked by a live session are easier to refind using the exact wording users just saw on screen; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates rows and Template Details now keep warning styling for partial/broken templates even when another workout is already in progress, so missing or repeated-entry problems stay visually obvious instead of being flattened into the same muted paused-state styling as a clean template blocked only by the current workout; added regression coverage in `TemplateManagerTests`.

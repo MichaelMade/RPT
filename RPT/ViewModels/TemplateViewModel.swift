@@ -200,17 +200,47 @@ class TemplateViewModel: ObservableObject {
         hasActiveSearch && filteredCount > 0 && !templates.isEmpty
     }
 
-    func suggestedTemplateNameForEmptySearch(filteredCount: Int) -> String? {
-        guard hasActiveSearch, filteredCount == 0 else {
+    func suggestedTemplateNameFromSearch() -> String? {
+        guard hasActiveSearch else {
             return nil
         }
 
         let normalizedName = normalizedSearchText
-        return normalizedName.isEmpty ? nil : normalizedName
+        guard !normalizedName.isEmpty else {
+            return nil
+        }
+
+        let normalizedLookup = TemplateManager.normalizedNameLookupKey(normalizedName)
+        let nameAlreadyExists = templates.contains {
+            TemplateManager.normalizedNameLookupKey($0.name) == normalizedLookup
+        }
+
+        return nameAlreadyExists ? nil : normalizedName
+    }
+
+    func suggestedTemplateNameForEmptySearch(filteredCount: Int) -> String? {
+        guard filteredCount == 0 else {
+            return nil
+        }
+
+        return suggestedTemplateNameFromSearch()
+    }
+
+    func shouldShowCreateTemplateFromSearchAction(filteredCount: Int) -> Bool {
+        hasActiveSearch && filteredCount > 0 && suggestedTemplateNameFromSearch() != nil
     }
 
     func createTemplateRecoveryTitle(filteredCount: Int) -> String? {
-        guard let suggestedName = suggestedTemplateNameForEmptySearch(filteredCount: filteredCount) else {
+        let suggestedName: String?
+        if filteredCount == 0 {
+            suggestedName = suggestedTemplateNameForEmptySearch(filteredCount: filteredCount)
+        } else {
+            suggestedName = shouldShowCreateTemplateFromSearchAction(filteredCount: filteredCount)
+                ? suggestedTemplateNameFromSearch()
+                : nil
+        }
+
+        guard let suggestedName else {
             return nil
         }
 
