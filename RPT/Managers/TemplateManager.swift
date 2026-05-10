@@ -340,23 +340,38 @@ class TemplateManager {
             return []
         }
 
-        var seenNames = Set<String>()
-        var previewNames: [String] = []
+        let startableLookup = Set(
+            uniqueResolvableTemplateExercises(in: template)
+                .map { ExerciseManager.normalizedNameLookupKey($0.templateExercise.exerciseName) }
+        )
+
+        var firstDisplayNameByKey: [String: String] = [:]
+        var orderedKeys: [String] = []
+        var orderIndexByKey: [String: Int] = [:]
 
         for exercise in template.exercises {
             let normalizedName = ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
-            guard seenNames.insert(normalizedName).inserted else {
+            guard firstDisplayNameByKey[normalizedName] == nil else {
                 continue
             }
 
-            previewNames.append(TemplateExercise.normalizedDisplayName(exercise.exerciseName))
-
-            if previewNames.count == maxCount {
-                break
-            }
+            firstDisplayNameByKey[normalizedName] = TemplateExercise.normalizedDisplayName(exercise.exerciseName)
+            orderIndexByKey[normalizedName] = orderedKeys.count
+            orderedKeys.append(normalizedName)
         }
 
-        return previewNames
+        let prioritizedKeys = orderedKeys.sorted { lhs, rhs in
+            let lhsIsStartable = startableLookup.contains(lhs)
+            let rhsIsStartable = startableLookup.contains(rhs)
+
+            if lhsIsStartable != rhsIsStartable {
+                return lhsIsStartable && !rhsIsStartable
+            }
+
+            return (orderIndexByKey[lhs] ?? 0) < (orderIndexByKey[rhs] ?? 0)
+        }
+
+        return prioritizedKeys.prefix(maxCount).compactMap { firstDisplayNameByKey[$0] }
     }
 
     func templateListHasMoreUniqueExercisesToPreview(for template: WorkoutTemplate, maxCount: Int = 2) -> Bool {

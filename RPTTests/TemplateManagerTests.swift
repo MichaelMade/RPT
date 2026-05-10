@@ -757,6 +757,32 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
+    func testTemplateListPreviewExerciseNames_prioritizesStartableUniqueExercisesBeforeMissingOnes() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Mixed Availability",
+            exercises: [
+                sampleTemplateExercise(named: "Ghost Lift"),
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "Phantom Row")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateListPreviewExerciseNames(for: template),
+            ["Bench Press", "Ghost Lift"]
+        )
+    }
+
     func testTemplateListPreviewExerciseNames_respectsRequestedPreviewCount() {
         let template = WorkoutTemplate(
             name: "Push Day",
