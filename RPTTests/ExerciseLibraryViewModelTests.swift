@@ -402,6 +402,57 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testSelectionEmptyState_prefersEmptyLibraryCopyOverSearchFailureWhenNothingExists() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.searchText = "bench"
+        viewModel.selectedCategory = .compound
+
+        XCTAssertEqual(
+            viewModel.selectionEmptyStateTitle(totalFetchedCount: 0, excludedCount: 0),
+            "No Exercises Available",
+            "Picker empty states should not pretend a user search failed when the library is actually empty"
+        )
+        XCTAssertEqual(
+            viewModel.selectionEmptyStateDescription(
+                totalFetchedCount: 0,
+                excludedCount: 0,
+                context: .workout
+            ),
+            "Add an exercise in the library first, then come back here to use it in a workout.",
+            "Workout pickers should keep the empty-library guidance even if a search or filter is already active"
+        )
+        XCTAssertEqual(
+            viewModel.selectionEmptyStateDescription(
+                totalFetchedCount: 0,
+                excludedCount: 0,
+                context: .template
+            ),
+            "Add an exercise in the library first, then come back here to use it in a template.",
+            "Template pickers should keep the empty-library guidance even if a search or filter is already active"
+        )
+    }
+
+    func testSelectionEmptyState_keepsAlreadyAddedMessagingForFullyExcludedResults() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.searchText = "bench"
+
+        XCTAssertEqual(
+            viewModel.selectionEmptyStateTitle(totalFetchedCount: 1, excludedCount: 1),
+            "All Matching Exercises Already Added"
+        )
+        XCTAssertEqual(
+            viewModel.selectionEmptyStateDescription(
+                totalFetchedCount: 1,
+                excludedCount: 1,
+                context: .template
+            ),
+            "This template already includes every exercise in your current search or filter results. Clear your filters or remove one from the template to add it again."
+        )
+    }
+
     func testEmptyStateKind_prefersEmptyLibraryWhenNoExercisesExistEvenIfQueryIsActive() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.searchText = "bench"

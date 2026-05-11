@@ -166,6 +166,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout and template exercise pickers now keep true empty-library onboarding copy even if a search or filter is already active, so first-run users see `No Exercises Available` guidance instead of a misleading `No Matching Exercises` dead end; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Workout and template exercise pickers can now create a custom exercise inline — including search-prefilled `Add Custom Exercise “...”` recovery actions plus an always-available `+` shortcut — and automatically return/select the new movement after save, so failed lookups no longer force users to back out to the library and start over; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Exercise Library no-match searches can now turn directly into a prefilled `Add Custom Exercise` draft — and near-match searches keep the same shortcut inline while results are still visible — so users can convert a failed lookup into a new library entry without retyping; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Template Details’ active-workout status summary now explicitly says users can continue, save, or discard the current workout before starting the selected template, matching the direct recovery actions already shown on that screen; added regression coverage in `TemplateManagerTests`.

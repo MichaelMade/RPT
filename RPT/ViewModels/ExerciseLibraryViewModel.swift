@@ -16,6 +16,38 @@ class ExerciseLibraryViewModel: ObservableObject {
         case noMatchingResults
     }
 
+    enum SelectionContext {
+        case workout
+        case template
+
+        var emptyLibraryDescription: String {
+            switch self {
+            case .workout:
+                return "Add an exercise in the library first, then come back here to use it in a workout."
+            case .template:
+                return "Add an exercise in the library first, then come back here to use it in a template."
+            }
+        }
+
+        var allSelectedDescription: String {
+            switch self {
+            case .workout:
+                return "This workout already includes every exercise in your library. Add sets to an existing exercise or create a new custom movement to keep building it out."
+            case .template:
+                return "This template already includes every exercise in your library. Remove one from the template or add a new custom exercise to keep building it out."
+            }
+        }
+
+        var allMatchingSelectedDescription: String {
+            switch self {
+            case .workout:
+                return "This workout already includes every exercise in your current search or filter results. Clear your filters or add sets to an existing exercise instead."
+            case .template:
+                return "This template already includes every exercise in your current search or filter results. Clear your filters or remove one from the template to add it again."
+            }
+        }
+    }
+
     private let exerciseManager: ExerciseManager
     
     @Published var searchText = ""
@@ -204,6 +236,37 @@ class ExerciseLibraryViewModel: ObservableObject {
         case .none:
             return nil
         }
+    }
+
+    func selectionEmptyStateTitle(
+        totalFetchedCount: Int,
+        excludedCount: Int
+    ) -> String {
+        if totalFetchedCount > 0, excludedCount == totalFetchedCount {
+            return hasActiveQuery
+                ? "All Matching Exercises Already Added"
+                : "All Exercises Already Added"
+        }
+
+        return exercises.isEmpty
+            ? "No Exercises Available"
+            : (hasActiveQuery ? "No Matching Exercises" : "No Exercises Available")
+    }
+
+    func selectionEmptyStateDescription(
+        totalFetchedCount: Int,
+        excludedCount: Int,
+        context: SelectionContext
+    ) -> String {
+        if totalFetchedCount > 0, excludedCount == totalFetchedCount {
+            return hasActiveQuery
+                ? context.allMatchingSelectedDescription
+                : context.allSelectedDescription
+        }
+
+        return exercises.isEmpty
+            ? context.emptyLibraryDescription
+            : "Try changing your search or filters, or clear them to browse every exercise."
     }
 
     static func searchMatchPriority(exercise: Exercise, normalizedQuery: String) -> Int? {

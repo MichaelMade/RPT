@@ -116,11 +116,20 @@ struct ExerciseSelectorForTemplateView: View {
 
                         ContentUnavailableView {
                             Label(
-                                emptyStateTitle(for: fetchedExercises, excludedCount: excludedCount),
-                                systemImage: viewModel.hasActiveQuery ? "magnifyingglass" : "dumbbell"
+                                viewModel.selectionEmptyStateTitle(
+                                    totalFetchedCount: fetchedExercises.count,
+                                    excludedCount: excludedCount
+                                ),
+                                systemImage: viewModel.hasActiveQuery && !viewModel.exercises.isEmpty ? "magnifyingglass" : "dumbbell"
                             )
                         } description: {
-                            Text(emptyStateDescription(for: fetchedExercises, excludedCount: excludedCount))
+                            Text(
+                                viewModel.selectionEmptyStateDescription(
+                                    totalFetchedCount: fetchedExercises.count,
+                                    excludedCount: excludedCount,
+                                    context: .template
+                                )
+                            )
                         } actions: {
                             if let createRecoveryTitle {
                                 Button(createRecoveryTitle) {
@@ -262,27 +271,5 @@ struct ExerciseSelectorForTemplateView: View {
         HapticFeedbackManager.shared.medium()
         onSelectExercise(pendingSelectionExerciseName)
         dismiss()
-    }
-
-    private func emptyStateTitle(for fetchedExercises: [Exercise], excludedCount: Int) -> String {
-        if !fetchedExercises.isEmpty, excludedCount == fetchedExercises.count {
-            return viewModel.hasActiveQuery
-                ? "All Matching Exercises Already Added"
-                : "All Exercises Already Added"
-        }
-
-        return viewModel.hasActiveQuery ? "No Matching Exercises" : "No Exercises Available"
-    }
-
-    private func emptyStateDescription(for fetchedExercises: [Exercise], excludedCount: Int) -> String {
-        if !fetchedExercises.isEmpty, excludedCount == fetchedExercises.count {
-            return viewModel.hasActiveQuery
-                ? "This template already includes every exercise in your current search or filter results. Clear your filters or remove one from the template to add it again."
-                : "This template already includes every exercise in your library. Remove one from the template or add a new custom exercise to keep building it out."
-        }
-
-        return viewModel.hasActiveQuery
-            ? "Try changing your search or filters, or clear them to browse every exercise."
-            : "Add an exercise in the library first, then come back here to use it in a template."
     }
 }
