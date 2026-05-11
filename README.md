@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates’ no-match empty state now names the exact failed query and only promises `create from search` when that action is actually available, so dead-end search guidance stays honest instead of suggesting a create path that may not be safe for the current query.
 - Template Details now lets users restore missing template exercises straight back into the library from the `Unavailable Right Now` section, so broken templates can be repaired in place instead of backing out through the Exercise Library first.
 - New/Edit Template now names the actual repeated exercise(s) when duplicate entries block save, so users can fix `Bench Press`/`Squat` collisions directly instead of decoding a generic duplicate-warning message.
 - Exercise Library and both workout/template exercise pickers now keep an inline `Add Custom Exercise` fallback visible when active category or muscle filters narrow results to zero matches, so filter-only dead ends can turn directly into a correctly prefiltered custom movement instead of forcing users to back out and hit the toolbar `+` first.

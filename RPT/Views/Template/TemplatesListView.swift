@@ -66,11 +66,7 @@ struct TemplatesListView: View {
                             systemImage: viewModel.hasActiveSearch ? "magnifyingglass" : "list.bullet.clipboard"
                         )
                     } description: {
-                        Text(
-                            viewModel.hasActiveSearch
-                            ? "Try a different search, clear it to browse every workout template, or create a new template from this search. You can search names, exercises, notes, and issue labels like missing or repeated."
-                            : "Create your first workout template to quickly start repeatable RPT sessions."
-                        )
+                        Text(viewModel.emptyStateDescription(filteredCount: filteredTemplates.count))
                     } actions: {
                         if let createRecoveryTitle {
                             Button(createRecoveryTitle) {

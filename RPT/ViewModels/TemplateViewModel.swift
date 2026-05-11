@@ -196,6 +196,19 @@ class TemplateViewModel: ObservableObject {
         return "Showing \(filteredCount) of \(templates.count) templates for “\(normalizedSearchText)”"
     }
 
+    func emptyStateDescription(filteredCount: Int) -> String {
+        guard hasActiveSearch else {
+            return "Create your first workout template to quickly start repeatable RPT sessions."
+        }
+
+        let normalizedQuery = normalizedSearchText
+        let createSuggestion = suggestedTemplateNameForEmptySearch(filteredCount: filteredCount) != nil
+            ? " You can also create a new template from this search."
+            : ""
+
+        return "No templates matched “\(normalizedQuery)”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, and issue labels like missing or repeated.\(createSuggestion)"
+    }
+
     func shouldShowResultsRecoveryActions(filteredCount: Int) -> Bool {
         hasActiveSearch && filteredCount > 0 && !templates.isEmpty
     }

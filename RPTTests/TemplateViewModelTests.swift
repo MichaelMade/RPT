@@ -754,6 +754,34 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testEmptyStateDescription_forActiveSearchOnlyMentionsCreateWhenSafe() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "  Lower\n Day  "
+        XCTAssertEqual(
+            viewModel.emptyStateDescription(filteredCount: 0),
+            "No templates matched “Lower Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, and issue labels like missing or repeated. You can also create a new template from this search."
+        )
+
+        viewModel.searchText = "  Push\n Day  "
+        XCTAssertEqual(
+            viewModel.emptyStateDescription(filteredCount: 0),
+            "No templates matched “Push Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, and issue labels like missing or repeated."
+        )
+    }
+
+    func testEmptyStateDescription_withoutSearchUsesFirstRunGuidance() {
+        let viewModel = TemplateViewModel()
+
+        XCTAssertEqual(
+            viewModel.emptyStateDescription(filteredCount: 0),
+            "Create your first workout template to quickly start repeatable RPT sessions."
+        )
+    }
+
     func testClearSearch_resetsSearchState() {
         let viewModel = TemplateViewModel()
         viewModel.searchText = "Push"
