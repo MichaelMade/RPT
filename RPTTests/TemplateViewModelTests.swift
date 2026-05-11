@@ -558,6 +558,34 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesKeepGoingBeforeOpeningTemplatePromptWhenAnotherWorkoutIsActive() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "keep going before opening lower day"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Lower Day"]
+        )
+    }
+
+    func testFetchTemplates_matchesContinueItBeforeStartingTemplatePromptWhenAnotherWorkoutIsActive() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "continue it before starting lower day"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Lower Day"]
+        )
+    }
+
     func testFetchTemplates_doesNotMatchCurrentWorkoutKeywordsWhenNoWorkoutBlocksTemplateStart() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

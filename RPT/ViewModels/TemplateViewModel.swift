@@ -529,6 +529,14 @@ class TemplateViewModel: ObservableObject {
         }
 
         if activeWorkoutAvailable {
+            let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
+            let openTemplateSuffix = templateName == "Template"
+                ? "before opening this template."
+                : "before opening \(templateName)."
+            let startTemplateSuffix = templateName == "Template"
+                ? "before starting this template."
+                : "before starting \(templateName)."
+
             terms.append(contentsOf: [
                 "current workout",
                 "current workout in progress",
@@ -542,6 +550,11 @@ class TemplateViewModel: ObservableObject {
                 "discard current workout",
                 "discard it",
                 "keep going",
+                "keep going \(openTemplateSuffix)",
+                "continue it",
+                "continue it \(startTemplateSuffix)",
+                "save it for later, discard it, or keep going \(openTemplateSuffix)",
+                "continue it, save it for later, or discard it \(startTemplateSuffix)",
                 "save open template",
                 "save & open template",
                 "save and open template",
