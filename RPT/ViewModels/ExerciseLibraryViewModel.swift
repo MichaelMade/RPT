@@ -92,6 +92,49 @@ class ExerciseLibraryViewModel: ObservableObject {
         hasActiveQuery && filteredCount > 0 && !exercises.isEmpty
     }
 
+    func suggestedExerciseNameFromSearch() -> String? {
+        guard hasActiveSearch else {
+            return nil
+        }
+
+        let normalizedName = normalizedSearchText
+        guard !normalizedName.isEmpty else {
+            return nil
+        }
+
+        let normalizedLookup = ExerciseManager.normalizedNameLookupKey(normalizedName)
+        let nameAlreadyExists = exercises.contains {
+            ExerciseManager.normalizedNameLookupKey($0.name) == normalizedLookup
+        }
+
+        return nameAlreadyExists ? nil : normalizedName
+    }
+
+    func preferredNewExercisePrefillName() -> String {
+        suggestedExerciseNameFromSearch() ?? ""
+    }
+
+    func shouldShowCreateExerciseFromSearchAction(filteredCount: Int) -> Bool {
+        hasActiveSearch && filteredCount > 0 && suggestedExerciseNameFromSearch() != nil
+    }
+
+    func createExerciseRecoveryTitle(filteredCount: Int) -> String? {
+        let suggestedName: String?
+        if filteredCount == 0 {
+            suggestedName = suggestedExerciseNameFromSearch()
+        } else {
+            suggestedName = shouldShowCreateExerciseFromSearchAction(filteredCount: filteredCount)
+                ? suggestedExerciseNameFromSearch()
+                : nil
+        }
+
+        guard let suggestedName else {
+            return nil
+        }
+
+        return "Add Custom Exercise “\(suggestedName)”"
+    }
+
     func selectableResultsSummary(
         availableCount: Int,
         excludedCount: Int,

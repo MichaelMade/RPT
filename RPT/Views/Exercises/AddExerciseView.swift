@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct AddExerciseView: View {
+    let initialExerciseName: String
+
     @Environment(\.dismiss) private var dismiss
     @State private var exerciseName = ""
     @State private var selectedCategory: ExerciseCategory = .compound
@@ -32,6 +34,10 @@ struct AddExerciseView: View {
 
     private var canSave: Bool {
         draftValidation == .valid
+    }
+
+    init(initialExerciseName: String = "") {
+        self.initialExerciseName = initialExerciseName
     }
     
     var body: some View {
@@ -81,6 +87,11 @@ struct AddExerciseView: View {
             }
             .navigationTitle("Add Exercise")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                if exerciseName.isEmpty {
+                    exerciseName = ExerciseLibraryViewModel.normalizedSearchQuery(initialExerciseName)
+                }
+            }
             .alert(
                 saveResult?.alertTitle ?? "Unable to Save Exercise",
                 isPresented: Binding(

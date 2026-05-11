@@ -14,6 +14,7 @@ struct ExercisesView: View {
     @State private var selectedCategory: ExerciseCategory?
     @State private var selectedMuscleGroup: MuscleGroup?
     @State private var showingAddExercise = false
+    @State private var createExercisePrefillName = ""
     @State private var exerciseToDelete: Exercise?
     @State private var exerciseDeletionImpact = ExerciseManager.DeletionImpact(loggedSetCount: 0, workoutCount: 0, templateCount: 0)
     @State private var showingDeleteConfirmation = false
@@ -101,6 +102,8 @@ struct ExercisesView: View {
                     }
                     
                     if let emptyStateKind {
+                        let createRecoveryTitle = viewModel.createExerciseRecoveryTitle(filteredCount: exercises.count)
+
                         ContentUnavailableView {
                             Label(
                                 viewModel.emptyStateTitle(filteredCount: exercises.count) ?? "No Exercises Yet",
@@ -109,11 +112,19 @@ struct ExercisesView: View {
                         } description: {
                             Text(viewModel.emptyStateDescription(filteredCount: exercises.count) ?? "")
                         } actions: {
-                            if emptyStateKind == .emptyLibrary {
-                                Button("Add Custom Exercise") {
+                            if let createRecoveryTitle {
+                                Button(createRecoveryTitle) {
+                                    createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
                                     showingAddExercise = true
                                 }
-                            } else {
+                            } else if emptyStateKind == .emptyLibrary {
+                                Button("Add Custom Exercise") {
+                                    createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
+                                    showingAddExercise = true
+                                }
+                            }
+
+                            if emptyStateKind != .emptyLibrary {
                                 if viewModel.hasActiveSearch {
                                     Button("Clear Search") {
                                         searchText = ""
@@ -146,6 +157,16 @@ struct ExercisesView: View {
                                     }
                                 }
                             }
+                        }
+
+                        if viewModel.shouldShowCreateExerciseFromSearchAction(filteredCount: exercises.count),
+                           let createRecoveryTitle = viewModel.createExerciseRecoveryTitle(filteredCount: exercises.count) {
+                            Button(createRecoveryTitle) {
+                                createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
+                                showingAddExercise = true
+                            }
+                            .font(.caption)
+                            .buttonStyle(.borderless)
                         }
 
                         if viewModel.shouldShowResultsRecoveryActions(filteredCount: exercises.count) {
@@ -185,6 +206,7 @@ struct ExercisesView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
+                        createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
                         showingAddExercise = true
                     }) {
                         Image(systemName: "plus")
@@ -195,7 +217,7 @@ struct ExercisesView: View {
                 // Refresh the exercise list when the add sheet is dismissed
                 viewModel.refreshExercises()
             }) {
-                AddExerciseView()
+                AddExerciseView(initialExerciseName: createExercisePrefillName)
             }
             .confirmationDialog(
                 "Delete Exercise",

@@ -166,6 +166,7 @@ RPT/
 
 ## Recent Improvements
 
+- Exercise Library no-match searches can now turn directly into a prefilled `Add Custom Exercise` draft — and near-match searches keep the same shortcut inline while results are still visible — so users can convert a failed lookup into a new library entry without retyping; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Template Details’ active-workout status summary now explicitly says users can continue, save, or discard the current workout before starting the selected template, matching the direct recovery actions already shown on that screen; added regression coverage in `TemplateManagerTests`.
 - Workout Templates’ standard `+` create action now also reuses the current search as the new-template draft name whenever that normalized name is safe to create, so users don’t lose search context if they reach for the usual toolbar button instead of the inline recovery CTA; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates search now also keeps a direct `Create “...”` action visible even when related matches still exist, as long as no template already uses that exact normalized name, so users can turn a near-match search into a new template without clearing the query or retyping; added regression coverage in `TemplateViewModelTests` for the duplicate-safe create-from-search helper.

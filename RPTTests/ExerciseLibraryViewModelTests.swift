@@ -284,6 +284,58 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.shouldShowResultsRecoveryActions(filteredCount: 2))
     }
 
+    func testSuggestedExerciseNameFromSearch_returnsNormalizedSearchWhenNameIsAvailable() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.searchText = "  Incline\nBench Press  "
+
+        XCTAssertEqual(
+            viewModel.suggestedExerciseNameFromSearch(),
+            "Incline Bench Press",
+            "No-match exercise searches should be reusable as a prefilled custom-exercise draft when the normalized name is still unique"
+        )
+        XCTAssertEqual(
+            viewModel.createExerciseRecoveryTitle(filteredCount: 0),
+            "Add Custom Exercise “Incline Bench Press”"
+        )
+    }
+
+    func testSuggestedExerciseNameFromSearch_hidesCreateRecoveryForDuplicateNormalizedNames() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.searchText = "  bench\npress  "
+
+        XCTAssertNil(
+            viewModel.suggestedExerciseNameFromSearch(),
+            "Search-to-create should stay hidden when the normalized exercise name already exists in the library"
+        )
+        XCTAssertNil(viewModel.createExerciseRecoveryTitle(filteredCount: 0))
+    }
+
+    func testShouldShowCreateExerciseFromSearchAction_requiresResultsAndUniqueSearchName() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Incline Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.shoulders], instructions: "")
+        ]
+
+        viewModel.searchText = "Bench"
+        XCTAssertTrue(
+            viewModel.shouldShowCreateExerciseFromSearchAction(filteredCount: 2),
+            "Near-match searches should keep a direct create action visible when the exact normalized exercise name is still available"
+        )
+
+        viewModel.searchText = "bench press"
+        XCTAssertFalse(
+            viewModel.shouldShowCreateExerciseFromSearchAction(filteredCount: 1),
+            "The create action should disappear when the search already resolves to an existing normalized exercise name"
+        )
+    }
+
     func testSelectableResultsSummary_includesTemplateExclusions() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
