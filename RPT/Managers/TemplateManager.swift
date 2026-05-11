@@ -119,6 +119,11 @@ class TemplateManager {
         case blocked
     }
 
+    enum DuplicateExerciseMessageStyle {
+        case helper
+        case alert
+    }
+
     private let dataManager: DataManaging
     private let modelContext: ModelContext
     private let exerciseManager: ExerciseManager
@@ -219,12 +224,12 @@ class TemplateManager {
         }
     }
 
-    func duplicateExerciseNames(in template: WorkoutTemplate) -> [String] {
+    func duplicateExerciseNames(in exercises: [TemplateExercise]) -> [String] {
         var firstDisplayNameByKey: [String: String] = [:]
         var duplicateExerciseNames: [String] = []
         var recordedDuplicateNames = Set<String>()
 
-        for templateExercise in template.exercises {
+        for templateExercise in exercises {
             let normalizedExerciseName = ExerciseManager.normalizedNameLookupKey(templateExercise.exerciseName)
             let displayName = TemplateExercise.normalizedDisplayName(templateExercise.exerciseName)
 
@@ -241,6 +246,40 @@ class TemplateManager {
         }
 
         return duplicateExerciseNames
+    }
+
+    func duplicateExerciseNames(in template: WorkoutTemplate) -> [String] {
+        duplicateExerciseNames(in: template.exercises)
+    }
+
+    func duplicateExerciseMessage(
+        for exercises: [TemplateExercise],
+        style: DuplicateExerciseMessageStyle
+    ) -> String {
+        let duplicateNames = duplicateExerciseNames(in: exercises)
+        guard !duplicateNames.isEmpty else {
+            return DraftValidationResult.duplicateExercise.helperText ?? MutationResult.duplicateExercise.alertMessage
+        }
+
+        let subject: String
+        if duplicateNames.count == 1 {
+            subject = "\(duplicateNames[0]) appears more than once"
+        } else if duplicateNames.count == 2 {
+            subject = "\(duplicateNames[0]) and \(duplicateNames[1]) appear more than once"
+        } else {
+            let remainingCount = duplicateNames.count - 2
+            let exerciseLabel = remainingCount == 1 ? "exercise" : "exercises"
+            subject = "\(duplicateNames[0]), \(duplicateNames[1]), and \(remainingCount) more \(exerciseLabel) appear more than once"
+        }
+
+        switch style {
+        case .helper:
+            let object = duplicateNames.count == 1 ? "the extra copy" : "the extra copies"
+            return "\(subject) in this template. Remove or replace \(object) to save."
+        case .alert:
+            let object = duplicateNames.count == 1 ? "the duplicate entry" : "the duplicate entries"
+            return "\(subject) in this template. Remove or replace \(object) before saving."
+        }
     }
 
     func startableExerciseNames(in template: WorkoutTemplate) -> [String] {

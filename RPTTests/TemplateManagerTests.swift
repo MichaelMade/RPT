@@ -98,6 +98,49 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
+    func testDuplicateExerciseNames_returnsUniqueRepeatedDisplayNamesForDraftExercises() {
+        XCTAssertEqual(
+            TemplateManager.shared.duplicateExerciseNames(in: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "bench\npress"),
+                sampleTemplateExercise(named: "Squat"),
+                sampleTemplateExercise(named: "  squat  "),
+                sampleTemplateExercise(named: "Bench Press")
+            ]),
+            ["Bench Press", "Squat"]
+        )
+    }
+
+    func testDuplicateExerciseMessage_helperNamesRepeatedExercises() {
+        XCTAssertEqual(
+            TemplateManager.shared.duplicateExerciseMessage(
+                for: [
+                    sampleTemplateExercise(named: "Bench Press"),
+                    sampleTemplateExercise(named: " bench\npress ")
+                ],
+                style: .helper
+            ),
+            "Bench Press appears more than once in this template. Remove or replace the extra copy to save."
+        )
+    }
+
+    func testDuplicateExerciseMessage_alertSummarizesMultipleRepeatedExercises() {
+        XCTAssertEqual(
+            TemplateManager.shared.duplicateExerciseMessage(
+                for: [
+                    sampleTemplateExercise(named: "Bench Press"),
+                    sampleTemplateExercise(named: " bench\npress "),
+                    sampleTemplateExercise(named: "Squat"),
+                    sampleTemplateExercise(named: " squat "),
+                    sampleTemplateExercise(named: "Row"),
+                    sampleTemplateExercise(named: " row ")
+                ],
+                style: .alert
+            ),
+            "Bench Press, Squat, and 1 more exercise appear more than once in this template. Remove or replace the duplicate entries before saving."
+        )
+    }
+
     func testMutationResult_duplicateNameUsesSpecificAlertCopy() {
         XCTAssertEqual(TemplateManager.MutationResult.duplicateName.alertTitle, "Template Already Exists")
         XCTAssertEqual(

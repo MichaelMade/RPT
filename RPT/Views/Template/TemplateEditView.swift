@@ -32,7 +32,21 @@ struct TemplateEditView: View {
     }
 
     private var saveHelperText: String? {
-        draftValidation.helperText
+        switch draftValidation {
+        case .duplicateExercise:
+            return templateManager.duplicateExerciseMessage(for: exercises, style: .helper)
+        default:
+            return draftValidation.helperText
+        }
+    }
+
+    private func saveAlertMessage(for result: TemplateManager.MutationResult) -> String {
+        switch result {
+        case .duplicateExercise:
+            return templateManager.duplicateExerciseMessage(for: exercises, style: .alert)
+        default:
+            return result.alertMessage
+        }
     }
 
     private var canSave: Bool {
@@ -167,7 +181,7 @@ struct TemplateEditView: View {
                     saveResult = nil
                 }
             } message: { result in
-                Text(result.alertMessage)
+                Text(saveAlertMessage(for: result))
             }
         }
     }

@@ -1,5 +1,6 @@
 # RPT
 
+- New/Edit Template now names the actual repeated exercise(s) when duplicate entries block save, so users can fix `Bench Press`/`Squat` collisions directly instead of decoding a generic duplicate-warning message.
 - Exercise Library plus workout/template exercise pickers now seed new custom-exercise drafts from the current filters, so `Add Custom Exercise` can open with the active category and target muscle already selected instead of making users re-enter the context they were just browsing.
 - Exercise Library plus workout/template exercise pickers now match compacted and initialism-style search queries like `benchpress` and `bp`, so common shorthand still finds the right movement without requiring exact spacing.
 - Workout Templates search now also matches the full active-workout handoff wording users actually see during template conflicts — including `keep going before opening …` and `continue it … before starting …` prompt phrasing — so alert-copy searches still jump back to the right template.
