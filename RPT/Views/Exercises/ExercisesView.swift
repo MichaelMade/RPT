@@ -117,7 +117,7 @@ struct ExercisesView: View {
                                     createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
                                     showingAddExercise = true
                                 }
-                            } else if emptyStateKind == .emptyLibrary {
+                            } else if viewModel.shouldShowGenericCreateExerciseAction(filteredCount: exercises.count) {
                                 Button("Add Custom Exercise") {
                                     createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
                                     showingAddExercise = true

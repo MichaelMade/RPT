@@ -416,6 +416,37 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             [.back],
             "New custom exercises should inherit the currently selected muscle-group filter as their initial primary muscle"
         )
+
+        XCTAssertTrue(
+            viewModel.shouldShowGenericCreateExerciseAction(filteredCount: 0),
+            "Filter-only empty states should still offer an inline custom-exercise path that reuses the active filter context"
+        )
+    }
+
+    func testShouldShowGenericCreateExerciseAction_onlyAppearsForEmptyLibraryOrFilterOnlyDeadEnds() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+
+        XCTAssertFalse(
+            viewModel.shouldShowGenericCreateExerciseAction(filteredCount: 0),
+            "A non-empty library without active filters should rely on search-specific recovery or normal browsing instead of showing a generic create CTA everywhere"
+        )
+
+        viewModel.selectedCategory = .isolation
+
+        XCTAssertTrue(
+            viewModel.shouldShowGenericCreateExerciseAction(filteredCount: 0),
+            "When filters narrow the library to zero matches, the inline add-exercise fallback should stay available"
+        )
+
+        viewModel.searchText = "bench"
+
+        XCTAssertFalse(
+            viewModel.shouldShowGenericCreateExerciseAction(filteredCount: 0),
+            "Once a search query is active, the view should prefer search-specific create recovery instead of the generic filter-only CTA"
+        )
     }
 
     func testCreateExerciseRecoveryTitle_staysAvailableDuringNearMatchResults() {

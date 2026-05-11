@@ -136,7 +136,9 @@ struct ExerciseSelectorForTemplateView: View {
                                     createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
                                     showingAddExercise = true
                                 }
-                            } else if fetchedExercises.isEmpty || excludedCount == fetchedExercises.count {
+                            } else if viewModel.shouldShowGenericCreateExerciseAction(filteredCount: filteredExercises.count)
+                                || fetchedExercises.isEmpty
+                                || excludedCount == fetchedExercises.count {
                                 Button("Add Custom Exercise") {
                                     createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
                                     showingAddExercise = true

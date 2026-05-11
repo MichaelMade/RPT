@@ -196,6 +196,21 @@ class ExerciseLibraryViewModel: ObservableObject {
         return "Add Custom Exercise “\(suggestedName)”"
     }
 
+    func shouldShowGenericCreateExerciseAction(filteredCount: Int) -> Bool {
+        guard filteredCount == 0 else {
+            return false
+        }
+
+        switch emptyStateKind(filteredCount: filteredCount) {
+        case .emptyLibrary:
+            return true
+        case .noMatchingResults:
+            return hasActiveFilters && !hasActiveSearch
+        case .none:
+            return false
+        }
+    }
+
     func selectableResultsSummary(
         availableCount: Int,
         excludedCount: Int,
