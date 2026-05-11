@@ -171,6 +171,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates search now also indexes broken-template recovery wording like `Restore`, `replace`, and per-exercise phrases such as `restore Bench Press`, so users can refind missing-exercise templates using the exact repair action copy shown in Template Details.
 - Template Details now lets users tap `Restore` beside each `Unavailable Right Now` movement to open a prefilled custom-exercise draft, so missing template exercises can be rebuilt in place without backing out through the Exercise Library first; validated with `git diff --check` plus targeted source inspection.
 - Exercise Library and both workout/template exercise pickers now keep an inline `Add Custom Exercise` fallback visible when category or muscle filters narrow the current results to zero matches, so filter-only dead ends can become a prefiltered custom exercise without backing out to the toolbar `+`; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Exercise Library and both workout/template exercise pickers now prefill new custom-exercise drafts from the active category and muscle filters, so `Add Custom Exercise` keeps the user’s current browsing context instead of forcing them to reselect it; added regression coverage in `ExerciseLibraryViewModelTests`.

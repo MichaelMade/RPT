@@ -232,6 +232,20 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesUnavailableExerciseRestoreRecoveryCopy() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Ghost Day", exerciseNames: ["Ghost Lift"]),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "restore ghost lift"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Ghost Day"])
+
+        viewModel.searchText = "replace ghost lift"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Ghost Day"])
+    }
+
     func testFetchTemplates_matchesExerciseNameOutOfOrderTokens() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

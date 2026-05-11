@@ -588,10 +588,24 @@ class TemplateViewModel: ObservableObject {
                 "unavailable exercises",
                 "unavailable right now",
                 "missing from library",
+                "restore",
+                "restore exercise",
+                "restore missing exercise",
+                "replace",
+                "replace exercise",
+                "replace missing exercise",
                 "skipped",
                 "skip"
             ])
             terms.append(contentsOf: unavailableExerciseNames)
+            terms.append(contentsOf: unavailableExerciseNames.flatMap {
+                [
+                    "restore \($0)",
+                    "replace \($0)",
+                    "missing \($0)",
+                    "unavailable \($0)"
+                ]
+            })
 
             if canStartWorkout {
                 terms.append(contentsOf: [
