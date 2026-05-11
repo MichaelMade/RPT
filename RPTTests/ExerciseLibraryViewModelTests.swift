@@ -336,6 +336,36 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testCreateExerciseRecoveryTitle_staysAvailableDuringNearMatchResults() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Incline Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.shoulders], instructions: "")
+        ]
+        viewModel.searchText = "Bench"
+
+        XCTAssertEqual(
+            viewModel.createExerciseRecoveryTitle(filteredCount: 2),
+            "Add Custom Exercise “Bench”",
+            "Near-match results should keep a direct create-from-search title available so picker flows can offer inline add-and-continue recovery"
+        )
+        XCTAssertEqual(viewModel.preferredNewExercisePrefillName(), "Bench")
+    }
+
+    func testPreferredNewExercisePrefillName_fallsBackToEmptyStringForDuplicateSearchNames() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.searchText = " bench press "
+
+        XCTAssertEqual(
+            viewModel.preferredNewExercisePrefillName(),
+            "",
+            "Duplicate normalized exercise names should not prefill add flows with an unusable collision"
+        )
+    }
+
     func testSelectableResultsSummary_includesTemplateExclusions() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [

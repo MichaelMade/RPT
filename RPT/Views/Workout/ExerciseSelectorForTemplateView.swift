@@ -14,6 +14,9 @@ struct ExerciseSelectorForTemplateView: View {
     @State private var searchText = ""
     @State private var selectedCategory: ExerciseCategory?
     @State private var selectedMuscleGroup: MuscleGroup?
+    @State private var showingAddExercise = false
+    @State private var createExercisePrefillName = ""
+    @State private var pendingSelectionExerciseName: String?
 
     var excludedExerciseNames: [String] = []
     var onSelectExercise: (String) -> Void
@@ -109,6 +112,8 @@ struct ExerciseSelectorForTemplateView: View {
                     }
 
                     if filteredExercises.isEmpty {
+                        let createRecoveryTitle = viewModel.createExerciseRecoveryTitle(filteredCount: filteredExercises.count)
+
                         ContentUnavailableView {
                             Label(
                                 emptyStateTitle(for: fetchedExercises, excludedCount: excludedCount),
@@ -117,6 +122,18 @@ struct ExerciseSelectorForTemplateView: View {
                         } description: {
                             Text(emptyStateDescription(for: fetchedExercises, excludedCount: excludedCount))
                         } actions: {
+                            if let createRecoveryTitle {
+                                Button(createRecoveryTitle) {
+                                    createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
+                                    showingAddExercise = true
+                                }
+                            } else if fetchedExercises.isEmpty || excludedCount == fetchedExercises.count {
+                                Button("Add Custom Exercise") {
+                                    createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
+                                    showingAddExercise = true
+                                }
+                            }
+
                             if viewModel.hasActiveSearch {
                                 Button("Clear Search") {
                                     searchText = ""
@@ -164,6 +181,16 @@ struct ExerciseSelectorForTemplateView: View {
                             .buttonStyle(PlainButtonStyle())
                         }
 
+                        if viewModel.shouldShowCreateExerciseFromSearchAction(filteredCount: filteredExercises.count),
+                           let createRecoveryTitle = viewModel.createExerciseRecoveryTitle(filteredCount: filteredExercises.count) {
+                            Button(createRecoveryTitle) {
+                                createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
+                                showingAddExercise = true
+                            }
+                            .font(.caption)
+                            .buttonStyle(.borderless)
+                        }
+
                         if viewModel.shouldShowResultsRecoveryActions(filteredCount: filteredExercises.count) {
                             if viewModel.hasActiveSearch {
                                 Button("Clear Search") {
@@ -197,16 +224,44 @@ struct ExerciseSelectorForTemplateView: View {
             .navigationTitle("Select Exercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        createExercisePrefillName = viewModel.preferredNewExercisePrefillName()
+                        showingAddExercise = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add Custom Exercise")
+                }
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Cancel") {
                         dismiss()
                     }
                 }
             }
+            .sheet(isPresented: $showingAddExercise, onDismiss: handleAddExerciseDismissed) {
+                AddExerciseView(initialExerciseName: createExercisePrefillName) { savedExerciseName in
+                    pendingSelectionExerciseName = savedExerciseName
+                }
+            }
             .onAppear {
                 viewModel.refreshExercises()
             }
         }
+    }
+
+    private func handleAddExerciseDismissed() {
+        viewModel.refreshExercises()
+
+        guard let pendingSelectionExerciseName else {
+            return
+        }
+
+        self.pendingSelectionExerciseName = nil
+        HapticFeedbackManager.shared.medium()
+        onSelectExercise(pendingSelectionExerciseName)
+        dismiss()
     }
 
     private func emptyStateTitle(for fetchedExercises: [Exercise], excludedCount: Int) -> String {

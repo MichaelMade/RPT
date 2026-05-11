@@ -10,6 +10,7 @@ import SwiftData
 
 struct AddExerciseView: View {
     let initialExerciseName: String
+    let onExerciseSaved: ((String) -> Void)?
 
     @Environment(\.dismiss) private var dismiss
     @State private var exerciseName = ""
@@ -36,8 +37,12 @@ struct AddExerciseView: View {
         draftValidation == .valid
     }
 
-    init(initialExerciseName: String = "") {
+    init(
+        initialExerciseName: String = "",
+        onExerciseSaved: ((String) -> Void)? = nil
+    ) {
         self.initialExerciseName = initialExerciseName
+        self.onExerciseSaved = onExerciseSaved
     }
     
     var body: some View {
@@ -136,6 +141,7 @@ struct AddExerciseView: View {
         )
 
         if result == .success {
+            onExerciseSaved?(ExerciseManager.sanitizeExerciseName(exerciseName))
             dismiss()
         } else {
             saveResult = result
