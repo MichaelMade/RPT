@@ -71,6 +71,23 @@ class ExerciseLibraryViewModel: ObservableObject {
             .map(String.init)
     }
 
+    private static func normalizedSearchWords(_ rawValue: String) -> [String] {
+        normalizedSearchLookupKey(rawValue)
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .filter { !$0.isEmpty }
+    }
+
+    private static func compactedSearchLookupKey(_ rawValue: String) -> String {
+        normalizedSearchWords(rawValue).joined()
+    }
+
+    private static func initialismLookupKey(_ rawValue: String) -> String {
+        normalizedSearchWords(rawValue)
+            .compactMap(\.first)
+            .map(String.init)
+            .joined()
+    }
+
     var normalizedSearchText: String {
         Self.normalizedSearchQuery(searchText)
     }
@@ -275,6 +292,8 @@ class ExerciseLibraryViewModel: ObservableObject {
         }
 
         let normalizedName = normalizedSearchLookupKey(exercise.name)
+        let compactedQuery = compactedSearchLookupKey(normalizedQuery)
+        let initialismQuery = compactedQuery
         let queryTokens = normalizedSearchTokens(normalizedQuery)
         let words = normalizedName.split(separator: " ")
 
@@ -293,8 +312,27 @@ class ExerciseLibraryViewModel: ObservableObject {
             return 2
         }
 
-        if normalizedName.contains(normalizedQuery) {
+        let nameInitialism = initialismLookupKey(exercise.name)
+        if !initialismQuery.isEmpty,
+           !nameInitialism.isEmpty,
+           nameInitialism.hasPrefix(initialismQuery) {
             return 3
+        }
+
+        let compactedName = compactedSearchLookupKey(exercise.name)
+        if !compactedQuery.isEmpty,
+           !compactedName.isEmpty {
+            if compactedName == compactedQuery {
+                return 4
+            }
+
+            if compactedName.hasPrefix(compactedQuery) {
+                return 5
+            }
+        }
+
+        if normalizedName.contains(normalizedQuery) {
+            return 6
         }
 
         let aliasValues = [
@@ -307,11 +345,11 @@ class ExerciseLibraryViewModel: ObservableObject {
         let aliasLookups = aliasValues.map(normalizedSearchLookupKey)
 
         if aliasLookups.contains(normalizedQuery) {
-            return 4
+            return 7
         }
 
         if aliasLookups.contains(where: { $0.hasPrefix(normalizedQuery) }) {
-            return 5
+            return 8
         }
 
         if !queryTokens.isEmpty,
@@ -321,11 +359,27 @@ class ExerciseLibraryViewModel: ObservableObject {
                    aliasWords.contains(where: { $0.hasPrefix(token) })
                }
            }) {
-            return 6
+            return 9
+        }
+
+        if !initialismQuery.isEmpty,
+           aliasValues.contains(where: {
+               let aliasInitialism = initialismLookupKey($0)
+               return !aliasInitialism.isEmpty && aliasInitialism.hasPrefix(initialismQuery)
+           }) {
+            return 10
+        }
+
+        if !compactedQuery.isEmpty,
+           aliasValues.contains(where: {
+               let compactedAlias = compactedSearchLookupKey($0)
+               return !compactedAlias.isEmpty && compactedAlias.contains(compactedQuery)
+           }) {
+            return 11
         }
 
         if aliasLookups.contains(where: { $0.contains(normalizedQuery) }) {
-            return 7
+            return 12
         }
 
         return nil

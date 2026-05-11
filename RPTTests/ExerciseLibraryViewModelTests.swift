@@ -68,6 +68,40 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_matchesCompactedExerciseNames() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+        viewModel.searchText = "benchpress"
+
+        let results = viewModel.fetchExercises()
+
+        XCTAssertEqual(
+            results.map(\.name),
+            ["Bench Press"],
+            "Exercise search should match compacted name queries so users do not need to type spaces exactly"
+        )
+    }
+
+    func testFetchExercises_matchesExerciseInitialisms() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+        viewModel.searchText = "bp"
+
+        let results = viewModel.fetchExercises()
+
+        XCTAssertEqual(
+            results.map(\.name),
+            ["Bench Press"],
+            "Exercise search should match common exercise initialisms like BP"
+        )
+    }
+
     func testSearchMatchPriority_prefersNameMatchesBeforeAliasMatches() {
         let exact = ExerciseLibraryViewModel.searchMatchPriority(
             exercise: Exercise(name: "Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
@@ -81,6 +115,14 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             exercise: Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
             normalizedQuery: ExerciseLibraryViewModel.normalizedSearchLookupKey("row")
         )
+        let initialism = ExerciseLibraryViewModel.searchMatchPriority(
+            exercise: Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            normalizedQuery: ExerciseLibraryViewModel.normalizedSearchLookupKey("bp")
+        )
+        let compacted = ExerciseLibraryViewModel.searchMatchPriority(
+            exercise: Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            normalizedQuery: ExerciseLibraryViewModel.normalizedSearchLookupKey("benchpress")
+        )
         let substring = ExerciseLibraryViewModel.searchMatchPriority(
             exercise: Exercise(name: "Front Squat Rowing Drill", category: .compound, primaryMuscleGroups: [.quadriceps], secondaryMuscleGroups: [.back], instructions: ""),
             normalizedQuery: ExerciseLibraryViewModel.normalizedSearchLookupKey("row")
@@ -93,14 +135,17 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertEqual(exact, 0)
         XCTAssertEqual(prefix, 1)
         XCTAssertEqual(tokenPrefix, 2)
-        XCTAssertEqual(substring, 3)
-        XCTAssertEqual(aliasExact, 4)
+        XCTAssertEqual(initialism, 3)
+        XCTAssertEqual(compacted, 4)
+        XCTAssertEqual(substring, 6)
+        XCTAssertEqual(aliasExact, 7)
     }
 
     func testFetchExercises_prioritizesMoreRelevantSearchMatches() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
             Exercise(name: "Front Squat Rowing Drill", category: .compound, primaryMuscleGroups: [.quadriceps], secondaryMuscleGroups: [.back], instructions: ""),
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
             Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
             Exercise(name: "Row Machine", category: .other, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
             Exercise(name: "Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
@@ -113,6 +158,14 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             results.map(\.name),
             ["Row", "Row Machine", "Barbell Row", "Front Squat Rowing Drill"],
             "Exercise search should rank exact and prefix matches ahead of weaker substring matches"
+        )
+
+        viewModel.searchText = "bp"
+
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press"],
+            "Initialism matches should surface the intended exercise ahead of unrelated results"
         )
     }
 

@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Library plus workout/template exercise pickers now match compacted and initialism-style search queries like `benchpress` and `bp`, so common shorthand still finds the right movement without requiring exact spacing.
 - Workout Templates search now also matches the full active-workout handoff wording users actually see during template conflicts — including `keep going before opening …` and `continue it … before starting …` prompt phrasing — so alert-copy searches still jump back to the right template.
 - Template Details’ active-workout status summary now explicitly says users can continue, save, or discard the current workout before starting the selected template, matching the direct `Resume Current Workout`, `Save & Open Template`, and `Discard & Open Template` recovery actions shown on that screen.
 - Workout Templates row previews now prioritize the exercises that will actually start right now, so partial or library-broken templates surface launchable movements before missing ones instead of making the list preview look more broken than the workout really is.
