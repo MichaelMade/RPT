@@ -389,6 +389,35 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testPreferredNewExerciseDefaults_followActiveFilters() {
+        let viewModel = ExerciseLibraryViewModel()
+
+        XCTAssertEqual(
+            viewModel.preferredNewExerciseCategory(),
+            .compound,
+            "New custom exercises should fall back to Compound when no category filter is active"
+        )
+        XCTAssertEqual(
+            viewModel.preferredNewExercisePrimaryMuscles(),
+            [],
+            "New custom exercises should not invent a primary muscle when no muscle filter is active"
+        )
+
+        viewModel.selectedCategory = .isolation
+        viewModel.selectedMuscleGroup = .back
+
+        XCTAssertEqual(
+            viewModel.preferredNewExerciseCategory(),
+            .isolation,
+            "New custom exercises should inherit the currently selected category filter"
+        )
+        XCTAssertEqual(
+            viewModel.preferredNewExercisePrimaryMuscles(),
+            [.back],
+            "New custom exercises should inherit the currently selected muscle-group filter as their initial primary muscle"
+        )
+    }
+
     func testCreateExerciseRecoveryTitle_staysAvailableDuringNearMatchResults() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [

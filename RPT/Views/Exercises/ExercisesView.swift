@@ -217,7 +217,11 @@ struct ExercisesView: View {
                 // Refresh the exercise list when the add sheet is dismissed
                 viewModel.refreshExercises()
             }) {
-                AddExerciseView(initialExerciseName: createExercisePrefillName)
+                AddExerciseView(
+                    initialExerciseName: createExercisePrefillName,
+                    initialCategory: viewModel.preferredNewExerciseCategory(),
+                    initialPrimaryMuscles: viewModel.preferredNewExercisePrimaryMuscles()
+                )
             }
             .confirmationDialog(
                 "Delete Exercise",

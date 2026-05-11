@@ -259,7 +259,11 @@ struct ExerciseSelectorView: View {
                 }
             }
             .sheet(isPresented: $showingAddExercise, onDismiss: handleAddExerciseDismissed) {
-                AddExerciseView(initialExerciseName: createExercisePrefillName) { savedExerciseName in
+                AddExerciseView(
+                    initialExerciseName: createExercisePrefillName,
+                    initialCategory: viewModel.preferredNewExerciseCategory(),
+                    initialPrimaryMuscles: viewModel.preferredNewExercisePrimaryMuscles()
+                ) { savedExerciseName in
                     pendingSelectionExerciseName = savedExerciseName
                 }
             }

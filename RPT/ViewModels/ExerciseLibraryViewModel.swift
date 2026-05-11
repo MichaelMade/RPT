@@ -163,6 +163,18 @@ class ExerciseLibraryViewModel: ObservableObject {
         suggestedExerciseNameFromSearch() ?? ""
     }
 
+    func preferredNewExerciseCategory() -> ExerciseCategory {
+        selectedCategory ?? .compound
+    }
+
+    func preferredNewExercisePrimaryMuscles() -> [MuscleGroup] {
+        guard let selectedMuscleGroup else {
+            return []
+        }
+
+        return [selectedMuscleGroup]
+    }
+
     func shouldShowCreateExerciseFromSearchAction(filteredCount: Int) -> Bool {
         hasActiveSearch && filteredCount > 0 && suggestedExerciseNameFromSearch() != nil
     }

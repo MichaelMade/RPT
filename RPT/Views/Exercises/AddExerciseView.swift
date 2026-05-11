@@ -10,12 +10,14 @@ import SwiftData
 
 struct AddExerciseView: View {
     let initialExerciseName: String
+    let initialCategory: ExerciseCategory
+    let initialPrimaryMuscles: [MuscleGroup]
     let onExerciseSaved: ((String) -> Void)?
 
     @Environment(\.dismiss) private var dismiss
     @State private var exerciseName = ""
-    @State private var selectedCategory: ExerciseCategory = .compound
-    @State private var selectedPrimaryMuscles: [MuscleGroup] = []
+    @State private var selectedCategory: ExerciseCategory
+    @State private var selectedPrimaryMuscles: [MuscleGroup]
     @State private var selectedSecondaryMuscles: [MuscleGroup] = []
     @State private var instructions = ""
     @State private var saveResult: ExerciseManager.MutationResult?
@@ -39,10 +41,16 @@ struct AddExerciseView: View {
 
     init(
         initialExerciseName: String = "",
+        initialCategory: ExerciseCategory = .compound,
+        initialPrimaryMuscles: [MuscleGroup] = [],
         onExerciseSaved: ((String) -> Void)? = nil
     ) {
         self.initialExerciseName = initialExerciseName
+        self.initialCategory = initialCategory
+        self.initialPrimaryMuscles = initialPrimaryMuscles
         self.onExerciseSaved = onExerciseSaved
+        _selectedCategory = State(initialValue: initialCategory)
+        _selectedPrimaryMuscles = State(initialValue: initialPrimaryMuscles)
     }
     
     var body: some View {
