@@ -19,6 +19,8 @@ struct TemplateDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var startWorkoutFailureMessage: String?
     @State private var showingStartWorkoutConfirmation = false
+    @State private var showingRestoreExerciseSheet = false
+    @State private var restoreExercisePrefillName = ""
 
     private let templateManager = TemplateManager.shared
 
@@ -239,8 +241,19 @@ struct TemplateDetailView: View {
                             .foregroundColor(.secondary)
 
                             ForEach(unavailableExerciseNames, id: \.self) { exerciseName in
-                                Label(exerciseName, systemImage: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.orange)
+                                HStack(alignment: .center, spacing: 12) {
+                                    Label(exerciseName, systemImage: "exclamationmark.triangle.fill")
+                                        .foregroundColor(.orange)
+
+                                    Spacer(minLength: 12)
+
+                                    Button("Restore") {
+                                        restoreExercisePrefillName = exerciseName
+                                        showingRestoreExerciseSheet = true
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
+                                }
                             }
                         }
                     }
@@ -388,6 +401,9 @@ struct TemplateDetailView: View {
                         Button("Edit", action: onEditTemplate)
                     }
                 }
+            }
+            .sheet(isPresented: $showingRestoreExerciseSheet) {
+                AddExerciseView(initialExerciseName: restoreExercisePrefillName)
             }
             .alert(startWorkoutActionTitle, isPresented: $showingStartWorkoutConfirmation) {
                 Button("Cancel", role: .cancel) {}

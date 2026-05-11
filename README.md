@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details now lets users restore missing template exercises straight back into the library from the `Unavailable Right Now` section, so broken templates can be repaired in place instead of backing out through the Exercise Library first.
 - New/Edit Template now names the actual repeated exercise(s) when duplicate entries block save, so users can fix `Bench Press`/`Squat` collisions directly instead of decoding a generic duplicate-warning message.
 - Exercise Library and both workout/template exercise pickers now keep an inline `Add Custom Exercise` fallback visible when active category or muscle filters narrow results to zero matches, so filter-only dead ends can turn directly into a correctly prefiltered custom movement instead of forcing users to back out and hit the toolbar `+` first.
 - Exercise Library plus workout/template exercise pickers now seed new custom-exercise drafts from the current filters, so `Add Custom Exercise` can open with the active category and target muscle already selected instead of making users re-enter the context they were just browsing.
@@ -170,6 +171,7 @@ RPT/
 
 ## Recent Improvements
 
+- Template Details now lets users tap `Restore` beside each `Unavailable Right Now` movement to open a prefilled custom-exercise draft, so missing template exercises can be rebuilt in place without backing out through the Exercise Library first; validated with `git diff --check` plus targeted source inspection.
 - Exercise Library and both workout/template exercise pickers now keep an inline `Add Custom Exercise` fallback visible when category or muscle filters narrow the current results to zero matches, so filter-only dead ends can become a prefiltered custom exercise without backing out to the toolbar `+`; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Exercise Library and both workout/template exercise pickers now prefill new custom-exercise drafts from the active category and muscle filters, so `Add Custom Exercise` keeps the user’s current browsing context instead of forcing them to reselect it; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Workout and template exercise pickers now keep true empty-library onboarding copy even if a search or filter is already active, so first-run users see `No Exercises Available` guidance instead of a misleading `No Matching Exercises` dead end; added regression coverage in `ExerciseLibraryViewModelTests`.
