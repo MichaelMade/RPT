@@ -52,6 +52,25 @@ struct TemplateEditView: View {
     private var canSave: Bool {
         draftValidation == .valid
     }
+
+    private var duplicateExerciseLookupKeys: Set<String> {
+        var counts: [String: Int] = [:]
+
+        for exercise in exercises {
+            let lookupKey = ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
+            counts[lookupKey, default: 0] += 1
+        }
+
+        return Set(counts.compactMap { lookupKey, count in
+            count > 1 ? lookupKey : nil
+        })
+    }
+
+    private func isDuplicateExercise(_ exercise: TemplateExercise) -> Bool {
+        duplicateExerciseLookupKeys.contains(
+            ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
+        )
+    }
     
     var body: some View {
         NavigationStack {
@@ -78,6 +97,12 @@ struct TemplateEditView: View {
                                 Text(TemplateExercise.normalizedDisplayName(exercises[index].exerciseName))
                                     .font(.headline)
                                     .foregroundColor(.primary)
+
+                                if isDuplicateExercise(exercises[index]) {
+                                    Label("Repeated entry — only the first copy will be added", systemImage: "square.on.square.fill")
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
+                                }
                                 
                                 Text("\(exercises[index].suggestedSets) sets")
                                     .font(.subheadline)

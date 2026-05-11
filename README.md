@@ -1,5 +1,6 @@
 # RPT
 
+- New/Edit Template now marks each repeated exercise row inline with a `Repeated entry` warning, so users can spot and fix the exact duplicate rows directly in the editor instead of only decoding the save error after the fact.
 - Workout Templates’ no-match empty state now names the exact failed query and only promises `create from search` when that action is actually available, so dead-end search guidance stays honest instead of suggesting a create path that may not be safe for the current query.
 - Template Details now lets users restore missing template exercises straight back into the library from the `Unavailable Right Now` section, so broken templates can be repaired in place instead of backing out through the Exercise Library first.
 - New/Edit Template now names the actual repeated exercise(s) when duplicate entries block save, so users can fix `Bench Press`/`Squat` collisions directly instead of decoding a generic duplicate-warning message.
@@ -172,6 +173,7 @@ RPT/
 
 ## Recent Improvements
 
+- New/Edit Template now marks each repeated exercise row inline with a `Repeated entry` warning, so duplicate-heavy templates can be fixed right where the collision appears instead of only after the save helper names the problem; validated with `git diff --check` plus targeted source inspection.
 - Workout Templates search now also indexes broken-template recovery wording like `Restore`, `replace`, and per-exercise phrases such as `restore Bench Press`, so users can refind missing-exercise templates using the exact repair action copy shown in Template Details.
 - Template Details now lets users tap `Restore` beside each `Unavailable Right Now` movement to open a prefilled custom-exercise draft, so missing template exercises can be rebuilt in place without backing out through the Exercise Library first; validated with `git diff --check` plus targeted source inspection.
 - Exercise Library and both workout/template exercise pickers now keep an inline `Add Custom Exercise` fallback visible when category or muscle filters narrow the current results to zero matches, so filter-only dead ends can become a prefiltered custom exercise without backing out to the toolbar `+`; added regression coverage in `ExerciseLibraryViewModelTests`.
