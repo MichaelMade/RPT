@@ -369,6 +369,30 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testShouldShowSingleResultQuickActions_supportsFilterOnlyMatchesToo() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+
+        XCTAssertFalse(
+            viewModel.shouldShowSingleResultQuickActions(filteredCount: 1),
+            "Single-result quick actions should stay hidden when the user has not narrowed the library yet"
+        )
+
+        viewModel.selectedMuscleGroup = .chest
+        XCTAssertTrue(
+            viewModel.shouldShowSingleResultQuickActions(filteredCount: 1),
+            "Category or muscle filters that narrow the library to one visible result should unlock the same quick-action footer as searches"
+        )
+
+        XCTAssertFalse(
+            viewModel.shouldShowSingleResultQuickActions(filteredCount: 2),
+            "Quick actions should still require exactly one visible exercise"
+        )
+    }
+
     func testSuggestedExerciseNameFromSearch_returnsNormalizedSearchWhenNameIsAvailable() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [

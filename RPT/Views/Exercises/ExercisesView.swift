@@ -167,8 +167,7 @@ struct ExercisesView: View {
                             }
                         }
 
-                        if viewModel.hasActiveSearch,
-                           exercises.count == 1,
+                        if viewModel.shouldShowSingleResultQuickActions(filteredCount: exercises.count),
                            let matchedExercise = exercises.first {
                             Section("Quick Actions") {
                                 NavigationLink {

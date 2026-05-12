@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Library now keeps its exact one-result quick actions available when category or muscle filters alone narrow the list to one visible movement, so filter-first browsing gets the same inline `Review` / `Edit` / `Delete` shortcuts as search-first lookups.
 - Workout Templates search now also matches quick-action wording like `start upper body push`, `review push day`, `edit lower body`, `delete pull day`, plus duplicate/copy phrases, so users can refind the right plan using the exact action language they remember from inline actions and Template Details.
 - Workout and template exercise pickers now expose a direct inline `Add "…"` shortcut when search or filters narrow the list to one visible movement, so exact matches can be selected in one tap without having to hit the row itself.
 - Exercise Library exact one-result searches now surface a direct `Review` shortcut for any matched movement plus inline `Edit`/`Delete` actions for custom exercises, so focused lookups can inspect or clean up the right library entry without rediscovering row taps or swipe actions.
@@ -182,6 +183,7 @@ RPT/
 
 ## Recent Improvements
 
+- Exercise Library now keeps its exact one-result quick actions available when category or muscle filters alone narrow the list to one visible movement, so filter-first browsing gets the same inline `Review` / `Edit` / `Delete` shortcuts as search-first lookups; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Workout Templates exact one-result searches now expose a direct `Delete` quick action alongside `Start Workout`, `Review`, `Edit`, and `Duplicate`, so focused cleanup can happen in one tap without rediscovering the row swipe action; validated with `git diff --check` plus targeted source inspection.
 - Workout Templates search now also matches named quick-action wording like `start upper body push`, `review push day`, `edit lower body`, `delete pull day`, plus duplicate/copy phrases, so users can refind the right plan using the same action language they remember from inline actions or Template Details; added regression coverage in `TemplateViewModelTests`.
 - Workout and template exercise pickers now expose a direct inline `Add "…"` shortcut whenever search or filters narrow the list to one visible movement, so exact matches can be selected in one tap without relying on row-tap discovery; added regression coverage in `ExerciseLibraryViewModelTests`.
