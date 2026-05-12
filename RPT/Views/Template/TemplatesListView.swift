@@ -217,6 +217,16 @@ struct TemplatesListView: View {
                             Button("Duplicate \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"") {
                                 startDuplicating(matchedTemplate)
                             }
+
+                            Button(role: .destructive) {
+                                templateToDelete = matchedTemplate
+                                showingConfirmationDialog = true
+                            } label: {
+                                Label(
+                                    "Delete \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"",
+                                    systemImage: "trash"
+                                )
+                            }
                         }
                     }
 

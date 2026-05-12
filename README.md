@@ -5,6 +5,7 @@
 - Exercise Library exact one-result searches now surface a direct `Review` shortcut for any matched movement plus inline `Edit`/`Delete` actions for custom exercises, so focused lookups can inspect or clean up the right library entry without rediscovering row taps or swipe actions.
 - Exercise Library custom movements can now be edited directly from the list via a swipe action, and exact one-result searches expose the same `Edit` shortcut inline so users can fix a matched exercise without drilling through its detail screen first.
 - Workout Templates can now duplicate an existing plan into a prefilled draft (`Name Copy`, `Name Copy 2`, etc.) from both list and detail quick actions, so users can branch a proven routine without rebuilding every exercise and note by hand.
+- Workout Templates exact-search results now surface inline `Delete` alongside `Start Workout`, `Review`, `Edit`, and `Duplicate`, so focused cleanup no longer depends on rediscovering the row swipe action after narrowing to the one plan you want.
 - Workout Templates exact-search results now surface `Start Workout`, `Review`, and `Edit` quick actions inline when only one template matches, so users can launch or adjust the right plan without drilling through the list row first.
 - Workout Templates search now also matches the exact duplicate/missing fix-up copy users see in template repair flows — including `Remove Extra Copy`, `Missing from library • skipped until restored`, and exercise-specific variants like `missing from library Ghost Lift` — so repair-oriented searches jump straight back to the right template.
 - New/Edit Template now gives repeated exercise rows a direct `Remove Extra Copy` cleanup action beside the inline warning, so duplicate-heavy templates can be fixed in one tap instead of relying on swipe-to-delete discovery after a blocked save.
@@ -181,6 +182,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates exact one-result searches now expose a direct `Delete` quick action alongside `Start Workout`, `Review`, `Edit`, and `Duplicate`, so focused cleanup can happen in one tap without rediscovering the row swipe action; validated with `git diff --check` plus targeted source inspection.
 - Workout Templates search now also matches duplicate/copy action wording like `copy upper body` and `duplicate push day`, so users can refind the right plan using the same duplication intent they remember from quick actions or Template Details; added regression coverage in `TemplateViewModelTests`.
 - Workout and template exercise pickers now expose a direct inline `Add "…"` shortcut whenever search or filters narrow the list to one visible movement, so exact matches can be selected in one tap without relying on row-tap discovery; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Exercise Library exact one-result searches now surface a direct `Review` shortcut for any matched movement plus inline `Edit`/`Delete` actions for custom exercises, so focused lookups can inspect or clean up the right library entry without rediscovering row taps or swipe actions; validated with `git diff --check` plus targeted source inspection.
