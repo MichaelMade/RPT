@@ -88,6 +88,19 @@ class ExerciseLibraryViewModel: ObservableObject {
             .joined()
     }
 
+    private static func actionSearchAliases(for exercise: Exercise) -> [String] {
+        var aliases = ["Review \(exercise.displayName)"]
+
+        if exercise.isCustom {
+            aliases.append(contentsOf: [
+                "Edit \(exercise.displayName)",
+                "Delete \(exercise.displayName)"
+            ])
+        }
+
+        return aliases
+    }
+
     var normalizedSearchText: String {
         Self.normalizedSearchQuery(searchText)
     }
@@ -382,6 +395,7 @@ class ExerciseLibraryViewModel: ObservableObject {
         ]
         + exercise.primaryMuscleGroups.map(\.displayName)
         + exercise.secondaryMuscleGroups.map(\.displayName)
+        + actionSearchAliases(for: exercise)
 
         let aliasLookups = aliasValues.map(normalizedSearchLookupKey)
 

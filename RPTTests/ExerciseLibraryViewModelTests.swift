@@ -239,6 +239,45 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_matchesReviewActionPhrasesForAnyExercise() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+        viewModel.searchText = "review bench press"
+
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press"],
+            "Exercise search should understand named Review quick-action wording so users can refind the same movement from the library action copy they just saw"
+        )
+    }
+
+    func testFetchExercises_matchesEditAndDeleteActionPhrasesOnlyForCustomExercises() {
+        let viewModel = ExerciseLibraryViewModel()
+        let customExercise = Exercise(name: "Garage Dip", category: .bodyweight, primaryMuscleGroups: [.triceps], secondaryMuscleGroups: [.chest], instructions: "")
+        customExercise.isCustom = true
+
+        let defaultExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        defaultExercise.isCustom = false
+
+        viewModel.exercises = [customExercise, defaultExercise]
+        viewModel.searchText = "edit garage dip"
+
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Garage Dip"],
+            "Custom exercises should be discoverable by the named Edit quick action shown in the library"
+        )
+
+        viewModel.searchText = "delete bench press"
+        XCTAssertTrue(
+            viewModel.fetchExercises().isEmpty,
+            "Built-in exercises should not suddenly match delete action wording when the library does not actually offer a delete shortcut for them"
+        )
+    }
+
     func testFetchExercises_appliesCategoryAndMuscleGroupFiltersTogether() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
