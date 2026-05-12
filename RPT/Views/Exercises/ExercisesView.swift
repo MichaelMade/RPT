@@ -169,11 +169,26 @@ struct ExercisesView: View {
 
                         if viewModel.hasActiveSearch,
                            exercises.count == 1,
-                           let matchedExercise = exercises.first,
-                           matchedExercise.isCustom {
+                           let matchedExercise = exercises.first {
                             Section("Quick Actions") {
-                                Button("Edit \"\(matchedExercise.displayName)\"") {
-                                    exerciseToEdit = matchedExercise
+                                NavigationLink {
+                                    ExerciseDetailView(exercise: matchedExercise)
+                                } label: {
+                                    Label("Review \"\(matchedExercise.displayName)\"", systemImage: "info.circle")
+                                }
+
+                                if matchedExercise.isCustom {
+                                    Button("Edit \"\(matchedExercise.displayName)\"") {
+                                        exerciseToEdit = matchedExercise
+                                    }
+
+                                    Button(role: .destructive) {
+                                        exerciseToDelete = matchedExercise
+                                        exerciseDeletionImpact = viewModel.deletionImpact(for: matchedExercise)
+                                        showingDeleteConfirmation = true
+                                    } label: {
+                                        Label("Delete \"\(matchedExercise.displayName)\"", systemImage: "trash")
+                                    }
                                 }
                             }
                         }
