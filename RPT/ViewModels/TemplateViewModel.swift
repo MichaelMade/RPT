@@ -601,6 +601,8 @@ class TemplateViewModel: ObservableObject {
                 "unavailable exercises",
                 "unavailable right now",
                 "missing from library",
+                TemplateManager.TemplateExerciseIssue.missingFromLibrary.summary,
+                "skipped until restored",
                 "restore",
                 "restore exercise",
                 "restore missing exercise",
@@ -616,7 +618,9 @@ class TemplateViewModel: ObservableObject {
                     "restore \($0)",
                     "replace \($0)",
                     "missing \($0)",
-                    "unavailable \($0)"
+                    "unavailable \($0)",
+                    "missing from library \($0)",
+                    "skipped until restored \($0)"
                 ]
             })
 
@@ -636,9 +640,19 @@ class TemplateViewModel: ObservableObject {
                 "repeated entries",
                 "duplicate exercises",
                 "repeated entry",
-                "only the first copy will be added"
+                TemplateManager.TemplateExerciseIssue.repeatedEntry.summary,
+                "only the first copy will be added",
+                "remove extra copy",
+                "remove repeated entry"
             ])
             terms.append(contentsOf: duplicateExerciseNames)
+            terms.append(contentsOf: duplicateExerciseNames.flatMap {
+                [
+                    "remove extra copy \($0)",
+                    "remove repeated entry \($0)",
+                    "repeated entry \($0)"
+                ]
+            })
         }
 
         if !startableExerciseNames.isEmpty && (unavailableCount > 0 || duplicateCount > 0) {

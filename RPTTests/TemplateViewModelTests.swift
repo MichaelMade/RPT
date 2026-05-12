@@ -244,6 +244,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "replace ghost lift"
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Ghost Day"])
+
+        viewModel.searchText = "skipped until restored"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Ghost Day"])
+
+        viewModel.searchText = "missing from library ghost lift"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Ghost Day"])
     }
 
     func testFetchTemplates_matchesExerciseNameOutOfOrderTokens() {
@@ -411,6 +417,18 @@ final class TemplateViewModelTests: XCTestCase {
         ]
         viewModel.searchText = "duplicate"
 
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Duplicate Template"]
+        )
+
+        viewModel.searchText = "remove extra copy"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Duplicate Template"]
+        )
+
+        viewModel.searchText = "repeated entry bench press"
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
             ["Duplicate Template"]
