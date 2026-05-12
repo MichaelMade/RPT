@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates exact-search results now surface `Start Workout`, `Review`, and `Edit` quick actions inline when only one template matches, so users can launch or adjust the right plan without drilling through the list row first.
 - Workout Templates search now also matches the exact duplicate/missing fix-up copy users see in template repair flows — including `Remove Extra Copy`, `Missing from library • skipped until restored`, and exercise-specific variants like `missing from library Ghost Lift` — so repair-oriented searches jump straight back to the right template.
 - New/Edit Template now gives repeated exercise rows a direct `Remove Extra Copy` cleanup action beside the inline warning, so duplicate-heavy templates can be fixed in one tap instead of relying on swipe-to-delete discovery after a blocked save.
 - New/Edit Template now marks each repeated exercise row inline with a `Repeated entry` warning, so users can spot and fix the exact duplicate rows directly in the editor instead of only decoding the save error after the fact.
@@ -175,6 +176,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates exact-search results now surface inline `Start Workout`, `Review`, and `Edit` quick actions whenever only one template matches, with partial-start confirmation preserved before launch so focused searches can turn straight into action; validated with `git diff --check` plus targeted source inspection.
 - New/Edit Template now gives each repeated exercise row a direct `Remove Extra Copy` action beside the inline warning, so blocked saves can be resolved in one tap without relying on swipe-to-delete discovery; validated with `git diff --check` plus targeted source inspection.
 - New/Edit Template now marks each repeated exercise row inline with a `Repeated entry` warning, so duplicate-heavy templates can be fixed right where the collision appears instead of only after the save helper names the problem; validated with `git diff --check` plus targeted source inspection.
 - Workout Templates search now also indexes broken-template recovery wording like `Restore`, `replace`, `Remove Extra Copy`, and per-exercise repair phrases such as `restore Bench Press` or `missing from library Ghost Lift`, so users can refind repair-needed templates using the exact fix-up copy shown in Template Details and New/Edit Template; added regression coverage in `TemplateViewModelTests`.

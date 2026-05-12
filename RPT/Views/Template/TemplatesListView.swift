@@ -20,6 +20,8 @@ struct TemplatesListView: View {
     @State private var templateStartFailureMessage: String?
     @State private var searchText = ""
     @State private var createTemplatePrefillName = ""
+    @State private var quickStartTemplate: WorkoutTemplate?
+    @State private var quickStartConfirmationMessage: String?
     
     private let templateManager = TemplateManager.shared
     
@@ -154,6 +156,33 @@ struct TemplatesListView: View {
                         }
                     }
 
+                    if viewModel.hasActiveSearch,
+                       filteredTemplates.count == 1,
+                       let matchedTemplate = filteredTemplates.first {
+                        Section("Quick Actions") {
+                            if !activeWorkoutBlocksTemplateStart,
+                               templateManager.canStartWorkout(for: matchedTemplate) {
+                                Button(templateManager.startWorkoutActionTitle(for: matchedTemplate)) {
+                                    beginQuickStart(for: matchedTemplate)
+                                }
+                            } else if protectedResumableWorkout() != nil {
+                                Button("Resume Current Workout") {
+                                    showActiveWorkoutSheet = true
+                                }
+                            }
+
+                            Button("Review \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"") {
+                                selectedTemplate = matchedTemplate
+                                currentAction = .detail
+                            }
+
+                            Button("Edit \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"") {
+                                selectedTemplate = matchedTemplate
+                                currentAction = .edit
+                            }
+                        }
+                    }
+
                     if viewModel.shouldShowCreateTemplateFromSearchAction(filteredCount: filteredTemplates.count),
                        let createRecoveryTitle = viewModel.createTemplateRecoveryTitle(filteredCount: filteredTemplates.count) {
                         Button(createRecoveryTitle) {
@@ -277,6 +306,29 @@ struct TemplatesListView: View {
             } message: { result in
                 Text(result.alertMessage)
             }
+            .alert(
+                quickStartTemplate.map { templateManager.startWorkoutActionTitle(for: $0) } ?? "Start Workout",
+                isPresented: Binding(
+                    get: { quickStartTemplate != nil && quickStartConfirmationMessage != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            quickStartTemplate = nil
+                            quickStartConfirmationMessage = nil
+                        }
+                    }
+                )
+            ) {
+                Button("Cancel", role: .cancel) {
+                    quickStartTemplate = nil
+                    quickStartConfirmationMessage = nil
+                }
+
+                Button(quickStartTemplate.map { templateManager.startWorkoutActionTitle(for: $0) } ?? "Start Workout") {
+                    confirmQuickStart()
+                }
+            } message: {
+                Text(quickStartConfirmationMessage ?? "")
+            }
             .alert("Workout Action Failed", isPresented: Binding(
                 get: { templateStartFailureMessage != nil },
                 set: { isPresented in
@@ -332,6 +384,33 @@ struct TemplatesListView: View {
             currentBinding: activeWorkoutBinding,
             fallbackWorkouts: WorkoutManager.shared.getIncompleteWorkouts()
         )
+    }
+
+    private func beginQuickStart(for template: WorkoutTemplate) {
+        if let confirmationMessage = templateManager.partialStartConfirmationMessage(for: template) {
+            quickStartTemplate = template
+            quickStartConfirmationMessage = confirmationMessage
+            return
+        }
+
+        performQuickStart(template)
+    }
+
+    private func confirmQuickStart() {
+        guard let template = quickStartTemplate else { return }
+        quickStartTemplate = nil
+        quickStartConfirmationMessage = nil
+        performQuickStart(template)
+    }
+
+    private func performQuickStart(_ template: WorkoutTemplate) {
+        guard let startedWorkout = viewModel.createWorkoutFromTemplate(template) else {
+            templateStartFailureMessage = "Your template workout could not be started right now. Please try again."
+            return
+        }
+
+        activeWorkoutBinding = startedWorkout
+        showActiveWorkoutSheet = true
     }
 
     private func saveActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
