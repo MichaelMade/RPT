@@ -549,6 +549,12 @@ class TemplateViewModel: ObservableObject {
         let shouldSuggestEditingTemplate = totalCount == 0 || unavailableCount > 0 || duplicateCount > 0 || !canStartWorkout
 
         var terms: [String] = [
+            "review template",
+            "review \(templateName)",
+            "edit template",
+            "edit \(templateName)",
+            "delete template",
+            "delete \(templateName)",
             "duplicate template",
             "duplicate \(templateName)",
             "copy template",
@@ -558,6 +564,8 @@ class TemplateViewModel: ObservableObject {
 
         if canStartWorkout {
             terms.append(contentsOf: [
+                "start workout",
+                "start \(templateName)",
                 "ready",
                 "ready to start",
                 "available",
@@ -688,10 +696,7 @@ class TemplateViewModel: ObservableObject {
         }
 
         if shouldSuggestEditingTemplate {
-            terms.append(contentsOf: [
-                "edit template",
-                "fix template"
-            ])
+            terms.append("fix template")
         }
 
         if !canStartWorkout {

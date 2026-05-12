@@ -435,7 +435,7 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
-    func testFetchTemplates_matchesDuplicateTemplateActionCopyForNamedTemplateSearches() {
+    func testFetchTemplates_matchesQuickActionCopyForNamedTemplateSearches() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
             makeTemplate(name: "Upper Body Push", exerciseNames: ["Bench Press"]),
@@ -449,6 +449,30 @@ final class TemplateViewModelTests: XCTestCase {
         )
 
         viewModel.searchText = "duplicate upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
+        viewModel.searchText = "review upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
+        viewModel.searchText = "edit upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
+        viewModel.searchText = "delete upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
+        viewModel.searchText = "start upper body push"
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
             ["Upper Body Push"]

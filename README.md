@@ -1,6 +1,6 @@
 # RPT
 
-- Workout Templates search now also matches duplicate/copy action wording like `copy upper body` and `duplicate push day`, so users can refind the right plan using the exact duplication intent they remember from quick actions and Template Details.
+- Workout Templates search now also matches quick-action wording like `start upper body push`, `review push day`, `edit lower body`, `delete pull day`, plus duplicate/copy phrases, so users can refind the right plan using the exact action language they remember from inline actions and Template Details.
 - Workout and template exercise pickers now expose a direct inline `Add "…"` shortcut when search or filters narrow the list to one visible movement, so exact matches can be selected in one tap without having to hit the row itself.
 - Exercise Library exact one-result searches now surface a direct `Review` shortcut for any matched movement plus inline `Edit`/`Delete` actions for custom exercises, so focused lookups can inspect or clean up the right library entry without rediscovering row taps or swipe actions.
 - Exercise Library custom movements can now be edited directly from the list via a swipe action, and exact one-result searches expose the same `Edit` shortcut inline so users can fix a matched exercise without drilling through its detail screen first.
@@ -183,7 +183,7 @@ RPT/
 ## Recent Improvements
 
 - Workout Templates exact one-result searches now expose a direct `Delete` quick action alongside `Start Workout`, `Review`, `Edit`, and `Duplicate`, so focused cleanup can happen in one tap without rediscovering the row swipe action; validated with `git diff --check` plus targeted source inspection.
-- Workout Templates search now also matches duplicate/copy action wording like `copy upper body` and `duplicate push day`, so users can refind the right plan using the same duplication intent they remember from quick actions or Template Details; added regression coverage in `TemplateViewModelTests`.
+- Workout Templates search now also matches named quick-action wording like `start upper body push`, `review push day`, `edit lower body`, `delete pull day`, plus duplicate/copy phrases, so users can refind the right plan using the same action language they remember from inline actions or Template Details; added regression coverage in `TemplateViewModelTests`.
 - Workout and template exercise pickers now expose a direct inline `Add "…"` shortcut whenever search or filters narrow the list to one visible movement, so exact matches can be selected in one tap without relying on row-tap discovery; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Exercise Library exact one-result searches now surface a direct `Review` shortcut for any matched movement plus inline `Edit`/`Delete` actions for custom exercises, so focused lookups can inspect or clean up the right library entry without rediscovering row taps or swipe actions; validated with `git diff --check` plus targeted source inspection.
 - Exercise Library custom movements can now be edited straight from the list with a swipe action, and exact one-result searches surface the same inline `Edit` shortcut so matched exercises can be corrected without drilling through Exercise Details first; validated with `git diff --check` plus targeted source inspection.
