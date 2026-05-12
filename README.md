@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Library custom movements can now be edited directly from the list via a swipe action, and exact one-result searches expose the same `Edit` shortcut inline so users can fix a matched exercise without drilling through its detail screen first.
 - Workout Templates can now duplicate an existing plan into a prefilled draft (`Name Copy`, `Name Copy 2`, etc.) from both list and detail quick actions, so users can branch a proven routine without rebuilding every exercise and note by hand.
 - Workout Templates exact-search results now surface `Start Workout`, `Review`, and `Edit` quick actions inline when only one template matches, so users can launch or adjust the right plan without drilling through the list row first.
 - Workout Templates search now also matches the exact duplicate/missing fix-up copy users see in template repair flows — including `Remove Extra Copy`, `Missing from library • skipped until restored`, and exercise-specific variants like `missing from library Ghost Lift` — so repair-oriented searches jump straight back to the right template.
@@ -177,6 +178,7 @@ RPT/
 
 ## Recent Improvements
 
+- Exercise Library custom movements can now be edited straight from the list with a swipe action, and exact one-result searches surface the same inline `Edit` shortcut so matched exercises can be corrected without drilling through Exercise Details first; validated with `git diff --check` plus targeted source inspection.
 - Workout Templates can now duplicate any existing plan into a prefilled draft with automatic `Copy` / `Copy 2` collision handling from both list-level and detail-level actions, so users can branch a working routine without manually re-entering every exercise, set scheme, and note; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates exact-search results now surface inline `Start Workout`, `Review`, and `Edit` quick actions whenever only one template matches, with partial-start confirmation preserved before launch so focused searches can turn straight into action; validated with `git diff --check` plus targeted source inspection.
 - New/Edit Template now gives each repeated exercise row a direct `Remove Extra Copy` action beside the inline warning, so blocked saves can be resolved in one tap without relying on swipe-to-delete discovery; validated with `git diff --check` plus targeted source inspection.

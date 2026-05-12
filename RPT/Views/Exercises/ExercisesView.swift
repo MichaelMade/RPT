@@ -15,6 +15,7 @@ struct ExercisesView: View {
     @State private var selectedMuscleGroup: MuscleGroup?
     @State private var showingAddExercise = false
     @State private var createExercisePrefillName = ""
+    @State private var exerciseToEdit: Exercise?
     @State private var exerciseToDelete: Exercise?
     @State private var exerciseDeletionImpact = ExerciseManager.DeletionImpact(loggedSetCount: 0, workoutCount: 0, templateCount: 0)
     @State private var showingDeleteConfirmation = false
@@ -148,6 +149,13 @@ struct ExercisesView: View {
                             }
                             .swipeActions(edge: .trailing) {
                                 if exercise.isCustom {
+                                    Button {
+                                        exerciseToEdit = exercise
+                                    } label: {
+                                        Label("Edit", systemImage: "pencil")
+                                    }
+                                    .tint(.blue)
+
                                     Button(role: .destructive) {
                                         exerciseToDelete = exercise
                                         exerciseDeletionImpact = viewModel.deletionImpact(for: exercise)
@@ -155,6 +163,17 @@ struct ExercisesView: View {
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
+                                }
+                            }
+                        }
+
+                        if viewModel.hasActiveSearch,
+                           exercises.count == 1,
+                           let matchedExercise = exercises.first,
+                           matchedExercise.isCustom {
+                            Section("Quick Actions") {
+                                Button("Edit \"\(matchedExercise.displayName)\"") {
+                                    exerciseToEdit = matchedExercise
                                 }
                             }
                         }
@@ -222,6 +241,11 @@ struct ExercisesView: View {
                     initialCategory: viewModel.preferredNewExerciseCategory(),
                     initialPrimaryMuscles: viewModel.preferredNewExercisePrimaryMuscles()
                 )
+            }
+            .sheet(item: $exerciseToEdit, onDismiss: {
+                viewModel.refreshExercises()
+            }) { exercise in
+                EditExerciseView(exercise: exercise)
             }
             .confirmationDialog(
                 "Delete Exercise",
