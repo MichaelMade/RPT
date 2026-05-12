@@ -71,6 +71,10 @@ struct TemplateEditView: View {
             ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
         )
     }
+
+    private func removeExercise(id: UUID) {
+        exercises.removeAll { $0.id == id }
+    }
     
     var body: some View {
         NavigationStack {
@@ -90,39 +94,60 @@ struct TemplateEditView: View {
                 
                 Section(header: Text("Exercises")) {
                     ForEach(exercises.indices, id: \.self) { index in
-                        Button(action: {
-                            showingExerciseEditor = exercises[index]
-                        }) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(TemplateExercise.normalizedDisplayName(exercises[index].exerciseName))
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
+                        let exercise = exercises[index]
 
-                                if isDuplicateExercise(exercises[index]) {
-                                    Label("Repeated entry — only the first copy will be added", systemImage: "square.on.square.fill")
-                                        .font(.caption)
-                                        .foregroundColor(.orange)
-                                }
-                                
-                                Text("\(exercises[index].suggestedSets) sets")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                
-                                // Show rep ranges
-                                HStack {
-                                    ForEach(exercises[index].repRanges.sorted(by: { $0.setNumber < $1.setNumber }), id: \.setNumber) { repRange in
-                                        Text("Set \(repRange.setNumber): \(repRange.minReps)-\(repRange.maxReps)")
-                                            .font(.caption)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(Color.blue.opacity(0.1))
-                                            .foregroundColor(.blue)
-                                            .cornerRadius(4)
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(alignment: .top, spacing: 12) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(TemplateExercise.normalizedDisplayName(exercise.exerciseName))
+                                        .font(.headline)
+                                        .foregroundColor(.primary)
+
+                                    if isDuplicateExercise(exercise) {
+                                        HStack(alignment: .center, spacing: 8) {
+                                            Label("Repeated entry — only the first copy will be added", systemImage: "square.on.square.fill")
+                                                .font(.caption)
+                                                .foregroundColor(.orange)
+
+                                            Button("Remove Extra Copy") {
+                                                removeExercise(id: exercise.id)
+                                            }
+                                            .font(.caption.weight(.semibold))
+                                            .buttonStyle(.borderless)
+                                        }
                                     }
+
+                                    Text("\(exercise.suggestedSets) sets")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+
+                                    // Show rep ranges
+                                    HStack {
+                                        ForEach(exercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber }), id: \.setNumber) { repRange in
+                                            Text("Set \(repRange.setNumber): \(repRange.minReps)-\(repRange.maxReps)")
+                                                .font(.caption)
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 2)
+                                                .background(Color.blue.opacity(0.1))
+                                                .foregroundColor(.blue)
+                                                .cornerRadius(4)
+                                        }
+                                    }
+                                    .padding(.top, 2)
                                 }
-                                .padding(.top, 2)
+
+                                Spacer(minLength: 0)
+
+                                Image(systemName: "chevron.right")
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
+                                    .padding(.top, 4)
                             }
-                            .padding(.vertical, 4)
+                        }
+                        .padding(.vertical, 4)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            showingExerciseEditor = exercise
                         }
                     }
                     .onDelete { indexSet in
