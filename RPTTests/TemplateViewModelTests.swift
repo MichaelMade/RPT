@@ -435,6 +435,26 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesDuplicateTemplateActionCopyForNamedTemplateSearches() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper Body Push", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Body", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "copy upper body"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
+        viewModel.searchText = "duplicate upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+    }
+
     func testFetchTemplates_matchesReadyKeywordForPartialAndReadyTemplates() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(

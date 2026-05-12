@@ -536,6 +536,7 @@ class TemplateViewModel: ObservableObject {
         activeWorkoutAvailable: Bool,
         blockedByActiveWorkout: Bool
     ) -> [String] {
+        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
         let totalCount = template.exercises.count
         let unavailableExerciseNames = templateManager.unavailableExerciseNames(in: template)
         let duplicateExerciseNames = templateManager.duplicateExerciseNames(in: template)
@@ -547,7 +548,13 @@ class TemplateViewModel: ObservableObject {
         let isOnlyBlockedByActiveWorkout = blockedByActiveWorkout
         let shouldSuggestEditingTemplate = totalCount == 0 || unavailableCount > 0 || duplicateCount > 0 || !canStartWorkout
 
-        var terms: [String] = []
+        var terms: [String] = [
+            "duplicate template",
+            "duplicate \(templateName)",
+            "copy template",
+            "copy \(templateName)",
+            "\(templateName) copy"
+        ]
 
         if canStartWorkout {
             terms.append(contentsOf: [
@@ -559,7 +566,6 @@ class TemplateViewModel: ObservableObject {
         }
 
         if activeWorkoutAvailable {
-            let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
             let openTemplateSuffix = templateName == "Template"
                 ? "before opening this template."
                 : "before opening \(templateName)."
