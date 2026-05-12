@@ -20,6 +20,8 @@ struct TemplatesListView: View {
     @State private var templateStartFailureMessage: String?
     @State private var searchText = ""
     @State private var createTemplatePrefillName = ""
+    @State private var createTemplatePrefillNotes = ""
+    @State private var createTemplatePrefillExercises: [TemplateExercise] = []
     @State private var quickStartTemplate: WorkoutTemplate?
     @State private var quickStartConfirmationMessage: String?
     
@@ -44,6 +46,28 @@ struct TemplatesListView: View {
     enum TemplateAction {
         case detail
         case edit
+    }
+
+    private func prepareNewTemplateDraft(name: String = "", notes: String = "", exercises: [TemplateExercise] = []) {
+        createTemplatePrefillName = name
+        createTemplatePrefillNotes = notes
+        createTemplatePrefillExercises = exercises.map { exercise in
+            TemplateExercise(
+                exerciseName: exercise.exerciseName,
+                suggestedSets: exercise.suggestedSets,
+                repRanges: exercise.repRanges,
+                notes: exercise.notes
+            )
+        }
+    }
+
+    private func startDuplicating(_ template: WorkoutTemplate) {
+        prepareNewTemplateDraft(
+            name: viewModel.preferredDuplicateTemplateName(for: template),
+            notes: template.notes,
+            exercises: template.exercises
+        )
+        showingCreateSheet = true
     }
     
     var body: some View {
@@ -72,7 +96,9 @@ struct TemplatesListView: View {
                     } actions: {
                         if let createRecoveryTitle {
                             Button(createRecoveryTitle) {
-                                createTemplatePrefillName = viewModel.suggestedTemplateNameForEmptySearch(filteredCount: filteredTemplates.count) ?? ""
+                                prepareNewTemplateDraft(
+                                    name: viewModel.suggestedTemplateNameForEmptySearch(filteredCount: filteredTemplates.count) ?? ""
+                                )
                                 showingCreateSheet = true
                             }
                         }
@@ -84,7 +110,7 @@ struct TemplatesListView: View {
                             }
                         } else {
                             Button("Create Template") {
-                                createTemplatePrefillName = viewModel.preferredNewTemplatePrefillName()
+                                prepareNewTemplateDraft(name: viewModel.preferredNewTemplatePrefillName())
                                 showingCreateSheet = true
                             }
                         }
@@ -147,6 +173,13 @@ struct TemplatesListView: View {
                             }
                             .tint(.blue)
 
+                            Button {
+                                startDuplicating(template)
+                            } label: {
+                                Label("Duplicate", systemImage: "plus.square.on.square")
+                            }
+                            .tint(.indigo)
+
                             Button(role: .destructive) {
                                 templateToDelete = template
                                 showingConfirmationDialog = true
@@ -180,13 +213,17 @@ struct TemplatesListView: View {
                                 selectedTemplate = matchedTemplate
                                 currentAction = .edit
                             }
+
+                            Button("Duplicate \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"") {
+                                startDuplicating(matchedTemplate)
+                            }
                         }
                     }
 
                     if viewModel.shouldShowCreateTemplateFromSearchAction(filteredCount: filteredTemplates.count),
                        let createRecoveryTitle = viewModel.createTemplateRecoveryTitle(filteredCount: filteredTemplates.count) {
                         Button(createRecoveryTitle) {
-                            createTemplatePrefillName = viewModel.suggestedTemplateNameFromSearch() ?? ""
+                            prepareNewTemplateDraft(name: viewModel.suggestedTemplateNameFromSearch() ?? "")
                             showingCreateSheet = true
                         }
                         .font(.caption)
@@ -212,7 +249,7 @@ struct TemplatesListView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        createTemplatePrefillName = viewModel.preferredNewTemplatePrefillName()
+                        prepareNewTemplateDraft(name: viewModel.preferredNewTemplatePrefillName())
                         showingCreateSheet = true
                     }) {
                         Image(systemName: "plus")
@@ -225,7 +262,9 @@ struct TemplatesListView: View {
                 TemplateEditView(
                     isNewTemplate: true,
                     existingTemplate: nil,
-                    initialTemplateName: createTemplatePrefillName
+                    initialTemplateName: createTemplatePrefillName,
+                    initialTemplateNotes: createTemplatePrefillNotes,
+                    initialExercises: createTemplatePrefillExercises
                 )
             }
             .sheet(item: $selectedTemplate, onDismiss: {
@@ -236,7 +275,9 @@ struct TemplatesListView: View {
                     TemplateEditView(
                         isNewTemplate: false,
                         existingTemplate: template,
-                        initialTemplateName: ""
+                        initialTemplateName: "",
+                        initialTemplateNotes: "",
+                        initialExercises: []
                     )
                 } else {
                     let templateCannotStartOnItsOwn = templateManager.startWorkoutDisabledMessage(for: template) != nil
@@ -248,6 +289,10 @@ struct TemplatesListView: View {
                         },
                         onEditTemplate: {
                             currentAction = .edit
+                        },
+                        onDuplicateTemplate: {
+                            selectedTemplate = nil
+                            startDuplicating(template)
                         },
                         onResumeActiveWorkout: protectedResumableWorkout() == nil
                             ? nil

@@ -12,6 +12,7 @@ struct TemplateDetailView: View {
     let template: WorkoutTemplate
     let onStartWorkout: (Workout) -> Void
     let onEditTemplate: (() -> Void)?
+    let onDuplicateTemplate: (() -> Void)?
     let onResumeActiveWorkout: (() -> Void)?
     let onSaveActiveWorkoutAndOpenTemplate: (() -> Void)?
     let onDiscardActiveWorkoutAndOpenTemplate: (() -> Void)?
@@ -358,6 +359,18 @@ struct TemplateDetailView: View {
                             .buttonStyle(.bordered)
                         }
 
+                        if let onDuplicateTemplate {
+                            Button(action: onDuplicateTemplate) {
+                                HStack {
+                                    Image(systemName: "plus.square.on.square")
+                                    Text("Duplicate Template")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+
                         if shouldSuggestEditingTemplate, let onEditTemplate {
                             Button(action: onEditTemplate) {
                                 HStack {
@@ -468,6 +481,7 @@ struct TemplateDetailView: View {
             // Preview doesn't need to handle the workout callback
         },
         onEditTemplate: {},
+        onDuplicateTemplate: {},
         onResumeActiveWorkout: nil,
         onSaveActiveWorkoutAndOpenTemplate: nil,
         onDiscardActiveWorkoutAndOpenTemplate: nil,

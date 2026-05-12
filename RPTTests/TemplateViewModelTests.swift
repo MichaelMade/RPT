@@ -884,6 +884,46 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "")
     }
 
+    func testPreferredDuplicateTemplateName_defaultsToCopySuffix() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "Upper Body", exerciseNames: ["Bench Press"])
+        viewModel.templates = [template]
+
+        XCTAssertEqual(
+            viewModel.preferredDuplicateTemplateName(for: template),
+            "Upper Body Copy"
+        )
+    }
+
+    func testPreferredDuplicateTemplateName_incrementsUntilUnique() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "Upper Body", exerciseNames: ["Bench Press"])
+        viewModel.templates = [
+            template,
+            makeTemplate(name: "Upper Body Copy", exerciseNames: ["Incline Press"]),
+            makeTemplate(name: "Upper Body Copy 2", exerciseNames: ["Overhead Press"])
+        ]
+
+        XCTAssertEqual(
+            viewModel.preferredDuplicateTemplateName(for: template),
+            "Upper Body Copy 3"
+        )
+    }
+
+    func testPreferredDuplicateTemplateName_ignoresWhitespaceAndCaseCollisions() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "Upper Body", exerciseNames: ["Bench Press"])
+        viewModel.templates = [
+            template,
+            makeTemplate(name: " upper   body copy ", exerciseNames: ["Incline Press"])
+        ]
+
+        XCTAssertEqual(
+            viewModel.preferredDuplicateTemplateName(for: template),
+            "Upper Body Copy 2"
+        )
+    }
+
     func testPersistActiveWorkoutBeforeTemplateStart_saveForLaterMarksWorkoutSavedOnlyAfterSuccess() {
         let viewModel = TemplateViewModel()
         let workoutStateManager = WorkoutStateManager.shared

@@ -235,6 +235,23 @@ class TemplateViewModel: ObservableObject {
         suggestedTemplateNameFromSearch() ?? ""
     }
 
+    func preferredDuplicateTemplateName(for template: WorkoutTemplate) -> String {
+        let baseName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let existingLookupKeys = Set(templates.map {
+            TemplateManager.normalizedNameLookupKey($0.name)
+        })
+
+        var candidateName = "\(baseName) Copy"
+        var suffix = 2
+
+        while existingLookupKeys.contains(TemplateManager.normalizedNameLookupKey(candidateName)) {
+            candidateName = "\(baseName) Copy \(suffix)"
+            suffix += 1
+        }
+
+        return candidateName
+    }
+
     func suggestedTemplateNameForEmptySearch(filteredCount: Int) -> String? {
         guard filteredCount == 0 else {
             return nil

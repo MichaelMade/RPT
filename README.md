@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates can now duplicate an existing plan into a prefilled draft (`Name Copy`, `Name Copy 2`, etc.) from both list and detail quick actions, so users can branch a proven routine without rebuilding every exercise and note by hand.
 - Workout Templates exact-search results now surface `Start Workout`, `Review`, and `Edit` quick actions inline when only one template matches, so users can launch or adjust the right plan without drilling through the list row first.
 - Workout Templates search now also matches the exact duplicate/missing fix-up copy users see in template repair flows — including `Remove Extra Copy`, `Missing from library • skipped until restored`, and exercise-specific variants like `missing from library Ghost Lift` — so repair-oriented searches jump straight back to the right template.
 - New/Edit Template now gives repeated exercise rows a direct `Remove Extra Copy` cleanup action beside the inline warning, so duplicate-heavy templates can be fixed in one tap instead of relying on swipe-to-delete discovery after a blocked save.
@@ -176,6 +177,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates can now duplicate any existing plan into a prefilled draft with automatic `Copy` / `Copy 2` collision handling from both list-level and detail-level actions, so users can branch a working routine without manually re-entering every exercise, set scheme, and note; added regression coverage in `TemplateViewModelTests`.
 - Workout Templates exact-search results now surface inline `Start Workout`, `Review`, and `Edit` quick actions whenever only one template matches, with partial-start confirmation preserved before launch so focused searches can turn straight into action; validated with `git diff --check` plus targeted source inspection.
 - New/Edit Template now gives each repeated exercise row a direct `Remove Extra Copy` action beside the inline warning, so blocked saves can be resolved in one tap without relying on swipe-to-delete discovery; validated with `git diff --check` plus targeted source inspection.
 - New/Edit Template now marks each repeated exercise row inline with a `Repeated entry` warning, so duplicate-heavy templates can be fixed right where the collision appears instead of only after the save helper names the problem; validated with `git diff --check` plus targeted source inspection.
