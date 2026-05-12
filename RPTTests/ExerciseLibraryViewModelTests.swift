@@ -337,6 +337,38 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.shouldShowResultsRecoveryActions(filteredCount: 2))
     }
 
+    func testSingleSelectableExerciseActionTitle_onlyAppearsForExactVisibleMatchesWhileQueryIsActive() {
+        let viewModel = ExerciseLibraryViewModel()
+        let bench = Exercise(
+            name: "Bench Press",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [.triceps],
+            instructions: ""
+        )
+        viewModel.exercises = [
+            bench,
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+
+        XCTAssertNil(
+            viewModel.singleSelectableExerciseActionTitle(for: bench),
+            "Without an active search or filter, picker lists should rely on normal row taps instead of extra add shortcuts"
+        )
+
+        viewModel.searchText = "bench"
+        XCTAssertEqual(
+            viewModel.singleSelectableExerciseActionTitle(for: bench),
+            "Add \"Bench Press\"",
+            "Exact one-result picker searches should surface a one-tap add shortcut for the matched exercise"
+        )
+
+        XCTAssertNil(
+            viewModel.singleSelectableExerciseActionTitle(for: nil),
+            "The add shortcut should disappear once there is no single visible match"
+        )
+    }
+
     func testSuggestedExerciseNameFromSearch_returnsNormalizedSearchWhenNameIsAvailable() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [

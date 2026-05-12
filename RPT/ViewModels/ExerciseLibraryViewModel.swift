@@ -141,6 +141,16 @@ class ExerciseLibraryViewModel: ObservableObject {
         hasActiveQuery && filteredCount > 0 && !exercises.isEmpty
     }
 
+    func singleSelectableExerciseActionTitle(for exercise: Exercise?) -> String? {
+        guard hasActiveQuery,
+              !exercises.isEmpty,
+              let exercise else {
+            return nil
+        }
+
+        return "Add \"\(exercise.displayName)\""
+    }
+
     func suggestedExerciseNameFromSearch() -> String? {
         guard hasActiveSearch else {
             return nil

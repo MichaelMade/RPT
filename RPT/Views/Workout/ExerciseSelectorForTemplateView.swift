@@ -161,6 +161,8 @@ struct ExerciseSelectorForTemplateView: View {
                             }
                         }
                     } else {
+                        let matchedExercise = filteredExercises.count == 1 ? filteredExercises[0] : nil
+
                         ForEach(filteredExercises) { exercise in
                             Button(action: {
                                 HapticFeedbackManager.shared.medium()
@@ -190,6 +192,17 @@ struct ExerciseSelectorForTemplateView: View {
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(PlainButtonStyle())
+                        }
+
+                        if let matchedExercise,
+                           let actionTitle = viewModel.singleSelectableExerciseActionTitle(for: matchedExercise) {
+                            Button(actionTitle) {
+                                HapticFeedbackManager.shared.medium()
+                                onSelectExercise(matchedExercise.displayName)
+                                dismiss()
+                            }
+                            .font(.caption)
+                            .buttonStyle(.borderless)
                         }
 
                         if viewModel.shouldShowCreateExerciseFromSearchAction(filteredCount: filteredExercises.count),

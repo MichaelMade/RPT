@@ -163,6 +163,8 @@ struct ExerciseSelectorView: View {
                             }
                         }
                     } else {
+                        let matchedExercise = filteredExercises.count == 1 ? filteredExercises[0] : nil
+
                         ForEach(filteredExercises) { exercise in
                             // Make the entire row tappable
                             Button(action: {
@@ -199,6 +201,17 @@ struct ExerciseSelectorView: View {
                                 .contentShape(Rectangle()) // Ensures the entire row is tappable
                             }
                             .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                        }
+
+                        if let matchedExercise,
+                           let actionTitle = viewModel.singleSelectableExerciseActionTitle(for: matchedExercise) {
+                            Button(actionTitle) {
+                                HapticFeedbackManager.shared.medium()
+                                onSelectExercise(matchedExercise)
+                                dismiss()
+                            }
+                            .font(.caption)
+                            .buttonStyle(.borderless)
                         }
 
                         if viewModel.shouldShowCreateExerciseFromSearchAction(filteredCount: filteredExercises.count),
