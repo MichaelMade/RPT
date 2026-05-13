@@ -213,10 +213,13 @@ struct WorkoutDetailView: View {
                     .padding(.horizontal)
                 } else {
                     ForEach(Self.displayedExerciseGroups(for: workout), id: \.exercise) { group in
-                        ExerciseSection(
-                            exercise: group.exercise,
-                            sets: group.sets
-                        )
+                        NavigationLink(destination: ExerciseDetailView(exercise: group.exercise)) {
+                            ExerciseSection(
+                                exercise: group.exercise,
+                                sets: group.sets
+                            )
+                        }
+                        .buttonStyle(.plain)
                         .padding(.horizontal)
                     }
                 }
@@ -307,12 +310,19 @@ struct ExerciseSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Exercise header
-            Text(WorkoutDetailView.displayExerciseName(exercise))
-                .font(.headline)
-                .padding(.leading, 8)
-            
-            
+            HStack(alignment: .center, spacing: 8) {
+                Text(WorkoutDetailView.displayExerciseName(exercise))
+                    .font(.headline)
+
+                Spacer(minLength: 0)
+
+                Label("View Exercise", systemImage: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .labelStyle(.titleAndIcon)
+                    .foregroundColor(.blue)
+            }
+            .padding(.leading, 8)
+
             // Sets
             VStack(spacing: 6) {
                 ForEach(sets.indices, id: \.self) { index in

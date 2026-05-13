@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Detail exercise cards now open the linked exercise directly, with a visible `View Exercise` cue on each section, so users can jump from a past session into exercise instructions and progress history without backing out to the library first.
 - Workout Templates exact one-result searches now also surface direct active-workout handoff actions — `Resume Current Workout`, `Save & Open ...`, and `Discard & Open ...` — so users can switch into the matched plan without drilling into Template Details first when another workout is already in progress.
 - Workout and template exercise pickers now also match named add/select quick-action wording like `add bench press` and `select barbell row`, so users can refind the right movement using the same one-result action copy shown in selector flows.
 - Exercise Library search now also matches named quick-action wording like `review bench press`, `edit garage dip`, and `delete custom squat`, so users can refind the right movement using the same inline action copy they remember from exact one-result results.
@@ -186,6 +187,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Detail exercise cards now navigate straight into the linked exercise, with an inline `View Exercise` cue on each section, so users can jump from workout history into that movement’s instructions and progress without detouring through the Exercise Library; validated with `git diff --check` plus targeted source inspection.
 - Workout Templates exact one-result searches now also surface direct active-workout handoff actions — `Resume Current Workout`, `Save & Open ...`, and `Discard & Open ...` — so users can switch into the matched plan without opening Template Details first when another workout is already in progress; validated with `git diff --check` plus targeted source inspection.
 - Workout and template exercise pickers now also match named add/select quick-action wording like `add bench press` and `select barbell row`, so users can refind the right movement using the same one-result action copy shown in selector flows; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Exercise Library search now also matches named quick-action wording like `review bench press`, `edit garage dip`, and `delete custom squat`, so users can refind the right movement using the same inline action copy they remember from exact one-result results; added regression coverage in `ExerciseLibraryViewModelTests`.
