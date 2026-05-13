@@ -14,7 +14,9 @@ struct HomeView: View {
     @State private var showingPlateCalculator = false
     @State private var selectedWorkout: Workout?
     @State private var showingStartFreshAlert = false
+    @State private var showingDeleteWorkoutAlert = false
     @State private var resumableWorkoutToReplace: Workout?
+    @State private var workoutToDelete: Workout?
     @State private var startFreshFailureMessage: String?
     @StateObject private var workoutStateManager = WorkoutStateManager.shared
     
@@ -280,6 +282,21 @@ struct HomeView: View {
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 .padding(.horizontal)
+                                .swipeActions(edge: .trailing) {
+                                    Button {
+                                        selectedWorkout = workout
+                                    } label: {
+                                        Label("Review", systemImage: "info.circle")
+                                    }
+                                    .tint(.blue)
+
+                                    Button(role: .destructive) {
+                                        workoutToDelete = workout
+                                        showingDeleteWorkoutAlert = true
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                             }
                         }
                     }
@@ -320,6 +337,19 @@ struct HomeView: View {
             } message: {
                 if let resumableWorkoutToReplace {
                     Text(viewModel.startFreshWorkoutMessage(for: resumableWorkoutToReplace))
+                }
+            }
+            .alert("Delete Workout?", isPresented: $showingDeleteWorkoutAlert) {
+                Button("Delete", role: .destructive) {
+                    deleteSelectedWorkout()
+                }
+
+                Button("Cancel", role: .cancel) {
+                    workoutToDelete = nil
+                }
+            } message: {
+                if let workoutToDelete {
+                    Text(viewModel.deleteRecentWorkoutMessage(for: workoutToDelete))
                 }
             }
             .alert("Workout Action Failed", isPresented: Binding(
@@ -408,6 +438,21 @@ struct HomeView: View {
 
         activeWorkoutBinding = nil
         startFreshWorkout()
+    }
+
+    private func deleteSelectedWorkout() {
+        guard let workoutToDelete else { return }
+
+        guard viewModel.deleteRecentWorkout(workoutToDelete) else {
+            self.workoutToDelete = nil
+            return
+        }
+
+        if selectedWorkout?.id == workoutToDelete.id {
+            selectedWorkout = nil
+        }
+
+        self.workoutToDelete = nil
     }
 }
 

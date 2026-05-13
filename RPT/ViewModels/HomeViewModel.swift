@@ -300,6 +300,33 @@ class HomeViewModel: ObservableObject {
         )
     }
 
+    func deleteRecentWorkout(_ workout: Workout) -> Bool {
+        guard workoutManager.deleteWorkoutSafely(workout) else {
+            startWorkoutFailureMessage = deleteRecentWorkoutFailureMessage(for: workout)
+            return false
+        }
+
+        startWorkoutFailureMessage = nil
+        loadRecentWorkouts()
+        return true
+    }
+
+    func deleteRecentWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        let summaryParts = [
+            WorkoutRow.relativeDateText(for: workout.date, now: now),
+            WorkoutRow.exerciseCountText(for: workout),
+            WorkoutRow.setCountText(for: workout)
+        ]
+
+        return "Delete \(displayName) from history? \(summaryParts.joined(separator: " • ")) will be removed from your saved workout history."
+    }
+
+    func deleteRecentWorkoutFailureMessage(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return "Couldn’t delete \(displayName) from history. Keep it for now, then try again."
+    }
+
     func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return displayName == "Workout"

@@ -187,6 +187,7 @@ RPT/
 
 ## Recent Improvements
 
+- Recent Workouts cards on Home now support direct swipe actions for `Review` and `Delete`, with a confirmation message that names the saved session and its logged counts so workout-history cleanup no longer requires drilling into details first; added regression coverage in `HomeViewModelTests`.
 - Workout Detail exercise cards now navigate straight into the linked exercise, with an inline `View Exercise` cue on each section, so users can jump from workout history into that movement’s instructions and progress without detouring through the Exercise Library; validated with `git diff --check` plus targeted source inspection.
 - Workout Templates exact one-result searches now also surface direct active-workout handoff actions — `Resume Current Workout`, `Save & Open ...`, and `Discard & Open ...` — so users can switch into the matched plan without opening Template Details first when another workout is already in progress; validated with `git diff --check` plus targeted source inspection.
 - Workout and template exercise pickers now also match named add/select quick-action wording like `add bench press` and `select barbell row`, so users can refind the right movement using the same one-result action copy shown in selector flows; added regression coverage in `ExerciseLibraryViewModelTests`.

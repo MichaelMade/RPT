@@ -360,6 +360,58 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(emptyState.subtitle, "Finish your current workout to see it show up here with your latest stats.")
     }
 
+    func testDeleteRecentWorkoutMessage_mentionsHistoryAndSavedCounts() {
+        var calendar = Calendar(identifier: .gregorian)
+        let locale = Locale(identifier: "en_US_POSIX")
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+
+        let workoutDate = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 13,
+            hour: 6,
+            minute: 45
+        ).date!
+        let now = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 13,
+            hour: 8,
+            minute: 0
+        ).date!
+
+        let workout = Workout(date: workoutDate, name: "  Upper   A  ", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back])
+        workout.addSet(exercise: bench, weight: 185, reps: 8)
+        workout.addSet(exercise: row, weight: 135, reps: 10)
+
+        let message = viewModel.deleteRecentWorkoutMessage(for: workout, now: now)
+
+        XCTAssertEqual(
+            message,
+            "Delete Upper A from history? Today • 6:45 AM • 2 exercises • 2 sets will be removed from your saved workout history.",
+            "Delete confirmation should identify the workout and make it clear that the saved history entry and its logged sets will be removed"
+        )
+    }
+
+    func testDeleteRecentWorkoutFailureMessage_usesFallbackWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        let message = viewModel.deleteRecentWorkoutFailureMessage(for: workout)
+
+        XCTAssertEqual(
+            message,
+            "Couldn’t delete Workout from history. Keep it for now, then try again.",
+            "Delete failures should still read naturally when the saved workout name is blank or corrupted"
+        )
+    }
+
     // MARK: - Continue Workout Resolution
 
     func testCanContinueWorkout_withCurrentWorkoutAndNoActiveBinding() {
