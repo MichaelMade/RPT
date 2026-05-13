@@ -356,6 +356,14 @@ class HomeViewModel: ObservableObject {
         return "Couldn’t start a follow-up from \(displayName). Keep it in history, then try again."
     }
 
+    func followUpWorkoutButtonTitle(for workout: Workout) -> String {
+        "Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
+    }
+
+    func followUpWorkoutHelperText(for workout: Workout) -> String {
+        "Create a new draft with your last working-set weights prefilled so you can keep progressing without rebuilding the session."
+    }
+
     func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return displayName == "Workout"

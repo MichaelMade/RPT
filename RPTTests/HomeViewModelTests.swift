@@ -952,6 +952,26 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testFollowUpWorkoutButtonTitle_usesNormalizedWorkoutName() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.followUpWorkoutButtonTitle(for: workout),
+            "Start Follow-Up from “Upper A”",
+            "Follow-up CTA copy should use the normalized saved workout name so detail and history actions stay readable"
+        )
+    }
+
+    func testFollowUpWorkoutHelperText_describesPrefilledDraftBenefit() {
+        let workout = Workout(name: "Push Day", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.followUpWorkoutHelperText(for: workout),
+            "Create a new draft with your last working-set weights prefilled so you can keep progressing without rebuilding the session.",
+            "Follow-up helper copy should explain the progression benefit instead of exposing implementation details"
+        )
+    }
+
     func testStartFollowUpWorkout_successCreatesNewDraftAndClearsStaleFailure() {
         viewModel.startWorkoutFailureMessage = "Old error"
         let completedWorkout = Workout(name: "Upper A", isCompleted: true)

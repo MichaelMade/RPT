@@ -363,7 +363,11 @@ struct HomeView: View {
                 PlateCalculatorView()
             }
             .navigationDestination(item: $selectedWorkout) { workout in
-                WorkoutDetailView(workout: workout)
+                WorkoutDetailView(
+                    workout: workout,
+                    activeWorkoutBinding: $activeWorkoutBinding,
+                    showActiveWorkoutSheet: $showActiveWorkoutSheet
+                )
             }
             .alert("Replace Current Workout?", isPresented: $showingStartFreshAlert) {
                 Button("Save & Start New Workout") {

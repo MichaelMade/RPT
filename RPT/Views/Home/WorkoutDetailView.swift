@@ -10,6 +10,10 @@ import SwiftData
 
 struct WorkoutDetailView: View {
     let workout: Workout
+    @StateObject private var homeViewModel = HomeViewModel()
+
+    @Binding var activeWorkoutBinding: Workout?
+    @Binding var showActiveWorkoutSheet: Bool
 
     private let summaryColumns = [
         GridItem(.flexible(), spacing: 12),
@@ -151,6 +155,18 @@ struct WorkoutDetailView: View {
         )
     }
 
+    init(workout: Workout) {
+        self.workout = workout
+        self._activeWorkoutBinding = .constant(nil)
+        self._showActiveWorkoutSheet = .constant(false)
+    }
+
+    init(workout: Workout, activeWorkoutBinding: Binding<Workout?>, showActiveWorkoutSheet: Binding<Bool>) {
+        self.workout = workout
+        self._activeWorkoutBinding = activeWorkoutBinding
+        self._showActiveWorkoutSheet = showActiveWorkoutSheet
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -196,6 +212,62 @@ struct WorkoutDetailView: View {
                 .cornerRadius(12)
                 .padding(.horizontal)
                 
+                if workout.isCompleted {
+                    if let resumableWorkout = homeViewModel.resumableWorkout(activeWorkout: activeWorkoutBinding) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Current Workout In Progress")
+                                .font(.headline)
+
+                            Text(homeViewModel.startFreshWorkoutMessage(for: resumableWorkout))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+
+                            Button {
+                                activeWorkoutBinding = resumableWorkout
+                                showActiveWorkoutSheet = true
+                            } label: {
+                                Label("Continue Current Workout", systemImage: "arrow.clockwise.circle.fill")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.green)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                    } else if homeViewModel.canStartFollowUpWorkout(from: workout, activeWorkout: activeWorkoutBinding) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Follow-Up")
+                                .font(.headline)
+
+                            Text(homeViewModel.followUpWorkoutHelperText(for: workout))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+
+                            Button {
+                                guard homeViewModel.startFollowUpWorkout(from: workout) else {
+                                    return
+                                }
+
+                                activeWorkoutBinding = homeViewModel.currentWorkout
+                                showActiveWorkoutSheet = true
+                            } label: {
+                                Label(homeViewModel.followUpWorkoutButtonTitle(for: workout), systemImage: "arrow.triangle.2.circlepath")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.green)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                    }
+                }
+
                 // Exercise sections
                 if let emptyState = Self.exerciseDetailsEmptyState(for: workout) {
                     VStack(alignment: .leading, spacing: 8) {
@@ -228,6 +300,23 @@ struct WorkoutDetailView: View {
         }
         .navigationTitle(Self.displayName(for: workout))
         .navigationBarTitleDisplayMode(.inline)
+        .alert("Workout Action Failed", isPresented: Binding(
+            get: { homeViewModel.startWorkoutFailureMessage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    homeViewModel.startWorkoutFailureMessage = nil
+                }
+            }
+        )) {
+            Button("OK", role: .cancel) {
+                homeViewModel.startWorkoutFailureMessage = nil
+            }
+        } message: {
+            Text(homeViewModel.startWorkoutFailureMessage ?? "")
+        }
+        .onAppear {
+            homeViewModel.loadRecentWorkouts()
+        }
     }
 }
 
