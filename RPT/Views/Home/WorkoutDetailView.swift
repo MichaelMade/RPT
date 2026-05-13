@@ -7,10 +7,12 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct WorkoutDetailView: View {
     let workout: Workout
     @StateObject private var homeViewModel = HomeViewModel()
+    @State private var showingCopySummaryAlert = false
 
     @Binding var activeWorkoutBinding: Workout?
     @Binding var showActiveWorkoutSheet: Bool
@@ -211,7 +213,33 @@ struct WorkoutDetailView: View {
                 .background(Color(UIColor.secondarySystemBackground))
                 .cornerRadius(12)
                 .padding(.horizontal)
-                
+
+                if workout.isCompleted {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Shareable Summary")
+                            .font(.headline)
+
+                        Text("Copy a ready-to-paste recap with the workout name, date, exercises, sets, work, and notes.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                        Button {
+                            UIPasteboard.general.string = workout.generateFormattedSummary()
+                            showingCopySummaryAlert = true
+                        } label: {
+                            Label("Copy Summary", systemImage: "doc.on.doc")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.indigo)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(UIColor.secondarySystemBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                }
+
                 if workout.isCompleted {
                     if let resumableWorkout = homeViewModel.resumableWorkout(activeWorkout: activeWorkoutBinding) {
                         VStack(alignment: .leading, spacing: 10) {
@@ -300,6 +328,11 @@ struct WorkoutDetailView: View {
         }
         .navigationTitle(Self.displayName(for: workout))
         .navigationBarTitleDisplayMode(.inline)
+        .alert("Workout Summary Copied", isPresented: $showingCopySummaryAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Copied the summary for \(Self.displayName(for: workout)) so it’s ready to paste anywhere you need it.")
+        }
         .alert("Workout Action Failed", isPresented: Binding(
             get: { homeViewModel.startWorkoutFailureMessage != nil },
             set: { isPresented in

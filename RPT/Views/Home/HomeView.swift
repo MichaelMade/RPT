@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
@@ -15,8 +16,10 @@ struct HomeView: View {
     @State private var selectedWorkout: Workout?
     @State private var showingStartFreshAlert = false
     @State private var showingDeleteWorkoutAlert = false
+    @State private var showingCopySummaryAlert = false
     @State private var resumableWorkoutToReplace: Workout?
     @State private var workoutToDelete: Workout?
+    @State private var copiedWorkoutName: String?
     @State private var startFreshFailureMessage: String?
     @StateObject private var workoutStateManager = WorkoutStateManager.shared
     
@@ -293,6 +296,13 @@ struct HomeView: View {
                                     }
 
                                     Button {
+                                        copyWorkoutSummary(workout)
+                                    } label: {
+                                        Label("Copy Summary", systemImage: "doc.on.doc")
+                                    }
+                                    .tint(.indigo)
+
+                                    Button {
                                         selectedWorkout = workout
                                     } label: {
                                         Label("Review", systemImage: "info.circle")
@@ -324,6 +334,15 @@ struct HomeView: View {
                                         .buttonStyle(.borderedProminent)
                                         .tint(.green)
                                     }
+
+                                    Button {
+                                        copyWorkoutSummary(matchedWorkout)
+                                    } label: {
+                                        Label("Copy Summary for “\(WorkoutRow.displayName(for: matchedWorkout))”", systemImage: "doc.on.doc")
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(.indigo)
 
                                     Button {
                                         selectedWorkout = matchedWorkout
@@ -407,6 +426,13 @@ struct HomeView: View {
                     Text(viewModel.deleteRecentWorkoutMessage(for: workoutToDelete))
                 }
             }
+            .alert("Workout Summary Copied", isPresented: $showingCopySummaryAlert) {
+                Button("OK", role: .cancel) {
+                    copiedWorkoutName = nil
+                }
+            } message: {
+                Text(copySummaryMessage)
+            }
             .alert("Workout Action Failed", isPresented: Binding(
                 get: { currentFailureMessage != nil },
                 set: { isPresented in
@@ -444,6 +470,11 @@ struct HomeView: View {
 
     private var currentFailureMessage: String? {
         startFreshFailureMessage ?? viewModel.startWorkoutFailureMessage
+    }
+
+    private var copySummaryMessage: String {
+        let workoutName = copiedWorkoutName ?? "Workout"
+        return "Copied the summary for \(workoutName) so it’s ready to paste anywhere you need it."
     }
 
     private func clearFailureMessages() {
@@ -503,6 +534,12 @@ struct HomeView: View {
 
         activeWorkoutBinding = nil
         startFreshWorkout()
+    }
+
+    private func copyWorkoutSummary(_ workout: Workout) {
+        UIPasteboard.general.string = workout.generateFormattedSummary()
+        copiedWorkoutName = WorkoutRow.displayName(for: workout)
+        showingCopySummaryAlert = true
     }
 
     private func deleteSelectedWorkout() {
