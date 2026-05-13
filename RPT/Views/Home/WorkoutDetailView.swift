@@ -10,9 +10,12 @@ import SwiftData
 import UIKit
 
 struct WorkoutDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+
     let workout: Workout
     @StateObject private var homeViewModel = HomeViewModel()
     @State private var showingCopySummaryAlert = false
+    @State private var showingDeleteWorkoutAlert = false
 
     @Binding var activeWorkoutBinding: Workout?
     @Binding var showActiveWorkoutSheet: Bool
@@ -301,10 +304,10 @@ struct WorkoutDetailView: View {
 
                 if workout.isCompleted {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Shareable Summary")
+                        Text("History Actions")
                             .font(.headline)
 
-                        Text("Copy a ready-to-paste recap with the workout name, date, exercises, sets, work, and notes.")
+                        Text("Copy a ready-to-paste recap or remove this saved workout without backing out to Home first.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
 
@@ -317,6 +320,14 @@ struct WorkoutDetailView: View {
                         }
                         .buttonStyle(.bordered)
                         .tint(.indigo)
+
+                        Button(role: .destructive) {
+                            showingDeleteWorkoutAlert = true
+                        } label: {
+                            Label("Delete from History", systemImage: "trash")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.bordered)
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -417,6 +428,19 @@ struct WorkoutDetailView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Copied the summary for \(Self.displayName(for: workout)) so it’s ready to paste anywhere you need it.")
+        }
+        .alert("Delete Workout?", isPresented: $showingDeleteWorkoutAlert) {
+            Button("Delete", role: .destructive) {
+                guard homeViewModel.deleteRecentWorkout(workout) else {
+                    return
+                }
+
+                dismiss()
+            }
+
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text(homeViewModel.deleteRecentWorkoutMessage(for: workout))
         }
         .alert("Workout Action Failed", isPresented: Binding(
             get: { homeViewModel.startWorkoutFailureMessage != nil },

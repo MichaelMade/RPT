@@ -2,6 +2,7 @@
 
 - Workout Details now shows a direct `Source Template` card for template-based history, so users can jump back into the original plan from a past session instead of only seeing the remembered template name.
 - Completed workout history now exposes one-tap `Copy Summary` actions from both Home and Workout Details, so users can quickly paste a ready-made recap with the workout name, date, exercises, sets, work, and notes into messages or notes apps.
+- Workout Details now also exposes a direct `Delete from History` action beside `Copy Summary`, so users can clean up saved sessions without backing out to Home first.
 - Workout Details now surfaces a direct `Follow-Up` action for completed workouts with logged work, plus a matching `Continue Current Workout` recovery card when another draft is already in progress, so progression-based repeat sessions no longer depend on backing out to Home first.
 - Workout Templates now keeps its visible `Quick Actions` card available even without an active search whenever exactly one template exists, so solo-plan users can immediately discover `Start Workout`, `Review`, `Edit`, `Duplicate`, and `Delete` without needing swipe-gesture discovery first.
 - Home `Recent Workouts` now exposes direct `Follow-Up` actions — both as swipe actions on each saved session and as the visible one-workout `Quick Actions` card — so users can restart a proven session with prefilled progression weights straight from history instead of rebuilding it exercise by exercise.
