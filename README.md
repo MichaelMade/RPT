@@ -1,5 +1,6 @@
 # RPT
 
+- Home `Recent Workouts` now surfaces a visible `Quick Actions` card when history contains exactly one saved workout, exposing direct `Review` and `Delete` buttons so first-time cleanup/review no longer depends on discovering swipe actions.
 - Workout Detail exercise cards now open the linked exercise directly, with a visible `View Exercise` cue on each section, so users can jump from a past session into exercise instructions and progress history without backing out to the library first.
 - Workout Templates exact one-result searches now also surface direct active-workout handoff actions — `Resume Current Workout`, `Save & Open ...`, and `Discard & Open ...` — so users can switch into the matched plan without drilling into Template Details first when another workout is already in progress.
 - Workout and template exercise pickers now also match named add/select quick-action wording like `add bench press` and `select barbell row`, so users can refind the right movement using the same one-result action copy shown in selector flows.

@@ -300,6 +300,10 @@ class HomeViewModel: ObservableObject {
         )
     }
 
+    func shouldShowSingleRecentWorkoutQuickActions(recentWorkoutCount: Int) -> Bool {
+        recentWorkoutCount == 1
+    }
+
     func deleteRecentWorkout(_ workout: Workout) -> Bool {
         guard workoutManager.deleteWorkoutSafely(workout) else {
             startWorkoutFailureMessage = deleteRecentWorkoutFailureMessage(for: workout)

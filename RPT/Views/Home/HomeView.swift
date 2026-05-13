@@ -298,6 +298,37 @@ struct HomeView: View {
                                     }
                                 }
                             }
+
+                            if viewModel.shouldShowSingleRecentWorkoutQuickActions(recentWorkoutCount: viewModel.recentWorkouts.count),
+                               let matchedWorkout = viewModel.recentWorkouts.first {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Quick Actions")
+                                        .font(.headline)
+
+                                    Button {
+                                        selectedWorkout = matchedWorkout
+                                    } label: {
+                                        Label("Review “\(WorkoutRow.displayName(for: matchedWorkout))”", systemImage: "info.circle")
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(.blue)
+
+                                    Button(role: .destructive) {
+                                        workoutToDelete = matchedWorkout
+                                        showingDeleteWorkoutAlert = true
+                                    } label: {
+                                        Label("Delete “\(WorkoutRow.displayName(for: matchedWorkout))”", systemImage: "trash")
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .buttonStyle(.bordered)
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                            }
                         }
                     }
                     

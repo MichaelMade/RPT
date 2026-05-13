@@ -360,6 +360,21 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(emptyState.subtitle, "Finish your current workout to see it show up here with your latest stats.")
     }
 
+    func testShouldShowSingleRecentWorkoutQuickActions_onlyForSoloHistoryEntry() {
+        XCTAssertTrue(
+            viewModel.shouldShowSingleRecentWorkoutQuickActions(recentWorkoutCount: 1),
+            "A single recent workout should surface visible quick actions so first-time history review does not depend on swipe discovery"
+        )
+        XCTAssertFalse(
+            viewModel.shouldShowSingleRecentWorkoutQuickActions(recentWorkoutCount: 0),
+            "No quick actions should appear when there is no recent workout to act on"
+        )
+        XCTAssertFalse(
+            viewModel.shouldShowSingleRecentWorkoutQuickActions(recentWorkoutCount: 2),
+            "Visible quick actions should stay reserved for the lone-history case to avoid cluttering longer lists"
+        )
+    }
+
     func testDeleteRecentWorkoutMessage_mentionsHistoryAndSavedCounts() {
         var calendar = Calendar(identifier: .gregorian)
         let locale = Locale(identifier: "en_US_POSIX")
