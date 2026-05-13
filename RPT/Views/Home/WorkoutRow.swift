@@ -24,7 +24,7 @@ struct WorkoutRow: View {
         return String(collapsedName.prefix(80))
     }
 
-    static func templateOriginText(for workout: Workout) -> String? {
+    static func templateOriginName(for workout: Workout) -> String? {
         let collapsedTemplateName = (workout.startedFromTemplate ?? "")
             .components(separatedBy: .whitespacesAndNewlines)
             .filter { !$0.isEmpty }
@@ -34,7 +34,15 @@ struct WorkoutRow: View {
             return nil
         }
 
-        return "Template • \(String(collapsedTemplateName.prefix(80)))"
+        return String(collapsedTemplateName.prefix(80))
+    }
+
+    static func templateOriginText(for workout: Workout) -> String? {
+        guard let templateName = templateOriginName(for: workout) else {
+            return nil
+        }
+
+        return "Template • \(templateName)"
     }
 
     static func relativeDateText(

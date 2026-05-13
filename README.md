@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Details now shows a direct `Source Template` card for template-based history, so users can jump back into the original plan from a past session instead of only seeing the remembered template name.
 - Completed workout history now exposes one-tap `Copy Summary` actions from both Home and Workout Details, so users can quickly paste a ready-made recap with the workout name, date, exercises, sets, work, and notes into messages or notes apps.
 - Workout Details now surfaces a direct `Follow-Up` action for completed workouts with logged work, plus a matching `Continue Current Workout` recovery card when another draft is already in progress, so progression-based repeat sessions no longer depend on backing out to Home first.
 - Workout Templates now keeps its visible `Quick Actions` card available even without an active search whenever exactly one template exists, so solo-plan users can immediately discover `Start Workout`, `Review`, `Edit`, `Duplicate`, and `Delete` without needing swipe-gesture discovery first.
@@ -192,6 +193,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Details now shows a `Source Template` card for template-based history, with a direct `Open Template` shortcut when the original plan still exists and honest fallback copy when it no longer does, so users can review the source routine from a past workout instead of only seeing the remembered template label; added regression coverage in `FormattingTests`.
 - Completed workout history now exposes one-tap `Copy Summary` actions from both Home and Workout Details, so users can quickly paste a ready-made recap with the workout name, date, exercises, sets, work, and notes into messages or notes apps; validated with `git diff --check` plus targeted source inspection.
 - Workout Details now surfaces a direct `Follow-Up` action for completed workouts with logged work, plus a matching `Continue Current Workout` recovery card when another draft is already in progress, so progression-based repeat sessions no longer depend on backing out to Home first; added copy regression coverage in `HomeViewModelTests` and wired the action into the existing active-workout sheet flow.
 - Workout Templates now keeps its visible `Quick Actions` card available even without an active search whenever exactly one template exists, so solo-plan users can immediately discover `Start Workout`, `Review`, `Edit`, `Duplicate`, and `Delete` without relying on swipe-gesture discovery first; added regression coverage in `TemplateViewModelTests`.

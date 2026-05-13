@@ -17,6 +17,8 @@ struct WorkoutDetailView: View {
     @Binding var activeWorkoutBinding: Workout?
     @Binding var showActiveWorkoutSheet: Bool
 
+    private let templateManager = TemplateManager.shared
+
     private let summaryColumns = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12)
@@ -169,6 +171,46 @@ struct WorkoutDetailView: View {
         self._showActiveWorkoutSheet = showActiveWorkoutSheet
     }
 
+    private var sourceTemplateName: String? {
+        WorkoutRow.templateOriginName(for: workout)
+    }
+
+    private var sourceTemplate: WorkoutTemplate? {
+        guard let sourceTemplateName else {
+            return nil
+        }
+
+        return templateManager.fetchTemplateByName(sourceTemplateName)
+    }
+
+    private func protectedResumableWorkout() -> Workout? {
+        WorkoutStateManager.shared.resolvedResumableWorkout(
+            currentBinding: activeWorkoutBinding,
+            fallbackWorkouts: WorkoutManager.shared.getIncompleteWorkouts()
+        )
+    }
+
+    private func sourceTemplateBlockMessage(for template: WorkoutTemplate) -> String? {
+        guard let activeWorkout = protectedResumableWorkout() else {
+            return nil
+        }
+
+        let activeWorkoutName = WorkoutRow.displayName(for: activeWorkout)
+        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let templateSuffix = templateName == "Template"
+            ? "before starting this template."
+            : "before starting \(templateName)."
+
+        return activeWorkoutName == "Workout"
+            ? "You already have a workout in progress. Continue it \(templateSuffix)"
+            : "You already have \(activeWorkoutName) in progress. Continue it \(templateSuffix)"
+    }
+
+    private func openStartedWorkout(_ startedWorkout: Workout) {
+        activeWorkoutBinding = startedWorkout
+        showActiveWorkoutSheet = true
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -213,6 +255,49 @@ struct WorkoutDetailView: View {
                 .background(Color(UIColor.secondarySystemBackground))
                 .cornerRadius(12)
                 .padding(.horizontal)
+
+                if let sourceTemplateName {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Source Template")
+                            .font(.headline)
+
+                        if let sourceTemplate {
+                            Text("This workout started from \(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name)). Open it to review the original plan, notes, and current start state.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+
+                            NavigationLink {
+                                TemplateDetailView(
+                                    template: sourceTemplate,
+                                    onStartWorkout: { openStartedWorkout($0) },
+                                    onEditTemplate: nil,
+                                    onDuplicateTemplate: nil,
+                                    onResumeActiveWorkout: protectedResumableWorkout() == nil ? nil : {
+                                        guard let activeWorkout = protectedResumableWorkout() else { return }
+                                        activeWorkoutBinding = activeWorkout
+                                        showActiveWorkoutSheet = true
+                                    },
+                                    onSaveActiveWorkoutAndOpenTemplate: nil,
+                                    onDiscardActiveWorkoutAndOpenTemplate: nil,
+                                    activeWorkoutBlockMessage: sourceTemplateBlockMessage(for: sourceTemplate)
+                                )
+                            } label: {
+                                Label("Open Template “\(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name))”", systemImage: "square.on.square")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .buttonStyle(.bordered)
+                        } else {
+                            Text("This workout started from \(sourceTemplateName), but that template is no longer in your library.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(UIColor.secondarySystemBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                }
 
                 if workout.isCompleted {
                     VStack(alignment: .leading, spacing: 10) {

@@ -200,11 +200,13 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(WorkoutRow.displayName(for: workout).count, 80)
     }
 
-    func testWorkoutRowTemplateOriginText_normalizesWhitespaceAndHidesBlankValues() {
+    func testWorkoutRowTemplateOriginName_normalizesWhitespaceAndHidesBlankValues() {
         let templatedWorkout = Workout(name: "Push", startedFromTemplate: "  Upper  Body\nA  ")
+        XCTAssertEqual(WorkoutRow.templateOriginName(for: templatedWorkout), "Upper Body A")
         XCTAssertEqual(WorkoutRow.templateOriginText(for: templatedWorkout), "Template • Upper Body A")
 
         let blankTemplateWorkout = Workout(name: "Push", startedFromTemplate: "   \n  ")
+        XCTAssertNil(WorkoutRow.templateOriginName(for: blankTemplateWorkout))
         XCTAssertNil(WorkoutRow.templateOriginText(for: blankTemplateWorkout))
     }
 
