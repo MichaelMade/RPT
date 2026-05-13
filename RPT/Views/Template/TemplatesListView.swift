@@ -189,8 +189,7 @@ struct TemplatesListView: View {
                         }
                     }
 
-                    if viewModel.hasActiveSearch,
-                       filteredTemplates.count == 1,
+                    if viewModel.shouldShowSingleTemplateQuickActions(filteredCount: filteredTemplates.count),
                        let matchedTemplate = filteredTemplates.first {
                         Section("Quick Actions") {
                             let matchedTemplateCanStart = templateManager.canStartWorkout(for: matchedTemplate)

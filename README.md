@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates now keeps its visible `Quick Actions` card available even without an active search whenever exactly one template exists, so solo-plan users can immediately discover `Start Workout`, `Review`, `Edit`, `Duplicate`, and `Delete` without needing swipe-gesture discovery first.
 - Home `Recent Workouts` now exposes direct `Follow-Up` actions — both as swipe actions on each saved session and as the visible one-workout `Quick Actions` card — so users can restart a proven session with prefilled progression weights straight from history instead of rebuilding it exercise by exercise.
 - Home `Recent Workouts` now surfaces a visible `Quick Actions` card when history contains exactly one saved workout, exposing direct `Review` and `Delete` buttons so first-time cleanup/review no longer depends on discovering swipe actions.
 - Workout Detail exercise cards now open the linked exercise directly, with a visible `View Exercise` cue on each section, so users can jump from a past session into exercise instructions and progress history without backing out to the library first.
@@ -189,6 +190,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates now keeps its visible `Quick Actions` card available even without an active search whenever exactly one template exists, so solo-plan users can immediately discover `Start Workout`, `Review`, `Edit`, `Duplicate`, and `Delete` without relying on swipe-gesture discovery first; added regression coverage in `TemplateViewModelTests`.
 - Recent Workouts cards on Home now support direct swipe actions for `Review` and `Delete`, with a confirmation message that names the saved session and its logged counts so workout-history cleanup no longer requires drilling into details first; added regression coverage in `HomeViewModelTests`.
 - Workout Detail exercise cards now navigate straight into the linked exercise, with an inline `View Exercise` cue on each section, so users can jump from workout history into that movement’s instructions and progress without detouring through the Exercise Library; validated with `git diff --check` plus targeted source inspection.
 - Workout Templates exact one-result searches now also surface direct active-workout handoff actions — `Resume Current Workout`, `Save & Open ...`, and `Discard & Open ...` — so users can switch into the matched plan without opening Template Details first when another workout is already in progress; validated with `git diff --check` plus targeted source inspection.

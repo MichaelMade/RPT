@@ -213,6 +213,10 @@ class TemplateViewModel: ObservableObject {
         hasActiveSearch && filteredCount > 0 && !templates.isEmpty
     }
 
+    func shouldShowSingleTemplateQuickActions(filteredCount: Int) -> Bool {
+        filteredCount == 1 && (!templates.isEmpty && (hasActiveSearch || templates.count == 1))
+    }
+
     func suggestedTemplateNameFromSearch() -> String? {
         guard hasActiveSearch else {
             return nil

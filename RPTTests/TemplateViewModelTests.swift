@@ -868,6 +868,39 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.shouldShowResultsRecoveryActions(filteredCount: 0))
     }
 
+    func testShouldShowSingleTemplateQuickActions_whenSearchNarrowsToOneTemplate() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"])
+        ]
+        viewModel.searchText = "push"
+
+        XCTAssertTrue(
+            viewModel.shouldShowSingleTemplateQuickActions(filteredCount: 1),
+            "Search-driven single matches should keep showing the visible quick actions card"
+        )
+        XCTAssertFalse(viewModel.shouldShowSingleTemplateQuickActions(filteredCount: 2))
+    }
+
+    func testShouldShowSingleTemplateQuickActions_whenOnlyOneTemplateExistsWithoutSearch() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        XCTAssertTrue(
+            viewModel.shouldShowSingleTemplateQuickActions(filteredCount: 1),
+            "A lone saved template should surface visible quick actions even before the user discovers swipe gestures"
+        )
+
+        viewModel.templates.append(makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"]))
+        XCTAssertFalse(
+            viewModel.shouldShowSingleTemplateQuickActions(filteredCount: 1),
+            "Browse-mode quick actions should stay reserved for the one-template case to avoid cluttering larger lists"
+        )
+    }
+
     func testSuggestedTemplateNameForEmptySearch_usesNormalizedActiveSearchTextOnlyWhenNoResultsRemain() {
         let viewModel = TemplateViewModel()
         viewModel.searchText = "  Upper\n Body  "
