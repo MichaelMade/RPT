@@ -193,14 +193,31 @@ struct TemplatesListView: View {
                        filteredTemplates.count == 1,
                        let matchedTemplate = filteredTemplates.first {
                         Section("Quick Actions") {
+                            let matchedTemplateCanStart = templateManager.canStartWorkout(for: matchedTemplate)
+                            let resumableWorkout = protectedResumableWorkout()
+
                             if !activeWorkoutBlocksTemplateStart,
-                               templateManager.canStartWorkout(for: matchedTemplate) {
+                               matchedTemplateCanStart {
                                 Button(templateManager.startWorkoutActionTitle(for: matchedTemplate)) {
                                     beginQuickStart(for: matchedTemplate)
                                 }
-                            } else if protectedResumableWorkout() != nil {
+                            } else if resumableWorkout != nil,
+                                      matchedTemplateCanStart {
                                 Button("Resume Current Workout") {
                                     showActiveWorkoutSheet = true
+                                }
+
+                                Button("Save & Open \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"") {
+                                    saveActiveWorkoutAndOpenTemplate(matchedTemplate)
+                                }
+
+                                Button(role: .destructive) {
+                                    discardActiveWorkoutAndOpenTemplate(matchedTemplate)
+                                } label: {
+                                    Label(
+                                        "Discard & Open \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"",
+                                        systemImage: "trash"
+                                    )
                                 }
                             }
 

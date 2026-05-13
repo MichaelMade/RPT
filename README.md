@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates exact one-result searches now also surface direct active-workout handoff actions — `Resume Current Workout`, `Save & Open ...`, and `Discard & Open ...` — so users can switch into the matched plan without drilling into Template Details first when another workout is already in progress.
 - Workout and template exercise pickers now also match named add/select quick-action wording like `add bench press` and `select barbell row`, so users can refind the right movement using the same one-result action copy shown in selector flows.
 - Exercise Library search now also matches named quick-action wording like `review bench press`, `edit garage dip`, and `delete custom squat`, so users can refind the right movement using the same inline action copy they remember from exact one-result results.
 - Exercise Library now keeps its exact one-result quick actions available when category or muscle filters alone narrow the list to one visible movement, so filter-first browsing gets the same inline `Review` / `Edit` / `Delete` shortcuts as search-first lookups.
@@ -185,6 +186,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Templates exact one-result searches now also surface direct active-workout handoff actions — `Resume Current Workout`, `Save & Open ...`, and `Discard & Open ...` — so users can switch into the matched plan without opening Template Details first when another workout is already in progress; validated with `git diff --check` plus targeted source inspection.
 - Workout and template exercise pickers now also match named add/select quick-action wording like `add bench press` and `select barbell row`, so users can refind the right movement using the same one-result action copy shown in selector flows; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Exercise Library search now also matches named quick-action wording like `review bench press`, `edit garage dip`, and `delete custom squat`, so users can refind the right movement using the same inline action copy they remember from exact one-result results; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Exercise Library now keeps its exact one-result quick actions available when category or muscle filters alone narrow the list to one visible movement, so filter-first browsing gets the same inline `Review` / `Edit` / `Delete` shortcuts as search-first lookups; added regression coverage in `ExerciseLibraryViewModelTests`.
