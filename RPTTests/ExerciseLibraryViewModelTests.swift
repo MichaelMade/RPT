@@ -278,6 +278,34 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_matchesAddAndSelectActionPhrasesOnlyWhenPickerAliasesAreEnabled() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+        viewModel.searchText = "add bench press"
+
+        XCTAssertTrue(
+            viewModel.fetchExercises().isEmpty,
+            "Library search should not match picker-only add wording unless the selector flow explicitly enables those aliases"
+        )
+
+        viewModel.includeSelectionActionSearchAliases = true
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press"],
+            "Workout/template pickers should understand named add-action wording for the current exact-match shortcut"
+        )
+
+        viewModel.searchText = "select barbell row"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Barbell Row"],
+            "Picker search should also understand select wording so remembered action copy still finds the intended exercise"
+        )
+    }
+
     func testFetchExercises_appliesCategoryAndMuscleGroupFiltersTogether() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [

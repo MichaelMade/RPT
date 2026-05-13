@@ -88,8 +88,18 @@ class ExerciseLibraryViewModel: ObservableObject {
             .joined()
     }
 
-    private static func actionSearchAliases(for exercise: Exercise) -> [String] {
+    private static func actionSearchAliases(
+        for exercise: Exercise,
+        includeSelectionAliases: Bool
+    ) -> [String] {
         var aliases = ["Review \(exercise.displayName)"]
+
+        if includeSelectionAliases {
+            aliases.append(contentsOf: [
+                "Add \(exercise.displayName)",
+                "Select \(exercise.displayName)"
+            ])
+        }
 
         if exercise.isCustom {
             aliases.append(contentsOf: [
@@ -100,6 +110,8 @@ class ExerciseLibraryViewModel: ObservableObject {
 
         return aliases
     }
+
+    var includeSelectionActionSearchAliases = false
 
     var normalizedSearchText: String {
         Self.normalizedSearchQuery(searchText)
@@ -340,7 +352,11 @@ class ExerciseLibraryViewModel: ObservableObject {
             : "Try changing your search or filters, or clear them to browse every exercise."
     }
 
-    static func searchMatchPriority(exercise: Exercise, normalizedQuery: String) -> Int? {
+    static func searchMatchPriority(
+        exercise: Exercise,
+        normalizedQuery: String,
+        includeSelectionActionAliases: Bool = false
+    ) -> Int? {
         guard !normalizedQuery.isEmpty else {
             return 0
         }
@@ -395,7 +411,10 @@ class ExerciseLibraryViewModel: ObservableObject {
         ]
         + exercise.primaryMuscleGroups.map(\.displayName)
         + exercise.secondaryMuscleGroups.map(\.displayName)
-        + actionSearchAliases(for: exercise)
+        + actionSearchAliases(
+            for: exercise,
+            includeSelectionAliases: includeSelectionActionAliases
+        )
 
         let aliasLookups = aliasValues.map(normalizedSearchLookupKey)
 
@@ -450,7 +469,8 @@ class ExerciseLibraryViewModel: ObservableObject {
             .compactMap { index, exercise in
                 let searchPriority = Self.searchMatchPriority(
                     exercise: exercise,
-                    normalizedQuery: normalizedSearchLookup
+                    normalizedQuery: normalizedSearchLookup,
+                    includeSelectionActionAliases: includeSelectionActionSearchAliases
                 )
 
                 let matchesSearch = normalizedSearchLookup.isEmpty || searchPriority != nil

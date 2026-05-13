@@ -283,6 +283,7 @@ struct ExerciseSelectorView: View {
                 }
             }
             .onAppear {
+                viewModel.includeSelectionActionSearchAliases = true
                 viewModel.refreshExercises()
             }
         }

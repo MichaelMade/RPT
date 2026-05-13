@@ -274,6 +274,7 @@ struct ExerciseSelectorForTemplateView: View {
                 }
             }
             .onAppear {
+                viewModel.includeSelectionActionSearchAliases = true
                 viewModel.refreshExercises()
             }
         }
