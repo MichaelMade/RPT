@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Library now keeps its visible `Quick Actions` section available even without an active search whenever exactly one exercise is in view, so solo-movement libraries still surface direct `Review` / `Edit` / `Delete` follow-ups without relying on row-tap or swipe discovery first.
 - Workout Details now shows a direct `Source Template` card for template-based history, so users can jump back into the original plan from a past session instead of only seeing the remembered template name.
 - Completed workout history now exposes one-tap `Copy Summary` actions from both Home and Workout Details, so users can quickly paste a ready-made recap with the workout name, date, exercises, sets, work, and notes into messages or notes apps.
 - Workout Details now also exposes a direct `Delete from History` action beside `Copy Summary`, so users can clean up saved sessions without backing out to Home first.
@@ -194,6 +195,7 @@ RPT/
 
 ## Recent Improvements
 
+- Exercise Library now keeps its visible `Quick Actions` section available even without an active search whenever exactly one exercise is in view, so solo-movement libraries still surface direct `Review` / `Edit` / `Delete` follow-ups without relying on row-tap or swipe discovery first; added regression coverage in `ExerciseLibraryViewModelTests`.
 - Workout Details now shows a `Source Template` card for template-based history, with a direct `Open Template` shortcut when the original plan still exists and honest fallback copy when it no longer does, so users can review the source routine from a past workout instead of only seeing the remembered template label; added regression coverage in `FormattingTests`.
 - Completed workout history now exposes one-tap `Copy Summary` actions from both Home and Workout Details, so users can quickly paste a ready-made recap with the workout name, date, exercises, sets, work, and notes into messages or notes apps; validated with `git diff --check` plus targeted source inspection.
 - Workout Details now surfaces a direct `Follow-Up` action for completed workouts with logged work, plus a matching `Continue Current Workout` recovery card when another draft is already in progress, so progression-based repeat sessions no longer depend on backing out to Home first; added copy regression coverage in `HomeViewModelTests` and wired the action into the existing active-workout sheet flow.

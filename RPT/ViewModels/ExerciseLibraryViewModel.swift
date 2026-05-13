@@ -167,7 +167,7 @@ class ExerciseLibraryViewModel: ObservableObject {
     }
 
     func shouldShowSingleResultQuickActions(filteredCount: Int) -> Bool {
-        hasActiveQuery && filteredCount == 1 && !exercises.isEmpty
+        filteredCount == 1 && !exercises.isEmpty
     }
 
     func singleSelectableExerciseActionTitle(for exercise: Exercise?) -> String? {
