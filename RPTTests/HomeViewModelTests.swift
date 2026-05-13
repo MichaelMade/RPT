@@ -896,6 +896,77 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.startWorkoutFailureMessage, "Successful workout creation should clear stale failure alerts")
     }
 
+    func testCanStartFollowUpWorkout_requiresNoResumableDraftAndCompletedWorkingSet() {
+        let completedWorkout = Workout(name: "Upper A", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = completedWorkout.addSet(exercise: bench, weight: 185, reps: 8)
+
+        XCTAssertTrue(
+            viewModel.canStartFollowUpWorkout(from: completedWorkout, activeWorkout: nil),
+            "Recent completed workouts with real logged work should offer a direct follow-up action when no draft is already in progress"
+        )
+
+        let activeWorkout = Workout(name: "Current Draft")
+        XCTAssertFalse(
+            viewModel.canStartFollowUpWorkout(from: completedWorkout, activeWorkout: activeWorkout),
+            "Follow-up shortcuts should stay hidden while another workout is already resumable"
+        )
+    }
+
+    func testCanStartFollowUpWorkout_allowsBodyweightHistoryButRejectsWarmupOnlyWorkouts() {
+        let bodyweightWorkout = Workout(name: "Pull Day", isCompleted: true)
+        let pullUp = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+        _ = bodyweightWorkout.addSet(exercise: pullUp, weight: 0, reps: 8)
+
+        XCTAssertTrue(
+            viewModel.canStartFollowUpWorkout(from: bodyweightWorkout, activeWorkout: nil),
+            "Bodyweight history should still be repeatable even though the logged load is zero"
+        )
+
+        let warmupOnlyWorkout = Workout(name: "Warm-up Only", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = warmupOnlyWorkout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+
+        XCTAssertFalse(
+            viewModel.canStartFollowUpWorkout(from: warmupOnlyWorkout, activeWorkout: nil),
+            "Warm-up-only history should not offer a follow-up shortcut because there is no real working-set progression to carry forward"
+        )
+    }
+
+    func testStartFollowUpWorkout_failureSurfacesRetryMessage() {
+        let failingManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext())
+        )
+        let failingViewModel = HomeViewModel(workoutManager: failingManager)
+        let completedWorkout = Workout(name: "Upper A", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = completedWorkout.addSet(exercise: bench, weight: 185, reps: 8)
+
+        let didStart = failingViewModel.startFollowUpWorkout(from: completedWorkout)
+
+        XCTAssertFalse(didStart, "Failed follow-up creation should keep Home on the current screen instead of opening an unsaved draft")
+        XCTAssertEqual(
+            failingViewModel.startWorkoutFailureMessage,
+            "Couldn’t start a follow-up from Upper A. Keep it in history, then try again.",
+            "Follow-up creation failures should explain that the saved workout stayed in history and invite a retry"
+        )
+    }
+
+    func testStartFollowUpWorkout_successCreatesNewDraftAndClearsStaleFailure() {
+        viewModel.startWorkoutFailureMessage = "Old error"
+        let completedWorkout = Workout(name: "Upper A", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = completedWorkout.addSet(exercise: bench, weight: 185, reps: 8)
+
+        let didStart = viewModel.startFollowUpWorkout(from: completedWorkout)
+
+        XCTAssertTrue(didStart, "Starting a follow-up from recent history should succeed in the normal shared data context")
+        XCTAssertEqual(viewModel.currentWorkout?.name, "Follow-up: Upper A")
+        XCTAssertFalse(viewModel.currentWorkout?.isCompleted ?? true, "Follow-up drafts should open as incomplete workouts")
+        XCTAssertEqual(viewModel.currentWorkout?.sets.first?.completedAt, .distantPast, "Follow-up sets should stay planned until the user actually logs them")
+        XCTAssertNil(viewModel.startWorkoutFailureMessage, "Successful follow-up creation should clear stale failure alerts")
+    }
+
     func testPersistWorkoutForFreshStart_saveForLaterFailureDoesNotClearDiscardState() {
         WorkoutStateManager.shared.markWorkoutAsDiscarded("older-draft")
         let workout = Workout(name: "Current Draft")

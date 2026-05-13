@@ -283,6 +283,15 @@ struct HomeView: View {
                                 .buttonStyle(PlainButtonStyle())
                                 .padding(.horizontal)
                                 .swipeActions(edge: .trailing) {
+                                    if viewModel.canStartFollowUpWorkout(from: workout, activeWorkout: activeWorkoutBinding) {
+                                        Button {
+                                            startFollowUpWorkout(from: workout)
+                                        } label: {
+                                            Label("Follow-Up", systemImage: "arrow.triangle.2.circlepath")
+                                        }
+                                        .tint(.green)
+                                    }
+
                                     Button {
                                         selectedWorkout = workout
                                     } label: {
@@ -304,6 +313,17 @@ struct HomeView: View {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text("Quick Actions")
                                         .font(.headline)
+
+                                    if viewModel.canStartFollowUpWorkout(from: matchedWorkout, activeWorkout: activeWorkoutBinding) {
+                                        Button {
+                                            startFollowUpWorkout(from: matchedWorkout)
+                                        } label: {
+                                            Label("Start Follow-Up from “\(WorkoutRow.displayName(for: matchedWorkout))”", systemImage: "arrow.triangle.2.circlepath")
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                        .tint(.green)
+                                    }
 
                                     Button {
                                         selectedWorkout = matchedWorkout
@@ -437,6 +457,16 @@ struct HomeView: View {
         activeWorkoutBinding = viewModel.currentWorkout
         showActiveWorkoutSheet = true
         resumableWorkoutToReplace = nil
+    }
+
+    private func startFollowUpWorkout(from workout: Workout) {
+        guard viewModel.startFollowUpWorkout(from: workout) else {
+            return
+        }
+
+        workoutStateManager.clearDiscardedState()
+        activeWorkoutBinding = viewModel.currentWorkout
+        showActiveWorkoutSheet = true
     }
 
     private func saveCurrentWorkoutAndStartFresh() {

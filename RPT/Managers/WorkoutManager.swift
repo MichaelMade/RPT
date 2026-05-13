@@ -52,6 +52,24 @@ class WorkoutManager: ObservableObject {
             return nil
         }
     }
+
+    func createFollowUpWorkoutSafely(from workout: Workout, percentageIncrease: Double = 0.025) -> Workout? {
+        let followUp = workout.createFollowUpWorkout(percentageIncrease: percentageIncrease)
+
+        guard !followUp.sets.isEmpty else {
+            return nil
+        }
+
+        modelContext.insert(followUp)
+
+        do {
+            try dataManager.saveChanges()
+            return followUp
+        } catch {
+            modelContext.delete(followUp)
+            return nil
+        }
+    }
     
     // Save a workout
     func saveWorkout(_ workout: Workout) throws {

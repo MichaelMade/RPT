@@ -71,6 +71,26 @@ class HomeViewModel: ObservableObject {
         startWorkoutFailureMessage = nil
         return true
     }
+
+    func canStartFollowUpWorkout(from workout: Workout, activeWorkout: Workout?) -> Bool {
+        guard resumableWorkout(activeWorkout: activeWorkout) == nil else {
+            return false
+        }
+
+        return hasFollowUpContent(in: workout)
+    }
+
+    @discardableResult
+    func startFollowUpWorkout(from workout: Workout) -> Bool {
+        guard let followUpWorkout = workoutManager.createFollowUpWorkoutSafely(from: workout) else {
+            startWorkoutFailureMessage = startFollowUpFailureMessage(for: workout)
+            return false
+        }
+
+        currentWorkout = followUpWorkout
+        startWorkoutFailureMessage = nil
+        return true
+    }
     
     func resumeWorkout(_ workout: Workout) {
         currentWorkout = workout
@@ -331,6 +351,11 @@ class HomeViewModel: ObservableObject {
         return "Couldn’t delete \(displayName) from history. Keep it for now, then try again."
     }
 
+    func startFollowUpFailureMessage(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return "Couldn’t start a follow-up from \(displayName). Keep it in history, then try again."
+    }
+
     func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return displayName == "Workout"
@@ -458,5 +483,18 @@ class HomeViewModel: ObservableObject {
         }
 
         return String(collapsedName.prefix(80))
+    }
+
+    private func hasFollowUpContent(in workout: Workout) -> Bool {
+        workout.orderedExerciseGroups.contains { group in
+            let workingSets = group.sets.filter(\.isCompletedWorkingSet)
+
+            guard let firstWorkingSet = workingSets.first else {
+                return false
+            }
+
+            return firstWorkingSet.weight > 0
+                || (firstWorkingSet.weight == 0 && group.exercise.category == .bodyweight)
+        }
     }
 }
