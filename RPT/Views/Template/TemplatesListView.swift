@@ -496,6 +496,7 @@ struct TemplatesListView: View {
         case .success(let startedWorkout):
             activeWorkoutBinding = startedWorkout
             selectedTemplate = nil
+            showActiveWorkoutSheet = true
         case .failure(let message):
             templateStartFailureMessage = message
         }
@@ -513,6 +514,7 @@ struct TemplatesListView: View {
         case .success(let startedWorkout):
             activeWorkoutBinding = startedWorkout
             selectedTemplate = nil
+            showActiveWorkoutSheet = true
         case .failure(let message):
             templateStartFailureMessage = message
         }

@@ -1,5 +1,6 @@
 # RPT
 
+- Template handoff flows now reopen the active workout sheet after `Save & Open Template` / `Discard & Open Template` replaces an in-progress draft, so switching plans from Home, Workout Details, or Templates immediately lands in the new live workout instead of leaving users stranded on the previous screen.
 - Exercise Details now makes each recent-history result a direct `Review Workout` shortcut into that saved session, so users can jump from a movement’s best recent sets straight back into the full workout without re-finding it on Home first.
 - Template-based history now carries the full active-workout handoff into `Open Template` flows from both Home and Workout Details, so users can `Resume Current Workout`, `Save & Open Template`, or `Discard & Open Template` without backing out to the Templates tab first.
 - Workout and template exercise pickers now keep their inline one-tap `Add "…"` shortcut visible whenever exactly one exercise is in view — even without an active search or filter — so tiny libraries and strongly narrowed picker lists no longer rely on row-tap discovery alone.
@@ -200,6 +201,7 @@ RPT/
 
 ## Recent Improvements
 
+- Template handoff flows now reopen the active workout sheet after `Save & Open Template` / `Discard & Open Template` replaces an in-progress draft, so switching plans from Home, Workout Details, or Templates immediately lands in the new live workout instead of leaving users stranded on the previous screen; validated with `git diff --check` plus targeted source inspection.
 - Exercise Details now makes each recent-history result a direct `Review Workout` shortcut into that saved session, so users can jump from a movement’s best recent sets straight back into the full workout without re-finding it on Home first; validated with `git diff --check` plus targeted source inspection.
 - Template-based history now carries the full active-workout handoff into `Open Template` flows from both Home and Workout Details, so users can `Resume Current Workout`, `Save & Open Template`, or `Discard & Open Template` without backing out to the Templates tab first; validated with `git diff --check` plus targeted source inspection.
 - Workout and template exercise pickers now keep their inline one-tap `Add "…"` shortcut visible whenever exactly one exercise is in view — even without an active search or filter — so tiny libraries and strongly narrowed picker lists no longer rely on row-tap discovery alone; added regression coverage in `ExerciseLibraryViewModelTests`.

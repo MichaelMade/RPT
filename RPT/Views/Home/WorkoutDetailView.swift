@@ -226,6 +226,7 @@ struct WorkoutDetailView: View {
         ) {
         case .success(let startedWorkout):
             activeWorkoutBinding = startedWorkout
+            showActiveWorkoutSheet = true
         case .failure(let message):
             homeViewModel.startWorkoutFailureMessage = message
         }
@@ -242,6 +243,7 @@ struct WorkoutDetailView: View {
         ) {
         case .success(let startedWorkout):
             activeWorkoutBinding = startedWorkout
+            showActiveWorkoutSheet = true
         case .failure(let message):
             homeViewModel.startWorkoutFailureMessage = message
         }

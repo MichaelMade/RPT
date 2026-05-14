@@ -648,6 +648,7 @@ struct HomeView: View {
         case .success(let startedWorkout):
             selectedSourceTemplate = nil
             activeWorkoutBinding = startedWorkout
+            showActiveWorkoutSheet = true
         case .failure(let message):
             startFreshFailureMessage = message
         }
@@ -665,6 +666,7 @@ struct HomeView: View {
         case .success(let startedWorkout):
             selectedSourceTemplate = nil
             activeWorkoutBinding = startedWorkout
+            showActiveWorkoutSheet = true
         case .failure(let message):
             startFreshFailureMessage = message
         }
