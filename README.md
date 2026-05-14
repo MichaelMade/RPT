@@ -1,5 +1,6 @@
 # RPT
 
+- Template-based history now carries the full active-workout handoff into `Open Template` flows from both Home and Workout Details, so users can `Resume Current Workout`, `Save & Open Template`, or `Discard & Open Template` without backing out to the Templates tab first.
 - Home `Recent Workouts` now also adds an `Open Template` swipe action on template-based history rows, so users can jump from any saved workout back into its source plan without first opening Workout Details or waiting for the single-workout quick-actions state.
 - Home `Recent Workouts` now also surfaces a direct `Open Template` shortcut in its visible one-workout `Quick Actions` card whenever that saved session came from a template that still exists, so solo-history users can jump straight from a past workout back into the original plan without first drilling into Workout Details.
 - Exercise Library now keeps its visible `Quick Actions` section available even without an active search whenever exactly one exercise is in view, so solo-movement libraries still surface direct `Review` / `Edit` / `Delete` follow-ups without relying on row-tap or swipe discovery first.
@@ -197,6 +198,7 @@ RPT/
 
 ## Recent Improvements
 
+- Template-based history now carries the full active-workout handoff into `Open Template` flows from both Home and Workout Details, so users can `Resume Current Workout`, `Save & Open Template`, or `Discard & Open Template` without backing out to the Templates tab first; validated with `git diff --check` plus targeted source inspection.
 - Home `Recent Workouts` now also adds an `Open Template` swipe action on template-based history rows, so users can jump from any saved workout back into its source plan without first opening Workout Details or depending on the single-workout quick-actions state; validated with `git diff --check` plus targeted source inspection.
 - Home `Recent Workouts` now also surfaces a direct `Open Template` shortcut in its visible one-workout `Quick Actions` card whenever that saved session came from a template that still exists, so solo-history users can jump straight from a past workout back into the original plan without first drilling into Workout Details; added title-copy regression coverage in `HomeViewModelTests`.
 - Exercise Library now keeps its visible `Quick Actions` section available even without an active search whenever exactly one exercise is in view, so solo-movement libraries still surface direct `Review` / `Edit` / `Delete` follow-ups without relying on row-tap or swipe discovery first; added regression coverage in `ExerciseLibraryViewModelTests`.

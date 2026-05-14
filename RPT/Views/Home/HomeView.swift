@@ -11,6 +11,7 @@ import UIKit
 
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
+    @StateObject private var templateViewModel = TemplateViewModel()
     @State private var showingRPTCalculator = false
     @State private var showingPlateCalculator = false
     @State private var selectedWorkout: Workout?
@@ -421,8 +422,12 @@ struct HomeView: View {
                         activeWorkoutBinding = activeWorkout
                         showActiveWorkoutSheet = true
                     },
-                    onSaveActiveWorkoutAndOpenTemplate: nil,
-                    onDiscardActiveWorkoutAndOpenTemplate: nil,
+                    onSaveActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil ? nil : {
+                        saveActiveWorkoutAndOpenTemplate(template)
+                    },
+                    onDiscardActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil ? nil : {
+                        discardActiveWorkoutAndOpenTemplate(template)
+                    },
                     activeWorkoutBlockMessage: sourceTemplateBlockMessage(for: template)
                 )
             }
@@ -629,6 +634,40 @@ struct HomeView: View {
         }
 
         self.workoutToDelete = nil
+    }
+
+    private func saveActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch templateViewModel.startTemplateAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .saveForLater,
+            opening: template,
+            persist: { WorkoutManager.shared.saveWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            selectedSourceTemplate = nil
+            activeWorkoutBinding = startedWorkout
+        case .failure(let message):
+            startFreshFailureMessage = message
+        }
+    }
+
+    private func discardActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch templateViewModel.startTemplateAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .discard,
+            opening: template,
+            persist: { WorkoutManager.shared.deleteWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            selectedSourceTemplate = nil
+            activeWorkoutBinding = startedWorkout
+        case .failure(let message):
+            startFreshFailureMessage = message
+        }
     }
 }
 

@@ -14,6 +14,7 @@ struct WorkoutDetailView: View {
 
     let workout: Workout
     @StateObject private var homeViewModel = HomeViewModel()
+    @StateObject private var templateViewModel = TemplateViewModel()
     @State private var showingCopySummaryAlert = false
     @State private var showingDeleteWorkoutAlert = false
 
@@ -214,6 +215,38 @@ struct WorkoutDetailView: View {
         showActiveWorkoutSheet = true
     }
 
+    private func saveActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch templateViewModel.startTemplateAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .saveForLater,
+            opening: template,
+            persist: { WorkoutManager.shared.saveWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            activeWorkoutBinding = startedWorkout
+        case .failure(let message):
+            homeViewModel.startWorkoutFailureMessage = message
+        }
+    }
+
+    private func discardActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch templateViewModel.startTemplateAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .discard,
+            opening: template,
+            persist: { WorkoutManager.shared.deleteWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            activeWorkoutBinding = startedWorkout
+        case .failure(let message):
+            homeViewModel.startWorkoutFailureMessage = message
+        }
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -280,8 +313,12 @@ struct WorkoutDetailView: View {
                                         activeWorkoutBinding = activeWorkout
                                         showActiveWorkoutSheet = true
                                     },
-                                    onSaveActiveWorkoutAndOpenTemplate: nil,
-                                    onDiscardActiveWorkoutAndOpenTemplate: nil,
+                                    onSaveActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil ? nil : {
+                                        saveActiveWorkoutAndOpenTemplate(sourceTemplate)
+                                    },
+                                    onDiscardActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil ? nil : {
+                                        discardActiveWorkoutAndOpenTemplate(sourceTemplate)
+                                    },
                                     activeWorkoutBlockMessage: sourceTemplateBlockMessage(for: sourceTemplate)
                                 )
                             } label: {
