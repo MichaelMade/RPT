@@ -1,5 +1,6 @@
 # RPT
 
+- Home and Workout Details now share a stricter source-template lookup that ignores blank remembered template names while still preferring stable template IDs, preventing false `Open Template` links to a real template literally named `Template`.
 - Template-based workout history now preserves the source template’s stable identifier as well as its display name, so `Open Template` links from Home and Workout Details keep working even after that template is renamed.
 - Workout Details now lets blocked follow-up starts save or discard the current draft and immediately open the new follow-up, so progression-based repeats no longer dead-end on a `Continue Current Workout` prompt when another session is already in progress.
 - Template handoff flows now reopen the active workout sheet after `Save & Open Template` / `Discard & Open Template` replaces an in-progress draft, so switching plans from Home, Workout Details, or Templates immediately lands in the new live workout instead of leaving users stranded on the previous screen.
@@ -203,6 +204,7 @@ RPT/
 
 ## Recent Improvements
 
+- Home and Workout Details now share a stricter source-template resolver that prefers the persisted template ID, falls back to non-blank remembered names for legacy history, and refuses to treat blank template strings as a real `Template`; added regression coverage in `TemplateManagerTests`.
 - Template-based workout history now stores the source template’s stable ID alongside its name, so `Open Template` shortcuts from Home and Workout Details still find the right template after a rename; added regression coverage in `TemplateManagerTests` and `WorkoutManagerTests`, with legacy name-based fallback preserved for older workouts.
 - Workout Details now lets blocked follow-up starts save or discard the current draft and immediately open the new follow-up, so progression-based repeats no longer dead-end on a `Continue Current Workout` prompt when another session is already in progress; added regression coverage in `HomeViewModelTests` and reused the existing active-workout sheet handoff.
 - Template handoff flows now reopen the active workout sheet after `Save & Open Template` / `Discard & Open Template` replaces an in-progress draft, so switching plans from Home, Workout Details, or Templates immediately lands in the new live workout instead of leaving users stranded on the previous screen; validated with `git diff --check` plus targeted source inspection.

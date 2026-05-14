@@ -144,6 +144,23 @@ class TemplateManager {
         normalizedNameLookupKey(lhs) == normalizedNameLookupKey(rhs)
     }
 
+    private static func normalizedStoredTemplateReference(_ raw: String?) -> String? {
+        guard let raw else {
+            return nil
+        }
+
+        let collapsed = raw
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard !collapsed.isEmpty else {
+            return nil
+        }
+
+        return String(collapsed.prefix(80))
+    }
+
     static func initialCompletedAt(weight: Int, reps: Int, fallbackDate: Date) -> Date {
         guard weight > 0, reps > 0 else {
             return .distantPast
@@ -207,6 +224,19 @@ class TemplateManager {
             predicate: #Predicate<WorkoutTemplate> { $0.id == id }
         )
         return try? modelContext.fetch(descriptor).first
+    }
+
+    func sourceTemplate(for workout: Workout) -> WorkoutTemplate? {
+        if let sourceTemplateID = workout.startedFromTemplateID,
+           let template = fetchTemplate(byId: sourceTemplateID) {
+            return template
+        }
+
+        guard let sourceTemplateName = Self.normalizedStoredTemplateReference(workout.startedFromTemplate) else {
+            return nil
+        }
+
+        return fetchTemplateByName(sourceTemplateName)
     }
 
     func unavailableExerciseNames(in template: WorkoutTemplate) -> [String] {

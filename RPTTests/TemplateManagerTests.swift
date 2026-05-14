@@ -275,6 +275,64 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertNoThrow(try context.save())
     }
 
+    func testSourceTemplate_prefersStableIdentifierBeforeNameFallback() throws {
+        let context = DataManager.shared.getModelContext()
+        let matchingName = "Source Template \(UUID().uuidString)"
+        let renamedTemplate = WorkoutTemplate(
+            id: "source-template-id-\(UUID().uuidString)",
+            name: "Renamed Source Template",
+            exercises: [sampleTemplateExercise()],
+            notes: ""
+        )
+        let staleNameTemplate = WorkoutTemplate(
+            name: matchingName,
+            exercises: [sampleTemplateExercise(named: "Squat")],
+            notes: ""
+        )
+        context.insert(renamedTemplate)
+        context.insert(staleNameTemplate)
+        XCTAssertNoThrow(try context.save())
+
+        let workout = Workout(
+            name: "Push Day",
+            startedFromTemplate: matchingName,
+            startedFromTemplateID: renamedTemplate.id
+        )
+
+        let resolvedTemplate = TemplateManager.shared.sourceTemplate(for: workout)
+
+        XCTAssertEqual(
+            resolvedTemplate?.id,
+            renamedTemplate.id,
+            "Template history should follow the persisted source template identifier before falling back to the remembered name"
+        )
+
+        context.delete(staleNameTemplate)
+        context.delete(renamedTemplate)
+        XCTAssertNoThrow(try context.save())
+    }
+
+    func testSourceTemplate_ignoresBlankRememberedTemplateName() throws {
+        let context = DataManager.shared.getModelContext()
+        let placeholderTemplate = WorkoutTemplate(
+            name: "Template",
+            exercises: [sampleTemplateExercise()],
+            notes: ""
+        )
+        context.insert(placeholderTemplate)
+        XCTAssertNoThrow(try context.save())
+
+        let workout = Workout(name: "Push Day", startedFromTemplate: "   \n   ")
+
+        XCTAssertNil(
+            TemplateManager.shared.sourceTemplate(for: workout),
+            "Blank remembered template names should not accidentally resolve a real template named Template"
+        )
+
+        context.delete(placeholderTemplate)
+        XCTAssertNoThrow(try context.save())
+    }
+
     func testWorkoutTemplateInitializer_normalizesNameAndNotes() {
         let template = WorkoutTemplate(
             name: "  Upper   Body\nDay  ",
