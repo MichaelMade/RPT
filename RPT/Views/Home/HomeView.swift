@@ -304,6 +304,15 @@ struct HomeView: View {
                                     }
                                     .tint(.indigo)
 
+                                    if let sourceTemplate = sourceTemplate(for: workout) {
+                                        Button {
+                                            selectedSourceTemplate = sourceTemplate
+                                        } label: {
+                                            Label("Open Template", systemImage: "square.on.square")
+                                        }
+                                        .tint(.purple)
+                                    }
+
                                     Button {
                                         selectedWorkout = workout
                                     } label: {
