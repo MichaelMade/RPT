@@ -516,6 +516,11 @@ struct HomeView: View {
     }
 
     private func sourceTemplate(for workout: Workout) -> WorkoutTemplate? {
+        if let sourceTemplateID = workout.startedFromTemplateID,
+           let template = templateManager.fetchTemplate(byId: sourceTemplateID) {
+            return template
+        }
+
         guard let sourceTemplateName = workout.startedFromTemplate else {
             return nil
         }

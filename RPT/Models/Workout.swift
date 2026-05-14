@@ -16,6 +16,7 @@ final class Workout {
     var duration: TimeInterval
     var isCompleted: Bool
     var startedFromTemplate: String?
+    var startedFromTemplateID: String?
     
     @Relationship(deleteRule: .cascade, inverse: \ExerciseSet.workout)
     var sets: [ExerciseSet]
@@ -29,7 +30,8 @@ final class Workout {
         notes: String = "",
         duration: TimeInterval = 0,
         isCompleted: Bool = false,
-        startedFromTemplate: String? = nil
+        startedFromTemplate: String? = nil,
+        startedFromTemplateID: String? = nil
     ) {
         self.date = date
         self.name = name
@@ -37,6 +39,7 @@ final class Workout {
         self.duration = duration
         self.isCompleted = isCompleted
         self.startedFromTemplate = startedFromTemplate
+        self.startedFromTemplateID = startedFromTemplateID
         self.sets = []
     }
     
@@ -256,7 +259,8 @@ final class Workout {
     func createFollowUpWorkout(percentageIncrease: Double = 0.025) -> Workout {
         let followUp = Workout(
             name: "Follow-up: \(name)",
-            startedFromTemplate: startedFromTemplate
+            startedFromTemplate: startedFromTemplate,
+            startedFromTemplateID: startedFromTemplateID
         )
 
         let safePercentageIncrease = percentageIncrease.isFinite ? max(0, percentageIncrease) : 0

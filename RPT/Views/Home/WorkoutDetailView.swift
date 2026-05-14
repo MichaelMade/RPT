@@ -180,6 +180,11 @@ struct WorkoutDetailView: View {
     }
 
     private var sourceTemplate: WorkoutTemplate? {
+        if let sourceTemplateID = workout.startedFromTemplateID,
+           let template = templateManager.fetchTemplate(byId: sourceTemplateID) {
+            return template
+        }
+
         guard let sourceTemplateName else {
             return nil
         }

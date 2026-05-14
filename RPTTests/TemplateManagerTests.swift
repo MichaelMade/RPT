@@ -1287,6 +1287,28 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertNoThrow(try context.save())
     }
 
+    func testCreateWorkoutFromTemplate_persistsTemplateIdentifierForRenameSafeHistoryLinks() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+
+        let template = WorkoutTemplate(
+            id: UUID().uuidString,
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+
+        let workout = try XCTUnwrap(TemplateManager.shared.createWorkoutFromTemplate(template))
+        XCTAssertEqual(workout.startedFromTemplate, "Push Day")
+        XCTAssertEqual(workout.startedFromTemplateID, template.id)
+
+        context.delete(workout)
+        context.delete(availableExercise)
+        XCTAssertNoThrow(try context.save())
+    }
+
     private func sampleTemplateExercise(named name: String = "Bench Press") -> TemplateExercise {
         TemplateExercise(
             exerciseName: name,

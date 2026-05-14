@@ -706,7 +706,11 @@ class TemplateManager {
 
     func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout? {
         // Create the workout with the template name
-        let workout = Workout(name: template.name, startedFromTemplate: template.name)
+        let workout = Workout(
+            name: template.name,
+            startedFromTemplate: template.name,
+            startedFromTemplateID: template.id
+        )
         modelContext.insert(workout)
         var createdSetCount = 0
 

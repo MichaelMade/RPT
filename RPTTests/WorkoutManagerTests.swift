@@ -1322,6 +1322,21 @@ final class WorkoutManagerLogicTests: XCTestCase {
         )
     }
 
+    func testCreateFollowUpWorkout_preservesTemplateIdentifierForTemplateBasedHistory() {
+        let workout = Workout(
+            name: "Push Day",
+            startedFromTemplate: "Upper A",
+            startedFromTemplateID: "template-upper-a"
+        )
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 6)
+
+        let followUp = workout.createFollowUpWorkout()
+
+        XCTAssertEqual(followUp.startedFromTemplate, "Upper A")
+        XCTAssertEqual(followUp.startedFromTemplateID, "template-upper-a")
+    }
+
     func testExerciseSetHasCompletedValues_allowsZeroWeightForBodyweightExercises() {
         XCTAssertTrue(ExerciseSet.hasCompletedValues(weight: 185, reps: 5))
         XCTAssertFalse(ExerciseSet.hasCompletedValues(weight: 185, reps: 0))
