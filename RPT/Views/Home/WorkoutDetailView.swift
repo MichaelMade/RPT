@@ -17,10 +17,13 @@ struct WorkoutDetailView: View {
     @StateObject private var templateViewModel = TemplateViewModel()
     @State private var showingCopySummaryAlert = false
     @State private var showingDeleteWorkoutAlert = false
+    @State private var localActiveWorkout: Workout?
+    @State private var showingLocalActiveWorkoutSheet = false
 
     @Binding var activeWorkoutBinding: Workout?
     @Binding var showActiveWorkoutSheet: Bool
 
+    private let managesActiveWorkoutExternally: Bool
     private let templateManager = TemplateManager.shared
 
     private let summaryColumns = [
@@ -167,12 +170,14 @@ struct WorkoutDetailView: View {
         self.workout = workout
         self._activeWorkoutBinding = .constant(nil)
         self._showActiveWorkoutSheet = .constant(false)
+        self.managesActiveWorkoutExternally = false
     }
 
     init(workout: Workout, activeWorkoutBinding: Binding<Workout?>, showActiveWorkoutSheet: Binding<Bool>) {
         self.workout = workout
         self._activeWorkoutBinding = activeWorkoutBinding
         self._showActiveWorkoutSheet = showActiveWorkoutSheet
+        self.managesActiveWorkoutExternally = true
     }
 
     private var sourceTemplateName: String? {
@@ -207,8 +212,14 @@ struct WorkoutDetailView: View {
     }
 
     private func openStartedWorkout(_ startedWorkout: Workout) {
-        activeWorkoutBinding = startedWorkout
-        showActiveWorkoutSheet = true
+        if managesActiveWorkoutExternally {
+            activeWorkoutBinding = startedWorkout
+            showActiveWorkoutSheet = true
+            return
+        }
+
+        localActiveWorkout = startedWorkout
+        showingLocalActiveWorkoutSheet = true
     }
 
     private func saveActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
@@ -221,8 +232,7 @@ struct WorkoutDetailView: View {
             persist: { WorkoutManager.shared.saveWorkoutSafely($0) }
         ) {
         case .success(let startedWorkout):
-            activeWorkoutBinding = startedWorkout
-            showActiveWorkoutSheet = true
+            openStartedWorkout(startedWorkout)
         case .failure(let message):
             homeViewModel.startWorkoutFailureMessage = message
         }
@@ -238,8 +248,7 @@ struct WorkoutDetailView: View {
             persist: { WorkoutManager.shared.deleteWorkoutSafely($0) }
         ) {
         case .success(let startedWorkout):
-            activeWorkoutBinding = startedWorkout
-            showActiveWorkoutSheet = true
+            openStartedWorkout(startedWorkout)
         case .failure(let message):
             homeViewModel.startWorkoutFailureMessage = message
         }
@@ -255,8 +264,7 @@ struct WorkoutDetailView: View {
             persist: { WorkoutManager.shared.saveWorkoutSafely($0) }
         ) {
         case .success(let startedWorkout):
-            activeWorkoutBinding = startedWorkout
-            showActiveWorkoutSheet = true
+            openStartedWorkout(startedWorkout)
         case .failure(let message):
             homeViewModel.startWorkoutFailureMessage = message
         }
@@ -272,8 +280,7 @@ struct WorkoutDetailView: View {
             persist: { WorkoutManager.shared.deleteWorkoutSafely($0) }
         ) {
         case .success(let startedWorkout):
-            activeWorkoutBinding = startedWorkout
-            showActiveWorkoutSheet = true
+            openStartedWorkout(startedWorkout)
         case .failure(let message):
             homeViewModel.startWorkoutFailureMessage = message
         }
@@ -342,8 +349,7 @@ struct WorkoutDetailView: View {
                                     onDuplicateTemplate: nil,
                                     onResumeActiveWorkout: protectedResumableWorkout() == nil ? nil : {
                                         guard let activeWorkout = protectedResumableWorkout() else { return }
-                                        activeWorkoutBinding = activeWorkout
-                                        showActiveWorkoutSheet = true
+                                        openStartedWorkout(activeWorkout)
                                     },
                                     onSaveActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil ? nil : {
                                         saveActiveWorkoutAndOpenTemplate(sourceTemplate)
@@ -422,8 +428,7 @@ struct WorkoutDetailView: View {
                             }
 
                             Button {
-                                activeWorkoutBinding = resumableWorkout
-                                showActiveWorkoutSheet = true
+                                openStartedWorkout(resumableWorkout)
                             } label: {
                                 Label("Continue Current Workout", systemImage: "arrow.clockwise.circle.fill")
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -468,8 +473,11 @@ struct WorkoutDetailView: View {
                                     return
                                 }
 
-                                activeWorkoutBinding = homeViewModel.currentWorkout
-                                showActiveWorkoutSheet = true
+                                guard let startedWorkout = homeViewModel.currentWorkout else {
+                                    return
+                                }
+
+                                openStartedWorkout(startedWorkout)
                             } label: {
                                 Label(homeViewModel.followUpWorkoutButtonTitle(for: workout), systemImage: "arrow.triangle.2.circlepath")
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -548,6 +556,15 @@ struct WorkoutDetailView: View {
             }
         } message: {
             Text(homeViewModel.startWorkoutFailureMessage ?? "")
+        }
+        .sheet(isPresented: $showingLocalActiveWorkoutSheet, onDismiss: {
+            if localActiveWorkout?.isCompleted == true {
+                localActiveWorkout = nil
+            }
+        }) {
+            if let localActiveWorkout {
+                ActiveWorkoutView(workout: localActiveWorkout)
+            }
         }
         .onAppear {
             homeViewModel.loadRecentWorkouts()
