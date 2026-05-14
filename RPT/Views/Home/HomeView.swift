@@ -357,7 +357,10 @@ struct HomeView: View {
                                     .tint(.indigo)
 
                                     if let sourceTemplate = sourceTemplate(for: matchedWorkout),
-                                       let sourceTemplateQuickActionTitle = viewModel.sourceTemplateQuickActionTitle(for: matchedWorkout) {
+                                       let sourceTemplateQuickActionTitle = viewModel.sourceTemplateQuickActionTitle(
+                                        for: matchedWorkout,
+                                        resolvedTemplateName: sourceTemplate.name
+                                       ) {
                                         Button {
                                             selectedSourceTemplate = sourceTemplate
                                         } label: {

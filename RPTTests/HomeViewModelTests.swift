@@ -1033,6 +1033,16 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testSourceTemplateQuickActionTitle_prefersResolvedTemplateNameWhenAvailable() {
+        let workout = Workout(name: "Push Day", isCompleted: true, startedFromTemplate: "Old Upper A")
+
+        XCTAssertEqual(
+            viewModel.sourceTemplateQuickActionTitle(for: workout, resolvedTemplateName: "  Renamed   Upper A  "),
+            "Open Template “Renamed Upper A”",
+            "Home template shortcuts should use the current template name when a stable-ID lookup resolves a renamed source template"
+        )
+    }
+
     func testSourceTemplateQuickActionTitle_returnsNilWithoutUsableTemplateName() {
         let emptyTemplateWorkout = Workout(name: "Push Day", isCompleted: true, startedFromTemplate: "   ")
         let noTemplateWorkout = Workout(name: "Push Day", isCompleted: true)

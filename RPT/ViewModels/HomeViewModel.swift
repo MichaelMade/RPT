@@ -383,8 +383,11 @@ class HomeViewModel: ObservableObject {
         "Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
     }
 
-    func sourceTemplateQuickActionTitle(for workout: Workout) -> String? {
-        guard let templateName = normalizedSummaryName(workout.startedFromTemplate) else {
+    func sourceTemplateQuickActionTitle(for workout: Workout, resolvedTemplateName: String? = nil) -> String? {
+        let preferredTemplateName = normalizedSummaryName(resolvedTemplateName)
+            ?? normalizedSummaryName(workout.startedFromTemplate)
+
+        guard let templateName = preferredTemplateName else {
             return nil
         }
 
