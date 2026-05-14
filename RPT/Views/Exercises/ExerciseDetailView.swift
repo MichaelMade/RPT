@@ -185,27 +185,36 @@ struct ExerciseDetailView: View {
                             .padding()
                     } else {
                         ForEach(Array(recentHistory.prefix(5).enumerated()), id: \.element.set.id) { _, entry in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(WorkoutDetailView.displayName(for: entry.workout))
-                                        .font(.subheadline)
-                                    
-                                    Text(entry.workout.date, style: .date)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                            NavigationLink(destination: WorkoutDetailView(workout: entry.workout)) {
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(WorkoutDetailView.displayName(for: entry.workout))
+                                            .font(.subheadline)
+
+                                        Text(entry.workout.date, style: .date)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+
+                                        Label("Review Workout", systemImage: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .labelStyle(.titleAndIcon)
+                                            .foregroundColor(.blue)
+                                    }
+
+                                    Spacer()
+
+                                    Text(entry.set.formattedWeightReps)
+                                        .font(.headline)
+                                        .foregroundColor(.primary)
                                 }
-                                
-                                Spacer()
-                                
-                                Text(entry.set.formattedWeightReps)
-                                    .font(.headline)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color(UIColor.tertiarySystemBackground))
+                                )
                             }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(UIColor.tertiarySystemBackground))
-                            )
+                            .buttonStyle(.plain)
                         }
                     }
                 }
