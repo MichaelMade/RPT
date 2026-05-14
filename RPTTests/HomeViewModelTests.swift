@@ -972,6 +972,30 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testSourceTemplateQuickActionTitle_usesNormalizedTemplateName() {
+        let workout = Workout(name: "Push Day", isCompleted: true, startedFromTemplate: "  Upper   A  ")
+
+        XCTAssertEqual(
+            viewModel.sourceTemplateQuickActionTitle(for: workout),
+            "Open Template “Upper A”",
+            "Template quick action copy should normalize the remembered source template name so Home shortcuts stay readable"
+        )
+    }
+
+    func testSourceTemplateQuickActionTitle_returnsNilWithoutUsableTemplateName() {
+        let emptyTemplateWorkout = Workout(name: "Push Day", isCompleted: true, startedFromTemplate: "   ")
+        let noTemplateWorkout = Workout(name: "Push Day", isCompleted: true)
+
+        XCTAssertNil(
+            viewModel.sourceTemplateQuickActionTitle(for: emptyTemplateWorkout),
+            "Blank source-template names should not create a broken Home shortcut title"
+        )
+        XCTAssertNil(
+            viewModel.sourceTemplateQuickActionTitle(for: noTemplateWorkout),
+            "Missing source-template names should not create a Home shortcut title"
+        )
+    }
+
     func testStartFollowUpWorkout_successCreatesNewDraftAndClearsStaleFailure() {
         viewModel.startWorkoutFailureMessage = "Old error"
         let completedWorkout = Workout(name: "Upper A", isCompleted: true)

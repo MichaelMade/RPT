@@ -360,6 +360,14 @@ class HomeViewModel: ObservableObject {
         "Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
     }
 
+    func sourceTemplateQuickActionTitle(for workout: Workout) -> String? {
+        guard let templateName = normalizedSummaryName(workout.startedFromTemplate) else {
+            return nil
+        }
+
+        return "Open Template “\(templateName)”"
+    }
+
     func followUpWorkoutHelperText(for workout: Workout) -> String {
         "Create a new draft with your last working-set weights prefilled so you can keep progressing without rebuilding the session."
     }

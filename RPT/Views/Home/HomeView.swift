@@ -14,6 +14,7 @@ struct HomeView: View {
     @State private var showingRPTCalculator = false
     @State private var showingPlateCalculator = false
     @State private var selectedWorkout: Workout?
+    @State private var selectedSourceTemplate: WorkoutTemplate?
     @State private var showingStartFreshAlert = false
     @State private var showingDeleteWorkoutAlert = false
     @State private var showingCopySummaryAlert = false
@@ -22,6 +23,7 @@ struct HomeView: View {
     @State private var copiedWorkoutName: String?
     @State private var startFreshFailureMessage: String?
     @StateObject private var workoutStateManager = WorkoutStateManager.shared
+    private let templateManager = TemplateManager.shared
     
     // Bindings for active workout
     @Binding var activeWorkoutBinding: Workout?
@@ -344,6 +346,17 @@ struct HomeView: View {
                                     .buttonStyle(.bordered)
                                     .tint(.indigo)
 
+                                    if let sourceTemplate = sourceTemplate(for: matchedWorkout),
+                                       let sourceTemplateQuickActionTitle = viewModel.sourceTemplateQuickActionTitle(for: matchedWorkout) {
+                                        Button {
+                                            selectedSourceTemplate = sourceTemplate
+                                        } label: {
+                                            Label(sourceTemplateQuickActionTitle, systemImage: "square.on.square")
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                        }
+                                        .buttonStyle(.bordered)
+                                    }
+
                                     Button {
                                         selectedWorkout = matchedWorkout
                                     } label: {
@@ -386,6 +399,22 @@ struct HomeView: View {
                     workout: workout,
                     activeWorkoutBinding: $activeWorkoutBinding,
                     showActiveWorkoutSheet: $showActiveWorkoutSheet
+                )
+            }
+            .navigationDestination(item: $selectedSourceTemplate) { template in
+                TemplateDetailView(
+                    template: template,
+                    onStartWorkout: { openStartedWorkout($0) },
+                    onEditTemplate: nil,
+                    onDuplicateTemplate: nil,
+                    onResumeActiveWorkout: protectedResumableWorkout() == nil ? nil : {
+                        guard let activeWorkout = protectedResumableWorkout() else { return }
+                        activeWorkoutBinding = activeWorkout
+                        showActiveWorkoutSheet = true
+                    },
+                    onSaveActiveWorkoutAndOpenTemplate: nil,
+                    onDiscardActiveWorkoutAndOpenTemplate: nil,
+                    activeWorkoutBlockMessage: sourceTemplateBlockMessage(for: template)
                 )
             }
             .alert("Replace Current Workout?", isPresented: $showingStartFreshAlert) {
@@ -470,6 +499,42 @@ struct HomeView: View {
 
     private var currentFailureMessage: String? {
         startFreshFailureMessage ?? viewModel.startWorkoutFailureMessage
+    }
+
+    private func sourceTemplate(for workout: Workout) -> WorkoutTemplate? {
+        guard let sourceTemplateName = workout.startedFromTemplate else {
+            return nil
+        }
+
+        return templateManager.fetchTemplateByName(sourceTemplateName)
+    }
+
+    private func protectedResumableWorkout() -> Workout? {
+        workoutStateManager.resolvedResumableWorkout(
+            currentBinding: activeWorkoutBinding,
+            fallbackWorkouts: WorkoutManager.shared.getIncompleteWorkouts()
+        )
+    }
+
+    private func sourceTemplateBlockMessage(for template: WorkoutTemplate) -> String? {
+        guard let activeWorkout = protectedResumableWorkout() else {
+            return nil
+        }
+
+        let activeWorkoutName = WorkoutRow.displayName(for: activeWorkout)
+        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let templateSuffix = templateName == "Template"
+            ? "before starting this template."
+            : "before starting \(templateName)."
+
+        return activeWorkoutName == "Workout"
+            ? "You already have a workout in progress. Continue it \(templateSuffix)"
+            : "You already have \(activeWorkoutName) in progress. Continue it \(templateSuffix)"
+    }
+
+    private func openStartedWorkout(_ startedWorkout: Workout) {
+        activeWorkoutBinding = startedWorkout
+        showActiveWorkoutSheet = true
     }
 
     private var copySummaryMessage: String {
