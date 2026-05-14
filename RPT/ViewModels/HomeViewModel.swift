@@ -16,6 +16,8 @@ class HomeViewModel: ObservableObject {
         case discard
     }
 
+    typealias FollowUpPersistenceAction = StartFreshPersistenceAction
+
     private let workoutManager: WorkoutManager
     private let userManager: UserManager
     
@@ -80,6 +82,10 @@ class HomeViewModel: ObservableObject {
         return hasFollowUpContent(in: workout)
     }
 
+    func shouldOfferFollowUpRecovery(for workout: Workout) -> Bool {
+        hasFollowUpContent(in: workout)
+    }
+
     @discardableResult
     func startFollowUpWorkout(from workout: Workout) -> Bool {
         guard let followUpWorkout = workoutManager.createFollowUpWorkoutSafely(from: workout) else {
@@ -90,6 +96,23 @@ class HomeViewModel: ObservableObject {
         currentWorkout = followUpWorkout
         startWorkoutFailureMessage = nil
         return true
+    }
+
+    func startFollowUpAfterPersistingActiveWorkout(
+        _ activeWorkout: Workout,
+        action: FollowUpPersistenceAction,
+        from workout: Workout,
+        persist: (Workout) -> Bool
+    ) -> Result<Workout, String> {
+        guard persistWorkoutForFreshStart(activeWorkout, action: action, persist: persist) else {
+            return .failure(activeWorkoutPersistenceFailureMessage(for: action, startingFollowUpFrom: workout))
+        }
+
+        guard startFollowUpWorkout(from: workout), let currentWorkout else {
+            return .failure(startFollowUpFailureMessage(for: workout))
+        }
+
+        return .success(currentWorkout)
     }
     
     func resumeWorkout(_ workout: Workout) {
@@ -372,6 +395,17 @@ class HomeViewModel: ObservableObject {
         "Create a new draft with your last working-set weights prefilled so you can keep progressing without rebuilding the session."
     }
 
+    func activeWorkoutBlocksFollowUpMessage(for activeWorkout: Workout, startingFrom workout: Workout, now: Date = Date()) -> String {
+        let followUpName = WorkoutRow.displayName(for: workout)
+        let activeWorkoutSummary = resumableWorkoutSummary(for: activeWorkout, now: now)
+
+        if followUpName == "Workout" {
+            return "You already have a workout in progress: \(activeWorkoutSummary). Continue it, save it for later, or discard it before starting this follow-up."
+        }
+
+        return "You already have a workout in progress: \(activeWorkoutSummary). Continue it, save it for later, or discard it before starting a follow-up from \(followUpName)."
+    }
+
     func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return displayName == "Workout"
@@ -424,6 +458,17 @@ class HomeViewModel: ObservableObject {
             return "Couldn’t save the current workout. Keep this draft open, then try again."
         case .discard:
             return "Couldn’t discard the current workout. Keep this draft open, then try again."
+        }
+    }
+
+    func activeWorkoutPersistenceFailureMessage(for action: FollowUpPersistenceAction, startingFollowUpFrom workout: Workout) -> String {
+        let followUpName = WorkoutRow.displayName(for: workout)
+
+        switch action {
+        case .saveForLater:
+            return "Couldn’t save the current workout. Keep it open, then try starting a follow-up from \(followUpName) again."
+        case .discard:
+            return "Couldn’t discard the current workout. Keep it open, then try starting a follow-up from \(followUpName) again."
         }
     }
     

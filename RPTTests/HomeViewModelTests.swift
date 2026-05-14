@@ -972,6 +972,57 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testShouldOfferFollowUpRecovery_matchesUnderlyingFollowUpContent() {
+        let completedWorkout = Workout(name: "Upper A", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = completedWorkout.addSet(exercise: bench, weight: 185, reps: 8)
+
+        XCTAssertTrue(
+            viewModel.shouldOfferFollowUpRecovery(for: completedWorkout),
+            "Completed workouts with real logged work should still advertise follow-up recovery actions even when another draft is already open"
+        )
+
+        let warmupOnlyWorkout = Workout(name: "Warm-up Only", isCompleted: true)
+        _ = warmupOnlyWorkout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+
+        XCTAssertFalse(
+            viewModel.shouldOfferFollowUpRecovery(for: warmupOnlyWorkout),
+            "Warm-up-only history should not show save/discard follow-up recovery actions because there is no progression to carry forward"
+        )
+    }
+
+    func testActiveWorkoutBlocksFollowUpMessage_namesSavedWorkoutAndCurrentDraft() {
+        let activeWorkout = Workout(name: "  Current   Draft  ")
+        let completedWorkout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        let message = viewModel.activeWorkoutBlocksFollowUpMessage(
+            for: activeWorkout,
+            startingFrom: completedWorkout,
+            now: activeWorkout.date.addingTimeInterval(60)
+        )
+
+        XCTAssertEqual(
+            message,
+            "You already have a workout in progress: Started just now • Current Draft. Continue it, save it for later, or discard it before starting a follow-up from Upper A.",
+            "Blocked follow-up copy should explain the current draft state and the exact saved workout the follow-up would come from"
+        )
+    }
+
+    func testActiveWorkoutPersistenceFailureMessage_matchesActionAndWorkoutName() {
+        let completedWorkout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureMessage(for: .saveForLater, startingFollowUpFrom: completedWorkout),
+            "Couldn’t save the current workout. Keep it open, then try starting a follow-up from Upper A again.",
+            "Save-for-later failures should explain that the current draft stayed open and the follow-up can be retried"
+        )
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureMessage(for: .discard, startingFollowUpFrom: completedWorkout),
+            "Couldn’t discard the current workout. Keep it open, then try starting a follow-up from Upper A again.",
+            "Discard failures should explain that the current draft stayed open and the follow-up can be retried"
+        )
+    }
+
     func testSourceTemplateQuickActionTitle_usesNormalizedTemplateName() {
         let workout = Workout(name: "Push Day", isCompleted: true, startedFromTemplate: "  Upper   A  ")
 
@@ -1009,6 +1060,53 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.currentWorkout?.isCompleted ?? true, "Follow-up drafts should open as incomplete workouts")
         XCTAssertEqual(viewModel.currentWorkout?.sets.first?.completedAt, .distantPast, "Follow-up sets should stay planned until the user actually logs them")
         XCTAssertNil(viewModel.startWorkoutFailureMessage, "Successful follow-up creation should clear stale failure alerts")
+    }
+
+    func testStartFollowUpAfterPersistingActiveWorkout_saveForLaterFailureReturnsRetryMessage() {
+        let activeWorkout = Workout(name: "Current Draft")
+        let completedWorkout = Workout(name: "Upper A", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = completedWorkout.addSet(exercise: bench, weight: 185, reps: 8)
+
+        let result = viewModel.startFollowUpAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .saveForLater,
+            from: completedWorkout,
+            persist: { _ in false }
+        )
+
+        switch result {
+        case .success:
+            XCTFail("Failed save-for-later should not start a follow-up workout")
+        case .failure(let message):
+            XCTAssertEqual(
+                message,
+                "Couldn’t save the current workout. Keep it open, then try starting a follow-up from Upper A again.",
+                "Blocked follow-up recovery should surface the save-for-later retry message when the current draft cannot be persisted"
+            )
+        }
+    }
+
+    func testStartFollowUpAfterPersistingActiveWorkout_successStartsNewDraft() {
+        let activeWorkout = Workout(name: "Current Draft")
+        let completedWorkout = Workout(name: "Upper A", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = completedWorkout.addSet(exercise: bench, weight: 185, reps: 8)
+
+        let result = viewModel.startFollowUpAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .saveForLater,
+            from: completedWorkout,
+            persist: { _ in true }
+        )
+
+        switch result {
+        case .success(let startedWorkout):
+            XCTAssertEqual(startedWorkout.name, "Follow-up: Upper A")
+            XCTAssertTrue(viewModel.currentWorkout === startedWorkout, "Successful follow-up recovery should update Home state to the new follow-up draft")
+        case .failure(let message):
+            XCTFail("Expected a follow-up workout after saving the current draft, got failure: \(message)")
+        }
     }
 
     func testPersistWorkoutForFreshStart_saveForLaterFailureDoesNotClearDiscardState() {

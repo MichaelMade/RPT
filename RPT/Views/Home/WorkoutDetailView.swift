@@ -249,6 +249,40 @@ struct WorkoutDetailView: View {
         }
     }
 
+    private func saveActiveWorkoutAndStartFollowUp(from workout: Workout) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch homeViewModel.startFollowUpAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .saveForLater,
+            from: workout,
+            persist: { WorkoutManager.shared.saveWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            activeWorkoutBinding = startedWorkout
+            showActiveWorkoutSheet = true
+        case .failure(let message):
+            homeViewModel.startWorkoutFailureMessage = message
+        }
+    }
+
+    private func discardActiveWorkoutAndStartFollowUp(from workout: Workout) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch homeViewModel.startFollowUpAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .discard,
+            from: workout,
+            persist: { WorkoutManager.shared.deleteWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            activeWorkoutBinding = startedWorkout
+            showActiveWorkoutSheet = true
+        case .failure(let message):
+            homeViewModel.startWorkoutFailureMessage = message
+        }
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -381,9 +415,15 @@ struct WorkoutDetailView: View {
                             Text("Current Workout In Progress")
                                 .font(.headline)
 
-                            Text(homeViewModel.startFreshWorkoutMessage(for: resumableWorkout))
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                            if homeViewModel.shouldOfferFollowUpRecovery(for: workout) {
+                                Text(homeViewModel.activeWorkoutBlocksFollowUpMessage(for: resumableWorkout, startingFrom: workout))
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text(homeViewModel.startFreshWorkoutMessage(for: resumableWorkout))
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
 
                             Button {
                                 activeWorkoutBinding = resumableWorkout
@@ -394,6 +434,24 @@ struct WorkoutDetailView: View {
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(.green)
+
+                            if homeViewModel.shouldOfferFollowUpRecovery(for: workout) {
+                                Button {
+                                    saveActiveWorkoutAndStartFollowUp(from: workout)
+                                } label: {
+                                    Label("Save & Start Follow-Up", systemImage: "square.and.arrow.down")
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .buttonStyle(.bordered)
+
+                                Button(role: .destructive) {
+                                    discardActiveWorkoutAndStartFollowUp(from: workout)
+                                } label: {
+                                    Label("Discard & Start Follow-Up", systemImage: "trash")
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .buttonStyle(.bordered)
+                            }
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
