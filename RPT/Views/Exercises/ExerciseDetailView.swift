@@ -7,11 +7,14 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct ExerciseDetailView: View {
     @Bindable var exercise: Exercise
     @State private var showingEditSheet = false
     @State private var recentHistory: [(workout: Workout, set: ExerciseSet)] = []
+    @State private var copiedWorkoutName: String?
+    @State private var showingCopySummaryAlert = false
     
     private let exerciseManager = ExerciseManager.shared
     private let workoutManager = WorkoutManager.shared
@@ -185,7 +188,7 @@ struct ExerciseDetailView: View {
                             .padding()
                     } else {
                         ForEach(Array(recentHistory.prefix(5).enumerated()), id: \.element.set.id) { _, entry in
-                            NavigationLink(destination: WorkoutDetailView(workout: entry.workout)) {
+                            VStack(alignment: .leading, spacing: 12) {
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(WorkoutDetailView.displayName(for: entry.workout))
@@ -194,11 +197,6 @@ struct ExerciseDetailView: View {
                                         Text(entry.workout.date, style: .date)
                                             .font(.caption)
                                             .foregroundColor(.secondary)
-
-                                        Label("Review Workout", systemImage: "chevron.right")
-                                            .font(.caption.weight(.semibold))
-                                            .labelStyle(.titleAndIcon)
-                                            .foregroundColor(.blue)
                                     }
 
                                     Spacer()
@@ -207,14 +205,33 @@ struct ExerciseDetailView: View {
                                         .font(.headline)
                                         .foregroundColor(.primary)
                                 }
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color(UIColor.tertiarySystemBackground))
-                                )
+
+                                HStack(spacing: 12) {
+                                    NavigationLink(destination: WorkoutDetailView(workout: entry.workout)) {
+                                        Label("Review Workout", systemImage: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(.blue)
+
+                                    Button {
+                                        copyWorkoutSummary(entry.workout)
+                                    } label: {
+                                        Label("Copy Summary", systemImage: "doc.on.doc")
+                                            .font(.caption.weight(.semibold))
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(.indigo)
+                                }
                             }
-                            .buttonStyle(.plain)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color(UIColor.tertiarySystemBackground))
+                            )
                         }
                     }
                 }
@@ -241,6 +258,13 @@ struct ExerciseDetailView: View {
         .sheet(isPresented: $showingEditSheet) {
             EditExerciseView(exercise: exercise)
         }
+        .alert("Workout Summary Copied", isPresented: $showingCopySummaryAlert) {
+            Button("OK", role: .cancel) {
+                copiedWorkoutName = nil
+            }
+        } message: {
+            Text(copySummaryMessage)
+        }
         .onAppear {
             loadRecentSets()
         }
@@ -250,5 +274,16 @@ struct ExerciseDetailView: View {
     private func loadRecentSets() {
         let history = workoutManager.getWorkoutHistory(for: exercise)
         recentHistory = Self.recentHistoryEntries(from: history)
+    }
+
+    private var copySummaryMessage: String {
+        let workoutName = copiedWorkoutName ?? "Workout"
+        return "Copied the summary for \(workoutName) so it’s ready to paste anywhere you need it."
+    }
+
+    private func copyWorkoutSummary(_ workout: Workout) {
+        UIPasteboard.general.string = workout.generateFormattedSummary()
+        copiedWorkoutName = WorkoutRow.displayName(for: workout)
+        showingCopySummaryAlert = true
     }
 }
