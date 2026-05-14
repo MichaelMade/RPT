@@ -418,16 +418,17 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
         ]
 
-        XCTAssertNil(
+        XCTAssertEqual(
             viewModel.singleSelectableExerciseActionTitle(for: bench),
-            "Without an active search or filter, picker lists should rely on normal row taps instead of extra add shortcuts"
+            "Add \"Bench Press\"",
+            "When only one visible exercise remains, picker lists should surface the same one-tap add shortcut even without an active search or filter"
         )
 
         viewModel.searchText = "bench"
         XCTAssertEqual(
             viewModel.singleSelectableExerciseActionTitle(for: bench),
             "Add \"Bench Press\"",
-            "Exact one-result picker searches should surface a one-tap add shortcut for the matched exercise"
+            "Exact one-result picker searches should still surface the same one-tap add shortcut for the matched exercise"
         )
 
         XCTAssertNil(

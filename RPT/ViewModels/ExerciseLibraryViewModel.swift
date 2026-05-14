@@ -171,8 +171,7 @@ class ExerciseLibraryViewModel: ObservableObject {
     }
 
     func singleSelectableExerciseActionTitle(for exercise: Exercise?) -> String? {
-        guard hasActiveQuery,
-              !exercises.isEmpty,
+        guard !exercises.isEmpty,
               let exercise else {
             return nil
         }
