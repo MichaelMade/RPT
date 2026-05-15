@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Details history cards now expose a direct `Delete from History` action with the same named confirmation used elsewhere, so users can remove a bad logged workout the moment it shows up in movement history instead of backing out through Workout Details or Home first.
 - Exercise Details history cards now expose direct `Start Follow-Up` recovery from the same recent-set context — including `Continue Current Workout`, `Save & Start Follow-Up`, and `Discard & Start Follow-Up` when another draft is already active — so progression-based repeats no longer require drilling into Workout Details first.
 - Exercise Details history cards now show relative workout timestamps plus the source template’s current resolved name when available, so same-day lift history stays distinguishable and template context survives renames without opening each workout first.
 - Home `Recent Workouts` now prefers each source template’s current resolved name in the visible row subtitle, so renamed routines stop looking stale in history while older workouts still fall back safely to their remembered template label.
@@ -212,6 +213,7 @@ RPT/
 
 ## Recent Improvements
 
+- Exercise Details history cards now expose a direct `Delete from History` action with the same named confirmation used on Home and Workout Details, so users can remove a bad logged workout as soon as it stands out in exercise history without backing out through other screens; validated with `git diff --check` plus targeted source inspection.
 - Exercise Details history cards now show relative workout timestamps plus the source template’s current resolved name when available, so same-day lift history stays distinguishable and renamed source plans remain recognizable without opening each workout first; validated with `git diff --check` plus targeted source inspection.
 - Home `Recent Workouts` now prefers the resolved template’s current name in each row subtitle when stable-ID lookup finds a renamed source routine, so history stays in sync with the plan users will actually open while still falling back to the stored legacy name when needed; added regression coverage in `FormattingTests`.
 - Exercise Details history cards now add a direct `Open Template` shortcut whenever the reviewed workout still resolves back to its source plan, so users can jump from an exercise’s recent best set straight into the original routine without detouring through Home first; validated with `git diff --check` plus targeted source inspection.

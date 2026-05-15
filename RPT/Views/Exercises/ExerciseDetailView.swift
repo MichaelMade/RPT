@@ -18,6 +18,8 @@ struct ExerciseDetailView: View {
     @State private var selectedSourceTemplate: WorkoutTemplate?
     @State private var copiedWorkoutName: String?
     @State private var showingCopySummaryAlert = false
+    @State private var workoutToDelete: Workout?
+    @State private var showingDeleteWorkoutAlert = false
     @State private var localActiveWorkout: Workout?
     @State private var showingLocalActiveWorkoutSheet = false
     @State private var templateStartFailureMessage: String?
@@ -307,6 +309,16 @@ struct ExerciseDetailView: View {
                                     }
                                     .buttonStyle(.bordered)
                                     .tint(.indigo)
+
+                                    Button(role: .destructive) {
+                                        workoutToDelete = entry.workout
+                                        showingDeleteWorkoutAlert = true
+                                    } label: {
+                                        Label("Delete from History", systemImage: "trash")
+                                            .font(.caption.weight(.semibold))
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .buttonStyle(.bordered)
                                 }
                             }
                             .padding(.vertical, 8)
@@ -366,6 +378,29 @@ struct ExerciseDetailView: View {
             }
         } message: {
             Text(copySummaryMessage)
+        }
+        .alert("Delete Workout?", isPresented: $showingDeleteWorkoutAlert) {
+            Button("Delete", role: .destructive) {
+                guard let workoutToDelete else {
+                    return
+                }
+
+                guard homeViewModel.deleteRecentWorkout(workoutToDelete) else {
+                    return
+                }
+
+                recentHistory.removeAll { $0.workout.id == workoutToDelete.id }
+                if copiedWorkoutName == WorkoutRow.displayName(for: workoutToDelete) {
+                    copiedWorkoutName = nil
+                }
+                self.workoutToDelete = nil
+            }
+
+            Button("Cancel", role: .cancel) {
+                workoutToDelete = nil
+            }
+        } message: {
+            Text(workoutToDelete.map(homeViewModel.deleteRecentWorkoutMessage(for:)) ?? "")
         }
         .alert("Workout Action Failed", isPresented: Binding(
             get: { templateStartFailureMessage != nil },
