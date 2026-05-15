@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Details history cards now add a direct `Open Template` shortcut whenever a past set came from a template that still exists, so users can jump from a movement’s best recent performance straight back into the source routine without hunting through Home or Workout Details first.
 - Workout Details now reopens its own active-workout sheet when launched from Exercise Details history, so `Follow-Up`, `Resume Current Workout`, and template handoff actions still land inside the live session instead of silently creating a draft with no sheet presentation.
 - Home single-workout `Open Template` quick actions now prefer the resolved template’s current name when stable-ID lookup finds a renamed source routine, so the shortcut label matches the plan users actually open instead of showing a stale remembered title.
 - Home and Workout Details now share a stricter source-template lookup that ignores blank remembered template names while still preferring stable template IDs, preventing false `Open Template` links to a real template literally named `Template`.
@@ -206,6 +207,7 @@ RPT/
 
 ## Recent Improvements
 
+- Exercise Details history cards now add a direct `Open Template` shortcut whenever the reviewed workout still resolves back to its source plan, so users can jump from an exercise’s recent best set straight into the original routine without detouring through Home first; validated with `git diff --check` plus targeted source inspection.
 - Workout Details now reopens its own active-workout sheet when it was opened standalone from Exercise Details history, so `Follow-Up`, `Resume Current Workout`, and template handoff actions still surface the live workout instead of mutating state behind the current screen; validated with `git diff --check` plus targeted source inspection.
 - Home and Workout Details now share a stricter source-template resolver that prefers the persisted template ID, falls back to non-blank remembered names for legacy history, and refuses to treat blank template strings as a real `Template`; added regression coverage in `TemplateManagerTests`.
 - Template-based workout history now stores the source template’s stable ID alongside its name, so `Open Template` shortcuts from Home and Workout Details still find the right template after a rename; added regression coverage in `TemplateManagerTests` and `WorkoutManagerTests`, with legacy name-based fallback preserved for older workouts.

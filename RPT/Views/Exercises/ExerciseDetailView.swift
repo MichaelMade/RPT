@@ -13,11 +13,12 @@ struct ExerciseDetailView: View {
     @Bindable var exercise: Exercise
     @State private var showingEditSheet = false
     @State private var recentHistory: [(workout: Workout, set: ExerciseSet)] = []
+    @State private var selectedSourceTemplate: WorkoutTemplate?
     @State private var copiedWorkoutName: String?
     @State private var showingCopySummaryAlert = false
     
-    private let exerciseManager = ExerciseManager.shared
     private let workoutManager = WorkoutManager.shared
+    private let templateManager = TemplateManager.shared
 
     static func displayName(for exercise: Exercise) -> String {
         let collapsedName = exercise.name
@@ -206,14 +207,28 @@ struct ExerciseDetailView: View {
                                         .foregroundColor(.primary)
                                 }
 
-                                HStack(spacing: 12) {
-                                    NavigationLink(destination: WorkoutDetailView(workout: entry.workout)) {
-                                        Label("Review Workout", systemImage: "chevron.right")
-                                            .font(.caption.weight(.semibold))
-                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                VStack(spacing: 8) {
+                                    HStack(spacing: 12) {
+                                        NavigationLink(destination: WorkoutDetailView(workout: entry.workout)) {
+                                            Label("Review Workout", systemImage: "chevron.right")
+                                                .font(.caption.weight(.semibold))
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .tint(.blue)
+
+                                        if let sourceTemplate = sourceTemplate(for: entry.workout) {
+                                            Button {
+                                                selectedSourceTemplate = sourceTemplate
+                                            } label: {
+                                                Label("Open Template", systemImage: "square.on.square")
+                                                    .font(.caption.weight(.semibold))
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                            }
+                                            .buttonStyle(.bordered)
+                                            .tint(.purple)
+                                        }
                                     }
-                                    .buttonStyle(.bordered)
-                                    .tint(.blue)
 
                                     Button {
                                         copyWorkoutSummary(entry.workout)
@@ -258,6 +273,9 @@ struct ExerciseDetailView: View {
         .sheet(isPresented: $showingEditSheet) {
             EditExerciseView(exercise: exercise)
         }
+        .navigationDestination(item: $selectedSourceTemplate) { template in
+            TemplateDetailView(template: template)
+        }
         .alert("Workout Summary Copied", isPresented: $showingCopySummaryAlert) {
             Button("OK", role: .cancel) {
                 copiedWorkoutName = nil
@@ -279,6 +297,10 @@ struct ExerciseDetailView: View {
     private var copySummaryMessage: String {
         let workoutName = copiedWorkoutName ?? "Workout"
         return "Copied the summary for \(workoutName) so it’s ready to paste anywhere you need it."
+    }
+
+    private func sourceTemplate(for workout: Workout) -> WorkoutTemplate? {
+        templateManager.sourceTemplate(for: workout)
     }
 
     private func copyWorkoutSummary(_ workout: Workout) {
