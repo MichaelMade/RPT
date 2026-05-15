@@ -226,6 +226,15 @@ struct WorkoutDetailView: View {
         showingLocalActiveWorkoutSheet = true
     }
 
+    private func startWorkout(from template: WorkoutTemplate) {
+        guard let startedWorkout = templateViewModel.createWorkoutFromTemplate(template) else {
+            homeViewModel.startWorkoutFailureMessage = "Your template workout could not be started right now. Please try again."
+            return
+        }
+
+        openStartedWorkout(startedWorkout)
+    }
+
     private func saveActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
         guard let activeWorkout = protectedResumableWorkout() else { return }
 
@@ -341,9 +350,51 @@ struct WorkoutDetailView: View {
                             .font(.headline)
 
                         if let sourceTemplate {
-                            Text("This workout started from \(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name)). Open it to review the original plan, notes, and current start state.")
+                            Text("This workout started from \(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name)). Review the original plan or jump straight back into a fresh run from here.")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
+
+                            if let activeWorkout = protectedResumableWorkout() {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(templateViewModel.activeWorkoutBlocksTemplateStartMessage(for: activeWorkout, opening: sourceTemplate))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+
+                                    Button {
+                                        openStartedWorkout(activeWorkout)
+                                    } label: {
+                                        Label("Continue Current Workout", systemImage: "arrow.clockwise.circle.fill")
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(.green)
+
+                                    Button {
+                                        saveActiveWorkoutAndOpenTemplate(sourceTemplate)
+                                    } label: {
+                                        Label("Save & Start Template", systemImage: "square.and.arrow.down")
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .buttonStyle(.bordered)
+
+                                    Button(role: .destructive) {
+                                        discardActiveWorkoutAndOpenTemplate(sourceTemplate)
+                                    } label: {
+                                        Label("Discard & Start Template", systemImage: "trash")
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .buttonStyle(.bordered)
+                                }
+                            } else {
+                                Button {
+                                    startWorkout(from: sourceTemplate)
+                                } label: {
+                                    Label("Start Template “\(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name))”", systemImage: "play.fill")
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(.green)
+                            }
 
                             NavigationLink {
                                 TemplateDetailView(

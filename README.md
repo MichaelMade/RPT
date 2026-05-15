@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Details source-template cards now add a direct `Start Template “…”` action plus `Continue Current Workout`, `Save & Start Template`, and `Discard & Start Template` recovery when another draft is already active, so users can jump from reviewing a past session straight into rerunning that plan without detouring through Template Details first.
 - Delete confirmations for saved workout history now reuse the same honest fallback summaries shown in `Recent Workouts`, so warm-up-only or empty imported sessions warn with `Warm-up sets only` / `No sets logged` instead of noisy zero-count metrics before destructive cleanup.
 - Home’s single recent-workout `Quick Actions` card now mirrors the same blocked follow-up recovery used in Workout Details and Exercise Details — including `Continue Current Workout`, `Save & Start Follow-Up`, and `Discard & Start Follow-Up` — so progression-based repeats no longer dead-end on Home when another draft is already in progress.
 - Home recent-workout swipe actions and Exercise Details history cards now name the exact source routine in their `Open Template “…”` shortcut when a template-based workout still resolves back to a live plan, so template handoffs from history stay clearer after renames and more consistent with Workout Details.
@@ -216,6 +217,7 @@ RPT/
 
 ## Recent Improvements
 
+- Workout Details source-template cards now add a direct `Start Template “…”` action plus `Continue Current Workout`, `Save & Start Template`, and `Discard & Start Template` recovery when another draft is already active, so users can jump from reviewing a past session straight into rerunning that plan without detouring through Template Details first; validated with `git diff --check` plus targeted source inspection.
 - Delete confirmations for saved workout history now reuse the same fallback summary language as `Recent Workouts`, so warm-up-only or empty imported sessions warn with `Warm-up sets only` / `No sets logged` instead of awkward zero-count metrics before removal; added regression coverage in `HomeViewModelTests`.
 - Home’s single recent-workout `Quick Actions` card now mirrors the same blocked follow-up recovery used in Workout Details and Exercise Details — including `Continue Current Workout`, `Save & Start Follow-Up`, and `Discard & Start Follow-Up` — so progression-based repeats no longer dead-end on Home when another draft is already in progress; validated with `git diff --check` plus targeted source inspection.
 - Home recent-workout swipe actions and Exercise Details history cards now name the exact source routine in their `Open Template “…”` shortcut whenever a template-based workout still resolves back to a live plan, so template handoffs from history stay clearer after renames and more consistent with Workout Details; validated with `git diff --check` plus targeted source inspection.
