@@ -19,8 +19,10 @@ struct HomeView: View {
     @State private var showingStartFreshAlert = false
     @State private var showingDeleteWorkoutAlert = false
     @State private var showingCopySummaryAlert = false
+    @State private var showingFollowUpRecoveryAlert = false
     @State private var resumableWorkoutToReplace: Workout?
     @State private var workoutToDelete: Workout?
+    @State private var workoutToStartFollowUp: Workout?
     @State private var copiedWorkoutName: String?
     @State private var startFreshFailureMessage: String?
     @StateObject private var workoutStateManager = WorkoutStateManager.shared
@@ -292,7 +294,16 @@ struct HomeView: View {
                                 .buttonStyle(PlainButtonStyle())
                                 .padding(.horizontal)
                                 .swipeActions(edge: .trailing) {
-                                    if viewModel.canStartFollowUpWorkout(from: workout, activeWorkout: activeWorkoutBinding) {
+                                    if protectedResumableWorkout() != nil,
+                                       viewModel.shouldOfferFollowUpRecovery(for: workout) {
+                                        Button {
+                                            workoutToStartFollowUp = workout
+                                            showingFollowUpRecoveryAlert = true
+                                        } label: {
+                                            Label("Follow-Up", systemImage: "arrow.triangle.2.circlepath")
+                                        }
+                                        .tint(.green)
+                                    } else if viewModel.canStartFollowUpWorkout(from: workout, activeWorkout: activeWorkoutBinding) {
                                         Button {
                                             startFollowUpWorkout(from: workout)
                                         } label: {
@@ -509,6 +520,37 @@ struct HomeView: View {
             } message: {
                 if let workoutToDelete {
                     Text(viewModel.deleteRecentWorkoutMessage(for: workoutToDelete))
+                }
+            }
+            .alert("Current Workout In Progress", isPresented: $showingFollowUpRecoveryAlert) {
+                Button("Continue Current Workout") {
+                    if let resumableWorkout = protectedResumableWorkout() {
+                        openStartedWorkout(resumableWorkout)
+                    }
+                    workoutToStartFollowUp = nil
+                }
+
+                Button("Save & Start Follow-Up") {
+                    if let workoutToStartFollowUp {
+                        saveActiveWorkoutAndStartFollowUp(from: workoutToStartFollowUp)
+                    }
+                    self.workoutToStartFollowUp = nil
+                }
+
+                Button("Discard & Start Follow-Up", role: .destructive) {
+                    if let workoutToStartFollowUp {
+                        discardActiveWorkoutAndStartFollowUp(from: workoutToStartFollowUp)
+                    }
+                    self.workoutToStartFollowUp = nil
+                }
+
+                Button("Cancel", role: .cancel) {
+                    workoutToStartFollowUp = nil
+                }
+            } message: {
+                if let workoutToStartFollowUp,
+                   let resumableWorkout = protectedResumableWorkout() {
+                    Text(viewModel.activeWorkoutBlocksFollowUpMessage(for: resumableWorkout, startingFrom: workoutToStartFollowUp))
                 }
             }
             .alert("Workout Summary Copied", isPresented: $showingCopySummaryAlert) {
