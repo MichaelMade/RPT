@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s single recent-workout `Quick Actions` card now mirrors the same blocked follow-up recovery used in Workout Details and Exercise Details — including `Continue Current Workout`, `Save & Start Follow-Up`, and `Discard & Start Follow-Up` — so progression-based repeats no longer dead-end on Home when another draft is already in progress.
 - Home recent-workout swipe actions and Exercise Details history cards now name the exact source routine in their `Open Template “…”` shortcut when a template-based workout still resolves back to a live plan, so template handoffs from history stay clearer after renames and more consistent with Workout Details.
 - Exercise Details history cards now expose a direct `Delete from History` action with the same named confirmation used elsewhere, so users can remove a bad logged workout the moment it shows up in movement history instead of backing out through Workout Details or Home first.
 - Exercise Details history cards now expose direct `Start Follow-Up` recovery from the same recent-set context — including `Continue Current Workout`, `Save & Start Follow-Up`, and `Discard & Start Follow-Up` when another draft is already active — so progression-based repeats no longer require drilling into Workout Details first.
@@ -214,6 +215,7 @@ RPT/
 
 ## Recent Improvements
 
+- Home’s single recent-workout `Quick Actions` card now mirrors the same blocked follow-up recovery used in Workout Details and Exercise Details — including `Continue Current Workout`, `Save & Start Follow-Up`, and `Discard & Start Follow-Up` — so progression-based repeats no longer dead-end on Home when another draft is already in progress; validated with `git diff --check` plus targeted source inspection.
 - Home recent-workout swipe actions and Exercise Details history cards now name the exact source routine in their `Open Template “…”` shortcut whenever a template-based workout still resolves back to a live plan, so template handoffs from history stay clearer after renames and more consistent with Workout Details; validated with `git diff --check` plus targeted source inspection.
 - Exercise Details history cards now expose a direct `Delete from History` action with the same named confirmation used on Home and Workout Details, so users can remove a bad logged workout as soon as it stands out in exercise history without backing out through other screens; validated with `git diff --check` plus targeted source inspection.
 - Exercise Details history cards now show relative workout timestamps plus the source template’s current resolved name when available, so same-day lift history stays distinguishable and renamed source plans remain recognizable without opening each workout first; validated with `git diff --check` plus targeted source inspection.

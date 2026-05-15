@@ -343,7 +343,39 @@ struct HomeView: View {
                                     Text("Quick Actions")
                                         .font(.headline)
 
-                                    if viewModel.canStartFollowUpWorkout(from: matchedWorkout, activeWorkout: activeWorkoutBinding) {
+                                    if let resumableWorkout = protectedResumableWorkout(),
+                                       viewModel.shouldOfferFollowUpRecovery(for: matchedWorkout) {
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Text(viewModel.activeWorkoutBlocksFollowUpMessage(for: resumableWorkout, startingFrom: matchedWorkout))
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+
+                                            Button {
+                                                openStartedWorkout(resumableWorkout)
+                                            } label: {
+                                                Label("Continue Current Workout", systemImage: "arrow.clockwise.circle.fill")
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                            }
+                                            .buttonStyle(.borderedProminent)
+                                            .tint(.green)
+
+                                            Button {
+                                                saveActiveWorkoutAndStartFollowUp(from: matchedWorkout)
+                                            } label: {
+                                                Label("Save & Start Follow-Up", systemImage: "square.and.arrow.down")
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                            }
+                                            .buttonStyle(.bordered)
+
+                                            Button(role: .destructive) {
+                                                discardActiveWorkoutAndStartFollowUp(from: matchedWorkout)
+                                            } label: {
+                                                Label("Discard & Start Follow-Up", systemImage: "trash")
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                            }
+                                            .buttonStyle(.bordered)
+                                        }
+                                    } else if viewModel.canStartFollowUpWorkout(from: matchedWorkout, activeWorkout: activeWorkoutBinding) {
                                         Button {
                                             startFollowUpWorkout(from: matchedWorkout)
                                         } label: {
@@ -619,6 +651,38 @@ struct HomeView: View {
 
         activeWorkoutBinding = nil
         startFreshWorkout()
+    }
+
+    private func saveActiveWorkoutAndStartFollowUp(from workout: Workout) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch viewModel.startFollowUpAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .saveForLater,
+            from: workout,
+            persist: { WorkoutManager.shared.saveWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            openStartedWorkout(startedWorkout)
+        case .failure(let message):
+            viewModel.startWorkoutFailureMessage = message
+        }
+    }
+
+    private func discardActiveWorkoutAndStartFollowUp(from workout: Workout) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch viewModel.startFollowUpAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .discard,
+            from: workout,
+            persist: { WorkoutManager.shared.deleteWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            openStartedWorkout(startedWorkout)
+        case .failure(let message):
+            viewModel.startWorkoutFailureMessage = message
+        }
     }
 
     private func copyWorkoutSummary(_ workout: Workout) {
