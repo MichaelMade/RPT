@@ -216,6 +216,14 @@ final class FormattingTests: XCTestCase {
         let blankTemplateWorkout = Workout(name: "Push", startedFromTemplate: "   \n  ")
         XCTAssertNil(WorkoutRow.templateOriginName(for: blankTemplateWorkout))
         XCTAssertNil(WorkoutRow.templateOriginText(for: blankTemplateWorkout))
+        XCTAssertEqual(
+            WorkoutRow.templateOriginName(for: blankTemplateWorkout, resolvedTemplateName: "  Renamed   Upper A  "),
+            "Renamed Upper A"
+        )
+        XCTAssertEqual(
+            WorkoutRow.templateOriginText(for: blankTemplateWorkout, resolvedTemplateName: "  Renamed   Upper A  "),
+            "Template • Renamed Upper A"
+        )
     }
 
     func testWorkoutRowRelativeDateText_formatsTodayWithTime() {

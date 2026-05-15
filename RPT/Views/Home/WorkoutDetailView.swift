@@ -180,12 +180,16 @@ struct WorkoutDetailView: View {
         self.managesActiveWorkoutExternally = true
     }
 
-    private var sourceTemplateName: String? {
-        WorkoutRow.templateOriginName(for: workout)
-    }
-
     private var sourceTemplate: WorkoutTemplate? {
         templateManager.sourceTemplate(for: workout)
+    }
+
+    private var sourceTemplateName: String? {
+        WorkoutRow.templateOriginName(for: workout, resolvedTemplateName: sourceTemplate?.name)
+    }
+
+    private var sourceTemplateOriginText: String? {
+        WorkoutRow.templateOriginText(for: workout, resolvedTemplateName: sourceTemplate?.name)
     }
 
     private func protectedResumableWorkout() -> Workout? {
@@ -297,7 +301,7 @@ struct WorkoutDetailView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
 
-                        if let templateOriginText = WorkoutRow.templateOriginText(for: workout) {
+                        if let templateOriginText = sourceTemplateOriginText {
                             Text(templateOriginText)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
