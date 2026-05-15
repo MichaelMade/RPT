@@ -11,11 +11,15 @@ import UIKit
 
 struct ExerciseDetailView: View {
     @Bindable var exercise: Exercise
+    @StateObject private var templateViewModel = TemplateViewModel()
     @State private var showingEditSheet = false
     @State private var recentHistory: [(workout: Workout, set: ExerciseSet)] = []
     @State private var selectedSourceTemplate: WorkoutTemplate?
     @State private var copiedWorkoutName: String?
     @State private var showingCopySummaryAlert = false
+    @State private var localActiveWorkout: Workout?
+    @State private var showingLocalActiveWorkoutSheet = false
+    @State private var templateStartFailureMessage: String?
     
     private let workoutManager = WorkoutManager.shared
     private let templateManager = TemplateManager.shared
@@ -274,7 +278,23 @@ struct ExerciseDetailView: View {
             EditExerciseView(exercise: exercise)
         }
         .navigationDestination(item: $selectedSourceTemplate) { template in
-            TemplateDetailView(template: template)
+            TemplateDetailView(
+                template: template,
+                onStartWorkout: { openStartedWorkout($0) },
+                onEditTemplate: nil,
+                onDuplicateTemplate: nil,
+                onResumeActiveWorkout: protectedResumableWorkout() == nil ? nil : {
+                    guard let activeWorkout = protectedResumableWorkout() else { return }
+                    openStartedWorkout(activeWorkout)
+                },
+                onSaveActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil ? nil : {
+                    saveActiveWorkoutAndOpenTemplate(template)
+                },
+                onDiscardActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil ? nil : {
+                    discardActiveWorkoutAndOpenTemplate(template)
+                },
+                activeWorkoutBlockMessage: sourceTemplateBlockMessage(for: template)
+            )
         }
         .alert("Workout Summary Copied", isPresented: $showingCopySummaryAlert) {
             Button("OK", role: .cancel) {
@@ -282,6 +302,29 @@ struct ExerciseDetailView: View {
             }
         } message: {
             Text(copySummaryMessage)
+        }
+        .alert("Workout Action Failed", isPresented: Binding(
+            get: { templateStartFailureMessage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    templateStartFailureMessage = nil
+                }
+            }
+        )) {
+            Button("OK", role: .cancel) {
+                templateStartFailureMessage = nil
+            }
+        } message: {
+            Text(templateStartFailureMessage ?? "")
+        }
+        .sheet(isPresented: $showingLocalActiveWorkoutSheet, onDismiss: {
+            if localActiveWorkout?.isCompleted == true {
+                localActiveWorkout = nil
+            }
+        }) {
+            if let localActiveWorkout {
+                ActiveWorkoutView(workout: localActiveWorkout)
+            }
         }
         .onAppear {
             loadRecentSets()
@@ -301,6 +344,66 @@ struct ExerciseDetailView: View {
 
     private func sourceTemplate(for workout: Workout) -> WorkoutTemplate? {
         templateManager.sourceTemplate(for: workout)
+    }
+
+    private func protectedResumableWorkout() -> Workout? {
+        WorkoutStateManager.shared.resolvedResumableWorkout(
+            currentBinding: localActiveWorkout,
+            fallbackWorkouts: workoutManager.getIncompleteWorkouts()
+        )
+    }
+
+    private func sourceTemplateBlockMessage(for template: WorkoutTemplate) -> String? {
+        guard let activeWorkout = protectedResumableWorkout() else {
+            return nil
+        }
+
+        let activeWorkoutName = WorkoutRow.displayName(for: activeWorkout)
+        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let templateSuffix = templateName == "Template"
+            ? "before starting this template."
+            : "before starting \(templateName)."
+
+        return activeWorkoutName == "Workout"
+            ? "You already have a workout in progress. Continue it \(templateSuffix)"
+            : "You already have \(activeWorkoutName) in progress. Continue it \(templateSuffix)"
+    }
+
+    private func openStartedWorkout(_ startedWorkout: Workout) {
+        localActiveWorkout = startedWorkout
+        showingLocalActiveWorkoutSheet = true
+    }
+
+    private func saveActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch templateViewModel.startTemplateAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .saveForLater,
+            opening: template,
+            persist: { workoutManager.saveWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            openStartedWorkout(startedWorkout)
+        case .failure(let message):
+            templateStartFailureMessage = message
+        }
+    }
+
+    private func discardActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
+        guard let activeWorkout = protectedResumableWorkout() else { return }
+
+        switch templateViewModel.startTemplateAfterPersistingActiveWorkout(
+            activeWorkout,
+            action: .discard,
+            opening: template,
+            persist: { workoutManager.deleteWorkoutSafely($0) }
+        ) {
+        case .success(let startedWorkout):
+            openStartedWorkout(startedWorkout)
+        case .failure(let message):
+            templateStartFailureMessage = message
+        }
     }
 
     private func copyWorkoutSummary(_ workout: Workout) {

@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Details `Open Template` flows now reopen their own active-workout sheet and carry the same save/discard/resume conflict recovery used elsewhere, so starting a template from exercise history no longer risks a broken handoff when another workout is already in progress.
 - Exercise Details history cards now add a direct `Open Template` shortcut whenever a past set came from a template that still exists, so users can jump from a movement’s best recent performance straight back into the source routine without hunting through Home or Workout Details first.
 - Workout Details now reopens its own active-workout sheet when launched from Exercise Details history, so `Follow-Up`, `Resume Current Workout`, and template handoff actions still land inside the live session instead of silently creating a draft with no sheet presentation.
 - Home single-workout `Open Template` quick actions now prefer the resolved template’s current name when stable-ID lookup finds a renamed source routine, so the shortcut label matches the plan users actually open instead of showing a stale remembered title.
