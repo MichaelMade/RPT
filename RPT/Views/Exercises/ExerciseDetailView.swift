@@ -193,15 +193,26 @@ struct ExerciseDetailView: View {
                             .padding()
                     } else {
                         ForEach(Array(recentHistory.prefix(5).enumerated()), id: \.element.set.id) { _, entry in
+                            let sourceTemplate = sourceTemplate(for: entry.workout)
+
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(WorkoutDetailView.displayName(for: entry.workout))
                                             .font(.subheadline)
 
-                                        Text(entry.workout.date, style: .date)
+                                        Text(WorkoutRow.relativeDateText(for: entry.workout.date))
                                             .font(.caption)
                                             .foregroundColor(.secondary)
+
+                                        if let templateOriginText = WorkoutRow.templateOriginText(
+                                            for: entry.workout,
+                                            resolvedTemplateName: sourceTemplate?.name
+                                        ) {
+                                            Text(templateOriginText)
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+                                        }
                                     }
 
                                     Spacer()
@@ -221,7 +232,7 @@ struct ExerciseDetailView: View {
                                         .buttonStyle(.bordered)
                                         .tint(.blue)
 
-                                        if let sourceTemplate = sourceTemplate(for: entry.workout) {
+                                        if let sourceTemplate {
                                             Button {
                                                 selectedSourceTemplate = sourceTemplate
                                             } label: {
