@@ -415,6 +415,76 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testDeleteRecentWorkoutMessage_usesWarmupOnlyFallbackCopy() {
+        var calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+        let workoutDate = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 13,
+            hour: 6,
+            minute: 45
+        ).date!
+        let now = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 13,
+            hour: 8,
+            minute: 0
+        ).date!
+
+        let workout = Workout(date: workoutDate, name: "Warm-up Only", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+
+        let message = viewModel.deleteRecentWorkoutMessage(for: workout, now: now)
+
+        XCTAssertEqual(
+            message,
+            "Delete Warm-up Only from history? Today • 6:45 AM • Warm-up sets only will be removed from your saved workout history.",
+            "Delete confirmation should reuse the warm-up-only fallback copy instead of implying that real working sets were logged"
+        )
+    }
+
+    func testDeleteRecentWorkoutMessage_usesNoSetsLoggedFallbackCopy() {
+        var calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+        let workoutDate = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 13,
+            hour: 6,
+            minute: 45
+        ).date!
+        let now = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 13,
+            hour: 8,
+            minute: 0
+        ).date!
+
+        let workout = Workout(date: workoutDate, name: "Imported Session", isCompleted: true)
+
+        let message = viewModel.deleteRecentWorkoutMessage(for: workout, now: now)
+
+        XCTAssertEqual(
+            message,
+            "Delete Imported Session from history? Today • 6:45 AM • No sets logged will be removed from your saved workout history.",
+            "Delete confirmation should stay honest for empty completed history entries instead of showing noisy zero-count metrics"
+        )
+    }
+
     func testDeleteRecentWorkoutFailureMessage_usesFallbackWorkoutName() {
         let workout = Workout(name: "   ", isCompleted: true)
 

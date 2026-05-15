@@ -360,11 +360,14 @@ class HomeViewModel: ObservableObject {
 
     func deleteRecentWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
-        let summaryParts = [
-            WorkoutRow.relativeDateText(for: workout.date, now: now),
-            WorkoutRow.exerciseCountText(for: workout),
-            WorkoutRow.setCountText(for: workout)
-        ]
+        var summaryParts = [WorkoutRow.relativeDateText(for: workout.date, now: now)]
+
+        if let countsFallbackText = WorkoutRow.countsFallbackText(for: workout) {
+            summaryParts.append(countsFallbackText)
+        } else {
+            summaryParts.append(WorkoutRow.exerciseCountText(for: workout))
+            summaryParts.append(WorkoutRow.setCountText(for: workout))
+        }
 
         return "Delete \(displayName) from history? \(summaryParts.joined(separator: " • ")) will be removed from your saved workout history."
     }
