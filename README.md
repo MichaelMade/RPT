@@ -1,5 +1,6 @@
 # RPT
 
+- Home recent-workout swipe actions and Exercise Details history cards now name the exact source routine in their `Open Template “…”` shortcut when a template-based workout still resolves back to a live plan, so template handoffs from history stay clearer after renames and more consistent with Workout Details.
 - Exercise Details history cards now expose a direct `Delete from History` action with the same named confirmation used elsewhere, so users can remove a bad logged workout the moment it shows up in movement history instead of backing out through Workout Details or Home first.
 - Exercise Details history cards now expose direct `Start Follow-Up` recovery from the same recent-set context — including `Continue Current Workout`, `Save & Start Follow-Up`, and `Discard & Start Follow-Up` when another draft is already active — so progression-based repeats no longer require drilling into Workout Details first.
 - Exercise Details history cards now show relative workout timestamps plus the source template’s current resolved name when available, so same-day lift history stays distinguishable and template context survives renames without opening each workout first.
@@ -213,6 +214,7 @@ RPT/
 
 ## Recent Improvements
 
+- Home recent-workout swipe actions and Exercise Details history cards now name the exact source routine in their `Open Template “…”` shortcut whenever a template-based workout still resolves back to a live plan, so template handoffs from history stay clearer after renames and more consistent with Workout Details; validated with `git diff --check` plus targeted source inspection.
 - Exercise Details history cards now expose a direct `Delete from History` action with the same named confirmation used on Home and Workout Details, so users can remove a bad logged workout as soon as it stands out in exercise history without backing out through other screens; validated with `git diff --check` plus targeted source inspection.
 - Exercise Details history cards now show relative workout timestamps plus the source template’s current resolved name when available, so same-day lift history stays distinguishable and renamed source plans remain recognizable without opening each workout first; validated with `git diff --check` plus targeted source inspection.
 - Home `Recent Workouts` now prefers the resolved template’s current name in each row subtitle when stable-ID lookup finds a renamed source routine, so history stays in sync with the plan users will actually open while still falling back to the stored legacy name when needed; added regression coverage in `FormattingTests`.

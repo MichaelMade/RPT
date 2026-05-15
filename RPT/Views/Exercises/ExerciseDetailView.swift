@@ -235,11 +235,15 @@ struct ExerciseDetailView: View {
                                         .buttonStyle(.bordered)
                                         .tint(.blue)
 
-                                        if let sourceTemplate {
+                                        if let sourceTemplate,
+                                           let sourceTemplateQuickActionTitle = homeViewModel.sourceTemplateQuickActionTitle(
+                                            for: entry.workout,
+                                            resolvedTemplateName: sourceTemplate.name
+                                           ) {
                                             Button {
                                                 selectedSourceTemplate = sourceTemplate
                                             } label: {
-                                                Label("Open Template", systemImage: "square.on.square")
+                                                Label(sourceTemplateQuickActionTitle, systemImage: "square.on.square")
                                                     .font(.caption.weight(.semibold))
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                             }

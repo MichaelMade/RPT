@@ -308,11 +308,15 @@ struct HomeView: View {
                                     }
                                     .tint(.indigo)
 
-                                    if let sourceTemplate = sourceTemplate(for: workout) {
+                                    if let sourceTemplate = sourceTemplate(for: workout),
+                                       let sourceTemplateQuickActionTitle = viewModel.sourceTemplateQuickActionTitle(
+                                        for: workout,
+                                        resolvedTemplateName: sourceTemplate.name
+                                       ) {
                                         Button {
                                             selectedSourceTemplate = sourceTemplate
                                         } label: {
-                                            Label("Open Template", systemImage: "square.on.square")
+                                            Label(sourceTemplateQuickActionTitle, systemImage: "square.on.square")
                                         }
                                         .tint(.purple)
                                     }
