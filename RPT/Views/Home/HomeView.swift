@@ -284,7 +284,10 @@ struct HomeView: View {
                                 Button(action: {
                                     selectedWorkout = workout
                                 }) {
-                                    WorkoutRow(workout: workout)
+                                    WorkoutRow(
+                                        workout: workout,
+                                        resolvedTemplateName: sourceTemplate(for: workout)?.name
+                                    )
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 .padding(.horizontal)

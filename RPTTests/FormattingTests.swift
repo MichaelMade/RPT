@@ -204,6 +204,14 @@ final class FormattingTests: XCTestCase {
         let templatedWorkout = Workout(name: "Push", startedFromTemplate: "  Upper  Body\nA  ")
         XCTAssertEqual(WorkoutRow.templateOriginName(for: templatedWorkout), "Upper Body A")
         XCTAssertEqual(WorkoutRow.templateOriginText(for: templatedWorkout), "Template • Upper Body A")
+        XCTAssertEqual(
+            WorkoutRow.templateOriginName(for: templatedWorkout, resolvedTemplateName: "  Renamed  Upper\nBody A  "),
+            "Renamed Upper Body A"
+        )
+        XCTAssertEqual(
+            WorkoutRow.templateOriginText(for: templatedWorkout, resolvedTemplateName: "  Renamed  Upper\nBody A  "),
+            "Template • Renamed Upper Body A"
+        )
 
         let blankTemplateWorkout = Workout(name: "Push", startedFromTemplate: "   \n  ")
         XCTAssertNil(WorkoutRow.templateOriginName(for: blankTemplateWorkout))

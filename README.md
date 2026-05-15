@@ -1,5 +1,6 @@
 # RPT
 
+- Home `Recent Workouts` now prefers each source template’s current resolved name in the visible row subtitle, so renamed routines stop looking stale in history while older workouts still fall back safely to their remembered template label.
 - Exercise Details `Open Template` flows now reopen their own active-workout sheet and carry the same save/discard/resume conflict recovery used elsewhere, so starting a template from exercise history no longer risks a broken handoff when another workout is already in progress.
 - Exercise Details history cards now add a direct `Open Template` shortcut whenever a past set came from a template that still exists, so users can jump from a movement’s best recent performance straight back into the source routine without hunting through Home or Workout Details first.
 - Workout Details now reopens its own active-workout sheet when launched from Exercise Details history, so `Follow-Up`, `Resume Current Workout`, and template handoff actions still land inside the live session instead of silently creating a draft with no sheet presentation.
@@ -208,6 +209,7 @@ RPT/
 
 ## Recent Improvements
 
+- Home `Recent Workouts` now prefers the resolved template’s current name in each row subtitle when stable-ID lookup finds a renamed source routine, so history stays in sync with the plan users will actually open while still falling back to the stored legacy name when needed; added regression coverage in `FormattingTests`.
 - Exercise Details history cards now add a direct `Open Template` shortcut whenever the reviewed workout still resolves back to its source plan, so users can jump from an exercise’s recent best set straight into the original routine without detouring through Home first; validated with `git diff --check` plus targeted source inspection.
 - Workout Details now reopens its own active-workout sheet when it was opened standalone from Exercise Details history, so `Follow-Up`, `Resume Current Workout`, and template handoff actions still surface the live workout instead of mutating state behind the current screen; validated with `git diff --check` plus targeted source inspection.
 - Home and Workout Details now share a stricter source-template resolver that prefers the persisted template ID, falls back to non-blank remembered names for legacy history, and refuses to treat blank template strings as a real `Template`; added regression coverage in `TemplateManagerTests`.

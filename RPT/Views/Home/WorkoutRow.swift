@@ -10,6 +10,12 @@ import SwiftData
 
 struct WorkoutRow: View {
     let workout: Workout
+    let resolvedTemplateName: String?
+
+    init(workout: Workout, resolvedTemplateName: String? = nil) {
+        self.workout = workout
+        self.resolvedTemplateName = resolvedTemplateName
+    }
 
     static func displayName(for workout: Workout) -> String {
         let collapsedName = workout.name
@@ -24,21 +30,21 @@ struct WorkoutRow: View {
         return String(collapsedName.prefix(80))
     }
 
-    static func templateOriginName(for workout: Workout) -> String? {
-        let collapsedTemplateName = (workout.startedFromTemplate ?? "")
+    static func templateOriginName(for workout: Workout, resolvedTemplateName: String? = nil) -> String? {
+        let preferredTemplateName = (resolvedTemplateName ?? workout.startedFromTemplate ?? "")
             .components(separatedBy: .whitespacesAndNewlines)
             .filter { !$0.isEmpty }
             .joined(separator: " ")
 
-        guard !collapsedTemplateName.isEmpty else {
+        guard !preferredTemplateName.isEmpty else {
             return nil
         }
 
-        return String(collapsedTemplateName.prefix(80))
+        return String(preferredTemplateName.prefix(80))
     }
 
-    static func templateOriginText(for workout: Workout) -> String? {
-        guard let templateName = templateOriginName(for: workout) else {
+    static func templateOriginText(for workout: Workout, resolvedTemplateName: String? = nil) -> String? {
+        guard let templateName = templateOriginName(for: workout, resolvedTemplateName: resolvedTemplateName) else {
             return nil
         }
 
@@ -176,7 +182,7 @@ struct WorkoutRow: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
-            if let templateOriginText = Self.templateOriginText(for: workout) {
+            if let templateOriginText = Self.templateOriginText(for: workout, resolvedTemplateName: resolvedTemplateName) {
                 Text(templateOriginText)
                     .font(.caption)
                     .foregroundColor(.secondary)
