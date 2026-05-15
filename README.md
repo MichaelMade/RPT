@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Details history cards now expose direct `Start Follow-Up` recovery from the same recent-set context — including `Continue Current Workout`, `Save & Start Follow-Up`, and `Discard & Start Follow-Up` when another draft is already active — so progression-based repeats no longer require drilling into Workout Details first.
 - Exercise Details history cards now show relative workout timestamps plus the source template’s current resolved name when available, so same-day lift history stays distinguishable and template context survives renames without opening each workout first.
 - Home `Recent Workouts` now prefers each source template’s current resolved name in the visible row subtitle, so renamed routines stop looking stale in history while older workouts still fall back safely to their remembered template label.
 - Exercise Details `Open Template` flows now reopen their own active-workout sheet and carry the same save/discard/resume conflict recovery used elsewhere, so starting a template from exercise history no longer risks a broken handoff when another workout is already in progress.
