@@ -1,5 +1,6 @@
 # RPT
 
+- Templates tab single-result `Quick Actions` now uses the same exact `Continue “…”`, `Save & Start Template “…”`, and `Discard & Start Template “…”` wording as Template Details and workout history, so blocked template starts stay explicit about the current draft and selected plan instead of falling back to vaguer `Resume Current Workout` / `Open` copy.
 - Template Details now uses the same exact `Save & Start Template “…”` / `Discard & Start Template “…”` recovery wording as Home and workout history, so active-workout conflict choices stay explicit about actually starting the selected plan instead of the older vaguer `Open Template` phrasing.
 - Home, Workout Details, and Exercise Details now name the exact saved workout in follow-up recovery buttons and Home’s row swipe actions, so VoiceOver, destructive choices, and multi-workout history actions stay much clearer when a current draft is blocking the restart you meant.
 - Template-start actions from Home, Workout Details, and Exercise Details now name the exact source routine in both their primary CTA and save/discard recovery buttons, so rerunning the right plan stays clearer and safer when multiple templates or an in-progress draft are in play.
@@ -225,6 +226,7 @@ RPT/
 
 ## Recent Improvements
 
+- Templates tab single-result `Quick Actions` now uses the same exact `Continue “…”`, `Save & Start Template “…”`, and `Discard & Start Template “…”` wording as Template Details and workout history, so blocked template starts stay explicit about the current draft and selected plan instead of falling back to vaguer `Resume Current Workout` / `Open` copy; validated with `git diff --check` plus targeted source inspection.
 - Active-workout recovery CTAs across Home, Workout Details, and Exercise Details now name the exact in-progress workout when possible (for example `Continue “Upper A”`), so save/discard/continue choices are easier to scan and clearer for accessibility when multiple drafts or similarly-titled routines are in play; added regression coverage in `HomeViewModelTests` and `TemplateViewModelTests`.
 - Template Details now uses the same exact `Save & Start Template “…”` / `Discard & Start Template “…”` recovery wording as Home and workout history, so active-workout conflict choices stay explicit about actually starting the selected plan instead of the older vaguer `Open Template` phrasing; validated with `git diff --check` plus targeted source inspection.
 - Home `Recent Workouts` now adds a direct `Start Template` action beside `Open Template` in both swipe actions and the single-workout `Quick Actions` card, with the same continue/save/discard recovery used elsewhere when another draft is already active, so rerunning a known routine can start straight from history instead of detouring through Template Details; validated with `git diff --check` plus targeted source inspection.

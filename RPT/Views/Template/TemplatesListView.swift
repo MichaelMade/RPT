@@ -200,13 +200,13 @@ struct TemplatesListView: View {
                                 Button(templateManager.startWorkoutActionTitle(for: matchedTemplate)) {
                                     beginQuickStart(for: matchedTemplate)
                                 }
-                            } else if resumableWorkout != nil,
+                            } else if let resumableWorkout,
                                       matchedTemplateCanStart {
-                                Button("Resume Current Workout") {
+                                Button(viewModel.continueCurrentWorkoutButtonTitle(for: resumableWorkout)) {
                                     showActiveWorkoutSheet = true
                                 }
 
-                                Button("Save & Open \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"") {
+                                Button(viewModel.saveAndStartTemplateButtonTitle(for: matchedTemplate)) {
                                     saveActiveWorkoutAndOpenTemplate(matchedTemplate)
                                 }
 
@@ -214,7 +214,7 @@ struct TemplatesListView: View {
                                     discardActiveWorkoutAndOpenTemplate(matchedTemplate)
                                 } label: {
                                     Label(
-                                        "Discard & Open \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"",
+                                        viewModel.discardAndStartTemplateButtonTitle(for: matchedTemplate),
                                         systemImage: "trash"
                                     )
                                 }
