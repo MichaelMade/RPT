@@ -169,14 +169,14 @@ struct TemplatesListView: View {
                                 selectedTemplate = template
                                 currentAction = .edit
                             } label: {
-                                Label("Edit", systemImage: "pencil")
+                                Label(viewModel.editTemplateButtonTitle(for: template), systemImage: "pencil")
                             }
                             .tint(.blue)
 
                             Button {
                                 startDuplicating(template)
                             } label: {
-                                Label("Duplicate", systemImage: "plus.square.on.square")
+                                Label(viewModel.duplicateTemplateButtonTitle(for: template), systemImage: "plus.square.on.square")
                             }
                             .tint(.indigo)
 
@@ -184,7 +184,7 @@ struct TemplatesListView: View {
                                 templateToDelete = template
                                 showingConfirmationDialog = true
                             } label: {
-                                Label("Delete", systemImage: "trash")
+                                Label(viewModel.deleteTemplateButtonTitle(for: template), systemImage: "trash")
                             }
                         }
                     }
@@ -220,17 +220,17 @@ struct TemplatesListView: View {
                                 }
                             }
 
-                            Button("Review \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"") {
+                            Button(viewModel.reviewTemplateButtonTitle(for: matchedTemplate)) {
                                 selectedTemplate = matchedTemplate
                                 currentAction = .detail
                             }
 
-                            Button("Edit \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"") {
+                            Button(viewModel.editTemplateButtonTitle(for: matchedTemplate)) {
                                 selectedTemplate = matchedTemplate
                                 currentAction = .edit
                             }
 
-                            Button("Duplicate \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"") {
+                            Button(viewModel.duplicateTemplateButtonTitle(for: matchedTemplate)) {
                                 startDuplicating(matchedTemplate)
                             }
 
@@ -239,7 +239,7 @@ struct TemplatesListView: View {
                                 showingConfirmationDialog = true
                             } label: {
                                 Label(
-                                    "Delete \"\(WorkoutTemplate.normalizedDisplayName(matchedTemplate.name))\"",
+                                    viewModel.deleteTemplateButtonTitle(for: matchedTemplate),
                                     systemImage: "trash"
                                 )
                             }
@@ -347,7 +347,7 @@ struct TemplatesListView: View {
                 isPresented: $showingConfirmationDialog,
                 presenting: templateToDelete
             ) { template in
-                Button("Delete \(WorkoutTemplate.normalizedDisplayName(template.name))", role: .destructive) {
+                Button(viewModel.deleteTemplateButtonTitle(for: template), role: .destructive) {
                     let result = viewModel.deleteTemplate(template)
                     if result != .success {
                         deleteResult = result

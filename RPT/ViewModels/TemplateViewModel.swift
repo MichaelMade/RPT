@@ -348,6 +348,22 @@ class TemplateViewModel: ObservableObject {
         "Discard & Start Template “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
     }
 
+    func reviewTemplateButtonTitle(for template: WorkoutTemplate) -> String {
+        "Review “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+    }
+
+    func editTemplateButtonTitle(for template: WorkoutTemplate) -> String {
+        "Edit “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+    }
+
+    func duplicateTemplateButtonTitle(for template: WorkoutTemplate) -> String {
+        "Duplicate “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+    }
+
+    func deleteTemplateButtonTitle(for template: WorkoutTemplate) -> String {
+        "Delete “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+    }
+
     func activeWorkoutPersistenceFailureMessage(for action: ActiveWorkoutPersistenceAction) -> String {
         switch action {
         case .saveForLater:

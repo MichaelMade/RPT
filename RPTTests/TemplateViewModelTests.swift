@@ -1141,6 +1141,35 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testTemplateActionTitles_nameSpecificTemplate() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "  Upper   A  ", exerciseNames: ["Bench Press"])
+
+        XCTAssertEqual(
+            viewModel.reviewTemplateButtonTitle(for: template),
+            "Review “Upper A”",
+            "Template review actions should name the exact plan they open"
+        )
+
+        XCTAssertEqual(
+            viewModel.editTemplateButtonTitle(for: template),
+            "Edit “Upper A”",
+            "Template edit actions should name the exact plan they modify"
+        )
+
+        XCTAssertEqual(
+            viewModel.duplicateTemplateButtonTitle(for: template),
+            "Duplicate “Upper A”",
+            "Template duplicate actions should name the exact plan they copy"
+        )
+
+        XCTAssertEqual(
+            viewModel.deleteTemplateButtonTitle(for: template),
+            "Delete “Upper A”",
+            "Template delete actions should name the exact plan so destructive choices stay unmistakable"
+        )
+    }
+
     func testStartTemplateAfterPersistingActiveWorkout_returnsStartedWorkoutAfterSuccessfulSaveForLater() {
         let expectedWorkout = Workout(name: "Template Workout")
         let viewModel = TemplateViewModel(templateManager: StubTemplateManager(workoutToReturn: expectedWorkout))

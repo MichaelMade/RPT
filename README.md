@@ -1,5 +1,6 @@
 # RPT
 
+- Templates list swipe actions and delete confirmation now name the exact routine they target (`Edit “…”`, `Duplicate “…”`, `Delete “…”`), matching the existing named quick actions so dense template libraries are clearer and safer for VoiceOver and destructive cleanup.
 - Templates tab single-result `Quick Actions` now uses the same exact `Continue “…”`, `Save & Start Template “…”`, and `Discard & Start Template “…”` wording as Template Details and workout history, so blocked template starts stay explicit about the current draft and selected plan instead of falling back to vaguer `Resume Current Workout` / `Open` copy.
 - Template Details now uses the same exact `Save & Start Template “…”` / `Discard & Start Template “…”` recovery wording as Home and workout history, so active-workout conflict choices stay explicit about actually starting the selected plan instead of the older vaguer `Open Template` phrasing.
 - Home, Workout Details, and Exercise Details now name the exact saved workout in follow-up recovery buttons and Home’s row swipe actions, so VoiceOver, destructive choices, and multi-workout history actions stay much clearer when a current draft is blocking the restart you meant.
