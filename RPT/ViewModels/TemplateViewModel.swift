@@ -329,6 +329,13 @@ class TemplateViewModel: ObservableObject {
         return "\(activeWorkoutPromptPrefix(for: workout)) Continue it, save it for later, or discard it \(templateSuffix)"
     }
 
+    func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Continue Current Workout"
+            : "Continue “\(displayName)”"
+    }
+
     func startTemplateButtonTitle(for template: WorkoutTemplate) -> String {
         "Start Template “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
     }

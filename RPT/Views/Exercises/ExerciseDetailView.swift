@@ -262,7 +262,7 @@ struct ExerciseDetailView: View {
                                                 Button {
                                                     openStartedWorkout(resumableWorkout)
                                                 } label: {
-                                                    Label("Continue Current Workout", systemImage: "arrow.clockwise.circle.fill")
+                                                    Label(templateViewModel.continueCurrentWorkoutButtonTitle(for: resumableWorkout), systemImage: "arrow.clockwise.circle.fill")
                                                         .font(.caption.weight(.semibold))
                                                         .frame(maxWidth: .infinity, alignment: .leading)
                                                 }
@@ -309,7 +309,7 @@ struct ExerciseDetailView: View {
                                             Button {
                                                 openStartedWorkout(resumableWorkout)
                                             } label: {
-                                                Label("Continue Current Workout", systemImage: "arrow.clockwise.circle.fill")
+                                                Label(homeViewModel.continueCurrentWorkoutButtonTitle(for: resumableWorkout), systemImage: "arrow.clockwise.circle.fill")
                                                     .font(.caption.weight(.semibold))
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                             }

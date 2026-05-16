@@ -669,6 +669,26 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(summary, "Started just now • No exercises added yet", "Summary should explain empty drafts instead of showing zero-count noise")
     }
 
+    func testContinueCurrentWorkoutButtonTitle_namesSpecificDraftWhenAvailable() {
+        let workout = Workout(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            viewModel.continueCurrentWorkoutButtonTitle(for: workout),
+            "Continue “Upper A”",
+            "Continue CTAs should name the exact in-progress workout when possible so recovery choices are easier to scan"
+        )
+    }
+
+    func testContinueCurrentWorkoutButtonTitle_fallsBackForGenericDraftName() {
+        let workout = Workout(name: "   ")
+
+        XCTAssertEqual(
+            viewModel.continueCurrentWorkoutButtonTitle(for: workout),
+            "Continue Current Workout",
+            "Continue CTAs should stay generic when the active draft has no usable name"
+        )
+    }
+
     func testResumableWorkoutSummary_templateDraftWithoutLoggedSetsShowsNotStartedYet() {
         let startDate = Date(timeIntervalSince1970: 0)
         let now = startDate.addingTimeInterval(15 * 60)

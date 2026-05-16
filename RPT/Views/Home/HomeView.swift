@@ -395,7 +395,7 @@ struct HomeView: View {
                                             Button {
                                                 openStartedWorkout(resumableWorkout)
                                             } label: {
-                                                Label("Continue Current Workout", systemImage: "arrow.clockwise.circle.fill")
+                                                Label(viewModel.continueCurrentWorkoutButtonTitle(for: resumableWorkout), systemImage: "arrow.clockwise.circle.fill")
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                             }
                                             .buttonStyle(.borderedProminent)
@@ -569,7 +569,10 @@ struct HomeView: View {
                 }
             }
             .alert("Current Workout In Progress", isPresented: $showingFollowUpRecoveryAlert) {
-                Button("Continue Current Workout") {
+                Button(
+                    protectedResumableWorkout().map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
+                    ?? "Continue Current Workout"
+                ) {
                     if let resumableWorkout = protectedResumableWorkout() {
                         openStartedWorkout(resumableWorkout)
                     }
@@ -598,7 +601,10 @@ struct HomeView: View {
                 }
             }
             .alert("Current Workout In Progress", isPresented: $showingTemplateStartRecoveryAlert) {
-                Button("Continue Current Workout") {
+                Button(
+                    protectedResumableWorkout().map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
+                    ?? "Continue Current Workout"
+                ) {
                     if let resumableWorkout = protectedResumableWorkout() {
                         openStartedWorkout(resumableWorkout)
                     }

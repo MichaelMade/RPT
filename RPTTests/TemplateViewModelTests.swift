@@ -1119,6 +1119,28 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testContinueCurrentWorkoutButtonTitle_namesSpecificDraftWhenAvailable() {
+        let viewModel = TemplateViewModel()
+        let workout = Workout(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            viewModel.continueCurrentWorkoutButtonTitle(for: workout),
+            "Continue “Upper A”",
+            "Template-start recovery should name the exact in-progress workout when possible"
+        )
+    }
+
+    func testContinueCurrentWorkoutButtonTitle_fallsBackForGenericDraftName() {
+        let viewModel = TemplateViewModel()
+        let workout = Workout(name: "   ")
+
+        XCTAssertEqual(
+            viewModel.continueCurrentWorkoutButtonTitle(for: workout),
+            "Continue Current Workout",
+            "Unnamed drafts should keep the generic continue label"
+        )
+    }
+
     func testStartTemplateAfterPersistingActiveWorkout_returnsStartedWorkoutAfterSuccessfulSaveForLater() {
         let expectedWorkout = Workout(name: "Template Workout")
         let viewModel = TemplateViewModel(templateManager: StubTemplateManager(workoutToReturn: expectedWorkout))

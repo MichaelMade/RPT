@@ -171,6 +171,13 @@ class HomeViewModel: ObservableObject {
         return parts.joined(separator: " • ")
     }
 
+    func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Continue Current Workout"
+            : "Continue “\(displayName)”"
+    }
+
     private func exerciseCountTextForResumableSummary(for workout: Workout) -> String {
         let count: Int
 
