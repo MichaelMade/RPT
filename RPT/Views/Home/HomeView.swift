@@ -330,7 +330,7 @@ struct HomeView: View {
                                                 startWorkout(from: sourceTemplate)
                                             }
                                         } label: {
-                                            Label("Start Template", systemImage: "play.fill")
+                                            Label(templateViewModel.startTemplateButtonTitle(for: sourceTemplate), systemImage: "play.fill")
                                         }
                                         .tint(.green)
 
@@ -430,7 +430,7 @@ struct HomeView: View {
                                                 startWorkout(from: sourceTemplate)
                                             }
                                         } label: {
-                                            Label("Start Template “\(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name))”", systemImage: "play.fill")
+                                            Label(templateViewModel.startTemplateButtonTitle(for: sourceTemplate), systemImage: "play.fill")
                                                 .frame(maxWidth: .infinity, alignment: .leading)
                                         }
                                         .buttonStyle(.borderedProminent)
@@ -591,18 +591,16 @@ struct HomeView: View {
                     templateToStartFromHistory = nil
                 }
 
-                Button("Save & Start Template") {
-                    if let templateToStartFromHistory {
+                if let templateToStartFromHistory {
+                    Button(templateViewModel.saveAndStartTemplateButtonTitle(for: templateToStartFromHistory)) {
                         saveActiveWorkoutAndOpenTemplate(templateToStartFromHistory)
+                        self.templateToStartFromHistory = nil
                     }
-                    self.templateToStartFromHistory = nil
-                }
 
-                Button("Discard & Start Template", role: .destructive) {
-                    if let templateToStartFromHistory {
+                    Button(templateViewModel.discardAndStartTemplateButtonTitle(for: templateToStartFromHistory), role: .destructive) {
                         discardActiveWorkoutAndOpenTemplate(templateToStartFromHistory)
+                        self.templateToStartFromHistory = nil
                     }
-                    self.templateToStartFromHistory = nil
                 }
 
                 Button("Cancel", role: .cancel) {

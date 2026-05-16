@@ -372,7 +372,7 @@ struct WorkoutDetailView: View {
                                     Button {
                                         saveActiveWorkoutAndOpenTemplate(sourceTemplate)
                                     } label: {
-                                        Label("Save & Start Template", systemImage: "square.and.arrow.down")
+                                        Label(templateViewModel.saveAndStartTemplateButtonTitle(for: sourceTemplate), systemImage: "square.and.arrow.down")
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     }
                                     .buttonStyle(.bordered)
@@ -380,7 +380,7 @@ struct WorkoutDetailView: View {
                                     Button(role: .destructive) {
                                         discardActiveWorkoutAndOpenTemplate(sourceTemplate)
                                     } label: {
-                                        Label("Discard & Start Template", systemImage: "trash")
+                                        Label(templateViewModel.discardAndStartTemplateButtonTitle(for: sourceTemplate), systemImage: "trash")
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     }
                                     .buttonStyle(.bordered)
@@ -389,7 +389,7 @@ struct WorkoutDetailView: View {
                                 Button {
                                     startWorkout(from: sourceTemplate)
                                 } label: {
-                                    Label("Start Template “\(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name))”", systemImage: "play.fill")
+                                    Label(templateViewModel.startTemplateButtonTitle(for: sourceTemplate), systemImage: "play.fill")
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .buttonStyle(.borderedProminent)

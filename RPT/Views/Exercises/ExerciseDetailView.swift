@@ -272,7 +272,7 @@ struct ExerciseDetailView: View {
                                                 Button {
                                                     saveActiveWorkoutAndOpenTemplate(sourceTemplate)
                                                 } label: {
-                                                    Label("Save & Start Template", systemImage: "square.and.arrow.down")
+                                                    Label(templateViewModel.saveAndStartTemplateButtonTitle(for: sourceTemplate), systemImage: "square.and.arrow.down")
                                                         .font(.caption.weight(.semibold))
                                                         .frame(maxWidth: .infinity, alignment: .leading)
                                                 }
@@ -281,7 +281,7 @@ struct ExerciseDetailView: View {
                                                 Button(role: .destructive) {
                                                     discardActiveWorkoutAndOpenTemplate(sourceTemplate)
                                                 } label: {
-                                                    Label("Discard & Start Template", systemImage: "trash")
+                                                    Label(templateViewModel.discardAndStartTemplateButtonTitle(for: sourceTemplate), systemImage: "trash")
                                                         .font(.caption.weight(.semibold))
                                                         .frame(maxWidth: .infinity, alignment: .leading)
                                                 }
@@ -291,7 +291,7 @@ struct ExerciseDetailView: View {
                                             Button {
                                                 startWorkout(from: sourceTemplate)
                                             } label: {
-                                                Label("Start Template “\(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name))”", systemImage: "play.fill")
+                                                Label(templateViewModel.startTemplateButtonTitle(for: sourceTemplate), systemImage: "play.fill")
                                                     .font(.caption.weight(.semibold))
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                             }

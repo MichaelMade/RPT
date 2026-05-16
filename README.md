@@ -1,5 +1,6 @@
 # RPT
 
+- Template-start actions from Home, Workout Details, and Exercise Details now name the exact source routine in both their primary CTA and save/discard recovery buttons, so rerunning the right plan stays clearer and safer when multiple templates or an in-progress draft are in play.
 - Home `Recent Workouts` now adds a direct `Start Template` action beside `Open Template` in both swipe actions and the single-workout `Quick Actions` card, with the same continue/save/discard recovery when another draft is already active, so rerunning a known routine can start straight from history instead of detouring through Template Details.
 - Workout Details history actions now name the exact saved workout in both their `Copy Summary` / `Delete from History` buttons and the destructive confirmation title, so destructive cleanup and export actions stay as clear there as they already are on Home and Exercise Details.
 - Exercise Details history cards now name the exact saved workout in their `Review`, `Copy Summary`, `Start Follow-Up`, and `Delete from History` actions, so stacked history cards are easier to scan and much clearer for accessibility/VoiceOver use when several past sessions sit side by side.

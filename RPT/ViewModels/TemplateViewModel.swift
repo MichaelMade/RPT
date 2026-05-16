@@ -329,6 +329,18 @@ class TemplateViewModel: ObservableObject {
         return "\(activeWorkoutPromptPrefix(for: workout)) Continue it, save it for later, or discard it \(templateSuffix)"
     }
 
+    func startTemplateButtonTitle(for template: WorkoutTemplate) -> String {
+        "Start Template “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+    }
+
+    func saveAndStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {
+        "Save & Start Template “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+    }
+
+    func discardAndStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {
+        "Discard & Start Template “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+    }
+
     func activeWorkoutPersistenceFailureMessage(for action: ActiveWorkoutPersistenceAction) -> String {
         switch action {
         case .saveForLater:

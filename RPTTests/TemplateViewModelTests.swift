@@ -1096,6 +1096,29 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testStartTemplateButtonTitles_useNormalizedTemplateName() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "  Upper   A  ", exerciseNames: ["Bench Press"])
+
+        XCTAssertEqual(
+            viewModel.startTemplateButtonTitle(for: template),
+            "Start Template “Upper A”",
+            "Template start CTAs should normalize the template name so Home and history actions stay readable"
+        )
+
+        XCTAssertEqual(
+            viewModel.saveAndStartTemplateButtonTitle(for: template),
+            "Save & Start Template “Upper A”",
+            "Save-and-start recovery CTAs should name the exact template the user is about to open"
+        )
+
+        XCTAssertEqual(
+            viewModel.discardAndStartTemplateButtonTitle(for: template),
+            "Discard & Start Template “Upper A”",
+            "Discard-and-start recovery CTAs should name the exact template so destructive branching stays unmistakable"
+        )
+    }
+
     func testStartTemplateAfterPersistingActiveWorkout_returnsStartedWorkoutAfterSuccessfulSaveForLater() {
         let expectedWorkout = Workout(name: "Template Workout")
         let viewModel = TemplateViewModel(templateManager: StubTemplateManager(workoutToReturn: expectedWorkout))
