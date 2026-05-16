@@ -1062,6 +1062,16 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testDeleteRecentWorkoutAlertTitle_usesNormalizedWorkoutName() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.deleteRecentWorkoutAlertTitle(for: workout),
+            "Delete “Upper A”?",
+            "Delete alert titles should name the exact saved workout so Workout Details confirmations stay unmistakable"
+        )
+    }
+
     func testFollowUpWorkoutHelperText_describesPrefilledDraftBenefit() {
         let workout = Workout(name: "Push Day", isCompleted: true)
 

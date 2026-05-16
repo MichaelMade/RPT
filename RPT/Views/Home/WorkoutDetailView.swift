@@ -445,7 +445,7 @@ struct WorkoutDetailView: View {
                             UIPasteboard.general.string = workout.generateFormattedSummary()
                             showingCopySummaryAlert = true
                         } label: {
-                            Label("Copy Summary", systemImage: "doc.on.doc")
+                            Label(homeViewModel.copySummaryButtonTitle(for: workout), systemImage: "doc.on.doc")
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .buttonStyle(.bordered)
@@ -454,7 +454,7 @@ struct WorkoutDetailView: View {
                         Button(role: .destructive) {
                             showingDeleteWorkoutAlert = true
                         } label: {
-                            Label("Delete from History", systemImage: "trash")
+                            Label(homeViewModel.deleteRecentWorkoutButtonTitle(for: workout), systemImage: "trash")
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .buttonStyle(.bordered)
@@ -585,7 +585,7 @@ struct WorkoutDetailView: View {
         } message: {
             Text("Copied the summary for \(Self.displayName(for: workout)) so it’s ready to paste anywhere you need it.")
         }
-        .alert("Delete Workout?", isPresented: $showingDeleteWorkoutAlert) {
+        .alert(homeViewModel.deleteRecentWorkoutAlertTitle(for: workout), isPresented: $showingDeleteWorkoutAlert) {
             Button("Delete", role: .destructive) {
                 guard homeViewModel.deleteRecentWorkout(workout) else {
                     return

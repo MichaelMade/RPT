@@ -358,6 +358,10 @@ class HomeViewModel: ObservableObject {
         return true
     }
 
+    func deleteRecentWorkoutAlertTitle(for workout: Workout) -> String {
+        "Delete “\(WorkoutRow.displayName(for: workout))”?"
+    }
+
     func deleteRecentWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         var summaryParts = [WorkoutRow.relativeDateText(for: workout.date, now: now)]
