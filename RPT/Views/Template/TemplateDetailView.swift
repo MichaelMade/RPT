@@ -364,7 +364,7 @@ struct TemplateDetailView: View {
                             Button(action: onDuplicateTemplate) {
                                 HStack {
                                     Image(systemName: "plus.square.on.square")
-                                    Text("Duplicate Template")
+                                    Text(templateViewModel.duplicateTemplateButtonTitle(for: template))
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -376,7 +376,7 @@ struct TemplateDetailView: View {
                             Button(action: onEditTemplate) {
                                 HStack {
                                     Image(systemName: "pencil")
-                                    Text("Edit Template")
+                                    Text(templateViewModel.editTemplateButtonTitle(for: template))
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -412,7 +412,7 @@ struct TemplateDetailView: View {
 
                 if let onEditTemplate {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Edit", action: onEditTemplate)
+                        Button(templateViewModel.editTemplateButtonTitle(for: template), action: onEditTemplate)
                     }
                 }
             }
