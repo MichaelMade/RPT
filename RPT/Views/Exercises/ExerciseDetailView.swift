@@ -396,7 +396,7 @@ struct ExerciseDetailView: View {
         .toolbar {
             if exercise.isCustom {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Edit") {
+                    Button("Edit \(exercise.displayName)") {
                         showingEditSheet = true
                     }
                 }
@@ -431,7 +431,10 @@ struct ExerciseDetailView: View {
         } message: {
             Text(copySummaryMessage)
         }
-        .alert("Delete Workout?", isPresented: $showingDeleteWorkoutAlert) {
+        .alert(
+            workoutToDelete.map(homeViewModel.deleteRecentWorkoutAlertTitle(for:)) ?? "Delete Workout?",
+            isPresented: $showingDeleteWorkoutAlert
+        ) {
             Button("Delete", role: .destructive) {
                 guard let workoutToDelete else {
                     return

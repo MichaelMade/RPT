@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Details now names its custom-exercise toolbar edit action and workout-history delete confirmation with the exact target, bringing that screen in line with Home and Workout Details so VoiceOver and destructive decisions stay clearer in dense history stacks.
 - Template Details now uses exact-template action labels for its visible `Edit` and `Duplicate` buttons (including the toolbar edit CTA), so the last generic template-management controls match the rest of the Templates experience and stay clearer for VoiceOver in dense routine libraries.
 - Templates list swipe actions and delete confirmation now name the exact routine they target (`Edit “…”`, `Duplicate “…”`, `Delete “…”`), matching the existing named quick actions so dense template libraries are clearer and safer for VoiceOver and destructive cleanup.
 - Templates tab single-result `Quick Actions` now uses the same exact `Continue “…”`, `Save & Start Template “…”`, and `Discard & Start Template “…”` wording as Template Details and workout history, so blocked template starts stay explicit about the current draft and selected plan instead of falling back to vaguer `Resume Current Workout` / `Open` copy.
