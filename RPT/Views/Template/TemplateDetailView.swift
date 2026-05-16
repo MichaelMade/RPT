@@ -24,6 +24,7 @@ struct TemplateDetailView: View {
     @State private var restoreExercisePrefillName = ""
 
     private let templateManager = TemplateManager.shared
+    private let templateViewModel = TemplateViewModel()
 
     private var unavailableExerciseNames: [String] {
         templateManager.unavailableExerciseNames(in: template)
@@ -338,7 +339,7 @@ struct TemplateDetailView: View {
                             Button(action: onSaveActiveWorkoutAndOpenTemplate) {
                                 HStack {
                                     Image(systemName: "tray.and.arrow.down")
-                                    Text("Save & Open Template")
+                                    Text(templateViewModel.saveAndStartTemplateButtonTitle(for: template))
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -351,7 +352,7 @@ struct TemplateDetailView: View {
                             Button(role: .destructive, action: onDiscardActiveWorkoutAndOpenTemplate) {
                                 HStack {
                                     Image(systemName: "trash")
-                                    Text("Discard & Open Template")
+                                    Text(templateViewModel.discardAndStartTemplateButtonTitle(for: template))
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
