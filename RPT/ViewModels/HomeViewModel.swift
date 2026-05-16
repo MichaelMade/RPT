@@ -402,6 +402,14 @@ class HomeViewModel: ObservableObject {
         "Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
     }
 
+    func saveAndStartFollowUpButtonTitle(for workout: Workout) -> String {
+        "Save & Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
+    }
+
+    func discardAndStartFollowUpButtonTitle(for workout: Workout) -> String {
+        "Discard & Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
+    }
+
     func sourceTemplateQuickActionTitle(for workout: Workout, resolvedTemplateName: String? = nil) -> String? {
         let preferredTemplateName = normalizedSummaryName(resolvedTemplateName)
             ?? normalizedSummaryName(workout.startedFromTemplate)

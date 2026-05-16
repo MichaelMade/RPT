@@ -45,6 +45,22 @@ struct HomeView: View {
         self._activeWorkoutBinding = activeWorkoutBinding
         self._showActiveWorkoutSheet = showActiveWorkoutSheet
     }
+
+    private var deleteWorkoutAlertTitle: String {
+        guard let workoutToDelete else {
+            return "Delete Workout?"
+        }
+
+        return viewModel.deleteRecentWorkoutAlertTitle(for: workoutToDelete)
+    }
+
+    private var deleteWorkoutButtonTitle: String {
+        guard let workoutToDelete else {
+            return "Delete"
+        }
+
+        return viewModel.deleteRecentWorkoutButtonTitle(for: workoutToDelete)
+    }
     
     var body: some View {
         NavigationStack {
@@ -302,14 +318,14 @@ struct HomeView: View {
                                             workoutToStartFollowUp = workout
                                             showingFollowUpRecoveryAlert = true
                                         } label: {
-                                            Label("Follow-Up", systemImage: "arrow.triangle.2.circlepath")
+                                            Label(viewModel.followUpWorkoutButtonTitle(for: workout), systemImage: "arrow.triangle.2.circlepath")
                                         }
                                         .tint(.green)
                                     } else if viewModel.canStartFollowUpWorkout(from: workout, activeWorkout: activeWorkoutBinding) {
                                         Button {
                                             startFollowUpWorkout(from: workout)
                                         } label: {
-                                            Label("Follow-Up", systemImage: "arrow.triangle.2.circlepath")
+                                            Label(viewModel.followUpWorkoutButtonTitle(for: workout), systemImage: "arrow.triangle.2.circlepath")
                                         }
                                         .tint(.green)
                                     }
@@ -317,7 +333,7 @@ struct HomeView: View {
                                     Button {
                                         copyWorkoutSummary(workout)
                                     } label: {
-                                        Label("Copy Summary", systemImage: "doc.on.doc")
+                                        Label(viewModel.copySummaryButtonTitle(for: workout), systemImage: "doc.on.doc")
                                     }
                                     .tint(.indigo)
 
@@ -350,7 +366,7 @@ struct HomeView: View {
                                     Button {
                                         selectedWorkout = workout
                                     } label: {
-                                        Label("Review", systemImage: "info.circle")
+                                        Label(viewModel.reviewWorkoutButtonTitle(for: workout), systemImage: "info.circle")
                                     }
                                     .tint(.blue)
 
@@ -358,7 +374,7 @@ struct HomeView: View {
                                         workoutToDelete = workout
                                         showingDeleteWorkoutAlert = true
                                     } label: {
-                                        Label("Delete", systemImage: "trash")
+                                        Label(viewModel.deleteRecentWorkoutButtonTitle(for: workout), systemImage: "trash")
                                     }
                                 }
                             }
@@ -388,7 +404,7 @@ struct HomeView: View {
                                             Button {
                                                 saveActiveWorkoutAndStartFollowUp(from: matchedWorkout)
                                             } label: {
-                                                Label("Save & Start Follow-Up", systemImage: "square.and.arrow.down")
+                                                Label(viewModel.saveAndStartFollowUpButtonTitle(for: matchedWorkout), systemImage: "square.and.arrow.down")
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                             }
                                             .buttonStyle(.bordered)
@@ -396,7 +412,7 @@ struct HomeView: View {
                                             Button(role: .destructive) {
                                                 discardActiveWorkoutAndStartFollowUp(from: matchedWorkout)
                                             } label: {
-                                                Label("Discard & Start Follow-Up", systemImage: "trash")
+                                                Label(viewModel.discardAndStartFollowUpButtonTitle(for: matchedWorkout), systemImage: "trash")
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                             }
                                             .buttonStyle(.bordered)
@@ -539,8 +555,8 @@ struct HomeView: View {
                     Text(viewModel.startFreshWorkoutMessage(for: resumableWorkoutToReplace))
                 }
             }
-            .alert("Delete Workout?", isPresented: $showingDeleteWorkoutAlert) {
-                Button("Delete", role: .destructive) {
+            .alert(deleteWorkoutAlertTitle, isPresented: $showingDeleteWorkoutAlert) {
+                Button(deleteWorkoutButtonTitle, role: .destructive) {
                     deleteSelectedWorkout()
                 }
 
@@ -560,18 +576,16 @@ struct HomeView: View {
                     workoutToStartFollowUp = nil
                 }
 
-                Button("Save & Start Follow-Up") {
-                    if let workoutToStartFollowUp {
+                if let workoutToStartFollowUp {
+                    Button(viewModel.saveAndStartFollowUpButtonTitle(for: workoutToStartFollowUp)) {
                         saveActiveWorkoutAndStartFollowUp(from: workoutToStartFollowUp)
+                        self.workoutToStartFollowUp = nil
                     }
-                    self.workoutToStartFollowUp = nil
-                }
 
-                Button("Discard & Start Follow-Up", role: .destructive) {
-                    if let workoutToStartFollowUp {
+                    Button(viewModel.discardAndStartFollowUpButtonTitle(for: workoutToStartFollowUp), role: .destructive) {
                         discardActiveWorkoutAndStartFollowUp(from: workoutToStartFollowUp)
+                        self.workoutToStartFollowUp = nil
                     }
-                    self.workoutToStartFollowUp = nil
                 }
 
                 Button("Cancel", role: .cancel) {

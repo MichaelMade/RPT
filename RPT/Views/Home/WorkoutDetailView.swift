@@ -495,7 +495,7 @@ struct WorkoutDetailView: View {
                                 Button {
                                     saveActiveWorkoutAndStartFollowUp(from: workout)
                                 } label: {
-                                    Label("Save & Start Follow-Up", systemImage: "square.and.arrow.down")
+                                    Label(homeViewModel.saveAndStartFollowUpButtonTitle(for: workout), systemImage: "square.and.arrow.down")
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .buttonStyle(.bordered)
@@ -503,7 +503,7 @@ struct WorkoutDetailView: View {
                                 Button(role: .destructive) {
                                     discardActiveWorkoutAndStartFollowUp(from: workout)
                                 } label: {
-                                    Label("Discard & Start Follow-Up", systemImage: "trash")
+                                    Label(homeViewModel.discardAndStartFollowUpButtonTitle(for: workout), systemImage: "trash")
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .buttonStyle(.bordered)

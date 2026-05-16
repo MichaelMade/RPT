@@ -1042,6 +1042,26 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testSaveAndStartFollowUpButtonTitle_usesNormalizedWorkoutName() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.saveAndStartFollowUpButtonTitle(for: workout),
+            "Save & Start Follow-Up from “Upper A”",
+            "Follow-up recovery CTA copy should name the saved workout so blocked restart choices stay unmistakable"
+        )
+    }
+
+    func testDiscardAndStartFollowUpButtonTitle_usesNormalizedWorkoutName() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.discardAndStartFollowUpButtonTitle(for: workout),
+            "Discard & Start Follow-Up from “Upper A”",
+            "Destructive follow-up recovery CTA copy should name the saved workout so conflict-resolution choices stay unmistakable"
+        )
+    }
+
     func testCopySummaryButtonTitle_usesNormalizedWorkoutName() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
 
