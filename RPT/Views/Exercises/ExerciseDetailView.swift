@@ -252,6 +252,54 @@ struct ExerciseDetailView: View {
                                         }
                                     }
 
+                                    if let sourceTemplate {
+                                        if let resumableWorkout = protectedResumableWorkout() {
+                                            VStack(alignment: .leading, spacing: 8) {
+                                                Text(templateViewModel.activeWorkoutBlocksTemplateStartMessage(for: resumableWorkout, opening: sourceTemplate))
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+
+                                                Button {
+                                                    openStartedWorkout(resumableWorkout)
+                                                } label: {
+                                                    Label("Continue Current Workout", systemImage: "arrow.clockwise.circle.fill")
+                                                        .font(.caption.weight(.semibold))
+                                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                                }
+                                                .buttonStyle(.borderedProminent)
+                                                .tint(.green)
+
+                                                Button {
+                                                    saveActiveWorkoutAndOpenTemplate(sourceTemplate)
+                                                } label: {
+                                                    Label("Save & Start Template", systemImage: "square.and.arrow.down")
+                                                        .font(.caption.weight(.semibold))
+                                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                                }
+                                                .buttonStyle(.bordered)
+
+                                                Button(role: .destructive) {
+                                                    discardActiveWorkoutAndOpenTemplate(sourceTemplate)
+                                                } label: {
+                                                    Label("Discard & Start Template", systemImage: "trash")
+                                                        .font(.caption.weight(.semibold))
+                                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                                }
+                                                .buttonStyle(.bordered)
+                                            }
+                                        } else {
+                                            Button {
+                                                startWorkout(from: sourceTemplate)
+                                            } label: {
+                                                Label("Start Template “\(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name))”", systemImage: "play.fill")
+                                                    .font(.caption.weight(.semibold))
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                            }
+                                            .buttonStyle(.borderedProminent)
+                                            .tint(.green)
+                                        }
+                                    }
+
                                     if let resumableWorkout = protectedResumableWorkout(), homeViewModel.shouldOfferFollowUpRecovery(for: entry.workout) {
                                         VStack(alignment: .leading, spacing: 8) {
                                             Text(homeViewModel.activeWorkoutBlocksFollowUpMessage(for: resumableWorkout, startingFrom: entry.workout))
@@ -489,6 +537,15 @@ struct ExerciseDetailView: View {
     private func openStartedWorkout(_ startedWorkout: Workout) {
         localActiveWorkout = startedWorkout
         showingLocalActiveWorkoutSheet = true
+    }
+
+    private func startWorkout(from template: WorkoutTemplate) {
+        guard let startedWorkout = templateViewModel.createWorkoutFromTemplate(template) else {
+            templateStartFailureMessage = "Your template workout could not be started right now. Please try again."
+            return
+        }
+
+        openStartedWorkout(startedWorkout)
     }
 
     private func saveActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
