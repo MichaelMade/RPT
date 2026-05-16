@@ -20,9 +20,11 @@ struct HomeView: View {
     @State private var showingDeleteWorkoutAlert = false
     @State private var showingCopySummaryAlert = false
     @State private var showingFollowUpRecoveryAlert = false
+    @State private var showingTemplateStartRecoveryAlert = false
     @State private var resumableWorkoutToReplace: Workout?
     @State private var workoutToDelete: Workout?
     @State private var workoutToStartFollowUp: Workout?
+    @State private var templateToStartFromHistory: WorkoutTemplate?
     @State private var copiedWorkoutName: String?
     @State private var startFreshFailureMessage: String?
     @StateObject private var workoutStateManager = WorkoutStateManager.shared
@@ -319,17 +321,30 @@ struct HomeView: View {
                                     }
                                     .tint(.indigo)
 
-                                    if let sourceTemplate = sourceTemplate(for: workout),
-                                       let sourceTemplateQuickActionTitle = viewModel.sourceTemplateQuickActionTitle(
-                                        for: workout,
-                                        resolvedTemplateName: sourceTemplate.name
-                                       ) {
+                                    if let sourceTemplate = sourceTemplate(for: workout) {
                                         Button {
-                                            selectedSourceTemplate = sourceTemplate
+                                            if protectedResumableWorkout() != nil {
+                                                templateToStartFromHistory = sourceTemplate
+                                                showingTemplateStartRecoveryAlert = true
+                                            } else {
+                                                startWorkout(from: sourceTemplate)
+                                            }
                                         } label: {
-                                            Label(sourceTemplateQuickActionTitle, systemImage: "square.on.square")
+                                            Label("Start Template", systemImage: "play.fill")
                                         }
-                                        .tint(.purple)
+                                        .tint(.green)
+
+                                        if let sourceTemplateQuickActionTitle = viewModel.sourceTemplateQuickActionTitle(
+                                            for: workout,
+                                            resolvedTemplateName: sourceTemplate.name
+                                        ) {
+                                            Button {
+                                                selectedSourceTemplate = sourceTemplate
+                                            } label: {
+                                                Label(sourceTemplateQuickActionTitle, systemImage: "square.on.square")
+                                            }
+                                            .tint(.purple)
+                                        }
                                     }
 
                                     Button {
@@ -406,18 +421,33 @@ struct HomeView: View {
                                     .buttonStyle(.bordered)
                                     .tint(.indigo)
 
-                                    if let sourceTemplate = sourceTemplate(for: matchedWorkout),
-                                       let sourceTemplateQuickActionTitle = viewModel.sourceTemplateQuickActionTitle(
-                                        for: matchedWorkout,
-                                        resolvedTemplateName: sourceTemplate.name
-                                       ) {
+                                    if let sourceTemplate = sourceTemplate(for: matchedWorkout) {
                                         Button {
-                                            selectedSourceTemplate = sourceTemplate
+                                            if protectedResumableWorkout() != nil {
+                                                templateToStartFromHistory = sourceTemplate
+                                                showingTemplateStartRecoveryAlert = true
+                                            } else {
+                                                startWorkout(from: sourceTemplate)
+                                            }
                                         } label: {
-                                            Label(sourceTemplateQuickActionTitle, systemImage: "square.on.square")
+                                            Label("Start Template “\(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name))”", systemImage: "play.fill")
                                                 .frame(maxWidth: .infinity, alignment: .leading)
                                         }
-                                        .buttonStyle(.bordered)
+                                        .buttonStyle(.borderedProminent)
+                                        .tint(.green)
+
+                                        if let sourceTemplateQuickActionTitle = viewModel.sourceTemplateQuickActionTitle(
+                                            for: matchedWorkout,
+                                            resolvedTemplateName: sourceTemplate.name
+                                        ) {
+                                            Button {
+                                                selectedSourceTemplate = sourceTemplate
+                                            } label: {
+                                                Label(sourceTemplateQuickActionTitle, systemImage: "square.on.square")
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                            }
+                                            .buttonStyle(.bordered)
+                                        }
                                     }
 
                                     Button {
@@ -551,6 +581,36 @@ struct HomeView: View {
                 if let workoutToStartFollowUp,
                    let resumableWorkout = protectedResumableWorkout() {
                     Text(viewModel.activeWorkoutBlocksFollowUpMessage(for: resumableWorkout, startingFrom: workoutToStartFollowUp))
+                }
+            }
+            .alert("Current Workout In Progress", isPresented: $showingTemplateStartRecoveryAlert) {
+                Button("Continue Current Workout") {
+                    if let resumableWorkout = protectedResumableWorkout() {
+                        openStartedWorkout(resumableWorkout)
+                    }
+                    templateToStartFromHistory = nil
+                }
+
+                Button("Save & Start Template") {
+                    if let templateToStartFromHistory {
+                        saveActiveWorkoutAndOpenTemplate(templateToStartFromHistory)
+                    }
+                    self.templateToStartFromHistory = nil
+                }
+
+                Button("Discard & Start Template", role: .destructive) {
+                    if let templateToStartFromHistory {
+                        discardActiveWorkoutAndOpenTemplate(templateToStartFromHistory)
+                    }
+                    self.templateToStartFromHistory = nil
+                }
+
+                Button("Cancel", role: .cancel) {
+                    templateToStartFromHistory = nil
+                }
+            } message: {
+                if let templateToStartFromHistory {
+                    Text(sourceTemplateBlockMessage(for: templateToStartFromHistory) ?? "You already have a workout in progress. Continue it, save it for later, or discard it before starting this template.")
                 }
             }
             .alert("Workout Summary Copied", isPresented: $showingCopySummaryAlert) {
@@ -725,6 +785,15 @@ struct HomeView: View {
         case .failure(let message):
             viewModel.startWorkoutFailureMessage = message
         }
+    }
+
+    private func startWorkout(from template: WorkoutTemplate) {
+        guard let startedWorkout = templateViewModel.createWorkoutFromTemplate(template) else {
+            viewModel.startWorkoutFailureMessage = "Your template workout could not be started right now. Please try again."
+            return
+        }
+
+        openStartedWorkout(startedWorkout)
     }
 
     private func copyWorkoutSummary(_ workout: Workout) {
