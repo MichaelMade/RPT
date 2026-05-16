@@ -377,6 +377,18 @@ class HomeViewModel: ObservableObject {
         return "Couldn’t delete \(displayName) from history. Keep it for now, then try again."
     }
 
+    func reviewWorkoutButtonTitle(for workout: Workout) -> String {
+        "Review “\(WorkoutRow.displayName(for: workout))”"
+    }
+
+    func copySummaryButtonTitle(for workout: Workout) -> String {
+        "Copy Summary for “\(WorkoutRow.displayName(for: workout))”"
+    }
+
+    func deleteRecentWorkoutButtonTitle(for workout: Workout) -> String {
+        "Delete “\(WorkoutRow.displayName(for: workout))” from History"
+    }
+
     func startFollowUpFailureMessage(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return "Couldn’t start a follow-up from \(displayName). Keep it in history, then try again."

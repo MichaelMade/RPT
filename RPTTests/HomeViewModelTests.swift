@@ -1032,6 +1032,36 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testReviewWorkoutButtonTitle_usesNormalizedWorkoutName() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.reviewWorkoutButtonTitle(for: workout),
+            "Review “Upper A”",
+            "Review CTA copy should use the normalized saved workout name so stacked history cards stay easy to scan"
+        )
+    }
+
+    func testCopySummaryButtonTitle_usesNormalizedWorkoutName() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.copySummaryButtonTitle(for: workout),
+            "Copy Summary for “Upper A”",
+            "Copy-summary CTA copy should use the normalized saved workout name so users know exactly which recap they are about to export"
+        )
+    }
+
+    func testDeleteRecentWorkoutButtonTitle_usesNormalizedWorkoutName() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.deleteRecentWorkoutButtonTitle(for: workout),
+            "Delete “Upper A” from History",
+            "Delete CTA copy should use the normalized saved workout name so destructive history cleanup stays unmistakable"
+        )
+    }
+
     func testFollowUpWorkoutHelperText_describesPrefilledDraftBenefit() {
         let workout = Workout(name: "Push Day", isCompleted: true)
 

@@ -228,7 +228,7 @@ struct ExerciseDetailView: View {
                                 VStack(spacing: 8) {
                                     HStack(spacing: 12) {
                                         NavigationLink(destination: WorkoutDetailView(workout: entry.workout)) {
-                                            Label("Review Workout", systemImage: "chevron.right")
+                                            Label(homeViewModel.reviewWorkoutButtonTitle(for: entry.workout), systemImage: "chevron.right")
                                                 .font(.caption.weight(.semibold))
                                                 .frame(maxWidth: .infinity, alignment: .leading)
                                         }
@@ -343,7 +343,7 @@ struct ExerciseDetailView: View {
                                             Button {
                                                 startFollowUp(from: entry.workout)
                                             } label: {
-                                                Label("Start Follow-Up", systemImage: "arrow.triangle.2.circlepath")
+                                                Label(homeViewModel.followUpWorkoutButtonTitle(for: entry.workout), systemImage: "arrow.triangle.2.circlepath")
                                                     .font(.caption.weight(.semibold))
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                             }
@@ -355,7 +355,7 @@ struct ExerciseDetailView: View {
                                     Button {
                                         copyWorkoutSummary(entry.workout)
                                     } label: {
-                                        Label("Copy Summary", systemImage: "doc.on.doc")
+                                        Label(homeViewModel.copySummaryButtonTitle(for: entry.workout), systemImage: "doc.on.doc")
                                             .font(.caption.weight(.semibold))
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     }
@@ -366,7 +366,7 @@ struct ExerciseDetailView: View {
                                         workoutToDelete = entry.workout
                                         showingDeleteWorkoutAlert = true
                                     } label: {
-                                        Label("Delete from History", systemImage: "trash")
+                                        Label(homeViewModel.deleteRecentWorkoutButtonTitle(for: entry.workout), systemImage: "trash")
                                             .font(.caption.weight(.semibold))
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     }

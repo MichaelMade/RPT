@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Details history cards now name the exact saved workout in their `Review`, `Copy Summary`, `Start Follow-Up`, and `Delete from History` actions, so stacked history cards are easier to scan and much clearer for accessibility/VoiceOver use when several past sessions sit side by side.
 - Home `Recent Workouts` swipe actions now keep `Follow-Up` available even when another draft is already active, opening the same `Continue Current Workout`, `Save & Start Follow-Up`, and `Discard & Start Follow-Up` recovery instead of hiding the action right when it’s most needed.
 - Workout Details source-template cards now add a direct `Start Template “…”` action plus `Continue Current Workout`, `Save & Start Template`, and `Discard & Start Template` recovery when another draft is already active, so users can jump from reviewing a past session straight into rerunning that plan without detouring through Template Details first.
 - Exercise Details history cards now surface direct `Start Template` recovery alongside `Open Template`, including `Continue Current Workout`, `Save & Start Template`, and `Discard & Start Template` when another draft is already active, so jumping from a strong recent set back into its source routine no longer requires detouring through Workout Details first.

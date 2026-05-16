@@ -400,7 +400,7 @@ struct HomeView: View {
                                     Button {
                                         copyWorkoutSummary(matchedWorkout)
                                     } label: {
-                                        Label("Copy Summary for “\(WorkoutRow.displayName(for: matchedWorkout))”", systemImage: "doc.on.doc")
+                                        Label(viewModel.copySummaryButtonTitle(for: matchedWorkout), systemImage: "doc.on.doc")
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     }
                                     .buttonStyle(.bordered)
@@ -423,7 +423,7 @@ struct HomeView: View {
                                     Button {
                                         selectedWorkout = matchedWorkout
                                     } label: {
-                                        Label("Review “\(WorkoutRow.displayName(for: matchedWorkout))”", systemImage: "info.circle")
+                                        Label(viewModel.reviewWorkoutButtonTitle(for: matchedWorkout), systemImage: "info.circle")
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     }
                                     .buttonStyle(.bordered)
@@ -433,7 +433,7 @@ struct HomeView: View {
                                         workoutToDelete = matchedWorkout
                                         showingDeleteWorkoutAlert = true
                                     } label: {
-                                        Label("Delete “\(WorkoutRow.displayName(for: matchedWorkout))”", systemImage: "trash")
+                                        Label(viewModel.deleteRecentWorkoutButtonTitle(for: matchedWorkout), systemImage: "trash")
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     }
                                     .buttonStyle(.bordered)
