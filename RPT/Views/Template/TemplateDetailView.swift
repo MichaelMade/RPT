@@ -322,11 +322,13 @@ struct TemplateDetailView: View {
                         }
                         .disabled(cannotStartWorkout || isBlockedByActiveWorkout)
 
-                        if canResumeActiveWorkout, let onResumeActiveWorkout {
+                        if canResumeActiveWorkout,
+                           let activeWorkout,
+                           let onResumeActiveWorkout {
                             Button(action: onResumeActiveWorkout) {
                                 HStack {
                                     Image(systemName: "arrow.clockwise.circle")
-                                    Text("Resume Current Workout")
+                                    Text(templateViewModel.continueCurrentWorkoutButtonTitle(for: activeWorkout))
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
