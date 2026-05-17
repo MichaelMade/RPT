@@ -303,32 +303,19 @@ class DataManager {
     }
     
     func fetchExerciseSets(for exercise: Exercise, timeFrame: DateInterval? = nil) throws -> [ExerciseSet] {
-        let exerciseId = exercise.id
-        let descriptor: FetchDescriptor<ExerciseSet>
+        // SwiftData has been unstable here when traversing an optional relationship
+        // inside a predicate (`$0.exercise?.id == ...`). Use the inverse relationship
+        // directly instead and sort/filter in memory.
+        let sets = exercise.sets
 
+        let filteredSets: [ExerciseSet]
         if let interval = timeFrame {
-            let start = interval.start
-            let end = interval.end
-            descriptor = FetchDescriptor<ExerciseSet>(
-                predicate: #Predicate<ExerciseSet> {
-                    $0.exercise?.id == exerciseId &&
-                    $0.completedAt >= start &&
-                    $0.completedAt <= end
-                },
-                sortBy: [SortDescriptor(\.completedAt)]
-            )
+            filteredSets = sets.filter { interval.contains($0.completedAt) }
         } else {
-            descriptor = FetchDescriptor<ExerciseSet>(
-                predicate: #Predicate<ExerciseSet> { $0.exercise?.id == exerciseId },
-                sortBy: [SortDescriptor(\.completedAt)]
-            )
+            filteredSets = sets
         }
 
-        do {
-            return try modelContext.fetch(descriptor)
-        } catch {
-            throw DataError.fetchFailed
-        }
+        return filteredSets.sorted { $0.completedAt < $1.completedAt }
     }
     
     // Non-throwing version for backward compatibility
