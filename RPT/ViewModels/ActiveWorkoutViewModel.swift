@@ -128,6 +128,30 @@ class ActiveWorkoutViewModel: ObservableObject {
         return "Continue “\(displayName)”"
     }
 
+    func saveForLaterButtonTitle() -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Save for Later"
+        }
+
+        return "Save “\(displayName)” for Later"
+    }
+
+    func exitWorkoutMenuTitle() -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Exit Workout"
+        }
+
+        return "Exit “\(displayName)”"
+    }
+
+    func discardWorkoutMenuTitle() -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Discard Workout"
+        }
+
+        return "Discard “\(displayName)”"
+    }
+
     func completeWorkoutMessage() -> String {
         guard let displayName = specificWorkoutDisplayName else {
             return "Would you like to complete and save this workout?"

@@ -669,6 +669,24 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         )
     }
 
+    func testExitWorkoutCopy_namesSpecificWorkout() {
+        let workout = workoutManager.createWorkout(name: "  Upper   A  ")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.exitWorkoutMenuTitle(), "Exit “Upper A”")
+        XCTAssertEqual(viewModel.saveForLaterButtonTitle(), "Save “Upper A” for Later")
+        XCTAssertEqual(viewModel.discardWorkoutMenuTitle(), "Discard “Upper A”")
+    }
+
+    func testExitWorkoutCopy_fallsBackForGenericWorkoutName() {
+        let workout = workoutManager.createWorkout(name: "Workout")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.exitWorkoutMenuTitle(), "Exit Workout")
+        XCTAssertEqual(viewModel.saveForLaterButtonTitle(), "Save for Later")
+        XCTAssertEqual(viewModel.discardWorkoutMenuTitle(), "Discard Workout")
+    }
+
     func testDeleteSet_removesSetFromExerciseRelationship() throws {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")

@@ -163,6 +163,7 @@ struct ActiveWorkoutView: View {
                             Text("Minimize")
                         }
                     }
+                    .accessibilityLabel(viewModel.saveForLaterButtonTitle())
                 }
                 
                 // Right side of navigation bar (menu)
@@ -176,14 +177,14 @@ struct ActiveWorkoutView: View {
                         Button(action: {
                             showingExitConfirmation = true
                         }) {
-                            Label("Exit Workout", systemImage: "xmark.circle")
+                            Label(viewModel.exitWorkoutMenuTitle(), systemImage: "xmark.circle")
                         }
                         
                         if viewModel.hasSets {
                             Button(role: .destructive) {
                                 showingConfirmationDialog = true
                             } label: {
-                                Label("Discard Workout", systemImage: "trash")
+                                Label(viewModel.discardWorkoutMenuTitle(), systemImage: "trash")
                             }
                         }
                     } label: {
@@ -200,10 +201,10 @@ struct ActiveWorkoutView: View {
             }
             // Exit confirmation
             .confirmationDialog(
-                "Exit Workout",
+                viewModel.exitWorkoutMenuTitle(),
                 isPresented: $showingExitConfirmation
             ) {
-                Button("Save for Later") {
+                Button(viewModel.saveForLaterButtonTitle()) {
                     guard viewModel.saveWorkoutForLaterSafely() else {
                         return
                     }
@@ -213,7 +214,7 @@ struct ActiveWorkoutView: View {
                 }
 
                 if viewModel.canCompleteWorkoutFromExitDialog {
-                    Button("Complete Workout") {
+                    Button(viewModel.completeWorkoutButtonTitle()) {
                         guard viewModel.completeAndMarkSavedSafely() else {
                             return
                         }
