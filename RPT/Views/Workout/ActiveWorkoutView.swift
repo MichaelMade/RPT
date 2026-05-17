@@ -277,11 +277,11 @@ struct ActiveWorkoutView: View {
             }
             // Delete exercise confirmation
             .confirmationDialog(
-                "Delete Exercise",
+                viewModel.deleteExerciseAlertTitle(for: viewModel.exerciseToDelete),
                 isPresented: $viewModel.showingDeleteExerciseConfirmation,
                 presenting: viewModel.exerciseToDelete
             ) { exercise in
-                Button("Delete \(exercise.displayName)", role: .destructive) {
+                Button(viewModel.deleteExerciseButtonTitle(for: exercise), role: .destructive) {
                     _ = viewModel.deleteExerciseFromWorkoutSafely(exercise)
                     viewModel.exerciseToDelete = nil
                 }
@@ -289,7 +289,7 @@ struct ActiveWorkoutView: View {
                     viewModel.exerciseToDelete = nil
                 }
             } message: { exercise in
-                Text("Are you sure you want to remove \(exercise.displayName) from this workout? All sets for this exercise will be deleted.")
+                Text(viewModel.deleteExerciseMessage(for: exercise))
             }
         }
         .alert(

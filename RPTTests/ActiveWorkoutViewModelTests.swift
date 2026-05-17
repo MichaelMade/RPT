@@ -171,6 +171,30 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save this workout?")
     }
 
+    func testDeleteExerciseCopyIncludesSpecificExerciseName() {
+        let workout = workoutManager.createWorkout(name: "Pull")
+        let exercise = Exercise(name: "  Bench   Press  ", category: .compound, primaryMuscleGroups: [.chest])
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.deleteExerciseAlertTitle(for: exercise), "Delete “Bench Press” from Workout?")
+        XCTAssertEqual(viewModel.deleteExerciseButtonTitle(for: exercise), "Delete “Bench Press”")
+        XCTAssertEqual(
+            viewModel.deleteExerciseMessage(for: exercise),
+            "Are you sure you want to remove “Bench Press” from this workout? All sets for this exercise will be deleted."
+        )
+    }
+
+    func testDeleteExerciseCopyFallsBackWithoutSpecificExercise() {
+        let workout = workoutManager.createWorkout(name: "Pull")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.deleteExerciseAlertTitle(for: nil), "Delete Exercise?")
+        XCTAssertEqual(
+            viewModel.deleteExerciseMessage(for: nil),
+            "Are you sure you want to remove this exercise from the workout? All sets for this exercise will be deleted."
+        )
+    }
+
     func testAddExerciseToWorkout_createsIncompleteStarterSet() throws {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")
