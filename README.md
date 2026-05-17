@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout’s generic fallback lifecycle copy is now explicit about acting on the current draft (`Finish Current Workout`, `Complete Current Workout & Save`, `Save Current Workout for Later`) whenever a session does not have a meaningful custom name, so unnamed workouts still get clear, VoiceOver-friendly guidance instead of terse generic labels.
 - Active Workout’s primary finish CTA now names the exact draft (`Finish “Upper A”`) and reuses that same specific wording in the incomplete-exercise helper text, so the last on-screen completion step stays clearer and more VoiceOver-friendly when several routines are in play.
 - Active Workout’s exit/save-for-later controls now name the exact draft in the overflow menu, exit sheet, and minimize accessibility label (`Exit “Upper A”`, `Save “Upper A” for Later`, `Discard “Upper A”`), so backing out of an in-progress session is clearer and more VoiceOver-friendly when several routines are in play.
 - Active Workout’s delete-exercise confirmation now names the exact lift in its title, destructive CTA, and body copy (`Delete “Bench Press” from Workout?`, `Delete “Bench Press”`), so in-progress exercise cleanup is clearer and more VoiceOver-friendly instead of relying on generic `Delete Exercise` wording.

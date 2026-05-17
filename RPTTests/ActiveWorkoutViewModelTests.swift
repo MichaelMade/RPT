@@ -166,11 +166,11 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let workout = workoutManager.createWorkout(name: "Workout")
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
-        XCTAssertEqual(viewModel.completeWorkoutAlertTitle(), "Complete Workout?")
-        XCTAssertEqual(viewModel.finishButtonTitle(), "Finish")
-        XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete and Save")
-        XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue Workout")
-        XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save this workout?")
+        XCTAssertEqual(viewModel.completeWorkoutAlertTitle(), "Complete Current Workout?")
+        XCTAssertEqual(viewModel.finishButtonTitle(), "Finish Current Workout")
+        XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete Current Workout & Save")
+        XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue Current Workout")
+        XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save your current workout?")
     }
 
     func testDeleteExerciseCopyIncludesSpecificExerciseName() {
@@ -663,11 +663,11 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let workout = workoutManager.createWorkout(name: "   ")
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
-        XCTAssertEqual(viewModel.discardWorkoutAlertTitle(), "Discard Workout?")
-        XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard Workout")
+        XCTAssertEqual(viewModel.discardWorkoutAlertTitle(), "Discard Current Workout?")
+        XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard Current Workout")
         XCTAssertEqual(
             viewModel.discardWorkoutMessage(),
-            "Are you sure you want to discard this workout? This action cannot be undone."
+            "Are you sure you want to discard your current workout? This action cannot be undone."
         )
     }
 
@@ -684,9 +684,9 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let workout = workoutManager.createWorkout(name: "Workout")
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
-        XCTAssertEqual(viewModel.exitWorkoutMenuTitle(), "Exit Workout")
-        XCTAssertEqual(viewModel.saveForLaterButtonTitle(), "Save for Later")
-        XCTAssertEqual(viewModel.discardWorkoutMenuTitle(), "Discard Workout")
+        XCTAssertEqual(viewModel.exitWorkoutMenuTitle(), "Exit Current Workout")
+        XCTAssertEqual(viewModel.saveForLaterButtonTitle(), "Save Current Workout for Later")
+        XCTAssertEqual(viewModel.discardWorkoutMenuTitle(), "Discard Current Workout")
     }
 
     func testDeleteSet_removesSetFromExerciseRelationship() throws {
