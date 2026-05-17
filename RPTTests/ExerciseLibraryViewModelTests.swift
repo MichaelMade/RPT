@@ -761,4 +761,27 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             "This will remove 5 logged sets from 2 workouts. 1 template still references this exercise and will skip it when started until you replace or remove it."
         )
     }
+
+    func testExerciseActionTitles_nameTheExactExercise() {
+        let viewModel = ExerciseLibraryViewModel()
+        let customExercise = Exercise(
+            name: "Garage Dip",
+            category: .bodyweight,
+            primaryMuscleGroups: [.triceps],
+            secondaryMuscleGroups: [.chest],
+            instructions: ""
+        )
+
+        XCTAssertEqual(viewModel.editActionTitle(for: customExercise), "Edit \"Garage Dip\"")
+        XCTAssertEqual(viewModel.deleteActionTitle(for: customExercise), "Delete \"Garage Dip\"")
+        XCTAssertEqual(viewModel.deleteAlertTitle(for: customExercise), "Delete \"Garage Dip\"?")
+    }
+
+    func testExerciseActionTitles_fallBackGracefullyWithoutAnExercise() {
+        let viewModel = ExerciseLibraryViewModel()
+
+        XCTAssertNil(viewModel.editActionTitle(for: nil))
+        XCTAssertNil(viewModel.deleteActionTitle(for: nil))
+        XCTAssertEqual(viewModel.deleteAlertTitle(for: nil), "Delete Exercise")
+    }
 }

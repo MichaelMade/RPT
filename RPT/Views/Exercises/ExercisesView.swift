@@ -152,7 +152,10 @@ struct ExercisesView: View {
                                     Button {
                                         exerciseToEdit = exercise
                                     } label: {
-                                        Label("Edit", systemImage: "pencil")
+                                        Label(
+                                            viewModel.editActionTitle(for: exercise) ?? "Edit",
+                                            systemImage: "pencil"
+                                        )
                                     }
                                     .tint(.blue)
 
@@ -161,7 +164,10 @@ struct ExercisesView: View {
                                         exerciseDeletionImpact = viewModel.deletionImpact(for: exercise)
                                         showingDeleteConfirmation = true
                                     } label: {
-                                        Label("Delete", systemImage: "trash")
+                                        Label(
+                                            viewModel.deleteActionTitle(for: exercise) ?? "Delete",
+                                            systemImage: "trash"
+                                        )
                                     }
                                 }
                             }
@@ -177,7 +183,7 @@ struct ExercisesView: View {
                                 }
 
                                 if matchedExercise.isCustom {
-                                    Button("Edit \"\(matchedExercise.displayName)\"") {
+                                    Button(viewModel.editActionTitle(for: matchedExercise) ?? "Edit") {
                                         exerciseToEdit = matchedExercise
                                     }
 
@@ -186,7 +192,10 @@ struct ExercisesView: View {
                                         exerciseDeletionImpact = viewModel.deletionImpact(for: matchedExercise)
                                         showingDeleteConfirmation = true
                                     } label: {
-                                        Label("Delete \"\(matchedExercise.displayName)\"", systemImage: "trash")
+                                        Label(
+                                            viewModel.deleteActionTitle(for: matchedExercise) ?? "Delete",
+                                            systemImage: "trash"
+                                        )
                                     }
                                 }
                             }
@@ -262,11 +271,11 @@ struct ExercisesView: View {
                 EditExerciseView(exercise: exercise)
             }
             .confirmationDialog(
-                "Delete Exercise",
+                viewModel.deleteAlertTitle(for: exerciseToDelete),
                 isPresented: $showingDeleteConfirmation,
                 presenting: exerciseToDelete
             ) { exercise in
-                Button("Delete \(exercise.displayName)", role: .destructive) {
+                Button(viewModel.deleteActionTitle(for: exercise) ?? "Delete", role: .destructive) {
                     let result = viewModel.deleteExercise(exercise)
                     if result != .success {
                         deleteResult = result
