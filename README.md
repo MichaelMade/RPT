@@ -1,5 +1,6 @@
 # RPT
 
+- Home now names its primary continue-workout CTA and `Replace Current Workout?` recovery button with the exact in-progress draft (`Continue “Upper A”`) instead of the last generic `Continue Workout` copy, so the app’s most prominent resume path stays clearer and more accessible when several routines are in play.
 - Template Details now names its active-workout recovery button with the exact in-progress draft (`Continue “Upper A”`) instead of the last generic `Resume Current Workout` copy, so blocked template starts stay clearer and more accessible when several routines are in play.
 - Active Workout destructive copy now names the exact draft or set target where it matters, including `Discard “Upper A”` for draft teardown and set-editor labels like `Delete Set 185 lb × 8 reps`, so in-progress cleanup is clearer and safer for VoiceOver users.
 - Delete confirmations for saved workout history now name the exact workout in their destructive CTA on Home, Workout Details, and Exercise Details (`Delete “Upper A”`), so the final confirmation step stays as explicit and accessibility-friendly as the surrounding history actions.

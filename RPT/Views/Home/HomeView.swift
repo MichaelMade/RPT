@@ -97,7 +97,10 @@ struct HomeView: View {
                                 Image(systemName: canContinueWorkout ? "arrow.clockwise.circle.fill" : "plus.circle.fill")
                                     .font(.title2)
 
-                                Text(canContinueWorkout ? "Continue Workout" : "Start New Workout")
+                                Text(
+                                    resumableWorkout.map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
+                                    ?? "Start New Workout"
+                                )
                                     .font(.headline)
 
                                 Spacer()
@@ -539,7 +542,10 @@ struct HomeView: View {
                     discardCurrentWorkoutAndStartFresh()
                 }
 
-                Button("Continue Workout") {
+                Button(
+                    resumableWorkoutToReplace.map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
+                    ?? "Continue Current Workout"
+                ) {
                     if let resumableWorkoutToReplace {
                         activeWorkoutBinding = resumableWorkoutToReplace
                         showActiveWorkoutSheet = true
