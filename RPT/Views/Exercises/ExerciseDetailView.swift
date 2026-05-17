@@ -396,7 +396,7 @@ struct ExerciseDetailView: View {
         .toolbar {
             if exercise.isCustom {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Edit \(exercise.displayName)") {
+                    Button(ExerciseLibraryViewModel.editScreenTitle(for: exercise)) {
                         showingEditSheet = true
                     }
                 }

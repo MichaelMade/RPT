@@ -772,6 +772,7 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             instructions: ""
         )
 
+        XCTAssertEqual(ExerciseLibraryViewModel.editScreenTitle(for: customExercise), "Edit \"Garage Dip\"")
         XCTAssertEqual(viewModel.editActionTitle(for: customExercise), "Edit \"Garage Dip\"")
         XCTAssertEqual(viewModel.deleteActionTitle(for: customExercise), "Delete \"Garage Dip\"")
         XCTAssertEqual(viewModel.deleteAlertTitle(for: customExercise), "Delete \"Garage Dip\"?")
@@ -780,6 +781,7 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
     func testExerciseActionTitles_fallBackGracefullyWithoutAnExercise() {
         let viewModel = ExerciseLibraryViewModel()
 
+        XCTAssertEqual(ExerciseLibraryViewModel.editScreenTitle(for: nil), "Edit Exercise")
         XCTAssertNil(viewModel.editActionTitle(for: nil))
         XCTAssertNil(viewModel.deleteActionTitle(for: nil))
         XCTAssertEqual(viewModel.deleteAlertTitle(for: nil), "Delete Exercise")

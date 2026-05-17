@@ -93,7 +93,7 @@ struct EditExerciseView: View {
                         .frame(minHeight: 100)
                 }
             }
-            .navigationTitle("Edit Exercise")
+            .navigationTitle(ExerciseLibraryViewModel.editScreenTitle(for: exercise))
             .navigationBarTitleDisplayMode(.inline)
             .alert(
                 saveResult?.alertTitle ?? "Unable to Save Exercise",

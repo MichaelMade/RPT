@@ -179,12 +179,20 @@ class ExerciseLibraryViewModel: ObservableObject {
         return "Add \"\(exercise.displayName)\""
     }
 
-    func editActionTitle(for exercise: Exercise?) -> String? {
+    static func editScreenTitle(for exercise: Exercise?) -> String {
         guard let exercise else {
-            return nil
+            return "Edit Exercise"
         }
 
         return "Edit \"\(exercise.displayName)\""
+    }
+
+    func editActionTitle(for exercise: Exercise?) -> String? {
+        guard exercise != nil else {
+            return nil
+        }
+
+        return Self.editScreenTitle(for: exercise)
     }
 
     func deleteActionTitle(for exercise: Exercise?) -> String? {

@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Details and the custom-exercise editor now keep the exact movement name in the visible edit flow (`Edit “Garage Dip”`), so jumping from a detail screen into custom-exercise cleanup stays clearer and more VoiceOver-friendly instead of dropping back to a generic `Edit Exercise` title.
 - Templates list delete confirmations now name the exact routine in both the title and body copy (`Delete “Upper A”?`) while summarizing what will be removed, so destructive cleanup in dense plan libraries is clearer and more VoiceOver-friendly instead of falling back to a generic `Delete Template` prompt.
 - Active Workout’s generic fallback lifecycle copy is now explicit about acting on the current draft (`Finish Current Workout`, `Complete Current Workout & Save`, `Save Current Workout for Later`) whenever a session does not have a meaningful custom name, so unnamed workouts still get clear, VoiceOver-friendly guidance instead of terse generic labels.
 - Active Workout’s primary finish CTA now names the exact draft (`Finish “Upper A”`) and reuses that same specific wording in the incomplete-exercise helper text, so the last on-screen completion step stays clearer and more VoiceOver-friendly when several routines are in play.
