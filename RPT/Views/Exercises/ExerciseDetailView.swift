@@ -435,7 +435,10 @@ struct ExerciseDetailView: View {
             workoutToDelete.map(homeViewModel.deleteRecentWorkoutAlertTitle(for:)) ?? "Delete Workout?",
             isPresented: $showingDeleteWorkoutAlert
         ) {
-            Button("Delete", role: .destructive) {
+            Button(
+                workoutToDelete.map(homeViewModel.deleteRecentWorkoutConfirmationButtonTitle(for:)) ?? "Delete",
+                role: .destructive
+            ) {
                 guard let workoutToDelete else {
                     return
                 }

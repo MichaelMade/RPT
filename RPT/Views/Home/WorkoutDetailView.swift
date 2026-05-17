@@ -586,7 +586,7 @@ struct WorkoutDetailView: View {
             Text("Copied the summary for \(Self.displayName(for: workout)) so it’s ready to paste anywhere you need it.")
         }
         .alert(homeViewModel.deleteRecentWorkoutAlertTitle(for: workout), isPresented: $showingDeleteWorkoutAlert) {
-            Button("Delete", role: .destructive) {
+            Button(homeViewModel.deleteRecentWorkoutConfirmationButtonTitle(for: workout), role: .destructive) {
                 guard homeViewModel.deleteRecentWorkout(workout) else {
                     return
                 }

@@ -1102,6 +1102,16 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testDeleteRecentWorkoutConfirmationButtonTitle_usesNormalizedWorkoutName() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.deleteRecentWorkoutConfirmationButtonTitle(for: workout),
+            "Delete “Upper A”",
+            "Delete confirmation CTA copy should name the exact saved workout so final destructive choices stay unmistakable"
+        )
+    }
+
     func testDeleteRecentWorkoutAlertTitle_usesNormalizedWorkoutName() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
 

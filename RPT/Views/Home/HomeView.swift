@@ -59,7 +59,7 @@ struct HomeView: View {
             return "Delete"
         }
 
-        return viewModel.deleteRecentWorkoutButtonTitle(for: workoutToDelete)
+        return viewModel.deleteRecentWorkoutConfirmationButtonTitle(for: workoutToDelete)
     }
     
     var body: some View {

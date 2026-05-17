@@ -400,6 +400,10 @@ class HomeViewModel: ObservableObject {
         "Delete “\(WorkoutRow.displayName(for: workout))” from History"
     }
 
+    func deleteRecentWorkoutConfirmationButtonTitle(for workout: Workout) -> String {
+        "Delete “\(WorkoutRow.displayName(for: workout))”"
+    }
+
     func startFollowUpFailureMessage(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return "Couldn’t start a follow-up from \(displayName). Keep it in history, then try again."
