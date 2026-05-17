@@ -103,6 +103,38 @@ class ActiveWorkoutViewModel: ObservableObject {
 
         return "Are you sure you want to discard \(displayName)? This action cannot be undone."
     }
+
+    func completeWorkoutAlertTitle() -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Complete Workout?"
+        }
+
+        return "Complete “\(displayName)”?"
+    }
+
+    func completeWorkoutButtonTitle() -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Complete and Save"
+        }
+
+        return "Complete “\(displayName)” & Save"
+    }
+
+    func continueWorkoutButtonTitle() -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Continue Workout"
+        }
+
+        return "Continue “\(displayName)”"
+    }
+
+    func completeWorkoutMessage() -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Would you like to complete and save this workout?"
+        }
+
+        return "Would you like to complete and save \(displayName)?"
+    }
     
     init(workout: Workout, workoutManager: WorkoutManager? = nil, exerciseManager: ExerciseManager? = nil, settingsManager: SettingsManager? = nil) {
         self.workout = workout

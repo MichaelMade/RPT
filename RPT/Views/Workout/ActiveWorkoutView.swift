@@ -257,10 +257,10 @@ struct ActiveWorkoutView: View {
             }
             // Complete confirmation
             .confirmationDialog(
-                "Complete Workout",
+                viewModel.completeWorkoutAlertTitle(),
                 isPresented: $showingCompleteConfirmation
             ) {
-                Button("Complete and Save") {
+                Button(viewModel.completeWorkoutButtonTitle()) {
                     guard viewModel.completeAndMarkSavedSafely() else {
                         return
                     }
@@ -271,9 +271,9 @@ struct ActiveWorkoutView: View {
 
                     dismiss()
                 }
-                Button("Continue Workout", role: .cancel) { }
+                Button(viewModel.continueWorkoutButtonTitle(), role: .cancel) { }
             } message: {
-                Text("Would you like to complete and save this workout?")
+                Text(viewModel.completeWorkoutMessage())
             }
             // Delete exercise confirmation
             .confirmationDialog(

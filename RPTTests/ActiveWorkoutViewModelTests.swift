@@ -151,6 +151,26 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.workoutName, "  New   Workout Name  ")
     }
 
+    func testCompleteWorkoutTitlesIncludeSpecificWorkoutName() {
+        let workout = workoutManager.createWorkout(name: "Upper A")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.completeWorkoutAlertTitle(), "Complete “Upper A”?")
+        XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete “Upper A” & Save")
+        XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue “Upper A”")
+        XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save Upper A?")
+    }
+
+    func testCompleteWorkoutTitlesFallBackForGenericWorkoutName() {
+        let workout = workoutManager.createWorkout(name: "Workout")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.completeWorkoutAlertTitle(), "Complete Workout?")
+        XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete and Save")
+        XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue Workout")
+        XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save this workout?")
+    }
+
     func testAddExerciseToWorkout_createsIncompleteStarterSet() throws {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")
