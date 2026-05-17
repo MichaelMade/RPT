@@ -156,6 +156,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
         XCTAssertEqual(viewModel.completeWorkoutAlertTitle(), "Complete “Upper A”?")
+        XCTAssertEqual(viewModel.finishButtonTitle(), "Finish “Upper A”")
         XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete “Upper A” & Save")
         XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue “Upper A”")
         XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save Upper A?")
@@ -166,6 +167,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
         XCTAssertEqual(viewModel.completeWorkoutAlertTitle(), "Complete Workout?")
+        XCTAssertEqual(viewModel.finishButtonTitle(), "Finish")
         XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete and Save")
         XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue Workout")
         XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save this workout?")
@@ -592,7 +594,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.finishHelperText,
-            "1 exercise left: Row. Tap the circle beside it when you're done to enable Finish."
+            "1 exercise left: Row. Tap the circle beside it when you're done to enable Finish “Test Workout”."
         )
     }
 
@@ -609,7 +611,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.finishHelperText,
-            "3 exercises left: Squat, Bench Press, +1 more. Tap each circle when you're done to enable Finish."
+            "3 exercises left: Squat, Bench Press, +1 more. Tap each circle when you're done to enable Finish “Test Workout”."
         )
     }
 

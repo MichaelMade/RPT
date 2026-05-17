@@ -68,7 +68,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     var finishHelperText: String? {
-        helperTextForIncompleteExercises(enableActionLabel: "Finish")
+        helperTextForIncompleteExercises(enableActionLabel: finishButtonTitle())
     }
 
     var exitDialogHelperText: String {
@@ -110,6 +110,14 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
 
         return "Complete “\(displayName)”?"
+    }
+
+    func finishButtonTitle() -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Finish"
+        }
+
+        return "Finish “\(displayName)”"
     }
 
     func completeWorkoutButtonTitle() -> String {

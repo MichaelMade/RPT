@@ -115,7 +115,9 @@ struct ActiveWorkoutView: View {
                                 Button(action: {
                                     showingCompleteConfirmation = true
                                 }) {
-                                    Text("Finish")
+                                    Text(viewModel.finishButtonTitle())
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
                                         .padding(.horizontal)
                                         .padding(.vertical, 8)
                                         .background(viewModel.allExercisesCompleted ? Color.green : Color.gray)

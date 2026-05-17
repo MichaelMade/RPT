@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout’s primary finish CTA now names the exact draft (`Finish “Upper A”`) and reuses that same specific wording in the incomplete-exercise helper text, so the last on-screen completion step stays clearer and more VoiceOver-friendly when several routines are in play.
 - Active Workout’s exit/save-for-later controls now name the exact draft in the overflow menu, exit sheet, and minimize accessibility label (`Exit “Upper A”`, `Save “Upper A” for Later`, `Discard “Upper A”`), so backing out of an in-progress session is clearer and more VoiceOver-friendly when several routines are in play.
 - Active Workout’s delete-exercise confirmation now names the exact lift in its title, destructive CTA, and body copy (`Delete “Bench Press” from Workout?`, `Delete “Bench Press”`), so in-progress exercise cleanup is clearer and more VoiceOver-friendly instead of relying on generic `Delete Exercise` wording.
 - Active Workout’s finish confirmation now names the exact draft in its title, primary CTA, and cancel action (`Complete “Upper A” & Save`, `Continue “Upper A”`), so the app’s most important completion decision is clearer and more VoiceOver-friendly when several routines are in play.
