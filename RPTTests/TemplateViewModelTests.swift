@@ -1168,6 +1168,34 @@ final class TemplateViewModelTests: XCTestCase {
             "Delete “Upper A”",
             "Template delete actions should name the exact plan so destructive choices stay unmistakable"
         )
+
+        XCTAssertEqual(
+            viewModel.deleteTemplateAlertTitle(for: template),
+            "Delete “Upper A”?",
+            "Template delete confirmations should name the exact plan in the title"
+        )
+
+        XCTAssertEqual(
+            viewModel.deleteTemplateMessage(for: template),
+            "Delete “Upper A”? 1 exercise and any notes in this plan will be removed. This action cannot be undone.",
+            "Template delete confirmations should explain exactly which plan content will be removed"
+        )
+    }
+
+    func testDeleteTemplateConfirmationFallbackCopy() {
+        let viewModel = TemplateViewModel()
+
+        XCTAssertEqual(
+            viewModel.deleteTemplateAlertTitle(for: nil),
+            "Delete Template?",
+            "Missing template context should fall back to a safe generic title"
+        )
+
+        XCTAssertEqual(
+            viewModel.deleteTemplateMessage(for: nil),
+            "Delete this template? This action cannot be undone.",
+            "Missing template context should keep a safe generic message"
+        )
     }
 
     func testStartTemplateAfterPersistingActiveWorkout_returnsStartedWorkoutAfterSuccessfulSaveForLater() {

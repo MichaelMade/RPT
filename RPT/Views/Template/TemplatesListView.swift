@@ -343,7 +343,7 @@ struct TemplatesListView: View {
                 }
             }
             .confirmationDialog(
-                "Delete Template",
+                viewModel.deleteTemplateAlertTitle(for: templateToDelete),
                 isPresented: $showingConfirmationDialog,
                 presenting: templateToDelete
             ) { template in
@@ -354,7 +354,7 @@ struct TemplatesListView: View {
                     }
                 }
             } message: { template in
-                Text("Are you sure you want to delete this template? This action cannot be undone.")
+                Text(viewModel.deleteTemplateMessage(for: template))
             }
             .onAppear {
                 viewModel.refreshTemplates()

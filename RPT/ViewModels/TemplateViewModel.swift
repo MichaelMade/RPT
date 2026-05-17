@@ -364,6 +364,25 @@ class TemplateViewModel: ObservableObject {
         "Delete “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
     }
 
+    func deleteTemplateAlertTitle(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Delete Template?"
+        }
+
+        return "Delete “\(WorkoutTemplate.normalizedDisplayName(template.name))”?"
+    }
+
+    func deleteTemplateMessage(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Delete this template? This action cannot be undone."
+        }
+
+        let exerciseCount = template.exercises.count
+        let exerciseSummary = exerciseCount == 1 ? "1 exercise" : "\(exerciseCount) exercises"
+
+        return "Delete “\(WorkoutTemplate.normalizedDisplayName(template.name))”? \(exerciseSummary) and any notes in this plan will be removed. This action cannot be undone."
+    }
+
     func activeWorkoutPersistenceFailureMessage(for action: ActiveWorkoutPersistenceAction) -> String {
         switch action {
         case .saveForLater:
