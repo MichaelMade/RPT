@@ -172,6 +172,41 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(ExerciseSetRowView.displayRepsText(8), "8 reps")
     }
 
+    func testExerciseSetRowDeleteButtonTitle_namesLoggedTarget() {
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Push")
+        let set = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout)
+
+        XCTAssertEqual(
+            ExerciseSetRowView.deleteButtonTitle(for: set),
+            "Delete Set 185 lb × 8 reps"
+        )
+    }
+
+    func testExerciseSetRowDeleteButtonTitle_handlesWarmupBodyweightAndBlankFallback() {
+        let bodyweightExercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+        let weightedExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Pull")
+
+        let bodyweightWarmupSet = ExerciseSet(
+            weight: 0,
+            reps: 10,
+            exercise: bodyweightExercise,
+            workout: workout,
+            isWarmup: true
+        )
+        let blankSet = ExerciseSet(weight: 0, reps: 0, exercise: weightedExercise, workout: workout)
+
+        XCTAssertEqual(
+            ExerciseSetRowView.deleteButtonTitle(for: bodyweightWarmupSet),
+            "Delete Warm-up Set BW × 10 reps"
+        )
+        XCTAssertEqual(
+            ExerciseSetRowView.deleteButtonTitle(for: blankSet),
+            "Delete Set"
+        )
+    }
+
     func testExerciseSetDisplayRPE_hidesInvalidLegacyValues() {
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         let workout = Workout(name: "Push")

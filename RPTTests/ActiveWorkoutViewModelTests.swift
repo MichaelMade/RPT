@@ -601,6 +601,30 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.canCompleteWorkoutFromExitDialog)
     }
 
+    func testDiscardWorkoutCopy_namesSpecificWorkout() {
+        let workout = workoutManager.createWorkout(name: "  Upper   A  ")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.discardWorkoutAlertTitle(), "Discard “Upper A”?")
+        XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard “Upper A”")
+        XCTAssertEqual(
+            viewModel.discardWorkoutMessage(),
+            "Are you sure you want to discard Upper A? This action cannot be undone."
+        )
+    }
+
+    func testDiscardWorkoutCopy_fallsBackForGenericWorkoutName() {
+        let workout = workoutManager.createWorkout(name: "   ")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.discardWorkoutAlertTitle(), "Discard Workout?")
+        XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard Workout")
+        XCTAssertEqual(
+            viewModel.discardWorkoutMessage(),
+            "Are you sure you want to discard this workout? This action cannot be undone."
+        )
+    }
+
     func testDeleteSet_removesSetFromExerciseRelationship() throws {
         // Given
         let workout = workoutManager.createWorkout(name: "Test Workout")

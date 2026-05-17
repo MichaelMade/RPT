@@ -79,6 +79,30 @@ class ActiveWorkoutViewModel: ObservableObject {
     var canCompleteWorkoutFromExitDialog: Bool {
         allExercisesCompleted
     }
+
+    func discardWorkoutAlertTitle() -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Discard Workout?"
+        }
+
+        return "Discard “\(displayName)”?"
+    }
+
+    func discardWorkoutButtonTitle() -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Discard Workout"
+        }
+
+        return "Discard “\(displayName)”"
+    }
+
+    func discardWorkoutMessage() -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Are you sure you want to discard this workout? This action cannot be undone."
+        }
+
+        return "Are you sure you want to discard \(displayName)? This action cannot be undone."
+    }
     
     init(workout: Workout, workoutManager: WorkoutManager? = nil, exerciseManager: ExerciseManager? = nil, settingsManager: SettingsManager? = nil) {
         self.workout = workout
@@ -547,6 +571,11 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
     
     // MARK: - Helper Methods
+
+    private var specificWorkoutDisplayName: String? {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout" ? nil : displayName
+    }
 
     private func rollbackInsertedSet(_ set: ExerciseSet, for exercise: Exercise) {
         exerciseGroups[exercise]?.removeAll { $0.id == set.id }

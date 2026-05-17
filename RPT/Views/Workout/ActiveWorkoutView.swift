@@ -223,7 +223,7 @@ struct ActiveWorkoutView: View {
                     }
                 }
 
-                Button("Discard Workout", role: .destructive) {
+                Button(viewModel.discardWorkoutButtonTitle(), role: .destructive) {
                     guard viewModel.discardAndMarkDiscardedSafely() else {
                         return
                     }
@@ -238,10 +238,10 @@ struct ActiveWorkoutView: View {
             }
             // Discard confirmation
             .confirmationDialog(
-                "Discard Workout",
+                viewModel.discardWorkoutAlertTitle(),
                 isPresented: $showingConfirmationDialog
             ) {
-                Button("Discard Workout", role: .destructive) {
+                Button(viewModel.discardWorkoutButtonTitle(), role: .destructive) {
                     guard viewModel.discardAndMarkDiscardedSafely() else {
                         return
                     }
@@ -253,7 +253,7 @@ struct ActiveWorkoutView: View {
                     dismiss()
                 }
             } message: {
-                Text("Are you sure you want to discard this workout? This action cannot be undone.")
+                Text(viewModel.discardWorkoutMessage())
             }
             // Complete confirmation
             .confirmationDialog(

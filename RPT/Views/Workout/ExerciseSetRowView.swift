@@ -177,7 +177,7 @@ struct ExerciseSetRowView: View {
                     }
                     .buttonStyle(.bordered)
                     
-                    Button("Delete", role: .destructive) {
+                    Button(Self.deleteButtonTitle(for: set), role: .destructive) {
                         HapticFeedbackManager.shared.heavy()
                         onDelete()
                     }
@@ -249,6 +249,20 @@ struct ExerciseSetRowView: View {
                 isEditing = true
             }
         }
+    }
+
+    static func deleteButtonTitle(for set: ExerciseSet) -> String {
+        let prefix = set.isWarmup ? "Delete Warm-up Set" : "Delete Set"
+        let hasMeaningfulLoad = set.weight > 0 || set.exercise?.category == .bodyweight
+        let hasMeaningfulReps = set.reps > 0
+
+        guard hasMeaningfulLoad || hasMeaningfulReps else {
+            return prefix
+        }
+
+        let weightText = displayWeightText(weight: set.weight, exerciseCategory: set.exercise?.category)
+        let repsText = displayRepsText(set.reps)
+        return "\(prefix) \(weightText) × \(repsText)"
     }
 
     static func validateDraft(weightInput: String, repsInput: String, rpeInput: String) -> DraftValidationResult {

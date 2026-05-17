@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout destructive copy now names the exact draft or set target where it matters, including `Discard “Upper A”` for draft teardown and set-editor labels like `Delete Set 185 lb × 8 reps`, so in-progress cleanup is clearer and safer for VoiceOver users.
 - Delete confirmations for saved workout history now name the exact workout in their destructive CTA on Home, Workout Details, and Exercise Details (`Delete “Upper A”`), so the final confirmation step stays as explicit and accessibility-friendly as the surrounding history actions.
 - Exercise Details now names its custom-exercise toolbar edit action and workout-history delete confirmation with the exact target, bringing that screen in line with Home and Workout Details so VoiceOver and destructive decisions stay clearer in dense history stacks.
 - Template Details now uses exact-template action labels for its visible `Edit` and `Duplicate` buttons (including the toolbar edit CTA), so the last generic template-management controls match the rest of the Templates experience and stay clearer for VoiceOver in dense routine libraries.
@@ -230,6 +231,7 @@ RPT/
 
 ## Recent Improvements
 
+- Active Workout destructive copy now names the exact draft or set target where it matters, including `Discard “Upper A”` for draft teardown and set-editor labels like `Delete Set 185 lb × 8 reps`, so in-progress cleanup is clearer and safer for VoiceOver users; added regression coverage in `ActiveWorkoutViewModelTests` and `FormattingTests`.
 - Templates tab single-result `Quick Actions` now uses the same exact `Continue “…”`, `Save & Start Template “…”`, and `Discard & Start Template “…”` wording as Template Details and workout history, so blocked template starts stay explicit about the current draft and selected plan instead of falling back to vaguer `Resume Current Workout` / `Open` copy; validated with `git diff --check` plus targeted source inspection.
 - Active-workout recovery CTAs across Home, Workout Details, and Exercise Details now name the exact in-progress workout when possible (for example `Continue “Upper A”`), so save/discard/continue choices are easier to scan and clearer for accessibility when multiple drafts or similarly-titled routines are in play; added regression coverage in `HomeViewModelTests` and `TemplateViewModelTests`.
 - Template Details now uses the same exact `Save & Start Template “…”` / `Discard & Start Template “…”` recovery wording as Home and workout history, so active-workout conflict choices stay explicit about actually starting the selected plan instead of the older vaguer `Open Template` phrasing; validated with `git diff --check` plus targeted source inspection.
