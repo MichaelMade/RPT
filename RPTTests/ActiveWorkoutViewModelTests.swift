@@ -642,9 +642,25 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.exitDialogHelperText,
-            "1 exercise left: Row. Tap the circle beside it when you're done to enable Complete Workout."
+            "1 exercise left: Row. Tap the circle beside it when you're done to enable Complete “Test Workout” & Save."
         )
         XCTAssertFalse(viewModel.canCompleteWorkoutFromExitDialog)
+    }
+
+    func testExitDialogHelperText_whenWorkoutNameIsGeneric_usesCurrentWorkoutFallback() {
+        let workout = workoutManager.createWorkout(name: "   ")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Row", category: .compound, primaryMuscleGroups: [.lats])
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 6)
+        _ = workout.addSet(exercise: row, weight: 155, reps: 8)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+        viewModel.toggleExerciseCompletion(bench)
+
+        XCTAssertEqual(
+            viewModel.exitDialogHelperText,
+            "1 exercise left: Row. Tap the circle beside it when you're done to enable Complete Current Workout & Save."
+        )
     }
 
     func testDiscardWorkoutCopy_namesSpecificWorkout() {
