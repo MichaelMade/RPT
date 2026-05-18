@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s blocked follow-up/template-start alerts and Workout Details’ active-draft recovery card now name the exact in-progress workout in their title (`“Upper A” In Progress`) with a safe `Current Workout In Progress` fallback for blank legacy drafts, so interruption/recovery choices stay more clearly anchored when several routines are in play.
 - Template exercise configuration now uses the exact movement name in the screen title (`Configure “Bench Press”`) with a safe `Configure Exercise` fallback for blank legacy data, so editing several plan movements in a row stays clearly anchored instead of relying on a generic header.
 - Exercise Progress now uses the exact movement name in the screen title (`Bench Press Progress`) with a safe `Exercise Progress` fallback for blank legacy/custom names, so chart review stays clearly anchored when several similar lifts are in the library.
 - Active Workout’s exit-sheet helper text now reuses the exact draft-aware completion label (`Complete “Upper A” & Save` / `Complete Current Workout & Save`) when unfinished exercises still block completion, so the last-save-or-finish decision stays clearer and more VoiceOver-friendly instead of dropping back to generic `Complete Workout` copy.

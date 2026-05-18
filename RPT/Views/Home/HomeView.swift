@@ -61,6 +61,14 @@ struct HomeView: View {
 
         return viewModel.deleteRecentWorkoutConfirmationButtonTitle(for: workoutToDelete)
     }
+
+    private var followUpRecoveryAlertTitle: String {
+        viewModel.activeWorkoutInProgressTitle(for: protectedResumableWorkout())
+    }
+
+    private var templateStartRecoveryAlertTitle: String {
+        viewModel.activeWorkoutInProgressTitle(for: protectedResumableWorkout())
+    }
     
     var body: some View {
         NavigationStack {
@@ -574,7 +582,7 @@ struct HomeView: View {
                     Text(viewModel.deleteRecentWorkoutMessage(for: workoutToDelete))
                 }
             }
-            .alert("Current Workout In Progress", isPresented: $showingFollowUpRecoveryAlert) {
+            .alert(followUpRecoveryAlertTitle, isPresented: $showingFollowUpRecoveryAlert) {
                 Button(
                     protectedResumableWorkout().map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
                     ?? "Continue Current Workout"
@@ -606,7 +614,7 @@ struct HomeView: View {
                     Text(viewModel.activeWorkoutBlocksFollowUpMessage(for: resumableWorkout, startingFrom: workoutToStartFollowUp))
                 }
             }
-            .alert("Current Workout In Progress", isPresented: $showingTemplateStartRecoveryAlert) {
+            .alert(templateStartRecoveryAlertTitle, isPresented: $showingTemplateStartRecoveryAlert) {
                 Button(
                     protectedResumableWorkout().map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
                     ?? "Continue Current Workout"

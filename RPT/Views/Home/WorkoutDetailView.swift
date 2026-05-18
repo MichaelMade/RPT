@@ -469,7 +469,7 @@ struct WorkoutDetailView: View {
                 if workout.isCompleted {
                     if let resumableWorkout = homeViewModel.resumableWorkout(activeWorkout: activeWorkoutBinding) {
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("Current Workout In Progress")
+                            Text(homeViewModel.activeWorkoutInProgressTitle(for: resumableWorkout))
                                 .font(.headline)
 
                             if homeViewModel.shouldOfferFollowUpRecovery(for: workout) {

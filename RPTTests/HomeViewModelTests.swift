@@ -689,6 +689,31 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testActiveWorkoutInProgressTitle_namesSpecificDraftWhenAvailable() {
+        let workout = Workout(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutInProgressTitle(for: workout),
+            "“Upper A” In Progress",
+            "Blocked-workout titles should name the exact draft when possible so recovery alerts are easier to scan"
+        )
+    }
+
+    func testActiveWorkoutInProgressTitle_fallsBackForBlankOrMissingDraftName() {
+        let blankWorkout = Workout(name: "   ")
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutInProgressTitle(for: blankWorkout),
+            "Current Workout In Progress",
+            "Blocked-workout titles should stay generic when the draft name is blank or corrupted"
+        )
+        XCTAssertEqual(
+            viewModel.activeWorkoutInProgressTitle(for: nil),
+            "Current Workout In Progress",
+            "Blocked-workout titles should stay generic when no resumable workout is currently available"
+        )
+    }
+
     func testResumableWorkoutSummary_templateDraftWithoutLoggedSetsShowsNotStartedYet() {
         let startDate = Date(timeIntervalSince1970: 0)
         let now = startDate.addingTimeInterval(15 * 60)

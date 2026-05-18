@@ -178,6 +178,17 @@ class HomeViewModel: ObservableObject {
             : "Continue “\(displayName)”"
     }
 
+    func activeWorkoutInProgressTitle(for workout: Workout?) -> String {
+        guard let workout else {
+            return "Current Workout In Progress"
+        }
+
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Current Workout In Progress"
+            : "“\(displayName)” In Progress"
+    }
+
     private func exerciseCountTextForResumableSummary(for workout: Workout) -> String {
         let count: Int
 
