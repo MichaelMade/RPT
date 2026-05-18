@@ -62,6 +62,17 @@ struct ExerciseProgressView: View {
         }
     }
 
+    static func navigationTitle(for exercise: Exercise?) -> String {
+        guard let exercise else {
+            return "Exercise Progress"
+        }
+
+        let displayName = exercise.displayName
+        return displayName == "Exercise"
+            ? "Exercise Progress"
+            : "\(displayName) Progress"
+    }
+
     static func topSetMetricValue(from sets: [ExerciseSet], exerciseCategory: ExerciseCategory) -> Double {
         switch exerciseCategory {
         case .bodyweight:
@@ -286,7 +297,7 @@ struct ExerciseProgressView: View {
             }
             .padding()
         }
-        .navigationTitle("Progress")
+        .navigationTitle(Self.navigationTitle(for: exercise))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             if !Self.availableMetrics(for: exercise.category).contains(metric) {

@@ -2,6 +2,28 @@ import XCTest
 @testable import RPT
 
 final class ExerciseProgressViewTests: XCTestCase {
+    func testNavigationTitle_namesTheExactExerciseWhenAvailable() {
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        XCTAssertEqual(
+            ExerciseProgressView.navigationTitle(for: exercise),
+            "Bench Press Progress"
+        )
+    }
+
+    func testNavigationTitle_fallsBackGracefullyForBlankOrMissingExercises() {
+        let blankExercise = Exercise(name: "   ", category: .compound, primaryMuscleGroups: [.chest])
+
+        XCTAssertEqual(
+            ExerciseProgressView.navigationTitle(for: blankExercise),
+            "Exercise Progress"
+        )
+        XCTAssertEqual(
+            ExerciseProgressView.navigationTitle(for: nil),
+            "Exercise Progress"
+        )
+    }
+
     func testAvailableMetrics_forBodyweightHidesEstimatedOneRM() {
         XCTAssertEqual(
             ExerciseProgressView.availableMetrics(for: .bodyweight),
