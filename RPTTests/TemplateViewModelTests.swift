@@ -218,6 +218,20 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testTemplateExerciseEditorNavigationTitle_namesConfiguredExercise() {
+        XCTAssertEqual(
+            TemplateViewModel.templateExerciseEditorNavigationTitle(for: "  Romanian   Deadlift  "),
+            "Configure “Romanian Deadlift”"
+        )
+    }
+
+    func testTemplateExerciseEditorNavigationTitle_fallsBackForUnnamedExercise() {
+        XCTAssertEqual(
+            TemplateViewModel.templateExerciseEditorNavigationTitle(for: " \n\t "),
+            "Configure Exercise"
+        )
+    }
+
     func testFetchTemplates_matchesEditTemplateRecoveryCopyForBrokenTemplates() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

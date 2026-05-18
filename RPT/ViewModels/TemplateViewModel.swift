@@ -372,6 +372,11 @@ class TemplateViewModel: ObservableObject {
         return displayName == "Template" ? "Template Details" : displayName
     }
 
+    static func templateExerciseEditorNavigationTitle(for exerciseName: String) -> String {
+        let displayName = TemplateExercise.normalizedDisplayName(exerciseName)
+        return displayName == "Exercise" ? "Configure Exercise" : "Configure “\(displayName)”"
+    }
+
     func duplicateTemplateButtonTitle(for template: WorkoutTemplate) -> String {
         "Duplicate “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
     }

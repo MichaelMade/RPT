@@ -98,7 +98,7 @@ struct TemplateExerciseEditView: View {
                     }
                 }
             }
-            .navigationTitle("Configure Exercise")
+            .navigationTitle(TemplateViewModel.templateExerciseEditorNavigationTitle(for: exercise.exerciseName))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
