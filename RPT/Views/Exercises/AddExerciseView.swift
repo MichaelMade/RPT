@@ -14,6 +14,11 @@ struct AddExerciseView: View {
     let initialPrimaryMuscles: [MuscleGroup]
     let onExerciseSaved: ((String) -> Void)?
 
+    static func navigationTitle(for rawExerciseName: String) -> String {
+        let displayName = ExerciseManager.sanitizeExerciseName(rawExerciseName)
+        return displayName.isEmpty ? "Add Exercise" : "Add “\(displayName)”"
+    }
+
     @Environment(\.dismiss) private var dismiss
     @State private var exerciseName = ""
     @State private var selectedCategory: ExerciseCategory
@@ -98,7 +103,7 @@ struct AddExerciseView: View {
                         .frame(minHeight: 100)
                 }
             }
-            .navigationTitle("Add Exercise")
+            .navigationTitle(Self.navigationTitle(for: exerciseName))
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 if exerciseName.isEmpty {
