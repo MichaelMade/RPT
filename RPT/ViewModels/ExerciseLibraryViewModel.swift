@@ -176,7 +176,11 @@ class ExerciseLibraryViewModel: ObservableObject {
             return nil
         }
 
-        return "Add “\(exercise.displayName)”"
+        guard let displayName = exercise.specificDisplayName else {
+            return "Add Exercise"
+        }
+
+        return "Add “\(displayName)”"
     }
 
     func reviewActionTitle(for exercise: Exercise?) -> String? {
@@ -184,15 +188,19 @@ class ExerciseLibraryViewModel: ObservableObject {
             return nil
         }
 
-        return "Review “\(exercise.displayName)”"
+        guard let displayName = exercise.specificDisplayName else {
+            return "Review Exercise"
+        }
+
+        return "Review “\(displayName)”"
     }
 
     static func editScreenTitle(for exercise: Exercise?) -> String {
-        guard let exercise else {
+        guard let displayName = exercise?.specificDisplayName else {
             return "Edit Exercise"
         }
 
-        return "Edit “\(exercise.displayName)”"
+        return "Edit “\(displayName)”"
     }
 
     func editActionTitle(for exercise: Exercise?) -> String? {
@@ -208,15 +216,19 @@ class ExerciseLibraryViewModel: ObservableObject {
             return nil
         }
 
-        return "Delete “\(exercise.displayName)”"
-    }
-
-    func deleteAlertTitle(for exercise: Exercise?) -> String {
-        guard let exercise else {
+        guard let displayName = exercise.specificDisplayName else {
             return "Delete Exercise"
         }
 
-        return "Delete “\(exercise.displayName)”?"
+        return "Delete “\(displayName)”"
+    }
+
+    func deleteAlertTitle(for exercise: Exercise?) -> String {
+        guard let displayName = exercise?.specificDisplayName else {
+            return "Delete Exercise?"
+        }
+
+        return "Delete “\(displayName)”?"
     }
 
     func suggestedExerciseNameFromSearch() -> String? {

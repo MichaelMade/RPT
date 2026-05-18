@@ -786,6 +786,24 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertEqual(ExerciseLibraryViewModel.editScreenTitle(for: nil), "Edit Exercise")
         XCTAssertNil(viewModel.editActionTitle(for: nil))
         XCTAssertNil(viewModel.deleteActionTitle(for: nil))
-        XCTAssertEqual(viewModel.deleteAlertTitle(for: nil), "Delete Exercise")
+        XCTAssertEqual(viewModel.deleteAlertTitle(for: nil), "Delete Exercise?")
+    }
+
+    func testExerciseActionTitles_fallBackGracefullyForBlankExerciseNames() {
+        let blankExercise = Exercise(
+            name: "  \n  ",
+            category: .bodyweight,
+            primaryMuscleGroups: [.back],
+            isCustom: true
+        )
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [blankExercise]
+
+        XCTAssertEqual(viewModel.singleSelectableExerciseActionTitle(for: blankExercise), "Add Exercise")
+        XCTAssertEqual(viewModel.reviewActionTitle(for: blankExercise), "Review Exercise")
+        XCTAssertEqual(ExerciseLibraryViewModel.editScreenTitle(for: blankExercise), "Edit Exercise")
+        XCTAssertEqual(viewModel.editActionTitle(for: blankExercise), "Edit Exercise")
+        XCTAssertEqual(viewModel.deleteActionTitle(for: blankExercise), "Delete Exercise")
+        XCTAssertEqual(viewModel.deleteAlertTitle(for: blankExercise), "Delete Exercise?")
     }
 }

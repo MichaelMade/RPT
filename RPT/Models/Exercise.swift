@@ -35,13 +35,24 @@ final class Exercise {
     @Relationship(deleteRule: .cascade, inverse: \ExerciseSet.exercise)
     var sets: [ExerciseSet]
     
-    static func normalizedDisplayName(_ raw: String) -> String {
-        let collapsedName = ExerciseTextFormatter.collapsed(raw) ?? "Exercise"
+    static func specificDisplayName(_ raw: String) -> String? {
+        guard let collapsedName = ExerciseTextFormatter.collapsed(raw) else {
+            return nil
+        }
+
         return String(collapsedName.prefix(80))
+    }
+
+    static func normalizedDisplayName(_ raw: String) -> String {
+        specificDisplayName(raw) ?? "Exercise"
     }
 
     static func normalizedDisplayInstructions(_ raw: String) -> String? {
         ExerciseTextFormatter.collapsed(raw)
+    }
+
+    var specificDisplayName: String? {
+        Self.specificDisplayName(name)
     }
 
     var displayName: String {

@@ -169,23 +169,27 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     func deleteExerciseAlertTitle(for exercise: Exercise?) -> String {
-        guard let exercise else {
+        guard let displayName = exercise?.specificDisplayName else {
             return "Delete Exercise?"
         }
 
-        return "Delete “\(exercise.displayName)” from Workout?"
+        return "Delete “\(displayName)” from Workout?"
     }
 
     func deleteExerciseButtonTitle(for exercise: Exercise) -> String {
-        "Delete “\(exercise.displayName)”"
+        guard let displayName = exercise.specificDisplayName else {
+            return "Delete Exercise"
+        }
+
+        return "Delete “\(displayName)”"
     }
 
     func deleteExerciseMessage(for exercise: Exercise?) -> String {
-        guard let exercise else {
+        guard let displayName = exercise?.specificDisplayName else {
             return "Are you sure you want to remove this exercise from the workout? All sets for this exercise will be deleted."
         }
 
-        return "Are you sure you want to remove “\(exercise.displayName)” from this workout? All sets for this exercise will be deleted."
+        return "Are you sure you want to remove “\(displayName)” from this workout? All sets for this exercise will be deleted."
     }
     
     init(workout: Workout, workoutManager: WorkoutManager? = nil, exerciseManager: ExerciseManager? = nil, settingsManager: SettingsManager? = nil) {

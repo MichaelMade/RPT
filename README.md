@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Library and Active Workout now fall back to honest generic action copy (`Add Exercise`, `Review Exercise`, `Delete Exercise?`) when a legacy/custom movement has a blank name, avoiding awkward placeholder labels like `Edit “Exercise”` or `Delete “Exercise”` while keeping those flows clear and VoiceOver-friendly.
 - Home’s `Start Fresh Instead` confirmation now names the exact in-progress draft in the alert title and save/discard replacement actions (`Replace “Upper A”?`, `Save “Upper A” & Start New Workout`, `Discard “Upper A” & Start New Workout`) with safe `Current Workout` fallbacks for blank legacy names, so the app’s main workout-replacement decision stays clearer and more VoiceOver-friendly when several routines are in play.
 - Add Custom Exercise now keeps the exact draft name in the editor title (`Add “Garage Dip”`) as soon as a prefilled or typed name exists, so search-driven create flows and in-progress custom movement entry stay clearly anchored instead of sitting under a generic `Add Exercise` header.
 - Home’s source-template quick action and Workout Details’ source-template shortcut now say `Start Template “Upper A”` instead of `Open Template “Upper A”`, matching the app’s newer start-focused handoff language so rerunning a plan from history reads like an action instead of a passive destination.
