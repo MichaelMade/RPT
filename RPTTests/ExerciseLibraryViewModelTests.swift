@@ -420,14 +420,14 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.singleSelectableExerciseActionTitle(for: bench),
-            "Add \"Bench Press\"",
+            "Add “Bench Press”",
             "When only one visible exercise remains, picker lists should surface the same one-tap add shortcut even without an active search or filter"
         )
 
         viewModel.searchText = "bench"
         XCTAssertEqual(
             viewModel.singleSelectableExerciseActionTitle(for: bench),
-            "Add \"Bench Press\"",
+            "Add “Bench Press”",
             "Exact one-result picker searches should still surface the same one-tap add shortcut for the matched exercise"
         )
 
@@ -772,15 +772,17 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             instructions: ""
         )
 
-        XCTAssertEqual(ExerciseLibraryViewModel.editScreenTitle(for: customExercise), "Edit \"Garage Dip\"")
-        XCTAssertEqual(viewModel.editActionTitle(for: customExercise), "Edit \"Garage Dip\"")
-        XCTAssertEqual(viewModel.deleteActionTitle(for: customExercise), "Delete \"Garage Dip\"")
-        XCTAssertEqual(viewModel.deleteAlertTitle(for: customExercise), "Delete \"Garage Dip\"?")
+        XCTAssertEqual(viewModel.reviewActionTitle(for: customExercise), "Review “Garage Dip”")
+        XCTAssertEqual(ExerciseLibraryViewModel.editScreenTitle(for: customExercise), "Edit “Garage Dip”")
+        XCTAssertEqual(viewModel.editActionTitle(for: customExercise), "Edit “Garage Dip”")
+        XCTAssertEqual(viewModel.deleteActionTitle(for: customExercise), "Delete “Garage Dip”")
+        XCTAssertEqual(viewModel.deleteAlertTitle(for: customExercise), "Delete “Garage Dip”?")
     }
 
     func testExerciseActionTitles_fallBackGracefullyWithoutAnExercise() {
         let viewModel = ExerciseLibraryViewModel()
 
+        XCTAssertNil(viewModel.reviewActionTitle(for: nil))
         XCTAssertEqual(ExerciseLibraryViewModel.editScreenTitle(for: nil), "Edit Exercise")
         XCTAssertNil(viewModel.editActionTitle(for: nil))
         XCTAssertNil(viewModel.deleteActionTitle(for: nil))

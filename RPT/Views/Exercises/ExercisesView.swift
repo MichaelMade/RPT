@@ -179,7 +179,10 @@ struct ExercisesView: View {
                                 NavigationLink {
                                     ExerciseDetailView(exercise: matchedExercise)
                                 } label: {
-                                    Label("Review \"\(matchedExercise.displayName)\"", systemImage: "info.circle")
+                                    Label(
+                                        viewModel.reviewActionTitle(for: matchedExercise) ?? "Review",
+                                        systemImage: "info.circle"
+                                    )
                                 }
 
                                 if matchedExercise.isCustom {
