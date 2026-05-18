@@ -745,6 +745,66 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(summary, "Started 10m ago • From Push Day • 1 exercise • 1 set • Warm-up sets only so far", "Warm-up-only draft summaries should prefer actually touched warm-up context instead of inflating counts with untouched planned placeholder work")
     }
 
+    func testReplaceCurrentWorkoutAlertTitle_namesSpecificDraftWhenAvailable() {
+        let workout = Workout(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            viewModel.replaceCurrentWorkoutAlertTitle(for: workout),
+            "Replace “Upper A”?",
+            "Start-fresh confirmation titles should name the exact draft being replaced when a clean name exists"
+        )
+    }
+
+    func testReplaceCurrentWorkoutAlertTitle_fallsBackForGenericDraftName() {
+        let workout = Workout(name: "   ")
+
+        XCTAssertEqual(
+            viewModel.replaceCurrentWorkoutAlertTitle(for: workout),
+            "Replace Current Workout?",
+            "Start-fresh confirmation titles should stay generic when the active draft name is blank or corrupted"
+        )
+    }
+
+    func testSaveAndStartFreshButtonTitle_namesSpecificDraftWhenAvailable() {
+        let workout = Workout(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            viewModel.saveAndStartFreshButtonTitle(for: workout),
+            "Save “Upper A” & Start New Workout",
+            "Save-and-start CTAs should name the exact draft so users know what will be preserved before the new workout begins"
+        )
+    }
+
+    func testSaveAndStartFreshButtonTitle_fallsBackForGenericDraftName() {
+        let workout = Workout(name: "   ")
+
+        XCTAssertEqual(
+            viewModel.saveAndStartFreshButtonTitle(for: workout),
+            "Save Current Workout & Start New Workout",
+            "Save-and-start CTAs should stay generic when the active draft has no usable name"
+        )
+    }
+
+    func testDiscardAndStartFreshButtonTitle_namesSpecificDraftWhenAvailable() {
+        let workout = Workout(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            viewModel.discardAndStartFreshButtonTitle(for: workout),
+            "Discard “Upper A” & Start New Workout",
+            "Discard-and-start CTAs should name the exact draft so destructive replacement stays explicit"
+        )
+    }
+
+    func testDiscardAndStartFreshButtonTitle_fallsBackForGenericDraftName() {
+        let workout = Workout(name: "   ")
+
+        XCTAssertEqual(
+            viewModel.discardAndStartFreshButtonTitle(for: workout),
+            "Discard Current Workout & Start New Workout",
+            "Discard-and-start CTAs should stay generic when the active draft has no usable name"
+        )
+    }
+
     func testStartFreshWorkoutMessage_includesWorkoutNameAndCurrentDraftSummary() {
         let startDate = Date(timeIntervalSince1970: 0)
         let now = startDate.addingTimeInterval(30 * 60)

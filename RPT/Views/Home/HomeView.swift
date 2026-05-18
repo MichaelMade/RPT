@@ -62,6 +62,30 @@ struct HomeView: View {
         return viewModel.deleteRecentWorkoutConfirmationButtonTitle(for: workoutToDelete)
     }
 
+    private var startFreshAlertTitle: String {
+        guard let resumableWorkoutToReplace else {
+            return "Replace Current Workout?"
+        }
+
+        return viewModel.replaceCurrentWorkoutAlertTitle(for: resumableWorkoutToReplace)
+    }
+
+    private var startFreshSaveButtonTitle: String {
+        guard let resumableWorkoutToReplace else {
+            return "Save Current Workout & Start New Workout"
+        }
+
+        return viewModel.saveAndStartFreshButtonTitle(for: resumableWorkoutToReplace)
+    }
+
+    private var startFreshDiscardButtonTitle: String {
+        guard let resumableWorkoutToReplace else {
+            return "Discard Current Workout & Start New Workout"
+        }
+
+        return viewModel.discardAndStartFreshButtonTitle(for: resumableWorkoutToReplace)
+    }
+
     private var followUpRecoveryAlertTitle: String {
         viewModel.activeWorkoutInProgressTitle(for: protectedResumableWorkout())
     }
@@ -541,12 +565,12 @@ struct HomeView: View {
                     activeWorkoutBlockMessage: sourceTemplateBlockMessage(for: template)
                 )
             }
-            .alert("Replace Current Workout?", isPresented: $showingStartFreshAlert) {
-                Button("Save & Start New Workout") {
+            .alert(startFreshAlertTitle, isPresented: $showingStartFreshAlert) {
+                Button(startFreshSaveButtonTitle) {
                     saveCurrentWorkoutAndStartFresh()
                 }
 
-                Button("Discard & Start New Workout", role: .destructive) {
+                Button(startFreshDiscardButtonTitle, role: .destructive) {
                     discardCurrentWorkoutAndStartFresh()
                 }
 

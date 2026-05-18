@@ -178,6 +178,27 @@ class HomeViewModel: ObservableObject {
             : "Continue “\(displayName)”"
     }
 
+    func replaceCurrentWorkoutAlertTitle(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Replace Current Workout?"
+            : "Replace “\(displayName)”?"
+    }
+
+    func saveAndStartFreshButtonTitle(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Save Current Workout & Start New Workout"
+            : "Save “\(displayName)” & Start New Workout"
+    }
+
+    func discardAndStartFreshButtonTitle(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Discard Current Workout & Start New Workout"
+            : "Discard “\(displayName)” & Start New Workout"
+    }
+
     func activeWorkoutInProgressTitle(for workout: Workout?) -> String {
         guard let workout else {
             return "Current Workout In Progress"
