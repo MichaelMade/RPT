@@ -190,6 +190,20 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Strength Day"])
     }
 
+    func testTemplateEditorNavigationTitle_namesExistingTemplate() {
+        XCTAssertEqual(
+            TemplateViewModel.templateEditorNavigationTitle(isNewTemplate: false, templateName: "  Upper   A  "),
+            "Edit “Upper A”"
+        )
+    }
+
+    func testTemplateEditorNavigationTitle_fallsBackForUnnamedTemplate() {
+        XCTAssertEqual(
+            TemplateViewModel.templateEditorNavigationTitle(isNewTemplate: false, templateName: " \n\t "),
+            "Edit Template"
+        )
+    }
+
     func testFetchTemplates_matchesEditTemplateRecoveryCopyForBrokenTemplates() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

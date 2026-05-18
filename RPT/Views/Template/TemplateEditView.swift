@@ -167,7 +167,7 @@ struct TemplateEditView: View {
                     }
                 }
             }
-            .navigationTitle(isNewTemplate ? "New Template" : "Edit Template")
+            .navigationTitle(TemplateViewModel.templateEditorNavigationTitle(isNewTemplate: isNewTemplate, templateName: templateName))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
