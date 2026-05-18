@@ -9,6 +9,14 @@ import SwiftUI
 import SwiftData
 
 struct EditExerciseView: View {
+    static func navigationTitle(for rawExerciseName: String, fallbackExercise: Exercise) -> String {
+        guard let displayName = Exercise.specificDisplayName(rawExerciseName) ?? fallbackExercise.specificDisplayName else {
+            return "Edit Exercise"
+        }
+
+        return "Edit “\(displayName)”"
+    }
+
     @Environment(\.dismiss) private var dismiss
     @Bindable var exercise: Exercise
     
@@ -93,7 +101,7 @@ struct EditExerciseView: View {
                         .frame(minHeight: 100)
                 }
             }
-            .navigationTitle(ExerciseLibraryViewModel.editScreenTitle(for: exercise))
+            .navigationTitle(Self.navigationTitle(for: exerciseName, fallbackExercise: exercise))
             .navigationBarTitleDisplayMode(.inline)
             .alert(
                 saveResult?.alertTitle ?? "Unable to Save Exercise",
