@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s source-template quick action and Workout Details’ source-template shortcut now say `Start Template “Upper A”` instead of `Open Template “Upper A”`, matching the app’s newer start-focused handoff language so rerunning a plan from history reads like an action instead of a passive destination.
 - Home’s blocked follow-up/template-start alerts and Workout Details’ active-draft recovery card now name the exact in-progress workout in their title (`“Upper A” In Progress`) with a safe `Current Workout In Progress` fallback for blank legacy drafts, so interruption/recovery choices stay more clearly anchored when several routines are in play.
 - Template exercise configuration now uses the exact movement name in the screen title (`Configure “Bench Press”`) with a safe `Configure Exercise` fallback for blank legacy data, so editing several plan movements in a row stays clearly anchored instead of relying on a generic header.
 - Exercise Progress now uses the exact movement name in the screen title (`Bench Press Progress`) with a safe `Exercise Progress` fallback for blank legacy/custom names, so chart review stays clearly anchored when several similar lifts are in the library.

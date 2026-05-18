@@ -415,7 +415,7 @@ struct WorkoutDetailView: View {
                                     activeWorkoutBlockMessage: sourceTemplateBlockMessage(for: sourceTemplate)
                                 )
                             } label: {
-                                Label("Open Template “\(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name))”", systemImage: "square.on.square")
+                                Label("Start Template “\(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name))”", systemImage: "square.on.square")
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
                             .buttonStyle(.bordered)

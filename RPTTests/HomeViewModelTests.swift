@@ -1213,7 +1213,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.sourceTemplateQuickActionTitle(for: workout),
-            "Open Template “Upper A”",
+            "Start Template “Upper A”",
             "Template quick action copy should normalize the remembered source template name so Home shortcuts stay readable"
         )
     }
@@ -1223,7 +1223,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.sourceTemplateQuickActionTitle(for: workout, resolvedTemplateName: "  Renamed   Upper A  "),
-            "Open Template “Renamed Upper A”",
+            "Start Template “Renamed Upper A”",
             "Home template shortcuts should use the current template name when a stable-ID lookup resolves a renamed source template"
         )
     }

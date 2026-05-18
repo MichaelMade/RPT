@@ -440,7 +440,7 @@ class HomeViewModel: ObservableObject {
             return nil
         }
 
-        return "Open Template “\(templateName)”"
+        return "Start Template “\(templateName)”"
     }
 
     func followUpWorkoutHelperText(for workout: Workout) -> String {
