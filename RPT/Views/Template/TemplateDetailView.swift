@@ -403,7 +403,7 @@ struct TemplateDetailView: View {
                     )
                 }
             }
-            .navigationTitle("Template Details")
+            .navigationTitle(TemplateViewModel.templateDetailNavigationTitle(for: template.name))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {

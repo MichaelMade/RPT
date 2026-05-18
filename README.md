@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details now uses the exact routine name as its navigation title (`Upper A`) whenever a saved plan has a meaningful name, so template review stays clearly anchored in long routine libraries instead of falling back to a generic `Template Details` header.
 - New/Edit Template now keeps the exact routine name in the editor navigation title (`Edit “Upper A”`) while you rename or tune a saved plan, so longer template-revision sessions stay clearly anchored instead of falling back to a generic `Edit Template` header.
 - Exercise Details and the custom-exercise editor now keep the exact movement name in the visible edit flow (`Edit “Garage Dip”`), so jumping from a detail screen into custom-exercise cleanup stays clearer and more VoiceOver-friendly instead of dropping back to a generic `Edit Exercise` title.
 - Templates list delete confirmations now name the exact routine in both the title and body copy (`Delete “Upper A”?`) while summarizing what will be removed, so destructive cleanup in dense plan libraries is clearer and more VoiceOver-friendly instead of falling back to a generic `Delete Template` prompt.

@@ -204,6 +204,20 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testTemplateDetailNavigationTitle_namesExistingTemplate() {
+        XCTAssertEqual(
+            TemplateViewModel.templateDetailNavigationTitle(for: "  Upper   A  "),
+            "Upper A"
+        )
+    }
+
+    func testTemplateDetailNavigationTitle_fallsBackForUnnamedTemplate() {
+        XCTAssertEqual(
+            TemplateViewModel.templateDetailNavigationTitle(for: " \n\t "),
+            "Template Details"
+        )
+    }
+
     func testFetchTemplates_matchesEditTemplateRecoveryCopyForBrokenTemplates() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
