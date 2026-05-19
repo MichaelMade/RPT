@@ -471,6 +471,13 @@ class TemplateViewModel: ObservableObject {
         return .success(startedWorkout)
     }
 
+    static func templateSaveFailureAlertTitle(for templateName: String) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(templateName)
+        return displayName == "Template"
+            ? "Couldn’t Save This Template"
+            : "Couldn’t Save Template “\(displayName)”"
+    }
+
     static func searchMatchPriority(template: WorkoutTemplate, normalizedQuery: String) -> Int? {
         guard !normalizedQuery.isEmpty else {
             return 0

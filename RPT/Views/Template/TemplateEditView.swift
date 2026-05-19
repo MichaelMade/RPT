@@ -42,6 +42,15 @@ struct TemplateEditView: View {
         }
     }
 
+    private func saveAlertTitle(for result: TemplateManager.MutationResult) -> String {
+        switch result {
+        case .persistenceFailure:
+            return TemplateViewModel.templateSaveFailureAlertTitle(for: templateName)
+        default:
+            return result.alertTitle
+        }
+    }
+
     private func saveAlertMessage(for result: TemplateManager.MutationResult) -> String {
         switch result {
         case .duplicateExercise:
@@ -220,7 +229,7 @@ struct TemplateEditView: View {
                 )
             }
             .alert(
-                saveResult?.alertTitle ?? "Unable to Save Template",
+                saveResult.map(saveAlertTitle(for:)) ?? TemplateManager.MutationResult.persistenceFailure.alertTitle,
                 isPresented: Binding(
                     get: { saveResult != nil },
                     set: { isPresented in

@@ -232,6 +232,20 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testTemplateSaveFailureAlertTitle_namesSpecificTemplate() {
+        XCTAssertEqual(
+            TemplateViewModel.templateSaveFailureAlertTitle(for: "  Upper   A  "),
+            "Couldn’t Save Template “Upper A”"
+        )
+    }
+
+    func testTemplateSaveFailureAlertTitle_fallsBackForUnnamedTemplate() {
+        XCTAssertEqual(
+            TemplateViewModel.templateSaveFailureAlertTitle(for: " \n\t "),
+            "Couldn’t Save This Template"
+        )
+    }
+
     func testFetchTemplates_matchesEditTemplateRecoveryCopyForBrokenTemplates() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
