@@ -1,5 +1,6 @@
 # RPT
 
+- Template-start failures now keep naming the exact routine in both Template Details and Templates quick-start recovery (`Couldn’t Start Template “Upper A”`, `Couldn’t Save & Start Template “Upper A”`, `Couldn’t Discard & Start Template “Upper A”`) with safe generic fallbacks for blank legacy names, so blocked or failed handoffs stay clearly anchored instead of dropping back to a generic `Workout Action Failed` alert.
 - Active Workout persistence failures now name the exact workout or exercise when possible (`Couldn’t Save “Upper A”`, `Couldn’t Complete “Upper A”`, `Couldn’t Delete “Bench Press”`) instead of collapsing everything into a generic `Workout Action Failed` alert, so recovery is clearer in the middle of a live session.
 - Recent workout history delete failures now keep naming the exact session that stayed put (`Couldn’t Delete “Upper A”`) across Home, Workout Details, and Exercise Details, so destructive cleanup errors stay clearly anchored instead of dropping back to a generic `Workout Action Failed` title.
 - Exercise Library and Workout Templates delete-failure alerts now keep naming the exact item that stayed put (`Couldn’t Delete “Garage Dip”`, `Couldn’t Delete “Upper A”`) with safe generic fallbacks for blank legacy data, so destructive cleanup failures stay clearly anchored instead of dropping back to anonymous retry copy.

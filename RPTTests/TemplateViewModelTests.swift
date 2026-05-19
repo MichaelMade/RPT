@@ -1124,6 +1124,52 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testStartTemplateFailureAlertTitles_nameSpecificTemplate() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "  Upper   A  ", exerciseNames: ["Bench Press"])
+
+        XCTAssertEqual(
+            viewModel.startTemplateFailureAlertTitle(for: template),
+            "Couldn’t Start Template “Upper A”",
+            "Direct template-start failures should name the exact plan that could not launch"
+        )
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template),
+            "Couldn’t Save & Start Template “Upper A”",
+            "Save-and-start failures should keep naming the exact template the user was trying to open"
+        )
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template),
+            "Couldn’t Discard & Start Template “Upper A”",
+            "Discard-and-start failures should keep naming the exact template in destructive recovery alerts"
+        )
+    }
+
+    func testStartTemplateFailureAlertTitles_fallBackForGenericTemplateName() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "   ", exerciseNames: ["Bench Press"])
+
+        XCTAssertEqual(
+            viewModel.startTemplateFailureAlertTitle(for: template),
+            "Couldn’t Start This Template",
+            "Blank legacy template names should use safe generic start-failure copy"
+        )
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template),
+            "Couldn’t Save & Start This Template",
+            "Blank legacy template names should use safe generic save-and-start copy"
+        )
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template),
+            "Couldn’t Discard & Start This Template",
+            "Blank legacy template names should use safe generic discard-and-start copy"
+        )
+    }
+
     func testActiveWorkoutPersistenceFailureMessage_matchesActionContext() {
         let viewModel = TemplateViewModel()
 

@@ -420,6 +420,31 @@ class TemplateViewModel: ObservableObject {
         return "“\(WorkoutTemplate.normalizedDisplayName(template.name))” is still in your templates. Please try again."
     }
 
+    func startTemplateFailureAlertTitle(for template: WorkoutTemplate) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Couldn’t Start This Template"
+            : "Couldn’t Start Template “\(displayName)”"
+    }
+
+    func activeWorkoutPersistenceFailureAlertTitle(
+        for action: ActiveWorkoutPersistenceAction,
+        opening template: WorkoutTemplate
+    ) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+
+        switch action {
+        case .saveForLater:
+            return displayName == "Template"
+                ? "Couldn’t Save & Start This Template"
+                : "Couldn’t Save & Start Template “\(displayName)”"
+        case .discard:
+            return displayName == "Template"
+                ? "Couldn’t Discard & Start This Template"
+                : "Couldn’t Discard & Start Template “\(displayName)”"
+        }
+    }
+
     func activeWorkoutPersistenceFailureMessage(for action: ActiveWorkoutPersistenceAction) -> String {
         switch action {
         case .saveForLater:

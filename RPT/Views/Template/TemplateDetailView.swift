@@ -18,6 +18,7 @@ struct TemplateDetailView: View {
     let onDiscardActiveWorkoutAndOpenTemplate: (() -> Void)?
     let activeWorkoutBlockMessage: String?
     @Environment(\.dismiss) private var dismiss
+    @State private var startWorkoutFailureTitle = "Workout Action Failed"
     @State private var startWorkoutFailureMessage: String?
     @State private var showingStartWorkoutConfirmation = false
     @State private var showingRestoreExerciseSheet = false
@@ -116,12 +117,24 @@ struct TemplateDetailView: View {
         cannotStartWorkout || !unavailableExerciseNames.isEmpty || !duplicateExerciseNames.isEmpty
     }
 
+    private func presentStartWorkoutFailure(_ message: String, title: String? = nil) {
+        startWorkoutFailureTitle = title ?? templateViewModel.startTemplateFailureAlertTitle(for: template)
+        startWorkoutFailureMessage = message
+    }
+
+    private func clearStartWorkoutFailure() {
+        startWorkoutFailureTitle = "Workout Action Failed"
+        startWorkoutFailureMessage = nil
+    }
+
     private func startWorkout() {
         guard let workout = templateManager.createWorkoutFromTemplate(template) else {
-            startWorkoutFailureMessage = startWorkoutDisabledMessage
-                ?? (cannotStartWorkout
-                    ? "This template can’t start right now because none of its exercises are currently available in your library."
-                    : "Your workout could not be started right now. Please try again.")
+            presentStartWorkoutFailure(
+                startWorkoutDisabledMessage
+                    ?? (cannotStartWorkout
+                        ? "This template can’t start right now because none of its exercises are currently available in your library."
+                        : "Your workout could not be started right now. Please try again.")
+            )
             return
         }
 
@@ -429,16 +442,16 @@ struct TemplateDetailView: View {
             } message: {
                 Text(startWorkoutConfirmationMessage ?? "")
             }
-            .alert("Workout Action Failed", isPresented: Binding(
+            .alert(startWorkoutFailureTitle, isPresented: Binding(
                 get: { startWorkoutFailureMessage != nil },
                 set: { isPresented in
                     if !isPresented {
-                        startWorkoutFailureMessage = nil
+                        clearStartWorkoutFailure()
                     }
                 }
             )) {
                 Button("OK", role: .cancel) {
-                    startWorkoutFailureMessage = nil
+                    clearStartWorkoutFailure()
                 }
             } message: {
                 Text(startWorkoutFailureMessage ?? "")

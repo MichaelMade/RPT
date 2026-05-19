@@ -18,6 +18,7 @@ struct TemplatesListView: View {
     @State private var templateToDelete: WorkoutTemplate?
     @State private var deleteResult: TemplateManager.DeletionResult?
     @State private var failedTemplateDeletionTarget: WorkoutTemplate?
+    @State private var templateStartFailureTitle = "Workout Action Failed"
     @State private var templateStartFailureMessage: String?
     @State private var searchText = ""
     @State private var createTemplatePrefillName = ""
@@ -69,6 +70,16 @@ struct TemplatesListView: View {
             exercises: template.exercises
         )
         showingCreateSheet = true
+    }
+
+    private func presentTemplateStartFailure(_ message: String, title: String = "Workout Action Failed") {
+        templateStartFailureTitle = title
+        templateStartFailureMessage = message
+    }
+
+    private func clearTemplateStartFailure() {
+        templateStartFailureTitle = "Workout Action Failed"
+        templateStartFailureMessage = nil
     }
     
     var body: some View {
@@ -404,16 +415,16 @@ struct TemplatesListView: View {
             } message: {
                 Text(quickStartConfirmationMessage ?? "")
             }
-            .alert("Workout Action Failed", isPresented: Binding(
+            .alert(templateStartFailureTitle, isPresented: Binding(
                 get: { templateStartFailureMessage != nil },
                 set: { isPresented in
                     if !isPresented {
-                        templateStartFailureMessage = nil
+                        clearTemplateStartFailure()
                     }
                 }
             )) {
                 Button("OK", role: .cancel) {
-                    templateStartFailureMessage = nil
+                    clearTemplateStartFailure()
                 }
             } message: {
                 Text(templateStartFailureMessage ?? "")
@@ -480,7 +491,10 @@ struct TemplatesListView: View {
 
     private func performQuickStart(_ template: WorkoutTemplate) {
         guard let startedWorkout = viewModel.createWorkoutFromTemplate(template) else {
-            templateStartFailureMessage = "Your template workout could not be started right now. Please try again."
+            presentTemplateStartFailure(
+                "Your template workout could not be started right now. Please try again.",
+                title: viewModel.startTemplateFailureAlertTitle(for: template)
+            )
             return
         }
 
@@ -502,7 +516,10 @@ struct TemplatesListView: View {
             selectedTemplate = nil
             showActiveWorkoutSheet = true
         case .failure(let message):
-            templateStartFailureMessage = message
+            presentTemplateStartFailure(
+                message,
+                title: viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template)
+            )
         }
     }
 
@@ -520,7 +537,10 @@ struct TemplatesListView: View {
             selectedTemplate = nil
             showActiveWorkoutSheet = true
         case .failure(let message):
-            templateStartFailureMessage = message
+            presentTemplateStartFailure(
+                message,
+                title: viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template)
+            )
         }
     }
 }
