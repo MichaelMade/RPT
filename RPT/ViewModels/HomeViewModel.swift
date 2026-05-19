@@ -27,6 +27,7 @@ class HomeViewModel: ObservableObject {
     @Published var lifetimeWorkMetricTitle: String = "Volume"
     @Published var lifetimeWorkMetricValue: String = "0"
     @Published var lifetimeWorkMetricSubtitle: String = "lb lifted"
+    @Published var startWorkoutFailureAlertTitle: String = "Workout Action Failed"
     @Published var startWorkoutFailureMessage: String?
     
     init(workoutManager: WorkoutManager? = nil,
@@ -65,12 +66,12 @@ class HomeViewModel: ObservableObject {
     func startNewWorkout() -> Bool {
         guard let workout = workoutManager.createWorkoutSafely() else {
             currentWorkout = nil
-            startWorkoutFailureMessage = "Your workout could not be started right now. Please try again."
+            presentStartWorkoutFailure("Your workout could not be started right now. Please try again.")
             return false
         }
 
         currentWorkout = workout
-        startWorkoutFailureMessage = nil
+        clearStartWorkoutFailure()
         return true
     }
 
@@ -89,12 +90,12 @@ class HomeViewModel: ObservableObject {
     @discardableResult
     func startFollowUpWorkout(from workout: Workout) -> Bool {
         guard let followUpWorkout = workoutManager.createFollowUpWorkoutSafely(from: workout) else {
-            startWorkoutFailureMessage = startFollowUpFailureMessage(for: workout)
+            presentStartWorkoutFailure(startFollowUpFailureMessage(for: workout))
             return false
         }
 
         currentWorkout = followUpWorkout
-        startWorkoutFailureMessage = nil
+        clearStartWorkoutFailure()
         return true
     }
 
@@ -388,11 +389,14 @@ class HomeViewModel: ObservableObject {
 
     func deleteRecentWorkout(_ workout: Workout) -> Bool {
         guard workoutManager.deleteWorkoutSafely(workout) else {
-            startWorkoutFailureMessage = deleteRecentWorkoutFailureMessage(for: workout)
+            presentStartWorkoutFailure(
+                deleteRecentWorkoutFailureMessage(for: workout),
+                title: deleteRecentWorkoutFailureAlertTitle(for: workout)
+            )
             return false
         }
 
-        startWorkoutFailureMessage = nil
+        clearStartWorkoutFailure()
         loadRecentWorkouts()
         return true
     }
@@ -418,6 +422,20 @@ class HomeViewModel: ObservableObject {
     func deleteRecentWorkoutFailureMessage(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return "Couldn’t delete \(displayName) from history. Keep it for now, then try again."
+    }
+
+    func deleteRecentWorkoutFailureAlertTitle(for workout: Workout) -> String {
+        "Couldn’t Delete “\(WorkoutRow.displayName(for: workout))”"
+    }
+
+    func presentStartWorkoutFailure(_ message: String, title: String = "Workout Action Failed") {
+        startWorkoutFailureAlertTitle = title
+        startWorkoutFailureMessage = message
+    }
+
+    func clearStartWorkoutFailure() {
+        startWorkoutFailureAlertTitle = "Workout Action Failed"
+        startWorkoutFailureMessage = nil
     }
 
     func reviewWorkoutButtonTitle(for workout: Workout) -> String {

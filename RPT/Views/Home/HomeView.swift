@@ -676,7 +676,7 @@ struct HomeView: View {
             } message: {
                 Text(copySummaryMessage)
             }
-            .alert("Workout Action Failed", isPresented: Binding(
+            .alert(viewModel.startWorkoutFailureAlertTitle, isPresented: Binding(
                 get: { currentFailureMessage != nil },
                 set: { isPresented in
                     if !isPresented {
@@ -754,7 +754,7 @@ struct HomeView: View {
 
     private func clearFailureMessages() {
         startFreshFailureMessage = nil
-        viewModel.startWorkoutFailureMessage = nil
+        viewModel.clearStartWorkoutFailure()
     }
 
     private func startFreshWorkout() {
@@ -823,7 +823,7 @@ struct HomeView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            viewModel.startWorkoutFailureMessage = message
+            viewModel.presentStartWorkoutFailure(message)
         }
     }
 
@@ -839,13 +839,13 @@ struct HomeView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            viewModel.startWorkoutFailureMessage = message
+            viewModel.presentStartWorkoutFailure(message)
         }
     }
 
     private func startWorkout(from template: WorkoutTemplate) {
         guard let startedWorkout = templateViewModel.createWorkoutFromTemplate(template) else {
-            viewModel.startWorkoutFailureMessage = "Your template workout could not be started right now. Please try again."
+            viewModel.presentStartWorkoutFailure("Your template workout could not be started right now. Please try again.")
             return
         }
 

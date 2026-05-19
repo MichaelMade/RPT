@@ -497,6 +497,26 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testDeleteRecentWorkoutFailureAlertTitle_usesExactWorkoutName() {
+        let workout = Workout(name: "Upper A", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.deleteRecentWorkoutFailureAlertTitle(for: workout),
+            "Couldn’t Delete “Upper A”",
+            "Delete failure alerts should keep naming the exact workout that stayed in history"
+        )
+    }
+
+    func testDeleteRecentWorkoutFailureAlertTitle_usesFallbackWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.deleteRecentWorkoutFailureAlertTitle(for: workout),
+            "Couldn’t Delete “Workout”",
+            "Delete failure alerts should keep an honest fallback title for blank workout names"
+        )
+    }
+
     // MARK: - Continue Workout Resolution
 
     func testCanContinueWorkout_withCurrentWorkoutAndNoActiveBinding() {
@@ -1062,13 +1082,14 @@ final class HomeViewModelTests: XCTestCase {
     }
 
     func testStartNewWorkout_successClearsPriorFailureAndSetsCurrentWorkout() {
-        viewModel.startWorkoutFailureMessage = "Old error"
+        viewModel.presentStartWorkoutFailure("Old error", title: "Couldn’t Delete “Upper A”")
 
         let didStart = viewModel.startNewWorkout()
 
         XCTAssertTrue(didStart, "Starting a workout should succeed in the normal shared data context")
         XCTAssertNotNil(viewModel.currentWorkout, "Successful workout creation should expose the new draft")
         XCTAssertNil(viewModel.startWorkoutFailureMessage, "Successful workout creation should clear stale failure alerts")
+        XCTAssertEqual(viewModel.startWorkoutFailureAlertTitle, "Workout Action Failed", "Successful workout creation should reset the shared failure alert title")
     }
 
     func testCanStartFollowUpWorkout_requiresNoResumableDraftAndCompletedWorkingSet() {
@@ -1303,7 +1324,7 @@ final class HomeViewModelTests: XCTestCase {
     }
 
     func testStartFollowUpWorkout_successCreatesNewDraftAndClearsStaleFailure() {
-        viewModel.startWorkoutFailureMessage = "Old error"
+        viewModel.presentStartWorkoutFailure("Old error", title: "Couldn’t Delete “Upper A”")
         let completedWorkout = Workout(name: "Upper A", isCompleted: true)
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         _ = completedWorkout.addSet(exercise: bench, weight: 185, reps: 8)
@@ -1315,6 +1336,7 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.currentWorkout?.isCompleted ?? true, "Follow-up drafts should open as incomplete workouts")
         XCTAssertEqual(viewModel.currentWorkout?.sets.first?.completedAt, .distantPast, "Follow-up sets should stay planned until the user actually logs them")
         XCTAssertNil(viewModel.startWorkoutFailureMessage, "Successful follow-up creation should clear stale failure alerts")
+        XCTAssertEqual(viewModel.startWorkoutFailureAlertTitle, "Workout Action Failed", "Successful follow-up creation should reset the shared failure alert title")
     }
 
     func testStartFollowUpAfterPersistingActiveWorkout_saveForLaterFailureReturnsRetryMessage() {

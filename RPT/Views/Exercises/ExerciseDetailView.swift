@@ -474,16 +474,16 @@ struct ExerciseDetailView: View {
         } message: {
             Text(templateStartFailureMessage ?? "")
         }
-        .alert("Workout Action Failed", isPresented: Binding(
+        .alert(homeViewModel.startWorkoutFailureAlertTitle, isPresented: Binding(
             get: { homeViewModel.startWorkoutFailureMessage != nil },
             set: { isPresented in
                 if !isPresented {
-                    homeViewModel.startWorkoutFailureMessage = nil
+                    homeViewModel.clearStartWorkoutFailure()
                 }
             }
         )) {
             Button("OK", role: .cancel) {
-                homeViewModel.startWorkoutFailureMessage = nil
+                homeViewModel.clearStartWorkoutFailure()
             }
         } message: {
             Text(homeViewModel.startWorkoutFailureMessage ?? "")
@@ -606,7 +606,7 @@ struct ExerciseDetailView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            homeViewModel.startWorkoutFailureMessage = message
+            homeViewModel.presentStartWorkoutFailure(message)
         }
     }
 
@@ -622,7 +622,7 @@ struct ExerciseDetailView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            homeViewModel.startWorkoutFailureMessage = message
+            homeViewModel.presentStartWorkoutFailure(message)
         }
     }
 

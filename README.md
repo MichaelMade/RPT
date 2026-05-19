@@ -1,5 +1,6 @@
 # RPT
 
+- Recent workout history delete failures now keep naming the exact session that stayed put (`Couldn’t Delete “Upper A”`) across Home, Workout Details, and Exercise Details, so destructive cleanup errors stay clearly anchored instead of dropping back to a generic `Workout Action Failed` title.
 - Exercise Library and Workout Templates delete-failure alerts now keep naming the exact item that stayed put (`Couldn’t Delete “Garage Dip”`, `Couldn’t Delete “Upper A”`) with safe generic fallbacks for blank legacy data, so destructive cleanup failures stay clearly anchored instead of dropping back to anonymous retry copy.
 - Edit Exercise now keeps the title anchored to the live draft name (`Edit “Ring Dip”`) while you rename a custom movement, with a safe fallback to the saved name or generic `Edit Exercise` copy for blank legacy data, so longer cleanup passes stay clearly oriented instead of showing a stale header until you hit Save.
 - Exercise Library and Active Workout now fall back to honest generic action copy (`Add Exercise`, `Review Exercise`, `Delete Exercise?`) when a legacy/custom movement has a blank name, avoiding awkward placeholder labels like `Edit “Exercise”` or `Delete “Exercise”` while keeping those flows clear and VoiceOver-friendly.
