@@ -22,6 +22,7 @@ struct ExerciseDetailView: View {
     @State private var showingDeleteWorkoutAlert = false
     @State private var localActiveWorkout: Workout?
     @State private var showingLocalActiveWorkoutSheet = false
+    @State private var templateStartFailureTitle = "Workout Action Failed"
     @State private var templateStartFailureMessage: String?
     
     private let workoutManager = WorkoutManager.shared
@@ -73,6 +74,30 @@ struct ExerciseDetailView: View {
 
                 return lhs.set.completedAt > rhs.set.completedAt
             }
+    }
+
+    static func templateStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Workout Action Failed"
+        }
+
+        return TemplateViewModel().startTemplateFailureAlertTitle(for: template)
+    }
+
+    static func templateSaveAndStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Workout Action Failed"
+        }
+
+        return TemplateViewModel().activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template)
+    }
+
+    static func templateDiscardAndStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Workout Action Failed"
+        }
+
+        return TemplateViewModel().activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template)
     }
     
     var body: some View {
@@ -460,16 +485,16 @@ struct ExerciseDetailView: View {
         } message: {
             Text(workoutToDelete.map(homeViewModel.deleteRecentWorkoutMessage(for:)) ?? "")
         }
-        .alert("Workout Action Failed", isPresented: Binding(
+        .alert(templateStartFailureTitle, isPresented: Binding(
             get: { templateStartFailureMessage != nil },
             set: { isPresented in
                 if !isPresented {
-                    templateStartFailureMessage = nil
+                    clearTemplateStartFailure()
                 }
             }
         )) {
             Button("OK", role: .cancel) {
-                templateStartFailureMessage = nil
+                clearTemplateStartFailure()
             }
         } message: {
             Text(templateStartFailureMessage ?? "")
@@ -547,7 +572,10 @@ struct ExerciseDetailView: View {
 
     private func startWorkout(from template: WorkoutTemplate) {
         guard let startedWorkout = templateViewModel.createWorkoutFromTemplate(template) else {
-            templateStartFailureMessage = "Your template workout could not be started right now. Please try again."
+            presentTemplateStartFailure(
+                "Your template workout could not be started right now. Please try again.",
+                title: Self.templateStartFailureAlertTitle(for: template)
+            )
             return
         }
 
@@ -566,7 +594,10 @@ struct ExerciseDetailView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            templateStartFailureMessage = message
+            presentTemplateStartFailure(
+                message,
+                title: Self.templateSaveAndStartFailureAlertTitle(for: template)
+            )
         }
     }
 
@@ -582,8 +613,21 @@ struct ExerciseDetailView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            templateStartFailureMessage = message
+            presentTemplateStartFailure(
+                message,
+                title: Self.templateDiscardAndStartFailureAlertTitle(for: template)
+            )
         }
+    }
+
+    private func presentTemplateStartFailure(_ message: String, title: String = "Workout Action Failed") {
+        templateStartFailureTitle = title
+        templateStartFailureMessage = message
+    }
+
+    private func clearTemplateStartFailure() {
+        templateStartFailureTitle = "Workout Action Failed"
+        templateStartFailureMessage = nil
     }
 
     private func startFollowUp(from workout: Workout) {
