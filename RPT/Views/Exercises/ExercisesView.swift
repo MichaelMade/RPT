@@ -20,6 +20,7 @@ struct ExercisesView: View {
     @State private var exerciseDeletionImpact = ExerciseManager.DeletionImpact(loggedSetCount: 0, workoutCount: 0, templateCount: 0)
     @State private var showingDeleteConfirmation = false
     @State private var deleteResult: ExerciseManager.DeletionResult?
+    @State private var failedExerciseDeletionTarget: Exercise?
     
     var body: some View {
         NavigationStack {
@@ -281,6 +282,7 @@ struct ExercisesView: View {
                 Button(viewModel.deleteActionTitle(for: exercise) ?? "Delete", role: .destructive) {
                     let result = viewModel.deleteExercise(exercise)
                     if result != .success {
+                        failedExerciseDeletionTarget = exercise
                         deleteResult = result
                     }
                 }
@@ -288,21 +290,23 @@ struct ExercisesView: View {
                 Text(ExerciseLibraryViewModel.deletionConfirmationMessage(for: exerciseDeletionImpact))
             }
             .alert(
-                deleteResult?.alertTitle ?? "Unable to Delete Exercise",
+                viewModel.deleteFailureAlertTitle(for: failedExerciseDeletionTarget),
                 isPresented: Binding(
                     get: { deleteResult != nil },
                     set: { isPresented in
                         if !isPresented {
                             deleteResult = nil
+                            failedExerciseDeletionTarget = nil
                         }
                     }
                 )
             ) {
                 Button("OK", role: .cancel) {
                     deleteResult = nil
+                    failedExerciseDeletionTarget = nil
                 }
             } message: {
-                Text(deleteResult?.alertMessage ?? "This exercise could not be deleted right now. Please try again.")
+                Text(viewModel.deleteFailureMessage(for: failedExerciseDeletionTarget))
             }
             .onAppear {
                 viewModel.refreshExercises()

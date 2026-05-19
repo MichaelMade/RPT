@@ -1222,6 +1222,18 @@ final class TemplateViewModelTests: XCTestCase {
             "Delete “Upper A”? 1 exercise and any notes in this plan will be removed. This action cannot be undone.",
             "Template delete confirmations should explain exactly which plan content will be removed"
         )
+
+        XCTAssertEqual(
+            viewModel.deleteTemplateFailureAlertTitle(for: template),
+            "Couldn’t Delete “Upper A”",
+            "Template delete failure alerts should keep naming the exact plan that stayed in the list"
+        )
+
+        XCTAssertEqual(
+            viewModel.deleteTemplateFailureMessage(for: template),
+            "“Upper A” is still in your templates. Please try again.",
+            "Template delete failure alerts should confirm the plan was not removed"
+        )
     }
 
     func testDeleteTemplateConfirmationFallbackCopy() {
@@ -1237,6 +1249,18 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.deleteTemplateMessage(for: nil),
             "Delete this template? This action cannot be undone.",
             "Missing template context should keep a safe generic message"
+        )
+
+        XCTAssertEqual(
+            viewModel.deleteTemplateFailureAlertTitle(for: nil),
+            "Unable to Delete Template",
+            "Missing template context should fall back to the generic delete failure title"
+        )
+
+        XCTAssertEqual(
+            viewModel.deleteTemplateFailureMessage(for: nil),
+            "This template could not be deleted right now. Please try again.",
+            "Missing template context should keep the generic delete failure guidance"
         )
     }
 

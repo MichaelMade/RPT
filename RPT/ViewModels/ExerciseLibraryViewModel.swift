@@ -231,6 +231,22 @@ class ExerciseLibraryViewModel: ObservableObject {
         return "Delete “\(displayName)”?"
     }
 
+    func deleteFailureAlertTitle(for exercise: Exercise?) -> String {
+        guard let displayName = exercise?.specificDisplayName else {
+            return ExerciseManager.DeletionResult.persistenceFailure.alertTitle
+        }
+
+        return "Couldn’t Delete “\(displayName)”"
+    }
+
+    func deleteFailureMessage(for exercise: Exercise?) -> String {
+        guard let displayName = exercise?.specificDisplayName else {
+            return ExerciseManager.DeletionResult.persistenceFailure.alertMessage
+        }
+
+        return "“\(displayName)” is still in your exercise library. Please try again."
+    }
+
     func suggestedExerciseNameFromSearch() -> String? {
         guard hasActiveSearch else {
             return nil

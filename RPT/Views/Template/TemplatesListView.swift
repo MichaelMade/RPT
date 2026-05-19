@@ -17,6 +17,7 @@ struct TemplatesListView: View {
     @State private var showingConfirmationDialog = false
     @State private var templateToDelete: WorkoutTemplate?
     @State private var deleteResult: TemplateManager.DeletionResult?
+    @State private var failedTemplateDeletionTarget: WorkoutTemplate?
     @State private var templateStartFailureMessage: String?
     @State private var searchText = ""
     @State private var createTemplatePrefillName = ""
@@ -350,6 +351,7 @@ struct TemplatesListView: View {
                 Button(viewModel.deleteTemplateButtonTitle(for: template), role: .destructive) {
                     let result = viewModel.deleteTemplate(template)
                     if result != .success {
+                        failedTemplateDeletionTarget = template
                         deleteResult = result
                     }
                 }
@@ -360,12 +362,13 @@ struct TemplatesListView: View {
                 viewModel.refreshTemplates()
             }
             .alert(
-                deleteResult?.alertTitle ?? "Unable to Delete Template",
+                viewModel.deleteTemplateFailureAlertTitle(for: failedTemplateDeletionTarget),
                 isPresented: Binding(
                     get: { deleteResult != nil },
                     set: { isPresented in
                         if !isPresented {
                             deleteResult = nil
+                            failedTemplateDeletionTarget = nil
                         }
                     }
                 ),
@@ -373,9 +376,10 @@ struct TemplatesListView: View {
             ) { _ in
                 Button("OK", role: .cancel) {
                     deleteResult = nil
+                    failedTemplateDeletionTarget = nil
                 }
-            } message: { result in
-                Text(result.alertMessage)
+            } message: { _ in
+                Text(viewModel.deleteTemplateFailureMessage(for: failedTemplateDeletionTarget))
             }
             .alert(
                 quickStartTemplate.map { templateManager.startWorkoutActionTitle(for: $0) } ?? "Start Workout",

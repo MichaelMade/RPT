@@ -787,6 +787,8 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.editActionTitle(for: nil))
         XCTAssertNil(viewModel.deleteActionTitle(for: nil))
         XCTAssertEqual(viewModel.deleteAlertTitle(for: nil), "Delete Exercise?")
+        XCTAssertEqual(viewModel.deleteFailureAlertTitle(for: nil), "Unable to Delete Exercise")
+        XCTAssertEqual(viewModel.deleteFailureMessage(for: nil), "This exercise could not be deleted right now. Please try again.")
     }
 
     func testExerciseActionTitles_fallBackGracefullyForBlankExerciseNames() {
@@ -805,5 +807,20 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.editActionTitle(for: blankExercise), "Edit Exercise")
         XCTAssertEqual(viewModel.deleteActionTitle(for: blankExercise), "Delete Exercise")
         XCTAssertEqual(viewModel.deleteAlertTitle(for: blankExercise), "Delete Exercise?")
+        XCTAssertEqual(viewModel.deleteFailureAlertTitle(for: blankExercise), "Unable to Delete Exercise")
+        XCTAssertEqual(viewModel.deleteFailureMessage(for: blankExercise), "This exercise could not be deleted right now. Please try again.")
+    }
+
+    func testExerciseDeleteFailureCopy_namesSpecificExerciseWhenAvailable() {
+        let exercise = Exercise(
+            name: "  Garage\n Dip  ",
+            category: .bodyweight,
+            primaryMuscleGroups: [.chest],
+            isCustom: true
+        )
+        let viewModel = ExerciseLibraryViewModel()
+
+        XCTAssertEqual(viewModel.deleteFailureAlertTitle(for: exercise), "Couldn’t Delete “Garage Dip”")
+        XCTAssertEqual(viewModel.deleteFailureMessage(for: exercise), "“Garage Dip” is still in your exercise library. Please try again.")
     }
 }
