@@ -66,13 +66,24 @@ class HomeViewModel: ObservableObject {
     func startNewWorkout() -> Bool {
         guard let workout = workoutManager.createWorkoutSafely() else {
             currentWorkout = nil
-            presentStartWorkoutFailure("Your workout could not be started right now. Please try again.")
+            presentStartWorkoutFailure(
+                startNewWorkoutFailureMessage(),
+                title: startNewWorkoutFailureAlertTitle()
+            )
             return false
         }
 
         currentWorkout = workout
         clearStartWorkoutFailure()
         return true
+    }
+
+    func startNewWorkoutFailureMessage() -> String {
+        "Your workout could not be started right now. Please try again."
+    }
+
+    func startNewWorkoutFailureAlertTitle() -> String {
+        "Couldn’t Start New Workout"
     }
 
     func canStartFollowUpWorkout(from workout: Workout, activeWorkout: Workout?) -> Bool {

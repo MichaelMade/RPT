@@ -1075,9 +1075,22 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertFalse(didStart, "Failed workout creation should keep Home on the current screen instead of opening an unsaved draft")
         XCTAssertNil(failingViewModel.currentWorkout, "Failed workout creation should not hand the UI an unsaved workout instance")
         XCTAssertEqual(
+            failingViewModel.startWorkoutFailureAlertTitle,
+            "Couldn’t Start New Workout",
+            "Failed workout creation should name the exact blocked action so the main Home retry alert stays clearly anchored"
+        )
+        XCTAssertEqual(
             failingViewModel.startWorkoutFailureMessage,
             "Your workout could not be started right now. Please try again.",
             "Failed workout creation should surface a retryable alert message"
+        )
+    }
+
+    func testStartNewWorkoutFailureAlertTitle_matchesPrimaryHomeAction() {
+        XCTAssertEqual(
+            viewModel.startNewWorkoutFailureAlertTitle(),
+            "Couldn’t Start New Workout",
+            "The main Home workout-launch failure title should name the blocked action instead of falling back to a generic alert"
         )
     }
 
