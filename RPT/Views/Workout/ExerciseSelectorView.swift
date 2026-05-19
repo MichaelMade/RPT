@@ -21,6 +21,9 @@ struct ExerciseSelectorView: View {
     var excludedExerciseNames: [String] = []
     var onSelectExercise: (Exercise) -> Void
 
+    static let navigationTitle = "Add Exercise to Workout"
+    static let searchPrompt = "Search workout exercises"
+
     private let exerciseManager = ExerciseManager.shared
 
     private var excludedLookupKeys: Set<String> {
@@ -250,11 +253,11 @@ struct ExerciseSelectorView: View {
                 }
                 .listStyle(.plain)
             }
-            .searchable(text: $searchText, prompt: "Search exercises")
+            .searchable(text: $searchText, prompt: Self.searchPrompt)
             .onChange(of: searchText) { _, newValue in
                 viewModel.searchText = newValue
             }
-            .navigationTitle("Select Exercise")
+            .navigationTitle(Self.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {

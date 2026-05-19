@@ -21,6 +21,9 @@ struct ExerciseSelectorForTemplateView: View {
     var excludedExerciseNames: [String] = []
     var onSelectExercise: (String) -> Void
 
+    static let navigationTitle = "Add Exercise to Template"
+    static let searchPrompt = "Search template exercises"
+
     private var excludedLookupKeys: Set<String> {
         Set(excludedExerciseNames.map(ExerciseManager.normalizedNameLookupKey))
     }
@@ -241,11 +244,11 @@ struct ExerciseSelectorForTemplateView: View {
                 }
                 .listStyle(.plain)
             }
-            .searchable(text: $searchText, prompt: "Search exercises")
+            .searchable(text: $searchText, prompt: Self.searchPrompt)
             .onChange(of: searchText) { _, newValue in
                 viewModel.searchText = newValue
             }
-            .navigationTitle("Select Exercise")
+            .navigationTitle(Self.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
