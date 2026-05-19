@@ -151,6 +151,21 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.workoutName, "  New   Workout Name  ")
     }
 
+    func testUpdateWorkoutNameSafely_failureUsesNamedWorkoutAlertTitle() {
+        let workout = workoutManager.createWorkout(name: "Upper A")
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        viewModel.workoutName = "Lower B"
+
+        XCTAssertFalse(viewModel.updateWorkoutNameSafely())
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Rename “Upper A”")
+        XCTAssertEqual(viewModel.errorMessage, "Failed to update workout name: saveFailed")
+    }
+
     func testCompleteWorkoutTitlesIncludeSpecificWorkoutName() {
         let workout = workoutManager.createWorkout(name: "Upper A")
         let viewModel = ActiveWorkoutViewModel(workout: workout)
@@ -260,6 +275,20 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertFalse(exercise.sets.contains(where: { $0.workout?.id == workout.id }))
         XCTAssertFalse(viewModel.exerciseOrder.contains(where: { $0.id == exercise.id }))
         XCTAssertNil(viewModel.exerciseGroups[exercise])
+    }
+
+    func testAddExerciseToWorkoutSafely_failureUsesNamedExerciseAlertTitle() {
+        let workout = workoutManager.createWorkout(name: "Push")
+        let exercise = Exercise(name: "Overhead Press", category: .compound, primaryMuscleGroups: [.shoulders])
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        XCTAssertFalse(viewModel.addExerciseToWorkoutSafely(exercise))
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Add “Overhead Press”")
+        XCTAssertEqual(viewModel.errorMessage, "Failed to add exercise: Failed to save workout")
     }
 
     func testAddSetToExercise_keepsAutoSuggestedSetIncomplete() throws {
@@ -791,5 +820,20 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertTrue(workout.sets.contains(where: { $0.id == targetSet2.id }))
         XCTAssertTrue(targetExercise.sets.contains(where: { $0.id == targetSet1.id || $0.id == targetSet2.id }))
         XCTAssertEqual(viewModel.exerciseGroups[targetExercise]?.count, 2)
+    }
+
+    func testDeleteExerciseFromWorkoutSafely_failureUsesNamedExerciseAlertTitle() {
+        let workout = workoutManager.createWorkout(name: "Push")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: exercise, weight: 185, reps: 6)
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        XCTAssertFalse(viewModel.deleteExerciseFromWorkoutSafely(exercise))
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Delete “Bench Press”")
+        XCTAssertEqual(viewModel.errorMessage, "Failed to delete exercise: saveFailed")
     }
 }

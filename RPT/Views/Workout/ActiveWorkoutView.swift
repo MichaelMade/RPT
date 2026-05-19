@@ -296,7 +296,7 @@ struct ActiveWorkoutView: View {
             }
         }
         .alert(
-            "Workout Action Failed",
+            viewModel.errorAlertTitle,
             isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { isPresented in

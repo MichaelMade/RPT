@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout persistence failures now name the exact workout or exercise when possible (`Couldn’t Save “Upper A”`, `Couldn’t Complete “Upper A”`, `Couldn’t Delete “Bench Press”`) instead of collapsing everything into a generic `Workout Action Failed` alert, so recovery is clearer in the middle of a live session.
 - Recent workout history delete failures now keep naming the exact session that stayed put (`Couldn’t Delete “Upper A”`) across Home, Workout Details, and Exercise Details, so destructive cleanup errors stay clearly anchored instead of dropping back to a generic `Workout Action Failed` title.
 - Exercise Library and Workout Templates delete-failure alerts now keep naming the exact item that stayed put (`Couldn’t Delete “Garage Dip”`, `Couldn’t Delete “Upper A”`) with safe generic fallbacks for blank legacy data, so destructive cleanup failures stay clearly anchored instead of dropping back to anonymous retry copy.
 - Edit Exercise now keeps the title anchored to the live draft name (`Edit “Ring Dip”`) while you rename a custom movement, with a safe fallback to the saved name or generic `Edit Exercise` copy for blank legacy data, so longer cleanup passes stay clearly oriented instead of showing a stale header until you hit Save.
@@ -254,6 +255,7 @@ RPT/
 
 ## Recent Improvements
 
+- Active Workout persistence failures now name the exact workout or exercise when possible (`Couldn’t Save “Upper A”`, `Couldn’t Complete “Upper A”`, `Couldn’t Delete “Bench Press”`) instead of collapsing every error into a generic `Workout Action Failed` alert, so recovery is clearer during a live session; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Active Workout destructive copy now names the exact draft or set target where it matters, including `Discard “Upper A”` for draft teardown and set-editor labels like `Delete Set 185 lb × 8 reps`, so in-progress cleanup is clearer and safer for VoiceOver users; added regression coverage in `ActiveWorkoutViewModelTests` and `FormattingTests`.
 - Templates tab single-result `Quick Actions` now uses the same exact `Continue “…”`, `Save & Start Template “…”`, and `Discard & Start Template “…”` wording as Template Details and workout history, so blocked template starts stay explicit about the current draft and selected plan instead of falling back to vaguer `Resume Current Workout` / `Open` copy; validated with `git diff --check` plus targeted source inspection.
 - Active-workout recovery CTAs across Home, Workout Details, and Exercise Details now name the exact in-progress workout when possible (for example `Continue “Upper A”`), so save/discard/continue choices are easier to scan and clearer for accessibility when multiple drafts or similarly-titled routines are in play; added regression coverage in `HomeViewModelTests` and `TemplateViewModelTests`.

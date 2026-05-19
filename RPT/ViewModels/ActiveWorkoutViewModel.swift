@@ -44,6 +44,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     @Published var completedExercises: Set<PersistentIdentifier> = [] // Only manually tracked completions
     @Published var expandedExercises: Set<PersistentIdentifier> = Set() // Track which exercises are expanded
     @Published var errorMessage: String?
+    @Published var errorAlertTitle: String = "Workout Action Failed"
     
     // State for confirmation dialogs
     @Published var exerciseToDelete: Exercise? = nil
@@ -205,7 +206,10 @@ class ActiveWorkoutViewModel: ObservableObject {
         do {
             try populateWithPreviousWeights()
         } catch {
-            errorMessage = "Error loading previous weights: \(error.localizedDescription)"
+            setError(
+                title: workoutFailureAlertTitle(action: "Load"),
+                message: "Error loading previous weights: \(error.localizedDescription)"
+            )
         }
         
         // Initialize all exercises as expanded by default
@@ -320,7 +324,10 @@ class ActiveWorkoutViewModel: ObservableObject {
             try updateWorkoutName()
             return true
         } catch {
-            errorMessage = "Failed to update workout name: \(error.localizedDescription)"
+            setError(
+                title: workoutFailureAlertTitle(action: "Rename"),
+                message: "Failed to update workout name: \(error.localizedDescription)"
+            )
             return false
         }
     }
@@ -339,7 +346,10 @@ class ActiveWorkoutViewModel: ObservableObject {
             try saveWorkout()
             return true
         } catch {
-            errorMessage = "Failed to save workout: \(error.localizedDescription)"
+            setError(
+                title: workoutFailureAlertTitle(action: "Save"),
+                message: "Failed to save workout: \(error.localizedDescription)"
+            )
             return false
         }
     }
@@ -367,7 +377,10 @@ class ActiveWorkoutViewModel: ObservableObject {
             try completeWorkout()
             return true
         } catch {
-            errorMessage = "Failed to complete workout: \(error.localizedDescription)"
+            setError(
+                title: workoutFailureAlertTitle(action: "Complete"),
+                message: "Failed to complete workout: \(error.localizedDescription)"
+            )
             return false
         }
     }
@@ -395,7 +408,10 @@ class ActiveWorkoutViewModel: ObservableObject {
             try discardWorkout()
             return true
         } catch {
-            errorMessage = "Failed to discard workout: \(error.localizedDescription)"
+            setError(
+                title: workoutFailureAlertTitle(action: "Discard"),
+                message: "Failed to discard workout: \(error.localizedDescription)"
+            )
             return false
         }
     }
@@ -451,10 +467,14 @@ class ActiveWorkoutViewModel: ObservableObject {
             try addExerciseToWorkout(exercise)
             return true
         } catch let error as WorkoutError {
-            errorMessage = error.description
+            let title = exerciseFailureAlertTitle(action: "Add", exercise: exercise)
+            setError(title: title, message: error.description)
             return false
         } catch {
-            errorMessage = "Failed to add exercise: \(error.localizedDescription)"
+            setError(
+                title: exerciseFailureAlertTitle(action: "Add", exercise: exercise),
+                message: "Failed to add exercise: \(error.localizedDescription)"
+            )
             return false
         }
     }
@@ -522,7 +542,10 @@ class ActiveWorkoutViewModel: ObservableObject {
             try addSetToExercise(exercise)
             return true
         } catch {
-            errorMessage = "Failed to add set: \(error.localizedDescription)"
+            setError(
+                title: exerciseFailureAlertTitle(action: "Add", exercise: exercise),
+                message: "Failed to add set: \(error.localizedDescription)"
+            )
             return false
         }
     }
@@ -574,7 +597,10 @@ class ActiveWorkoutViewModel: ObservableObject {
             try updateSet(set, weight: weight, reps: reps, rpe: rpe)
             return true
         } catch {
-            errorMessage = "Failed to update set: \(error.localizedDescription)"
+            setError(
+                title: exerciseFailureAlertTitle(action: "Update", exercise: set.exercise),
+                message: "Failed to update set: \(error.localizedDescription)"
+            )
             return false
         }
     }
@@ -603,7 +629,10 @@ class ActiveWorkoutViewModel: ObservableObject {
             try deleteSet(set)
             return true
         } catch {
-            errorMessage = "Failed to delete set: \(error.localizedDescription)"
+            setError(
+                title: exerciseFailureAlertTitle(action: "Delete", exercise: set.exercise),
+                message: "Failed to delete set: \(error.localizedDescription)"
+            )
             return false
         }
     }
@@ -630,7 +659,10 @@ class ActiveWorkoutViewModel: ObservableObject {
             try deleteExerciseFromWorkout(exercise)
             return true
         } catch {
-            errorMessage = "Failed to delete exercise: \(error.localizedDescription)"
+            setError(
+                title: exerciseFailureAlertTitle(action: "Delete", exercise: exercise),
+                message: "Failed to delete exercise: \(error.localizedDescription)"
+            )
             return false
         }
     }
@@ -679,6 +711,27 @@ class ActiveWorkoutViewModel: ObservableObject {
         exercise.sets.removeAll { $0.id == set.id }
         set.workout = nil
         set.exercise = nil
+    }
+
+    private func setError(title: String, message: String) {
+        errorAlertTitle = title
+        errorMessage = message
+    }
+
+    private func workoutFailureAlertTitle(action: String) -> String {
+        guard let displayName = specificWorkoutDisplayName else {
+            return "Workout Action Failed"
+        }
+
+        return "Couldn’t \(action) “\(displayName)”"
+    }
+
+    private func exerciseFailureAlertTitle(action: String, exercise: Exercise?) -> String {
+        guard let displayName = exercise?.specificDisplayName else {
+            return "Workout Action Failed"
+        }
+
+        return "Couldn’t \(action) “\(displayName)”"
     }
 
     private func helperTextForIncompleteExercises(enableActionLabel: String) -> String? {
@@ -840,7 +893,10 @@ class ActiveWorkoutViewModel: ObservableObject {
             try updateDropSetSuggestions(for: exercise, firstSetWeight: firstSetWeight)
             return true
         } catch {
-            errorMessage = "Failed to update drop sets: \(error.localizedDescription)"
+            setError(
+                title: exerciseFailureAlertTitle(action: "Update", exercise: exercise),
+                message: "Failed to update drop sets: \(error.localizedDescription)"
+            )
             return false
         }
     }
@@ -865,6 +921,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     
     // Clear any error message
     func clearError() {
+        errorAlertTitle = "Workout Action Failed"
         errorMessage = nil
     }
     
