@@ -1,5 +1,6 @@
 # RPT
 
+- Direct template-start failures from Home and Workout Details now keep naming the exact source routine (`Couldn’t Start Template “Upper A”`) with a safe `Couldn’t Start This Template` fallback for blank legacy names, so retry alerts stay clearly anchored even when a rerun fails before opening Template Details.
 - Add/Edit Exercise save failures now keep naming the live movement draft (`Couldn’t Save “Ring Dip”`) with safe fallbacks to the saved name or generic `Couldn’t Save This Exercise` copy for blank legacy data, so custom-exercise persistence errors stay clearly anchored instead of dropping back to a generic save alert.
 - New/Edit Template save failures now keep naming the live routine draft (`Couldn’t Save Template “Upper A”`) with a safe `Couldn’t Save This Template` fallback for blank legacy names, so failed template edits stay clearly anchored instead of dropping back to a generic save alert.
 - Follow-up start failures now keep naming the exact saved workout across Home, Workout Details, and Exercise Details (`Couldn’t Start Follow-Up from “Upper A”`, `Couldn’t Save & Start Follow-Up from “Upper A”`, `Couldn’t Discard & Start Follow-Up from “Upper A”`) with safe generic fallbacks for blank legacy names, so blocked progression restarts stay clearly anchored instead of dropping back to a generic `Workout Action Failed` alert.

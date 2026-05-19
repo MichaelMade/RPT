@@ -481,6 +481,13 @@ class HomeViewModel: ObservableObject {
         "Discard & Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
     }
 
+    func startTemplateFailureAlertTitle(for template: WorkoutTemplate) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Couldn’t Start This Template"
+            : "Couldn’t Start Template “\(displayName)”"
+    }
+
     func sourceTemplateQuickActionTitle(for workout: Workout, resolvedTemplateName: String? = nil) -> String? {
         let preferredTemplateName = normalizedSummaryName(resolvedTemplateName)
             ?? normalizedSummaryName(workout.startedFromTemplate)

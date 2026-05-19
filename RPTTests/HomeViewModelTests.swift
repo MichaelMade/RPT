@@ -1329,6 +1329,26 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testStartTemplateFailureAlertTitle_usesNormalizedTemplateName() {
+        let template = WorkoutTemplate(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            viewModel.startTemplateFailureAlertTitle(for: template),
+            "Couldn’t Start Template “Upper A”",
+            "Template start failures launched from workout history should name the exact routine so retry alerts stay clearly anchored"
+        )
+    }
+
+    func testStartTemplateFailureAlertTitle_usesGenericFallbackForBlankTemplateName() {
+        let template = WorkoutTemplate(name: "   ")
+
+        XCTAssertEqual(
+            viewModel.startTemplateFailureAlertTitle(for: template),
+            "Couldn’t Start This Template",
+            "Blank legacy template names should fall back to a generic start-failure title instead of quoting a placeholder name"
+        )
+    }
+
     func testSourceTemplateQuickActionTitle_usesNormalizedTemplateName() {
         let workout = Workout(name: "Push Day", isCompleted: true, startedFromTemplate: "  Upper   A  ")
 
