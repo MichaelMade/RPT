@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct ActiveWorkoutView: View {
+    static let toolbarSaveForLaterLabel = "Save for Later"
+
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: ActiveWorkoutViewModel
     @State private var showingExerciseSelector = false
@@ -151,7 +153,7 @@ struct ActiveWorkoutView: View {
             .navigationTitle(viewModel.workoutName)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                // Minimize button to temporarily hide the workout
+                // Save the current workout as a draft and close the sheet.
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
                         guard viewModel.saveWorkoutForLaterSafely() else {
@@ -162,7 +164,7 @@ struct ActiveWorkoutView: View {
                     }) {
                         HStack {
                             Image(systemName: "arrow.down.circle")
-                            Text("Minimize")
+                            Text(Self.toolbarSaveForLaterLabel)
                         }
                     }
                     .accessibilityLabel(viewModel.saveForLaterButtonTitle())

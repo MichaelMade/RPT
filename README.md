@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout’s leading toolbar action now says `Save for Later` instead of the vaguer `Minimize`, so the primary escape hatch makes it obvious that tapping it saves the current draft before closing the sheet.
 - Active Workout and Template editing now use context-specific exercise-picker copy (`Add Exercise to Workout` / `Add Exercise to Template` plus matching search prompts), so adding movements stays clearly oriented instead of dropping both flows into the same generic `Select Exercise` sheet.
 - Home’s main `Start New Workout` failure alert now says `Couldn’t Start New Workout` instead of falling back to a generic `Workout Action Failed` title, so the app’s primary launch path stays clearly anchored when persistence blocks a new draft.
 - Direct template-start failures from Home and Workout Details now keep naming the exact source routine (`Couldn’t Start Template “Upper A”`) with a safe `Couldn’t Start This Template` fallback for blank legacy names, so retry alerts stay clearly anchored even when a rerun fails before opening Template Details.
