@@ -90,7 +90,10 @@ class HomeViewModel: ObservableObject {
     @discardableResult
     func startFollowUpWorkout(from workout: Workout) -> Bool {
         guard let followUpWorkout = workoutManager.createFollowUpWorkoutSafely(from: workout) else {
-            presentStartWorkoutFailure(startFollowUpFailureMessage(for: workout))
+            presentStartWorkoutFailure(
+                startFollowUpFailureMessage(for: workout),
+                title: startFollowUpFailureAlertTitle(for: workout)
+            )
             return false
         }
 
@@ -459,6 +462,13 @@ class HomeViewModel: ObservableObject {
         return "Couldn’t start a follow-up from \(displayName). Keep it in history, then try again."
     }
 
+    func startFollowUpFailureAlertTitle(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Couldn’t Start This Follow-Up"
+            : "Couldn’t Start Follow-Up from “\(displayName)”"
+    }
+
     func followUpWorkoutButtonTitle(for workout: Workout) -> String {
         "Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
     }
@@ -560,6 +570,32 @@ class HomeViewModel: ObservableObject {
             return "Couldn’t save the current workout. Keep it open, then try starting a follow-up from \(followUpName) again."
         case .discard:
             return "Couldn’t discard the current workout. Keep it open, then try starting a follow-up from \(followUpName) again."
+        }
+    }
+
+    func activeWorkoutPersistenceFailureAlertTitle(
+        for action: FollowUpPersistenceAction,
+        startingFollowUpFrom workout: Workout
+    ) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        let namedTitle: (String) -> String = { actionLabel in
+            "Couldn’t \(actionLabel) Follow-Up from “\(displayName)”"
+        }
+
+        guard displayName != "Workout" else {
+            switch action {
+            case .saveForLater:
+                return "Couldn’t Save & Start This Follow-Up"
+            case .discard:
+                return "Couldn’t Discard & Start This Follow-Up"
+            }
+        }
+
+        switch action {
+        case .saveForLater:
+            return namedTitle("Save & Start")
+        case .discard:
+            return namedTitle("Discard & Start")
         }
     }
     

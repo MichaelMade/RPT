@@ -1142,9 +1142,24 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertFalse(didStart, "Failed follow-up creation should keep Home on the current screen instead of opening an unsaved draft")
         XCTAssertEqual(
+            failingViewModel.startWorkoutFailureAlertTitle,
+            "Couldn’t Start Follow-Up from “Upper A”",
+            "Follow-up creation failures should name the exact saved workout so retry alerts stay clearly anchored"
+        )
+        XCTAssertEqual(
             failingViewModel.startWorkoutFailureMessage,
             "Couldn’t start a follow-up from Upper A. Keep it in history, then try again.",
             "Follow-up creation failures should explain that the saved workout stayed in history and invite a retry"
+        )
+    }
+
+    func testStartFollowUpFailureAlertTitle_usesGenericFallbackForBlankWorkoutName() {
+        let blankWorkout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.startFollowUpFailureAlertTitle(for: blankWorkout),
+            "Couldn’t Start This Follow-Up",
+            "Blank legacy workout names should fall back to a generic follow-up failure title instead of quoting a placeholder name"
         )
     }
 
@@ -1286,6 +1301,31 @@ final class HomeViewModelTests: XCTestCase {
             viewModel.activeWorkoutPersistenceFailureMessage(for: .discard, startingFollowUpFrom: completedWorkout),
             "Couldn’t discard the current workout. Keep it open, then try starting a follow-up from Upper A again.",
             "Discard failures should explain that the current draft stayed open and the follow-up can be retried"
+        )
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, startingFollowUpFrom: completedWorkout),
+            "Couldn’t Save & Start Follow-Up from “Upper A”",
+            "Save-for-later follow-up failures should name the exact saved workout in the alert title so recovery stays clearly anchored"
+        )
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, startingFollowUpFrom: completedWorkout),
+            "Couldn’t Discard & Start Follow-Up from “Upper A”",
+            "Discard follow-up failures should name the exact saved workout in the alert title so destructive recovery stays clearly anchored"
+        )
+    }
+
+    func testActiveWorkoutPersistenceFailureAlertTitle_usesGenericFallbackForBlankWorkoutName() {
+        let blankWorkout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, startingFollowUpFrom: blankWorkout),
+            "Couldn’t Save & Start This Follow-Up",
+            "Blank legacy workout names should fall back to a generic save-and-start failure title instead of quoting a placeholder name"
+        )
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, startingFollowUpFrom: blankWorkout),
+            "Couldn’t Discard & Start This Follow-Up",
+            "Blank legacy workout names should fall back to a generic discard-and-start failure title instead of quoting a placeholder name"
         )
     }
 

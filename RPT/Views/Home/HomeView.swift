@@ -823,7 +823,13 @@ struct HomeView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            viewModel.presentStartWorkoutFailure(message)
+            viewModel.presentStartWorkoutFailure(
+                message,
+                title: viewModel.activeWorkoutPersistenceFailureAlertTitle(
+                    for: .saveForLater,
+                    startingFollowUpFrom: workout
+                )
+            )
         }
     }
 
@@ -839,7 +845,13 @@ struct HomeView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            viewModel.presentStartWorkoutFailure(message)
+            viewModel.presentStartWorkoutFailure(
+                message,
+                title: viewModel.activeWorkoutPersistenceFailureAlertTitle(
+                    for: .discard,
+                    startingFollowUpFrom: workout
+                )
+            )
         }
     }
 

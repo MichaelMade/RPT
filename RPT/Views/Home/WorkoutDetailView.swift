@@ -279,7 +279,13 @@ struct WorkoutDetailView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            homeViewModel.presentStartWorkoutFailure(message)
+            homeViewModel.presentStartWorkoutFailure(
+                message,
+                title: homeViewModel.activeWorkoutPersistenceFailureAlertTitle(
+                    for: .saveForLater,
+                    startingFollowUpFrom: workout
+                )
+            )
         }
     }
 
@@ -295,7 +301,13 @@ struct WorkoutDetailView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            homeViewModel.presentStartWorkoutFailure(message)
+            homeViewModel.presentStartWorkoutFailure(
+                message,
+                title: homeViewModel.activeWorkoutPersistenceFailureAlertTitle(
+                    for: .discard,
+                    startingFollowUpFrom: workout
+                )
+            )
         }
     }
 
