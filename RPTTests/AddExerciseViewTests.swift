@@ -15,4 +15,18 @@ final class AddExerciseViewTests: XCTestCase {
             "Add Exercise"
         )
     }
+
+    func testSaveFailureAlertTitle_namesTheDraftExerciseWhenAvailable() {
+        XCTAssertEqual(
+            AddExerciseView.saveFailureAlertTitle(for: "  Garage\n\n Dip  "),
+            "Couldn’t Save “Garage Dip”"
+        )
+    }
+
+    func testSaveFailureAlertTitle_fallsBackGracefullyForBlankDrafts() {
+        XCTAssertEqual(
+            AddExerciseView.saveFailureAlertTitle(for: " \n\t "),
+            "Couldn’t Save This Exercise"
+        )
+    }
 }

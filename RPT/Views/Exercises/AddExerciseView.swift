@@ -19,6 +19,14 @@ struct AddExerciseView: View {
         return displayName.isEmpty ? "Add Exercise" : "Add “\(displayName)”"
     }
 
+    static func saveFailureAlertTitle(for rawExerciseName: String) -> String {
+        guard let displayName = Exercise.specificDisplayName(rawExerciseName) else {
+            return "Couldn’t Save This Exercise"
+        }
+
+        return "Couldn’t Save “\(displayName)”"
+    }
+
     @Environment(\.dismiss) private var dismiss
     @State private var exerciseName = ""
     @State private var selectedCategory: ExerciseCategory
@@ -111,7 +119,9 @@ struct AddExerciseView: View {
                 }
             }
             .alert(
-                saveResult?.alertTitle ?? "Unable to Save Exercise",
+                saveResult == .persistenceFailure
+                    ? Self.saveFailureAlertTitle(for: exerciseName)
+                    : (saveResult?.alertTitle ?? "Unable to Save Exercise"),
                 isPresented: Binding(
                     get: { saveResult != nil },
                     set: { isPresented in

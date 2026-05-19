@@ -17,6 +17,14 @@ struct EditExerciseView: View {
         return "Edit “\(displayName)”"
     }
 
+    static func saveFailureAlertTitle(for rawExerciseName: String, fallbackExercise: Exercise) -> String {
+        guard let displayName = Exercise.specificDisplayName(rawExerciseName) ?? fallbackExercise.specificDisplayName else {
+            return "Couldn’t Save This Exercise"
+        }
+
+        return "Couldn’t Save “\(displayName)”"
+    }
+
     @Environment(\.dismiss) private var dismiss
     @Bindable var exercise: Exercise
     
@@ -104,7 +112,9 @@ struct EditExerciseView: View {
             .navigationTitle(Self.navigationTitle(for: exerciseName, fallbackExercise: exercise))
             .navigationBarTitleDisplayMode(.inline)
             .alert(
-                saveResult?.alertTitle ?? "Unable to Save Exercise",
+                saveResult == .persistenceFailure
+                    ? Self.saveFailureAlertTitle(for: exerciseName, fallbackExercise: exercise)
+                    : (saveResult?.alertTitle ?? "Unable to Save Exercise"),
                 isPresented: Binding(
                     get: { saveResult != nil },
                     set: { isPresented in

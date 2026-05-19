@@ -55,4 +55,58 @@ final class EditExerciseViewTests: XCTestCase {
             "Edit Exercise"
         )
     }
+
+    func testSaveFailureAlertTitle_prefersTheDraftExerciseNameWhenAvailable() {
+        let exercise = Exercise(
+            name: "Garage Dip",
+            category: .bodyweight,
+            primaryMuscleGroups: [.triceps],
+            secondaryMuscleGroups: [.chest],
+            instructions: ""
+        )
+
+        XCTAssertEqual(
+            EditExerciseView.saveFailureAlertTitle(
+                for: "  Ring\n\n Dip  ",
+                fallbackExercise: exercise
+            ),
+            "Couldn’t Save “Ring Dip”"
+        )
+    }
+
+    func testSaveFailureAlertTitle_fallsBackToTheSavedExerciseNameForBlankDrafts() {
+        let exercise = Exercise(
+            name: "Garage Dip",
+            category: .bodyweight,
+            primaryMuscleGroups: [.triceps],
+            secondaryMuscleGroups: [.chest],
+            instructions: ""
+        )
+
+        XCTAssertEqual(
+            EditExerciseView.saveFailureAlertTitle(
+                for: " \n\t ",
+                fallbackExercise: exercise
+            ),
+            "Couldn’t Save “Garage Dip”"
+        )
+    }
+
+    func testSaveFailureAlertTitle_fallsBackGracefullyForBlankLegacyExerciseNames() {
+        let exercise = Exercise(
+            name: " \n\t ",
+            category: .bodyweight,
+            primaryMuscleGroups: [.triceps],
+            secondaryMuscleGroups: [.chest],
+            instructions: ""
+        )
+
+        XCTAssertEqual(
+            EditExerciseView.saveFailureAlertTitle(
+                for: " \n\t ",
+                fallbackExercise: exercise
+            ),
+            "Couldn’t Save This Exercise"
+        )
+    }
 }
