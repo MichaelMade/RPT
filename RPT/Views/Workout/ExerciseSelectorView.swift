@@ -280,7 +280,8 @@ struct ExerciseSelectorView: View {
                 AddExerciseView(
                     initialExerciseName: createExercisePrefillName,
                     initialCategory: viewModel.preferredNewExerciseCategory(),
-                    initialPrimaryMuscles: viewModel.preferredNewExercisePrimaryMuscles()
+                    initialPrimaryMuscles: viewModel.preferredNewExercisePrimaryMuscles(),
+                    creationContext: .workout
                 ) { savedExerciseName in
                     pendingSelectionExerciseName = savedExerciseName
                 }

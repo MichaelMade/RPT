@@ -9,10 +9,38 @@ final class AddExerciseViewTests: XCTestCase {
         )
     }
 
+    func testNavigationTitle_usesWorkoutContextWhenRequested() {
+        XCTAssertEqual(
+            AddExerciseView.navigationTitle(for: "  Garage\n\n Dip  ", context: .workout),
+            "Add “Garage Dip” to Workout"
+        )
+    }
+
+    func testNavigationTitle_usesTemplateContextWhenRequested() {
+        XCTAssertEqual(
+            AddExerciseView.navigationTitle(for: "  Garage\n\n Dip  ", context: .template),
+            "Add “Garage Dip” to Template"
+        )
+    }
+
     func testNavigationTitle_fallsBackGracefullyForBlankDrafts() {
         XCTAssertEqual(
             AddExerciseView.navigationTitle(for: " \n\t "),
             "Add Exercise"
+        )
+    }
+
+    func testNavigationTitle_fallsBackGracefullyForBlankWorkoutDrafts() {
+        XCTAssertEqual(
+            AddExerciseView.navigationTitle(for: " \n\t ", context: .workout),
+            "Add Exercise to Workout"
+        )
+    }
+
+    func testNavigationTitle_fallsBackGracefullyForBlankTemplateDrafts() {
+        XCTAssertEqual(
+            AddExerciseView.navigationTitle(for: " \n\t ", context: .template),
+            "Add Exercise to Template"
         )
     }
 

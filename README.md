@@ -1,5 +1,6 @@
 # RPT
 
+- Custom exercise creation now keeps workout/template context in the sheet title (`Add “Bench Press” to Workout`, `Add Exercise to Template`) when launched from either picker, so save-and-return add flows stay clearly oriented instead of dropping back to the generic library header.
 - Home’s shared workout-failure alert now keeps the right action-specific title for replacement/template-handoff failures (`Couldn’t Save & Start New Workout`, `Couldn’t Discard & Start Template “Upper A”`) instead of reusing a stale generic heading, so blocked recovery paths stay clearly anchored when save/discard handoffs fail.
 - Add/Edit Exercise and Template edit sheets now block swipe-to-dismiss while unsaved changes exist, so the new discard confirmations can’t be bypassed by a sheet gesture and in-progress edits stop disappearing silently.
 - Settings save/reset failures now use action-specific alert titles like `Couldn’t Save RPE Settings`, `Couldn’t Save Rest Timer`, and `Couldn’t Reset Settings` instead of one generic `Unable to Save Settings` heading, so the recovery path stays clearer when a preference change does not stick.

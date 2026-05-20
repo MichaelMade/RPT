@@ -271,7 +271,8 @@ struct ExerciseSelectorForTemplateView: View {
                 AddExerciseView(
                     initialExerciseName: createExercisePrefillName,
                     initialCategory: viewModel.preferredNewExerciseCategory(),
-                    initialPrimaryMuscles: viewModel.preferredNewExercisePrimaryMuscles()
+                    initialPrimaryMuscles: viewModel.preferredNewExercisePrimaryMuscles(),
+                    creationContext: .template
                 ) { savedExerciseName in
                     pendingSelectionExerciseName = savedExerciseName
                 }

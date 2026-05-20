@@ -9,6 +9,12 @@ import SwiftUI
 import SwiftData
 
 struct AddExerciseView: View {
+    enum CreationContext {
+        case library
+        case workout
+        case template
+    }
+
     private struct DraftSnapshot: Equatable {
         let name: String
         let category: ExerciseCategory
@@ -41,11 +47,20 @@ struct AddExerciseView: View {
     let initialExerciseName: String
     let initialCategory: ExerciseCategory
     let initialPrimaryMuscles: [MuscleGroup]
+    let creationContext: CreationContext
     let onExerciseSaved: ((String) -> Void)?
 
-    static func navigationTitle(for rawExerciseName: String) -> String {
+    static func navigationTitle(for rawExerciseName: String, context: CreationContext = .library) -> String {
         let displayName = ExerciseManager.sanitizeExerciseName(rawExerciseName)
-        return displayName.isEmpty ? "Add Exercise" : "Add “\(displayName)”"
+
+        switch context {
+        case .library:
+            return displayName.isEmpty ? "Add Exercise" : "Add “\(displayName)”"
+        case .workout:
+            return displayName.isEmpty ? "Add Exercise to Workout" : "Add “\(displayName)” to Workout"
+        case .template:
+            return displayName.isEmpty ? "Add Exercise to Template" : "Add “\(displayName)” to Template"
+        }
     }
 
     static func saveFailureAlertTitle(for rawExerciseName: String) -> String {
@@ -130,11 +145,13 @@ struct AddExerciseView: View {
         initialExerciseName: String = "",
         initialCategory: ExerciseCategory = .compound,
         initialPrimaryMuscles: [MuscleGroup] = [],
+        creationContext: CreationContext = .library,
         onExerciseSaved: ((String) -> Void)? = nil
     ) {
         self.initialExerciseName = initialExerciseName
         self.initialCategory = initialCategory
         self.initialPrimaryMuscles = initialPrimaryMuscles
+        self.creationContext = creationContext
         self.onExerciseSaved = onExerciseSaved
         _selectedCategory = State(initialValue: initialCategory)
         _selectedPrimaryMuscles = State(initialValue: initialPrimaryMuscles)
@@ -185,7 +202,7 @@ struct AddExerciseView: View {
                         .frame(minHeight: 100)
                 }
             }
-            .navigationTitle(Self.navigationTitle(for: exerciseName))
+            .navigationTitle(Self.navigationTitle(for: exerciseName, context: creationContext))
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 if exerciseName.isEmpty {
