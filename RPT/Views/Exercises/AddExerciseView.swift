@@ -219,6 +219,7 @@ struct AddExerciseView: View {
             } message: {
                 Text(Self.discardAlertMessage())
             }
+            .interactiveDismissDisabled(hasUnsavedChanges)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {

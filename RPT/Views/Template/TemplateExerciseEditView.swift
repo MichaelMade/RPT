@@ -195,6 +195,7 @@ struct TemplateExerciseEditView: View {
             } message: {
                 Text(Self.discardAlertMessage)
             }
+            .interactiveDismissDisabled(hasUnsavedChanges)
         }
     }
 }

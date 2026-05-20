@@ -340,6 +340,7 @@ struct TemplateEditView: View {
             } message: {
                 Text(discardAlertMessage)
             }
+            .interactiveDismissDisabled(hasUnsavedChanges)
             .alert(
                 saveResult.map(saveAlertTitle(for:)) ?? TemplateManager.MutationResult.persistenceFailure.alertTitle,
                 isPresented: Binding(
