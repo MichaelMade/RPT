@@ -40,4 +40,36 @@ final class TemplateEditViewTests: XCTestCase {
             "You’ll lose your unsaved changes to this template."
         )
     }
+
+    func testTemplateExerciseDiscardAlertTitle_namesTheExerciseWhenAvailable() {
+        XCTAssertEqual(
+            TemplateExerciseEditView.discardAlertTitle(for: "  Bench\n\n Press  "),
+            "Discard “Bench Press”?"
+        )
+    }
+
+    func testTemplateExerciseDiscardAlertTitle_fallsBackForBlankLegacyNames() {
+        XCTAssertEqual(
+            TemplateExerciseEditView.discardAlertTitle(for: " \n\t "),
+            "Discard Exercise Changes?"
+        )
+    }
+
+    func testTemplateExerciseDiscardAlertActionTitle_matchesTheResolvedName() {
+        XCTAssertEqual(
+            TemplateExerciseEditView.discardAlertActionTitle(for: "  Bench\n\n Press  "),
+            "Discard “Bench Press”"
+        )
+        XCTAssertEqual(
+            TemplateExerciseEditView.discardAlertActionTitle(for: " \n\t "),
+            "Discard Changes"
+        )
+    }
+
+    func testTemplateExerciseDiscardAlertMessage_isSpecificToTemplateExerciseEditing() {
+        XCTAssertEqual(
+            TemplateExerciseEditView.discardAlertMessage,
+            "You’ll lose your unsaved changes to this template exercise."
+        )
+    }
 }

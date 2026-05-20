@@ -9,9 +9,27 @@ import SwiftUI
 import SwiftData
 
 struct TemplateExerciseEditView: View {
+    private struct DraftSnapshot: Equatable {
+        let suggestedSets: Int
+        let notes: String
+
+        init(suggestedSets: Int, notes: String) {
+            self.suggestedSets = suggestedSets
+            self.notes = Self.normalizedDraftText(notes)
+        }
+
+        private static func normalizedDraftText(_ raw: String) -> String {
+            raw
+                .components(separatedBy: .whitespacesAndNewlines)
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+        }
+    }
+
     @Environment(\.dismiss) private var dismiss
     @State private var suggestedSets: Int
     @State private var notes: String
+    @State private var showingDiscardConfirmation = false
     
     // Store the exercise for reference
     let exercise: TemplateExercise
@@ -28,6 +46,44 @@ struct TemplateExerciseEditView: View {
 
     private var previewRepRanges: [TemplateRepRange] {
         TemplateExercise.normalizedRepRanges(for: suggestedSets, from: exercise.repRanges)
+    }
+
+    private var initialDraftSnapshot: DraftSnapshot {
+        DraftSnapshot(suggestedSets: exercise.suggestedSets, notes: exercise.notes)
+    }
+
+    private var currentDraftSnapshot: DraftSnapshot {
+        DraftSnapshot(suggestedSets: suggestedSets, notes: notes)
+    }
+
+    private var hasUnsavedChanges: Bool {
+        currentDraftSnapshot != initialDraftSnapshot
+    }
+
+    private var discardAlertTitle: String {
+        Self.discardAlertTitle(for: exercise.exerciseName)
+    }
+
+    private var discardAlertActionTitle: String {
+        Self.discardAlertActionTitle(for: exercise.exerciseName)
+    }
+
+    static func discardAlertTitle(for exerciseName: String) -> String {
+        let displayName = TemplateExercise.normalizedDisplayName(exerciseName)
+        return displayName == "Unnamed Exercise"
+            ? "Discard Exercise Changes?"
+            : "Discard “\(displayName)”?"
+    }
+
+    static func discardAlertActionTitle(for exerciseName: String) -> String {
+        let displayName = TemplateExercise.normalizedDisplayName(exerciseName)
+        return displayName == "Unnamed Exercise"
+            ? "Discard Changes"
+            : "Discard “\(displayName)”"
+    }
+
+    static var discardAlertMessage: String {
+        "You’ll lose your unsaved changes to this template exercise."
     }
     
     var body: some View {
@@ -103,7 +159,11 @@ struct TemplateExerciseEditView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
-                        dismiss()
+                        if hasUnsavedChanges {
+                            showingDiscardConfirmation = true
+                        } else {
+                            dismiss()
+                        }
                     }
                 }
                 
@@ -122,6 +182,18 @@ struct TemplateExerciseEditView: View {
                         dismiss()
                     }
                 }
+            }
+            .alert(discardAlertTitle, isPresented: $showingDiscardConfirmation) {
+                Button(discardAlertActionTitle, role: .destructive) {
+                    showingDiscardConfirmation = false
+                    dismiss()
+                }
+
+                Button("Keep Editing", role: .cancel) {
+                    showingDiscardConfirmation = false
+                }
+            } message: {
+                Text(Self.discardAlertMessage)
             }
         }
     }

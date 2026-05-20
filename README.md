@@ -1,5 +1,6 @@
 # RPT
 
+- Template exercise editing now warns before throwing away unsaved set/count note changes, using draft-aware discard copy like `Discard “Bench Press”?` with a safe `Discard Exercise Changes?` fallback for blank legacy names, so tuning a routine’s individual movements no longer loses in-progress edits on an accidental cancel.
 - Add/Edit Exercise now warns before throwing away unsaved changes, using draft-aware discard copy like `Discard “Ring Dip”?`, `Discard New Exercise?`, and `Discard Exercise Changes?`, so longer custom-movement cleanup or accidental cancel taps stop silently losing in-progress edits.
 - New/Edit Template now warns before throwing away unsaved changes, using draft-aware discard copy like `Discard “Upper A”?` / `Discard New Template?`, so longer routine edits and accidental taps stop silently losing in-progress template work.
 - Active Workout’s unnamed-save/delete/complete failure alerts now use action-specific fallback titles like `Couldn’t Save Current Workout` and `Couldn’t Delete This Exercise` instead of collapsing blank legacy names back to a vague `Workout Action Failed`, so recovery stays clearer even when older data is incomplete.
