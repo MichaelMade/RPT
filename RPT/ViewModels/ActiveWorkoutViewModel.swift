@@ -720,7 +720,7 @@ class ActiveWorkoutViewModel: ObservableObject {
 
     private func workoutFailureAlertTitle(action: String) -> String {
         guard let displayName = specificWorkoutDisplayName else {
-            return "Workout Action Failed"
+            return genericWorkoutFailureAlertTitle(action: action)
         }
 
         return "Couldn’t \(action) “\(displayName)”"
@@ -728,10 +728,40 @@ class ActiveWorkoutViewModel: ObservableObject {
 
     private func exerciseFailureAlertTitle(action: String, exercise: Exercise?) -> String {
         guard let displayName = exercise?.specificDisplayName else {
-            return "Workout Action Failed"
+            return genericExerciseFailureAlertTitle(action: action)
         }
 
         return "Couldn’t \(action) “\(displayName)”"
+    }
+
+    private func genericWorkoutFailureAlertTitle(action: String) -> String {
+        switch action {
+        case "Load":
+            return "Couldn’t Load Current Workout"
+        case "Rename":
+            return "Couldn’t Rename Current Workout"
+        case "Save":
+            return "Couldn’t Save Current Workout"
+        case "Complete":
+            return "Couldn’t Complete Current Workout"
+        case "Discard":
+            return "Couldn’t Discard Current Workout"
+        default:
+            return "Workout Action Failed"
+        }
+    }
+
+    private func genericExerciseFailureAlertTitle(action: String) -> String {
+        switch action {
+        case "Add":
+            return "Couldn’t Add This Exercise"
+        case "Update":
+            return "Couldn’t Update This Exercise"
+        case "Delete":
+            return "Couldn’t Delete This Exercise"
+        default:
+            return "Workout Action Failed"
+        }
     }
 
     private func helperTextForIncompleteExercises(enableActionLabel: String) -> String? {
