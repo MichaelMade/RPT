@@ -26,6 +26,7 @@ struct HomeView: View {
     @State private var workoutToStartFollowUp: Workout?
     @State private var templateToStartFromHistory: WorkoutTemplate?
     @State private var copiedWorkoutName: String?
+    @State private var startFreshFailureTitle: String?
     @State private var startFreshFailureMessage: String?
     @StateObject private var workoutStateManager = WorkoutStateManager.shared
     private let templateManager = TemplateManager.shared
@@ -676,7 +677,7 @@ struct HomeView: View {
             } message: {
                 Text(copySummaryMessage)
             }
-            .alert(viewModel.startWorkoutFailureAlertTitle, isPresented: Binding(
+            .alert(currentFailureTitle, isPresented: Binding(
                 get: { currentFailureMessage != nil },
                 set: { isPresented in
                     if !isPresented {
@@ -709,6 +710,10 @@ struct HomeView: View {
             currentBinding: activeWorkoutBinding,
             storedWorkout: viewModel.currentWorkout
         )
+    }
+
+    private var currentFailureTitle: String {
+        startFreshFailureTitle ?? viewModel.startWorkoutFailureAlertTitle
     }
 
     private var currentFailureMessage: String? {
@@ -753,6 +758,7 @@ struct HomeView: View {
     }
 
     private func clearFailureMessages() {
+        startFreshFailureTitle = nil
         startFreshFailureMessage = nil
         viewModel.clearStartWorkoutFailure()
     }
@@ -787,6 +793,7 @@ struct HomeView: View {
             action: .saveForLater,
             persist: { WorkoutManager.shared.saveWorkoutSafely($0) }
         ) else {
+            startFreshFailureTitle = viewModel.startFreshFailureAlertTitle(for: .saveForLater)
             startFreshFailureMessage = viewModel.startFreshFailureMessage(for: .saveForLater)
             return
         }
@@ -803,6 +810,7 @@ struct HomeView: View {
             action: .discard,
             persist: { WorkoutManager.shared.deleteWorkoutSafely($0) }
         ) else {
+            startFreshFailureTitle = viewModel.startFreshFailureAlertTitle(for: .discard)
             startFreshFailureMessage = viewModel.startFreshFailureMessage(for: .discard)
             return
         }
@@ -902,6 +910,10 @@ struct HomeView: View {
             activeWorkoutBinding = startedWorkout
             showActiveWorkoutSheet = true
         case .failure(let message):
+            startFreshFailureTitle = templateViewModel.activeWorkoutPersistenceFailureAlertTitle(
+                for: .saveForLater,
+                opening: template
+            )
             startFreshFailureMessage = message
         }
     }
@@ -920,6 +932,10 @@ struct HomeView: View {
             activeWorkoutBinding = startedWorkout
             showActiveWorkoutSheet = true
         case .failure(let message):
+            startFreshFailureTitle = templateViewModel.activeWorkoutPersistenceFailureAlertTitle(
+                for: .discard,
+                opening: template
+            )
             startFreshFailureMessage = message
         }
     }

@@ -571,6 +571,15 @@ class HomeViewModel: ObservableObject {
         return true
     }
 
+    func startFreshFailureAlertTitle(for action: StartFreshPersistenceAction) -> String {
+        switch action {
+        case .saveForLater:
+            return "Couldn’t Save & Start New Workout"
+        case .discard:
+            return "Couldn’t Discard & Start New Workout"
+        }
+    }
+
     func startFreshFailureMessage(for action: StartFreshPersistenceAction) -> String {
         switch action {
         case .saveForLater:

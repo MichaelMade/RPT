@@ -1501,6 +1501,19 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertTrue(WorkoutStateManager.shared.wasAnyWorkoutDiscarded(), "Successful discard should mark discard state so the old workout does not immediately resurface")
     }
 
+    func testStartFreshFailureAlertTitle_matchesAction() {
+        XCTAssertEqual(
+            viewModel.startFreshFailureAlertTitle(for: .saveForLater),
+            "Couldn’t Save & Start New Workout",
+            "Save-for-later failures should keep the replacement action explicit in the alert title"
+        )
+        XCTAssertEqual(
+            viewModel.startFreshFailureAlertTitle(for: .discard),
+            "Couldn’t Discard & Start New Workout",
+            "Discard failures should keep the replacement action explicit in the alert title"
+        )
+    }
+
     func testStartFreshFailureMessage_matchesAction() {
         XCTAssertEqual(
             viewModel.startFreshFailureMessage(for: .saveForLater),
