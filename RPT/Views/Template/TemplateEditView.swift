@@ -9,12 +9,50 @@ import SwiftUI
 import SwiftData
 
 struct TemplateEditView: View {
+    private struct DraftSnapshot: Equatable {
+        struct ExerciseSnapshot: Equatable {
+            let id: UUID
+            let name: String
+            let suggestedSets: Int
+            let repRanges: [TemplateRepRange]
+            let notes: String
+        }
+
+        let name: String
+        let notes: String
+        let exercises: [ExerciseSnapshot]
+
+        init(name: String, notes: String, exercises: [TemplateExercise]) {
+            self.name = Self.normalizedDraftText(name)
+            self.notes = Self.normalizedDraftText(notes)
+            self.exercises = exercises.map {
+                ExerciseSnapshot(
+                    id: $0.id,
+                    name: Self.normalizedDraftText($0.exerciseName),
+                    suggestedSets: $0.suggestedSets,
+                    repRanges: $0.repRanges,
+                    notes: Self.normalizedDraftText($0.notes)
+                )
+            }
+        }
+
+        private static func normalizedDraftText(_ raw: String) -> String {
+            let collapsed = raw
+                .components(separatedBy: .whitespacesAndNewlines)
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+
+            return String(collapsed.prefix(80))
+        }
+    }
+
     @Environment(\.dismiss) private var dismiss
     @State private var templateName = ""
     @State private var templateNotes = ""
     @State private var exercises: [TemplateExercise] = []
     @State private var showingExerciseSelector = false
     @State private var showingExerciseEditor: TemplateExercise?
+    @State private var showingDiscardConfirmation = false
     @State private var saveResult: TemplateManager.MutationResult?
     
     let isNewTemplate: Bool
@@ -64,6 +102,42 @@ struct TemplateEditView: View {
         draftValidation == .valid
     }
 
+    private var initialDraftSnapshot: DraftSnapshot {
+        if let existingTemplate {
+            return DraftSnapshot(
+                name: existingTemplate.name,
+                notes: existingTemplate.notes,
+                exercises: existingTemplate.exercises
+            )
+        }
+
+        return DraftSnapshot(
+            name: initialTemplateName,
+            notes: initialTemplateNotes,
+            exercises: initialExercises
+        )
+    }
+
+    private var currentDraftSnapshot: DraftSnapshot {
+        DraftSnapshot(name: templateName, notes: templateNotes, exercises: exercises)
+    }
+
+    private var hasUnsavedChanges: Bool {
+        currentDraftSnapshot != initialDraftSnapshot
+    }
+
+    private var discardAlertTitle: String {
+        Self.discardAlertTitle(isNewTemplate: isNewTemplate, templateName: templateName)
+    }
+
+    private var discardAlertMessage: String {
+        Self.discardAlertMessage(isNewTemplate: isNewTemplate)
+    }
+
+    private var discardAlertActionTitle: String {
+        Self.discardAlertActionTitle(isNewTemplate: isNewTemplate, templateName: templateName)
+    }
+
     private var duplicateExerciseLookupKeys: Set<String> {
         var counts: [String: Int] = [:]
 
@@ -85,6 +159,28 @@ struct TemplateEditView: View {
 
     private func removeExercise(id: UUID) {
         exercises.removeAll { $0.id == id }
+    }
+
+    static func discardAlertTitle(isNewTemplate: Bool, templateName: String) -> String {
+        if let displayName = WorkoutTemplate.normalizedDisplayNotes(templateName) {
+            return "Discard “\(displayName)”?"
+        }
+
+        return isNewTemplate ? "Discard New Template?" : "Discard Template Changes?"
+    }
+
+    static func discardAlertActionTitle(isNewTemplate: Bool, templateName: String) -> String {
+        if let displayName = WorkoutTemplate.normalizedDisplayNotes(templateName) {
+            return "Discard “\(displayName)”"
+        }
+
+        return isNewTemplate ? "Discard New Template" : "Discard Changes"
+    }
+
+    static func discardAlertMessage(isNewTemplate: Bool) -> String {
+        isNewTemplate
+            ? "You’ll lose this template draft and any exercise setup changes."
+            : "You’ll lose your unsaved changes to this template."
     }
     
     var body: some View {
@@ -181,7 +277,11 @@ struct TemplateEditView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
-                        dismiss()
+                        if hasUnsavedChanges {
+                            showingDiscardConfirmation = true
+                        } else {
+                            dismiss()
+                        }
                     }
                 }
                 
@@ -227,6 +327,18 @@ struct TemplateEditView: View {
                         }
                     }
                 )
+            }
+            .alert(discardAlertTitle, isPresented: $showingDiscardConfirmation) {
+                Button(discardAlertActionTitle, role: .destructive) {
+                    showingDiscardConfirmation = false
+                    dismiss()
+                }
+
+                Button("Keep Editing", role: .cancel) {
+                    showingDiscardConfirmation = false
+                }
+            } message: {
+                Text(discardAlertMessage)
             }
             .alert(
                 saveResult.map(saveAlertTitle(for:)) ?? TemplateManager.MutationResult.persistenceFailure.alertTitle,
