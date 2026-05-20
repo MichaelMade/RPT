@@ -30,6 +30,20 @@ final class TemplateEditViewTests: XCTestCase {
         )
     }
 
+    func testDiscardAlertTitles_useTemplateDisplayNameNormalizationForLongDrafts() {
+        let longName = String(repeating: "Upper A ", count: 20)
+        let expectedDisplayName = WorkoutTemplate.normalizedDisplayName(longName)
+
+        XCTAssertEqual(
+            TemplateEditView.discardAlertTitle(isNewTemplate: true, templateName: longName),
+            "Discard “\(expectedDisplayName)”?"
+        )
+        XCTAssertEqual(
+            TemplateEditView.discardAlertActionTitle(isNewTemplate: false, templateName: longName),
+            "Discard “\(expectedDisplayName)”"
+        )
+    }
+
     func testDiscardAlertMessage_matchesNewVsExistingFlows() {
         XCTAssertEqual(
             TemplateEditView.discardAlertMessage(isNewTemplate: true),

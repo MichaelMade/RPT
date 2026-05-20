@@ -162,7 +162,7 @@ struct TemplateEditView: View {
     }
 
     static func discardAlertTitle(isNewTemplate: Bool, templateName: String) -> String {
-        if let displayName = WorkoutTemplate.normalizedDisplayNotes(templateName) {
+        if let displayName = specificTemplateDisplayName(templateName) {
             return "Discard “\(displayName)”?"
         }
 
@@ -170,11 +170,16 @@ struct TemplateEditView: View {
     }
 
     static func discardAlertActionTitle(isNewTemplate: Bool, templateName: String) -> String {
-        if let displayName = WorkoutTemplate.normalizedDisplayNotes(templateName) {
+        if let displayName = specificTemplateDisplayName(templateName) {
             return "Discard “\(displayName)”"
         }
 
         return isNewTemplate ? "Discard New Template" : "Discard Changes"
+    }
+
+    private static func specificTemplateDisplayName(_ rawTemplateName: String) -> String? {
+        let displayName = WorkoutTemplate.normalizedDisplayName(rawTemplateName)
+        return displayName == "Template" ? nil : displayName
     }
 
     static func discardAlertMessage(isNewTemplate: Bool) -> String {

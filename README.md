@@ -1,5 +1,6 @@
 # RPT
 
+- Template draft discard alerts now reuse the same normalized template naming as the rest of the app, so long or whitespace-heavy routine names stay truncated and readable (`Discard “Upper A Upper A …”?`) instead of spilling raw draft text into the unsaved-changes prompt.
 - Active Workout now asks for confirmation before deleting a set, using set-aware copy like `Delete Set 185 lb × 8 reps?` and `Delete Warm-up Set BW × 10 reps?`, so an accidental destructive tap during live logging no longer removes progress immediately.
 - Custom exercise creation now keeps workout/template context in the sheet title (`Add “Bench Press” to Workout`, `Add Exercise to Template`) when launched from either picker, so save-and-return add flows stay clearly oriented instead of dropping back to the generic library header.
 - Home’s shared workout-failure alert now keeps the right action-specific title for replacement/template-handoff failures (`Couldn’t Save & Start New Workout`, `Couldn’t Discard & Start Template “Upper A”`) instead of reusing a stale generic heading, so blocked recovery paths stay clearly anchored when save/discard handoffs fail.
