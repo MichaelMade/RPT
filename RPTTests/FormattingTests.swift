@@ -207,6 +207,84 @@ final class FormattingTests: XCTestCase {
         )
     }
 
+    func testExerciseSetRowDiscardChangesAlertTitle_namesEditedTarget() {
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Push")
+        let set = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout)
+
+        XCTAssertEqual(
+            ExerciseSetRowView.discardChangesAlertTitle(for: set),
+            "Discard Set Changes to 185 lb × 8 reps?"
+        )
+        XCTAssertEqual(
+            ExerciseSetRowView.discardChangesAlertMessage,
+            "Your changes to this set haven’t been saved."
+        )
+    }
+
+    func testExerciseSetRowDiscardChangesAlertTitle_handlesWarmupBodyweightAndBlankFallback() {
+        let bodyweightExercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+        let weightedExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Pull")
+
+        let bodyweightWarmupSet = ExerciseSet(
+            weight: 0,
+            reps: 10,
+            exercise: bodyweightExercise,
+            workout: workout,
+            isWarmup: true
+        )
+        let blankSet = ExerciseSet(weight: 0, reps: 0, exercise: weightedExercise, workout: workout)
+
+        XCTAssertEqual(
+            ExerciseSetRowView.discardChangesAlertTitle(for: bodyweightWarmupSet),
+            "Discard Warm-up Set Changes to BW × 10 reps?"
+        )
+        XCTAssertEqual(
+            ExerciseSetRowView.discardChangesAlertTitle(for: blankSet),
+            "Discard Set Changes?"
+        )
+    }
+
+    func testExerciseSetRowHasUnsavedChanges_detectsMeaningfulDraftEdits() {
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Push")
+        let set = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout, rpe: 8)
+
+        XCTAssertFalse(
+            ExerciseSetRowView.hasUnsavedChanges(
+                comparedTo: set,
+                weightInput: "185",
+                repsInput: "8",
+                rpeInput: "8"
+            )
+        )
+        XCTAssertTrue(
+            ExerciseSetRowView.hasUnsavedChanges(
+                comparedTo: set,
+                weightInput: "190",
+                repsInput: "8",
+                rpeInput: "8"
+            )
+        )
+        XCTAssertTrue(
+            ExerciseSetRowView.hasUnsavedChanges(
+                comparedTo: set,
+                weightInput: "185",
+                repsInput: "8",
+                rpeInput: ""
+            )
+        )
+        XCTAssertTrue(
+            ExerciseSetRowView.hasUnsavedChanges(
+                comparedTo: set,
+                weightInput: "abc",
+                repsInput: "8",
+                rpeInput: "8"
+            )
+        )
+    }
+
     func testExerciseSetDisplayRPE_hidesInvalidLegacyValues() {
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         let workout = Workout(name: "Push")

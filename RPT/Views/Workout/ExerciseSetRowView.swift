@@ -34,6 +34,7 @@ struct ExerciseSetRowView: View {
     @State private var weightInput = ""
     @State private var repsInput = ""
     @State private var rpeInput = ""
+    @State private var showingDiscardChangesAlert = false
     @AppStorage("showRPE") private var showRPE = true
     
     // MARK: - New Properties
@@ -69,6 +70,15 @@ struct ExerciseSetRowView: View {
 
     private var canSaveDraft: Bool {
         draftValidation == .valid
+    }
+
+    private var hasUnsavedChanges: Bool {
+        Self.hasUnsavedChanges(
+            comparedTo: set,
+            weightInput: weightInput,
+            repsInput: repsInput,
+            rpeInput: rpeInput
+        )
     }
 
     
@@ -173,7 +183,11 @@ struct ExerciseSetRowView: View {
                 // Action buttons
                 HStack(spacing: 15) {
                     Button("Cancel") {
-                        isEditing = false
+                        if hasUnsavedChanges {
+                            showingDiscardChangesAlert = true
+                        } else {
+                            isEditing = false
+                        }
                     }
                     .buttonStyle(.bordered)
                     
@@ -249,6 +263,15 @@ struct ExerciseSetRowView: View {
                 isEditing = true
             }
         }
+        .alert(Self.discardChangesAlertTitle(for: set), isPresented: $showingDiscardChangesAlert) {
+            Button("Keep Editing", role: .cancel) {}
+            Button("Discard Changes", role: .destructive) {
+                showingDiscardChangesAlert = false
+                isEditing = false
+            }
+        } message: {
+            Text(Self.discardChangesAlertMessage)
+        }
     }
 
     static func deleteButtonTitle(for set: ExerciseSet) -> String {
@@ -263,6 +286,39 @@ struct ExerciseSetRowView: View {
         let weightText = displayWeightText(weight: set.weight, exerciseCategory: set.exercise?.category)
         let repsText = displayRepsText(set.reps)
         return "\(prefix) \(weightText) × \(repsText)"
+    }
+
+    static func discardChangesAlertTitle(for set: ExerciseSet) -> String {
+        let prefix = set.isWarmup ? "Discard Warm-up Set Changes" : "Discard Set Changes"
+        let hasMeaningfulLoad = set.weight > 0 || set.exercise?.category == .bodyweight
+        let hasMeaningfulReps = set.reps > 0
+
+        guard hasMeaningfulLoad || hasMeaningfulReps else {
+            return "\(prefix)?"
+        }
+
+        let weightText = displayWeightText(weight: set.weight, exerciseCategory: set.exercise?.category)
+        let repsText = displayRepsText(set.reps)
+        return "\(prefix) to \(weightText) × \(repsText)?"
+    }
+
+    static let discardChangesAlertMessage = "Your changes to this set haven’t been saved."
+
+    static func hasUnsavedChanges(comparedTo set: ExerciseSet, weightInput: String, repsInput: String, rpeInput: String) -> Bool {
+        let parsedWeight = sanitizedInteger(from: weightInput, emptyValue: 0)
+        let parsedReps = sanitizedInteger(from: repsInput, emptyValue: 0)
+        let parsedRPE = sanitizedInteger(from: rpeInput, emptyValue: nil)
+
+        guard let parsedWeight, let parsedReps else {
+            let trimmedWeight = weightInput.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedReps = repsInput.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedRPE = rpeInput.trimmingCharacters(in: .whitespacesAndNewlines)
+            return !trimmedWeight.isEmpty || !trimmedReps.isEmpty || !trimmedRPE.isEmpty
+        }
+
+        return parsedWeight != set.weight
+            || parsedReps != set.reps
+            || parsedRPE != set.displayRPE
     }
 
     static func validateDraft(weightInput: String, repsInput: String, rpeInput: String) -> DraftValidationResult {
