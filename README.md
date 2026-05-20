@@ -1,5 +1,6 @@
 # RPT
 
+- Settings save/reset failures now use action-specific alert titles like `Couldn’t Save RPE Settings`, `Couldn’t Save Rest Timer`, and `Couldn’t Reset Settings` instead of one generic `Unable to Save Settings` heading, so the recovery path stays clearer when a preference change does not stick.
 - Active Workout set editing now warns before throwing away unsaved weight/rep/RPE changes, using context-aware discard copy like `Discard Set Changes to 185 lb × 8 reps?` with warm-up and blank-set fallbacks, so accidental cancel taps no longer silently wipe in-progress logging.
 - Template exercise editing now warns before throwing away unsaved set/count note changes, using draft-aware discard copy like `Discard “Bench Press”?` with a safe `Discard Exercise Changes?` fallback for blank legacy names, so tuning a routine’s individual movements no longer loses in-progress edits on an accidental cancel.
 - Add/Edit Exercise now warns before throwing away unsaved changes, using draft-aware discard copy like `Discard “Ring Dip”?`, `Discard New Exercise?`, and `Discard Exercise Changes?`, so longer custom-movement cleanup or accidental cancel taps stop silently losing in-progress edits.

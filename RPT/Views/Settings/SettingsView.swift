@@ -105,7 +105,7 @@ struct SettingsView: View {
                 UserDefaults.standard.set(viewModel.showRPE, forKey: "showRPE")
             }
             .navigationTitle("Settings")
-            .alert("Unable to Save Settings", isPresented: Binding(
+            .alert(viewModel.saveErrorTitle, isPresented: Binding(
                 get: { viewModel.saveErrorMessage != nil },
                 set: { isPresented in
                     if !isPresented {

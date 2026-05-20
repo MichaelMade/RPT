@@ -14,6 +14,7 @@ class SettingsViewModel: ObservableObject {
     private let settingsManager: SettingsManaging
     private var isSyncingFromPersistedSettings = false
 
+    @Published var saveErrorTitle: String = "Unable to Save Settings"
     @Published var saveErrorMessage: String?
     
     @Published var restTimerDuration: Int {
@@ -22,7 +23,10 @@ class SettingsViewModel: ObservableObject {
 
             if !settingsManager.updateRestTimerDurationSafely(seconds: restTimerDuration) {
                 syncFromPersistedSettings()
-                presentSaveError("Rest timer changes could not be saved.")
+                presentSaveError(
+                    title: "Couldn’t Save Rest Timer",
+                    message: "Rest timer changes could not be saved."
+                )
             }
         }
     }
@@ -33,7 +37,10 @@ class SettingsViewModel: ObservableObject {
 
             if !settingsManager.updateRPTPercentageDropsSafely(drops: defaultRPTPercentageDrops) {
                 syncFromPersistedSettings()
-                presentSaveError("RPT drop changes could not be saved.")
+                presentSaveError(
+                    title: "Couldn’t Save Weight Drops",
+                    message: "RPT drop changes could not be saved."
+                )
             }
         }
     }
@@ -44,7 +51,10 @@ class SettingsViewModel: ObservableObject {
 
             if !settingsManager.updateShowRPESafely(show: showRPE) {
                 syncFromPersistedSettings()
-                presentSaveError("RPE visibility changes could not be saved.")
+                presentSaveError(
+                    title: "Couldn’t Save RPE Settings",
+                    message: "RPE visibility changes could not be saved."
+                )
             }
         }
     }
@@ -55,7 +65,10 @@ class SettingsViewModel: ObservableObject {
 
             if !settingsManager.updateDarkModePreferenceSafely(preference: darkModePreference) {
                 syncFromPersistedSettings()
-                presentSaveError("Appearance changes could not be saved.")
+                presentSaveError(
+                    title: "Couldn’t Save Appearance",
+                    message: "Appearance changes could not be saved."
+                )
             }
         }
     }
@@ -72,13 +85,17 @@ class SettingsViewModel: ObservableObject {
 
     func resetToDefaults() {
         if !settingsManager.resetToDefaultsSafely() {
-            presentSaveError("Settings could not be reset right now.")
+            presentSaveError(
+                title: "Couldn’t Reset Settings",
+                message: "Settings could not be reset right now."
+            )
         }
 
         syncFromPersistedSettings()
     }
 
     func clearSaveError() {
+        saveErrorTitle = "Unable to Save Settings"
         saveErrorMessage = nil
     }
     
@@ -132,7 +149,8 @@ class SettingsViewModel: ObservableObject {
         isSyncingFromPersistedSettings = false
     }
 
-    private func presentSaveError(_ message: String) {
+    private func presentSaveError(title: String, message: String) {
+        saveErrorTitle = title
         saveErrorMessage = message
     }
 }

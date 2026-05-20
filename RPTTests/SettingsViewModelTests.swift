@@ -182,6 +182,7 @@ final class SettingsViewModelTests: XCTestCase {
         failingViewModel.showRPE = false
 
         XCTAssertTrue(failingViewModel.showRPE)
+        XCTAssertEqual(failingViewModel.saveErrorTitle, "Couldn’t Save RPE Settings")
         XCTAssertEqual(failingViewModel.saveErrorMessage, "RPE visibility changes could not be saved.")
     }
 
@@ -201,6 +202,21 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(failingViewModel.defaultRPTPercentageDrops, [0.0, 0.15, 0.20])
         XCTAssertFalse(failingViewModel.showRPE)
         XCTAssertEqual(failingViewModel.darkModePreference, .dark)
+        XCTAssertEqual(failingViewModel.saveErrorTitle, "Couldn’t Reset Settings")
         XCTAssertEqual(failingViewModel.saveErrorMessage, "Settings could not be reset right now.")
+    }
+
+    func testClearSaveError_resetsBackToDefaultAlertTitle() {
+        let mock = MockSettingsManager(settings: UserSettings(showRPE: true))
+        mock.shouldFailSave = true
+        let failingViewModel = SettingsViewModel(settingsManager: mock)
+
+        failingViewModel.showRPE = false
+        XCTAssertEqual(failingViewModel.saveErrorTitle, "Couldn’t Save RPE Settings")
+
+        failingViewModel.clearSaveError()
+
+        XCTAssertEqual(failingViewModel.saveErrorTitle, "Unable to Save Settings")
+        XCTAssertNil(failingViewModel.saveErrorMessage)
     }
 }
