@@ -79,16 +79,23 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                         .padding(.top, 4)
                 }
-                NavigationLink {
-                    AboutView()
-                } label: {
-                    Text("About RPT Trainer")
+
+                Section {
+                    NavigationLink {
+                        AboutView()
+                    } label: {
+                        Text("About RPT Trainer")
+                    }
                 }
-                
-                Button("Reset to Defaults") {
-                    showingResetConfirmation = true
+
+                Section {
+                    Button("Reset All Settings") {
+                        showingResetConfirmation = true
+                    }
+                    .foregroundColor(.red)
+                } footer: {
+                    Text("This restores display, timer, and RPT defaults without affecting your saved workouts, templates, or exercise library.")
                 }
-                .foregroundColor(.red)
                 
                 // App Info Section
                 Section {
@@ -119,13 +126,13 @@ struct SettingsView: View {
             } message: {
                 Text(viewModel.saveErrorMessage ?? "Your changes were not saved.")
             }
-            .alert("Reset Settings", isPresented: $showingResetConfirmation) {
+            .alert("Reset All Settings?", isPresented: $showingResetConfirmation) {
                 Button("Cancel", role: .cancel) { }
-                Button("Reset", role: .destructive) {
+                Button("Reset Settings", role: .destructive) {
                     viewModel.resetToDefaults()
                 }
             } message: {
-                Text("This will reset all settings to their default values. This cannot be undone.")
+                Text("This will restore your display, timer, and RPT defaults. Your saved workouts, templates, and exercises will stay untouched.")
             }
         }
     }
