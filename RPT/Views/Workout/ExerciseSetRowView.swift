@@ -35,6 +35,7 @@ struct ExerciseSetRowView: View {
     @State private var repsInput = ""
     @State private var rpeInput = ""
     @State private var showingDiscardChangesAlert = false
+    @State private var showingDeleteConfirmation = false
     @AppStorage("showRPE") private var showRPE = true
     
     // MARK: - New Properties
@@ -192,8 +193,7 @@ struct ExerciseSetRowView: View {
                     .buttonStyle(.bordered)
                     
                     Button(Self.deleteButtonTitle(for: set), role: .destructive) {
-                        HapticFeedbackManager.shared.heavy()
-                        onDelete()
+                        showingDeleteConfirmation = true
                     }
                     .buttonStyle(.bordered)
                     
@@ -272,6 +272,18 @@ struct ExerciseSetRowView: View {
         } message: {
             Text(Self.discardChangesAlertMessage)
         }
+        .alert(Self.deleteAlertTitle(for: set), isPresented: $showingDeleteConfirmation) {
+            Button("Keep Set", role: .cancel) {
+                showingDeleteConfirmation = false
+            }
+            Button(Self.deleteButtonTitle(for: set), role: .destructive) {
+                showingDeleteConfirmation = false
+                HapticFeedbackManager.shared.heavy()
+                onDelete()
+            }
+        } message: {
+            Text(Self.deleteAlertMessage)
+        }
     }
 
     static func deleteButtonTitle(for set: ExerciseSet) -> String {
@@ -287,6 +299,12 @@ struct ExerciseSetRowView: View {
         let repsText = displayRepsText(set.reps)
         return "\(prefix) \(weightText) × \(repsText)"
     }
+
+    static func deleteAlertTitle(for set: ExerciseSet) -> String {
+        "\(deleteButtonTitle(for: set))?"
+    }
+
+    static let deleteAlertMessage = "This set will be removed from the current workout."
 
     static func discardChangesAlertTitle(for set: ExerciseSet) -> String {
         let prefix = set.isWarmup ? "Discard Warm-up Set Changes" : "Discard Set Changes"

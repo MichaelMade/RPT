@@ -172,7 +172,7 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(ExerciseSetRowView.displayRepsText(8), "8 reps")
     }
 
-    func testExerciseSetRowDeleteButtonTitle_namesLoggedTarget() {
+    func testExerciseSetRowDeleteCopy_namesLoggedTarget() {
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         let workout = Workout(name: "Push")
         let set = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout)
@@ -181,9 +181,17 @@ final class FormattingTests: XCTestCase {
             ExerciseSetRowView.deleteButtonTitle(for: set),
             "Delete Set 185 lb × 8 reps"
         )
+        XCTAssertEqual(
+            ExerciseSetRowView.deleteAlertTitle(for: set),
+            "Delete Set 185 lb × 8 reps?"
+        )
+        XCTAssertEqual(
+            ExerciseSetRowView.deleteAlertMessage,
+            "This set will be removed from the current workout."
+        )
     }
 
-    func testExerciseSetRowDeleteButtonTitle_handlesWarmupBodyweightAndBlankFallback() {
+    func testExerciseSetRowDeleteCopy_handlesWarmupBodyweightAndBlankFallback() {
         let bodyweightExercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
         let weightedExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         let workout = Workout(name: "Pull")
@@ -202,8 +210,16 @@ final class FormattingTests: XCTestCase {
             "Delete Warm-up Set BW × 10 reps"
         )
         XCTAssertEqual(
+            ExerciseSetRowView.deleteAlertTitle(for: bodyweightWarmupSet),
+            "Delete Warm-up Set BW × 10 reps?"
+        )
+        XCTAssertEqual(
             ExerciseSetRowView.deleteButtonTitle(for: blankSet),
             "Delete Set"
+        )
+        XCTAssertEqual(
+            ExerciseSetRowView.deleteAlertTitle(for: blankSet),
+            "Delete Set?"
         )
     }
 
