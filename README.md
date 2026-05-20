@@ -1,5 +1,6 @@
 # RPT
 
+- Add/Edit Exercise now warns before throwing away unsaved changes, using draft-aware discard copy like `Discard “Ring Dip”?`, `Discard New Exercise?`, and `Discard Exercise Changes?`, so longer custom-movement cleanup or accidental cancel taps stop silently losing in-progress edits.
 - New/Edit Template now warns before throwing away unsaved changes, using draft-aware discard copy like `Discard “Upper A”?` / `Discard New Template?`, so longer routine edits and accidental taps stop silently losing in-progress template work.
 - Active Workout’s unnamed-save/delete/complete failure alerts now use action-specific fallback titles like `Couldn’t Save Current Workout` and `Couldn’t Delete This Exercise` instead of collapsing blank legacy names back to a vague `Workout Action Failed`, so recovery stays clearer even when older data is incomplete.
 - Active Workout’s leading toolbar action now says `Save for Later` instead of the vaguer `Minimize`, so the primary escape hatch makes it obvious that tapping it saves the current draft before closing the sheet.

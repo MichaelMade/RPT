@@ -29,4 +29,32 @@ final class AddExerciseViewTests: XCTestCase {
             "Couldn’t Save This Exercise"
         )
     }
+
+    func testDiscardAlertTitle_namesTheDraftExerciseWhenAvailable() {
+        XCTAssertEqual(
+            AddExerciseView.discardAlertTitle(for: "  Garage\n\n Dip  "),
+            "Discard “Garage Dip”?"
+        )
+    }
+
+    func testDiscardAlertTitle_fallsBackGracefullyForBlankDrafts() {
+        XCTAssertEqual(
+            AddExerciseView.discardAlertTitle(for: " \n\t "),
+            "Discard New Exercise?"
+        )
+    }
+
+    func testDiscardAlertActionTitle_namesTheDraftExerciseWhenAvailable() {
+        XCTAssertEqual(
+            AddExerciseView.discardAlertActionTitle(for: "  Garage\n\n Dip  "),
+            "Discard “Garage Dip”"
+        )
+    }
+
+    func testDiscardAlertMessage_matchesNewExerciseFlow() {
+        XCTAssertEqual(
+            AddExerciseView.discardAlertMessage(),
+            "You’ll lose this exercise draft and any setup changes."
+        )
+    }
 }

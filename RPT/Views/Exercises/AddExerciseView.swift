@@ -9,6 +9,35 @@ import SwiftUI
 import SwiftData
 
 struct AddExerciseView: View {
+    private struct DraftSnapshot: Equatable {
+        let name: String
+        let category: ExerciseCategory
+        let primaryMuscles: [MuscleGroup]
+        let secondaryMuscles: [MuscleGroup]
+        let instructions: String
+
+        init(
+            name: String,
+            category: ExerciseCategory,
+            primaryMuscles: [MuscleGroup],
+            secondaryMuscles: [MuscleGroup],
+            instructions: String
+        ) {
+            self.name = ExerciseManager.sanitizeExerciseName(name)
+            self.category = category
+            self.primaryMuscles = primaryMuscles
+            self.secondaryMuscles = secondaryMuscles
+            self.instructions = Self.normalizedDraftText(instructions)
+        }
+
+        private static func normalizedDraftText(_ raw: String) -> String {
+            raw
+                .components(separatedBy: .whitespacesAndNewlines)
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+        }
+    }
+
     let initialExerciseName: String
     let initialCategory: ExerciseCategory
     let initialPrimaryMuscles: [MuscleGroup]
@@ -27,12 +56,33 @@ struct AddExerciseView: View {
         return "Couldn’t Save “\(displayName)”"
     }
 
+    static func discardAlertTitle(for rawExerciseName: String) -> String {
+        guard let displayName = Exercise.specificDisplayName(rawExerciseName) else {
+            return "Discard New Exercise?"
+        }
+
+        return "Discard “\(displayName)”?"
+    }
+
+    static func discardAlertActionTitle(for rawExerciseName: String) -> String {
+        guard let displayName = Exercise.specificDisplayName(rawExerciseName) else {
+            return "Discard New Exercise"
+        }
+
+        return "Discard “\(displayName)”"
+    }
+
+    static func discardAlertMessage() -> String {
+        "You’ll lose this exercise draft and any setup changes."
+    }
+
     @Environment(\.dismiss) private var dismiss
     @State private var exerciseName = ""
     @State private var selectedCategory: ExerciseCategory
     @State private var selectedPrimaryMuscles: [MuscleGroup]
     @State private var selectedSecondaryMuscles: [MuscleGroup] = []
     @State private var instructions = ""
+    @State private var showingDiscardConfirmation = false
     @State private var saveResult: ExerciseManager.MutationResult?
     
     private let exerciseManager = ExerciseManager.shared
@@ -50,6 +100,30 @@ struct AddExerciseView: View {
 
     private var canSave: Bool {
         draftValidation == .valid
+    }
+
+    private var initialDraftSnapshot: DraftSnapshot {
+        DraftSnapshot(
+            name: ExerciseLibraryViewModel.normalizedSearchQuery(initialExerciseName),
+            category: initialCategory,
+            primaryMuscles: initialPrimaryMuscles,
+            secondaryMuscles: [],
+            instructions: ""
+        )
+    }
+
+    private var currentDraftSnapshot: DraftSnapshot {
+        DraftSnapshot(
+            name: exerciseName,
+            category: selectedCategory,
+            primaryMuscles: selectedPrimaryMuscles,
+            secondaryMuscles: selectedSecondaryMuscles,
+            instructions: instructions
+        )
+    }
+
+    private var hasUnsavedChanges: Bool {
+        currentDraftSnapshot != initialDraftSnapshot
     }
 
     init(
@@ -137,10 +211,22 @@ struct AddExerciseView: View {
             } message: {
                 Text(saveResult?.alertMessage ?? "Your changes could not be saved right now. Please try again.")
             }
+            .alert(Self.discardAlertTitle(for: exerciseName), isPresented: $showingDiscardConfirmation) {
+                Button("Keep Editing", role: .cancel) {}
+                Button(Self.discardAlertActionTitle(for: exerciseName), role: .destructive) {
+                    dismiss()
+                }
+            } message: {
+                Text(Self.discardAlertMessage())
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
-                        dismiss()
+                        if hasUnsavedChanges {
+                            showingDiscardConfirmation = true
+                        } else {
+                            dismiss()
+                        }
                     }
                 }
                 

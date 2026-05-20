@@ -9,6 +9,35 @@ import SwiftUI
 import SwiftData
 
 struct EditExerciseView: View {
+    private struct DraftSnapshot: Equatable {
+        let name: String
+        let category: ExerciseCategory
+        let primaryMuscles: [MuscleGroup]
+        let secondaryMuscles: [MuscleGroup]
+        let instructions: String
+
+        init(
+            name: String,
+            category: ExerciseCategory,
+            primaryMuscles: [MuscleGroup],
+            secondaryMuscles: [MuscleGroup],
+            instructions: String
+        ) {
+            self.name = ExerciseManager.sanitizeExerciseName(name)
+            self.category = category
+            self.primaryMuscles = primaryMuscles
+            self.secondaryMuscles = secondaryMuscles
+            self.instructions = Self.normalizedDraftText(instructions)
+        }
+
+        private static func normalizedDraftText(_ raw: String) -> String {
+            raw
+                .components(separatedBy: .whitespacesAndNewlines)
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+        }
+    }
+
     static func navigationTitle(for rawExerciseName: String, fallbackExercise: Exercise) -> String {
         guard let displayName = Exercise.specificDisplayName(rawExerciseName) ?? fallbackExercise.specificDisplayName else {
             return "Edit Exercise"
@@ -25,6 +54,26 @@ struct EditExerciseView: View {
         return "Couldn’t Save “\(displayName)”"
     }
 
+    static func discardAlertTitle(for rawExerciseName: String, fallbackExercise: Exercise) -> String {
+        guard let displayName = Exercise.specificDisplayName(rawExerciseName) ?? fallbackExercise.specificDisplayName else {
+            return "Discard Exercise Changes?"
+        }
+
+        return "Discard “\(displayName)”?"
+    }
+
+    static func discardAlertActionTitle(for rawExerciseName: String, fallbackExercise: Exercise) -> String {
+        guard let displayName = Exercise.specificDisplayName(rawExerciseName) ?? fallbackExercise.specificDisplayName else {
+            return "Discard Changes"
+        }
+
+        return "Discard “\(displayName)”"
+    }
+
+    static func discardAlertMessage() -> String {
+        "You’ll lose your unsaved changes to this exercise."
+    }
+
     @Environment(\.dismiss) private var dismiss
     @Bindable var exercise: Exercise
     
@@ -33,6 +82,7 @@ struct EditExerciseView: View {
     @State private var selectedPrimaryMuscles: [MuscleGroup]
     @State private var selectedSecondaryMuscles: [MuscleGroup]
     @State private var instructions: String
+    @State private var showingDiscardConfirmation = false
     @State private var saveResult: ExerciseManager.MutationResult?
     
     private let exerciseManager = ExerciseManager.shared
@@ -51,6 +101,30 @@ struct EditExerciseView: View {
 
     private var canSave: Bool {
         draftValidation == .valid
+    }
+
+    private var initialDraftSnapshot: DraftSnapshot {
+        DraftSnapshot(
+            name: exercise.name,
+            category: exercise.category,
+            primaryMuscles: exercise.primaryMuscleGroups,
+            secondaryMuscles: exercise.secondaryMuscleGroups,
+            instructions: exercise.instructions
+        )
+    }
+
+    private var currentDraftSnapshot: DraftSnapshot {
+        DraftSnapshot(
+            name: exerciseName,
+            category: selectedCategory,
+            primaryMuscles: selectedPrimaryMuscles,
+            secondaryMuscles: selectedSecondaryMuscles,
+            instructions: instructions
+        )
+    }
+
+    private var hasUnsavedChanges: Bool {
+        currentDraftSnapshot != initialDraftSnapshot
     }
     
     init(exercise: Exercise) {
@@ -130,10 +204,28 @@ struct EditExerciseView: View {
             } message: {
                 Text(saveResult?.alertMessage ?? "Your changes could not be saved right now. Please try again.")
             }
+            .alert(
+                Self.discardAlertTitle(for: exerciseName, fallbackExercise: exercise),
+                isPresented: $showingDiscardConfirmation
+            ) {
+                Button("Keep Editing", role: .cancel) {}
+                Button(
+                    Self.discardAlertActionTitle(for: exerciseName, fallbackExercise: exercise),
+                    role: .destructive
+                ) {
+                    dismiss()
+                }
+            } message: {
+                Text(Self.discardAlertMessage())
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
-                        dismiss()
+                        if hasUnsavedChanges {
+                            showingDiscardConfirmation = true
+                        } else {
+                            dismiss()
+                        }
                     }
                 }
                 
