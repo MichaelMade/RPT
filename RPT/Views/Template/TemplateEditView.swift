@@ -53,6 +53,8 @@ struct TemplateEditView: View {
     @State private var showingExerciseSelector = false
     @State private var showingExerciseEditor: TemplateExercise?
     @State private var showingDiscardConfirmation = false
+    @State private var exerciseToDelete: TemplateExercise?
+    @State private var showingDeleteExerciseConfirmation = false
     @State private var saveResult: TemplateManager.MutationResult?
     
     let isNewTemplate: Bool
@@ -161,6 +163,11 @@ struct TemplateEditView: View {
         exercises.removeAll { $0.id == id }
     }
 
+    private func queueExerciseDeletion(_ exercise: TemplateExercise) {
+        exerciseToDelete = exercise
+        showingDeleteExerciseConfirmation = true
+    }
+
     static func discardAlertTitle(isNewTemplate: Bool, templateName: String) -> String {
         if let displayName = specificTemplateDisplayName(templateName) {
             return "Discard “\(displayName)”?"
@@ -186,6 +193,29 @@ struct TemplateEditView: View {
         isNewTemplate
             ? "You’ll lose this template draft and any exercise setup changes."
             : "You’ll lose your unsaved changes to this template."
+    }
+
+    static func deleteExerciseAlertTitle(for exerciseName: String) -> String {
+        if let displayName = specificTemplateExerciseDisplayName(exerciseName) {
+            return "Delete “\(displayName)” from Template?"
+        }
+
+        return "Delete This Exercise?"
+    }
+
+    static func deleteExerciseActionTitle(for exerciseName: String) -> String {
+        if let displayName = specificTemplateExerciseDisplayName(exerciseName) {
+            return "Delete “\(displayName)”"
+        }
+
+        return "Delete Exercise"
+    }
+
+    static let deleteExerciseAlertMessage = "This exercise setup will be removed from this template."
+
+    private static func specificTemplateExerciseDisplayName(_ rawExerciseName: String) -> String? {
+        let displayName = TemplateExercise.normalizedDisplayName(rawExerciseName)
+        return displayName == "Exercise" ? nil : displayName
     }
     
     var body: some View {
@@ -263,7 +293,8 @@ struct TemplateEditView: View {
                         }
                     }
                     .onDelete { indexSet in
-                        exercises.remove(atOffsets: indexSet)
+                        guard let index = indexSet.first else { return }
+                        queueExerciseDeletion(exercises[index])
                     }
                     
                     Button("Add Exercise") {
@@ -346,6 +377,22 @@ struct TemplateEditView: View {
                 Text(discardAlertMessage)
             }
             .interactiveDismissDisabled(hasUnsavedChanges)
+            .confirmationDialog(
+                Self.deleteExerciseAlertTitle(for: exerciseToDelete?.exerciseName ?? ""),
+                isPresented: $showingDeleteExerciseConfirmation,
+                presenting: exerciseToDelete
+            ) { exercise in
+                Button(Self.deleteExerciseActionTitle(for: exercise.exerciseName), role: .destructive) {
+                    removeExercise(id: exercise.id)
+                    exerciseToDelete = nil
+                }
+
+                Button("Keep Exercise", role: .cancel) {
+                    exerciseToDelete = nil
+                }
+            } message: { _ in
+                Text(Self.deleteExerciseAlertMessage)
+            }
             .alert(
                 saveResult.map(saveAlertTitle(for:)) ?? TemplateManager.MutationResult.persistenceFailure.alertTitle,
                 isPresented: Binding(

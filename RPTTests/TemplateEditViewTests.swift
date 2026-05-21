@@ -86,4 +86,36 @@ final class TemplateEditViewTests: XCTestCase {
             "You’ll lose your unsaved changes to this template exercise."
         )
     }
+
+    func testTemplateDeleteExerciseAlertTitle_namesTheExerciseWhenAvailable() {
+        XCTAssertEqual(
+            TemplateEditView.deleteExerciseAlertTitle(for: "  Bench\n\n Press  "),
+            "Delete “Bench Press” from Template?"
+        )
+    }
+
+    func testTemplateDeleteExerciseAlertTitles_fallBackForBlankLegacyNames() {
+        XCTAssertEqual(
+            TemplateEditView.deleteExerciseAlertTitle(for: " \n\t "),
+            "Delete This Exercise?"
+        )
+        XCTAssertEqual(
+            TemplateEditView.deleteExerciseActionTitle(for: " \n\t "),
+            "Delete Exercise"
+        )
+    }
+
+    func testTemplateDeleteExerciseActionTitle_matchesTheResolvedName() {
+        XCTAssertEqual(
+            TemplateEditView.deleteExerciseActionTitle(for: "  Bench\n\n Press  "),
+            "Delete “Bench Press”"
+        )
+    }
+
+    func testTemplateDeleteExerciseAlertMessage_isSpecificToTemplateEditing() {
+        XCTAssertEqual(
+            TemplateEditView.deleteExerciseAlertMessage,
+            "This exercise setup will be removed from this template."
+        )
+    }
 }
