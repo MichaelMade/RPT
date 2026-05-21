@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s recent-workout template restarts now add the same second confirmation before `Discard & Start Template …` replaces an in-progress workout, so the last Home-level destructive template handoff no longer skips the active-workout loss warning.
 - Exercise Details now adds the same second confirmation before `Discard & Start Template …` replaces an in-progress workout from lift history, so template restarts from a recent set no longer skip the active-workout loss warning.
 - Templates list quick actions now add the same second confirmation before `Discard & Start Template …` replaces an in-progress workout, so the last remaining destructive template-start shortcut no longer skips the active-workout loss warning.
 - Workout Details now adds the same second confirmation before `Discard & Start Template …` replaces an in-progress workout from the Source Template card, so destructive reruns from history are much harder to trigger accidentally.

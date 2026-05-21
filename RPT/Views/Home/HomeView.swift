@@ -21,10 +21,12 @@ struct HomeView: View {
     @State private var showingCopySummaryAlert = false
     @State private var showingFollowUpRecoveryAlert = false
     @State private var showingTemplateStartRecoveryAlert = false
+    @State private var showingDiscardAndStartTemplateConfirmation = false
     @State private var resumableWorkoutToReplace: Workout?
     @State private var workoutToDelete: Workout?
     @State private var workoutToStartFollowUp: Workout?
     @State private var templateToStartFromHistory: WorkoutTemplate?
+    @State private var templateToDiscardAndStart: WorkoutTemplate?
     @State private var copiedWorkoutName: String?
     @State private var startFreshFailureTitle: String?
     @State private var startFreshFailureMessage: String?
@@ -93,6 +95,22 @@ struct HomeView: View {
 
     private var templateStartRecoveryAlertTitle: String {
         viewModel.activeWorkoutInProgressTitle(for: protectedResumableWorkout())
+    }
+
+    static func discardCurrentWorkoutAndStartTemplateAlertTitle(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Discard Current Workout & Start This Template?"
+        }
+
+        return TemplateViewModel().discardCurrentWorkoutAndStartTemplateAlertTitle(for: template)
+    }
+
+    static func discardCurrentWorkoutAndStartTemplateAlertMessage(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Your in-progress workout will be lost before RPT starts the selected template. This action cannot be undone."
+        }
+
+        return TemplateViewModel().discardCurrentWorkoutAndStartTemplateAlertMessage(for: template)
     }
     
     var body: some View {
@@ -657,8 +675,8 @@ struct HomeView: View {
                     }
 
                     Button(templateViewModel.discardAndStartTemplateButtonTitle(for: templateToStartFromHistory), role: .destructive) {
-                        discardActiveWorkoutAndOpenTemplate(templateToStartFromHistory)
-                        self.templateToStartFromHistory = nil
+                        templateToDiscardAndStart = templateToStartFromHistory
+                        showingDiscardAndStartTemplateConfirmation = true
                     }
                 }
 
@@ -676,6 +694,24 @@ struct HomeView: View {
                 }
             } message: {
                 Text(copySummaryMessage)
+            }
+            .alert(
+                Self.discardCurrentWorkoutAndStartTemplateAlertTitle(for: templateToDiscardAndStart),
+                isPresented: $showingDiscardAndStartTemplateConfirmation,
+                presenting: templateToDiscardAndStart
+            ) { template in
+                Button(templateViewModel.discardAndStartTemplateButtonTitle(for: template), role: .destructive) {
+                    discardActiveWorkoutAndOpenTemplate(template)
+                    templateToDiscardAndStart = nil
+                    templateToStartFromHistory = nil
+                }
+
+                Button("Keep Current Workout", role: .cancel) {
+                    templateToDiscardAndStart = nil
+                    templateToStartFromHistory = nil
+                }
+            } message: { template in
+                Text(Self.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template))
             }
             .alert(currentFailureTitle, isPresented: Binding(
                 get: { currentFailureMessage != nil },
