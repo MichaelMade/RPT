@@ -747,18 +747,44 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
     func testDeletionConfirmationMessage_fallsBackToGenericCopyWithoutImpactDetails() {
         XCTAssertEqual(
             ExerciseLibraryViewModel.deletionConfirmationMessage(
-                for: .init(loggedSetCount: 0, workoutCount: 0, templateCount: 0)
+                for: nil,
+                impact: .init(loggedSetCount: 0, workoutCount: 0, templateCount: 0)
             ),
-            "Are you sure you want to delete this exercise? This action cannot be undone."
+            "Deleting this exercise cannot be undone."
         )
     }
 
-    func testDeletionConfirmationMessage_describesLoggedHistoryAndTemplateImpact() {
+    func testDeletionConfirmationMessage_namesSpecificExerciseAndImpact() {
+        let exercise = Exercise(
+            name: "  Garage\n Dip  ",
+            category: .bodyweight,
+            primaryMuscleGroups: [.chest],
+            isCustom: true
+        )
+
         XCTAssertEqual(
             ExerciseLibraryViewModel.deletionConfirmationMessage(
-                for: .init(loggedSetCount: 5, workoutCount: 2, templateCount: 1)
+                for: exercise,
+                impact: .init(loggedSetCount: 5, workoutCount: 2, templateCount: 1)
             ),
-            "This will remove 5 logged sets from 2 workouts. 1 template still references this exercise and will skip it when started until you replace or remove it."
+            "Deleting “Garage Dip” will remove 5 logged sets from 2 workouts. 1 template still references it and will skip it when started until you replace or remove it."
+        )
+    }
+
+    func testDeletionConfirmationMessage_usesExerciseFallbackNameWhenBlank() {
+        let blankExercise = Exercise(
+            name: "  \n ",
+            category: .compound,
+            primaryMuscleGroups: [.back],
+            isCustom: true
+        )
+
+        XCTAssertEqual(
+            ExerciseLibraryViewModel.deletionConfirmationMessage(
+                for: blankExercise,
+                impact: .init(loggedSetCount: 1, workoutCount: 1, templateCount: 0)
+            ),
+            "Deleting this exercise will remove 1 logged set from 1 workout."
         )
     }
 

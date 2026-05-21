@@ -287,7 +287,7 @@ struct ExercisesView: View {
                     }
                 }
             } message: { exercise in
-                Text(ExerciseLibraryViewModel.deletionConfirmationMessage(for: exerciseDeletionImpact))
+                Text(ExerciseLibraryViewModel.deletionConfirmationMessage(for: exercise, impact: exerciseDeletionImpact))
             }
             .alert(
                 viewModel.deleteFailureAlertTitle(for: failedExerciseDeletionTarget),

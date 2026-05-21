@@ -625,25 +625,35 @@ class ExerciseLibraryViewModel: ObservableObject {
         exerciseManager.deletionImpact(for: exercise)
     }
 
-    static func deletionConfirmationMessage(for impact: ExerciseManager.DeletionImpact) -> String {
-        guard impact.hasImpactDetails else {
-            return "Are you sure you want to delete this exercise? This action cannot be undone."
+    static func deletionConfirmationMessage(
+        for exercise: Exercise?,
+        impact: ExerciseManager.DeletionImpact
+    ) -> String {
+        let targetDescription: String
+        if let displayName = exercise?.specificDisplayName {
+            targetDescription = "Deleting “\(displayName)”"
+        } else {
+            targetDescription = "Deleting this exercise"
         }
 
-        var details: [String] = []
+        guard impact.hasImpactDetails else {
+            return "\(targetDescription) cannot be undone."
+        }
+
+        var sentences: [String] = []
 
         if impact.loggedSetCount > 0 {
             let setLabel = impact.loggedSetCount == 1 ? "logged set" : "logged sets"
             let workoutLabel = impact.workoutCount == 1 ? "workout" : "workouts"
-            details.append("This will remove \(impact.loggedSetCount) \(setLabel) from \(impact.workoutCount) \(workoutLabel)")
+            sentences.append("\(targetDescription) will remove \(impact.loggedSetCount) \(setLabel) from \(impact.workoutCount) \(workoutLabel)")
         }
 
         if impact.templateCount > 0 {
             let templateLabel = impact.templateCount == 1 ? "template" : "templates"
             let referenceVerb = impact.templateCount == 1 ? "references" : "reference"
-            details.append("\(impact.templateCount) \(templateLabel) still \(referenceVerb) this exercise and will skip it when started until you replace or remove it")
+            sentences.append("\(impact.templateCount) \(templateLabel) still \(referenceVerb) it and will skip it when started until you replace or remove it")
         }
 
-        return details.joined(separator: ". ") + "."
+        return sentences.joined(separator: ". ") + "."
     }
 }
