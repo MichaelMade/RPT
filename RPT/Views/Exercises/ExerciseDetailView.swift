@@ -20,6 +20,8 @@ struct ExerciseDetailView: View {
     @State private var showingCopySummaryAlert = false
     @State private var workoutToDelete: Workout?
     @State private var showingDeleteWorkoutAlert = false
+    @State private var templateToDiscardAndStart: WorkoutTemplate?
+    @State private var showingDiscardAndStartTemplateConfirmation = false
     @State private var localActiveWorkout: Workout?
     @State private var showingLocalActiveWorkoutSheet = false
     @State private var templateStartFailureTitle = "Workout Action Failed"
@@ -98,6 +100,22 @@ struct ExerciseDetailView: View {
         }
 
         return TemplateViewModel().activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template)
+    }
+
+    static func discardCurrentWorkoutAndStartTemplateAlertTitle(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Discard Current Workout & Start This Template?"
+        }
+
+        return TemplateViewModel().discardCurrentWorkoutAndStartTemplateAlertTitle(for: template)
+    }
+
+    static func discardCurrentWorkoutAndStartTemplateAlertMessage(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Your in-progress workout will be lost before RPT starts the selected template. This action cannot be undone."
+        }
+
+        return TemplateViewModel().discardCurrentWorkoutAndStartTemplateAlertMessage(for: template)
     }
     
     var body: some View {
@@ -304,7 +322,8 @@ struct ExerciseDetailView: View {
                                                 .buttonStyle(.bordered)
 
                                                 Button(role: .destructive) {
-                                                    discardActiveWorkoutAndOpenTemplate(sourceTemplate)
+                                                    templateToDiscardAndStart = sourceTemplate
+                                                    showingDiscardAndStartTemplateConfirmation = true
                                                 } label: {
                                                     Label(templateViewModel.discardAndStartTemplateButtonTitle(for: sourceTemplate), systemImage: "trash")
                                                         .font(.caption.weight(.semibold))
@@ -484,6 +503,22 @@ struct ExerciseDetailView: View {
             }
         } message: {
             Text(workoutToDelete.map(homeViewModel.deleteRecentWorkoutMessage(for:)) ?? "")
+        }
+        .alert(
+            Self.discardCurrentWorkoutAndStartTemplateAlertTitle(for: templateToDiscardAndStart),
+            isPresented: $showingDiscardAndStartTemplateConfirmation,
+            presenting: templateToDiscardAndStart
+        ) { template in
+            Button(templateViewModel.discardAndStartTemplateButtonTitle(for: template), role: .destructive) {
+                discardActiveWorkoutAndOpenTemplate(template)
+                templateToDiscardAndStart = nil
+            }
+
+            Button("Keep Current Workout", role: .cancel) {
+                templateToDiscardAndStart = nil
+            }
+        } message: { template in
+            Text(Self.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template))
         }
         .alert(templateStartFailureTitle, isPresented: Binding(
             get: { templateStartFailureMessage != nil },

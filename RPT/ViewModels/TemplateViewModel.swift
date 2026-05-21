@@ -365,7 +365,7 @@ class TemplateViewModel: ObservableObject {
         let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
         return displayName == "Template"
             ? "Discard Current Workout & Start This Template?"
-            : "Discard Current Workout & Start Template “\(displayName)”?”
+            : "Discard Current Workout & Start Template “\(displayName)”?"
     }
 
     func discardCurrentWorkoutAndStartTemplateAlertMessage(for template: WorkoutTemplate) -> String {
