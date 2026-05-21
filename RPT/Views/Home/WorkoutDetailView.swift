@@ -17,6 +17,7 @@ struct WorkoutDetailView: View {
     @StateObject private var templateViewModel = TemplateViewModel()
     @State private var showingCopySummaryAlert = false
     @State private var showingDeleteWorkoutAlert = false
+    @State private var showingDiscardAndStartSourceTemplateConfirmation = false
     @State private var localActiveWorkout: Workout?
     @State private var showingLocalActiveWorkoutSheet = false
 
@@ -190,6 +191,22 @@ struct WorkoutDetailView: View {
 
     private var sourceTemplateOriginText: String? {
         WorkoutRow.templateOriginText(for: workout, resolvedTemplateName: sourceTemplate?.name)
+    }
+
+    private var discardAndStartSourceTemplateAlertTitle: String {
+        guard let sourceTemplate else {
+            return "Discard Current Workout & Start This Template?"
+        }
+
+        return templateViewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: sourceTemplate)
+    }
+
+    private var discardAndStartSourceTemplateAlertMessage: String {
+        guard let sourceTemplate else {
+            return "Your in-progress workout will be lost before RPT starts the selected template. This action cannot be undone."
+        }
+
+        return templateViewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: sourceTemplate)
     }
 
     private func protectedResumableWorkout() -> Workout? {
@@ -393,7 +410,7 @@ struct WorkoutDetailView: View {
                                     .buttonStyle(.bordered)
 
                                     Button(role: .destructive) {
-                                        discardActiveWorkoutAndOpenTemplate(sourceTemplate)
+                                        showingDiscardAndStartSourceTemplateConfirmation = true
                                     } label: {
                                         Label(templateViewModel.discardAndStartTemplateButtonTitle(for: sourceTemplate), systemImage: "trash")
                                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -612,6 +629,20 @@ struct WorkoutDetailView: View {
             Button("Cancel", role: .cancel) { }
         } message: {
             Text(homeViewModel.deleteRecentWorkoutMessage(for: workout))
+        }
+        .alert(
+            discardAndStartSourceTemplateAlertTitle,
+            isPresented: $showingDiscardAndStartSourceTemplateConfirmation
+        ) {
+            Button("Keep Current Workout", role: .cancel) { }
+
+            if let sourceTemplate {
+                Button(templateViewModel.discardAndStartTemplateButtonTitle(for: sourceTemplate), role: .destructive) {
+                    discardActiveWorkoutAndOpenTemplate(sourceTemplate)
+                }
+            }
+        } message: {
+            Text(discardAndStartSourceTemplateAlertMessage)
         }
         .alert(homeViewModel.startWorkoutFailureAlertTitle, isPresented: Binding(
             get: { homeViewModel.startWorkoutFailureMessage != nil },
