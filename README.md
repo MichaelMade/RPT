@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout exercise deletion now spells out the exact set impact in its confirmation body (`This will remove 2 sets from the workout, including 1 logged set.`), with the same safety net for blank legacy exercise names, so mid-session cleanup is easier to trust before removing a movement and its progress.
 - Exercise Library delete confirmations now keep the exact custom exercise name in the body copy too (`Deleting “Garage Dip” will remove 5 logged sets from 2 workouts...`) with a safe `Deleting this exercise` fallback for blank legacy names, so destructive cleanup stays explicit before users remove a movement that also affects workout history or templates.
 - Template editing now asks for confirmation before deleting a configured exercise, using named copy like `Delete “Bench Press” from Template?` with a safe `Delete This Exercise?` fallback for blank legacy names, so an accidental swipe no longer silently removes workout setup from a routine draft.
 - Settings now separates About vs destructive reset actions into their own sections and clarifies that `Reset All Settings` only restores display/timer/RPT defaults, so cleanup is easier to trust without worrying about losing saved workouts, templates, or exercises.

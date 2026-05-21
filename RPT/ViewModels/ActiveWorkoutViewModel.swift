@@ -186,11 +186,36 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     func deleteExerciseMessage(for exercise: Exercise?) -> String {
-        guard let displayName = exercise?.specificDisplayName else {
+        guard let exercise else {
             return "Are you sure you want to remove this exercise from the workout? All sets for this exercise will be deleted."
         }
 
-        return "Are you sure you want to remove “\(displayName)” from this workout? All sets for this exercise will be deleted."
+        let impactSummary = deleteExerciseImpactSummary(for: exercise)
+
+        guard let displayName = exercise.specificDisplayName else {
+            return "Are you sure you want to remove this exercise from the workout? \(impactSummary)"
+        }
+
+        return "Are you sure you want to remove “\(displayName)” from this workout? \(impactSummary)"
+    }
+
+    private func deleteExerciseImpactSummary(for exercise: Exercise) -> String {
+        let matchingSets = workout.sets.filter { $0.exercise?.id == exercise.id }
+
+        guard !matchingSets.isEmpty else {
+            return "All sets for this exercise will be deleted."
+        }
+
+        let totalSetCount = matchingSets.count
+        let loggedSetCount = matchingSets.filter(\.isCompletedLoggedSet).count
+        let totalSetSummary = totalSetCount == 1 ? "1 set" : "\(totalSetCount) sets"
+
+        guard loggedSetCount > 0 else {
+            return "This will remove \(totalSetSummary) from the workout."
+        }
+
+        let loggedSetSummary = loggedSetCount == 1 ? "1 logged set" : "\(loggedSetCount) logged sets"
+        return "This will remove \(totalSetSummary) from the workout, including \(loggedSetSummary)."
     }
     
     init(workout: Workout, workoutManager: WorkoutManager? = nil, exerciseManager: ExerciseManager? = nil, settingsManager: SettingsManager? = nil) {

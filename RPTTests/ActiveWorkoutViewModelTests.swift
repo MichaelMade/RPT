@@ -203,16 +203,18 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save your current workout?")
     }
 
-    func testDeleteExerciseCopyIncludesSpecificExerciseName() {
+    func testDeleteExerciseCopyIncludesSpecificExerciseNameAndSetImpact() {
         let workout = workoutManager.createWorkout(name: "Pull")
         let exercise = Exercise(name: "  Bench   Press  ", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: exercise, weight: 185, reps: 5)
+        _ = workout.addSet(exercise: exercise, weight: 0, reps: 0)
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
         XCTAssertEqual(viewModel.deleteExerciseAlertTitle(for: exercise), "Delete “Bench Press” from Workout?")
         XCTAssertEqual(viewModel.deleteExerciseButtonTitle(for: exercise), "Delete “Bench Press”")
         XCTAssertEqual(
             viewModel.deleteExerciseMessage(for: exercise),
-            "Are you sure you want to remove “Bench Press” from this workout? All sets for this exercise will be deleted."
+            "Are you sure you want to remove “Bench Press” from this workout? This will remove 2 sets from the workout, including 1 logged set."
         )
     }
 
@@ -227,16 +229,29 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         )
     }
 
-    func testDeleteExerciseCopyFallsBackGracefullyForBlankExerciseNames() {
+    func testDeleteExerciseCopyFallsBackGracefullyForBlankExerciseNamesWhileKeepingImpactSummary() {
         let workout = workoutManager.createWorkout(name: "Pull")
         let blankExercise = Exercise(name: " \n ", category: .bodyweight, primaryMuscleGroups: [.back])
+        _ = workout.addSet(exercise: blankExercise, weight: 0, reps: 12, isWarmup: true)
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
         XCTAssertEqual(viewModel.deleteExerciseAlertTitle(for: blankExercise), "Delete Exercise?")
         XCTAssertEqual(viewModel.deleteExerciseButtonTitle(for: blankExercise), "Delete Exercise")
         XCTAssertEqual(
             viewModel.deleteExerciseMessage(for: blankExercise),
-            "Are you sure you want to remove this exercise from the workout? All sets for this exercise will be deleted."
+            "Are you sure you want to remove this exercise from the workout? This will remove 1 set from the workout, including 1 logged set."
+        )
+    }
+
+    func testDeleteExerciseCopyMentionsUnloggedSetCountWhenNothingHasBeenCompletedYet() {
+        let workout = workoutManager.createWorkout(name: "Pull")
+        let exercise = Exercise(name: "Lat Pulldown", category: .compound, primaryMuscleGroups: [.back])
+        _ = workout.addSet(exercise: exercise, weight: 0, reps: 0)
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(
+            viewModel.deleteExerciseMessage(for: exercise),
+            "Are you sure you want to remove “Lat Pulldown” from this workout? This will remove 1 set from the workout."
         )
     }
 
