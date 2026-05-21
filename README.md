@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details now adds a second confirmation before `Discard & Start Template …` replaces an in-progress workout, with explicit copy that warns the current session will be lost before the selected plan starts, so a destructive handoff from the detail screen is much harder to trigger accidentally.
 - Template delete confirmations now spell out the real routine impact before removal (`This will remove 2 exercises, 6 planned sets, and template notes.`), so deleting an entire plan is easier to trust than the older exercise-count-only warning.
 - Template exercise delete confirmations now explain exactly what will be removed from the plan body too (`This will remove 3 planned sets, their rep targets, and any exercise notes from this template.`), so routine cleanup stays trustworthy before users swipe away configured setup.
 - Active Workout exercise deletion now spells out the exact set impact in its confirmation body (`This will remove 2 sets from the workout, including 1 logged set.`), with the same safety net for blank legacy exercise names, so mid-session cleanup is easier to trust before removing a movement and its progress.

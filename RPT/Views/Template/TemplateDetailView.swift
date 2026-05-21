@@ -21,6 +21,7 @@ struct TemplateDetailView: View {
     @State private var startWorkoutFailureTitle = "Workout Action Failed"
     @State private var startWorkoutFailureMessage: String?
     @State private var showingStartWorkoutConfirmation = false
+    @State private var showingDiscardAndStartConfirmation = false
     @State private var showingRestoreExerciseSheet = false
     @State private var restoreExercisePrefillName = ""
 
@@ -364,7 +365,9 @@ struct TemplateDetailView: View {
                         }
 
                         if isBlockedByActiveWorkout, let onDiscardActiveWorkoutAndOpenTemplate {
-                            Button(role: .destructive, action: onDiscardActiveWorkoutAndOpenTemplate) {
+                            Button(role: .destructive) {
+                                showingDiscardAndStartConfirmation = true
+                            } label: {
                                 HStack {
                                     Image(systemName: "trash")
                                     Text(templateViewModel.discardAndStartTemplateButtonTitle(for: template))
@@ -441,6 +444,20 @@ struct TemplateDetailView: View {
                 }
             } message: {
                 Text(startWorkoutConfirmationMessage ?? "")
+            }
+            .alert(
+                templateViewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template),
+                isPresented: $showingDiscardAndStartConfirmation
+            ) {
+                Button("Keep Current Workout", role: .cancel) { }
+
+                if let onDiscardActiveWorkoutAndOpenTemplate {
+                    Button(templateViewModel.discardAndStartTemplateButtonTitle(for: template), role: .destructive) {
+                        onDiscardActiveWorkoutAndOpenTemplate()
+                    }
+                }
+            } message: {
+                Text(templateViewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template))
             }
             .alert(startWorkoutFailureTitle, isPresented: Binding(
                 get: { startWorkoutFailureMessage != nil },

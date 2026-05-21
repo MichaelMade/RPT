@@ -1219,6 +1219,35 @@ final class TemplateViewModelTests: XCTestCase {
             "Discard & Start Template “Upper A”",
             "Discard-and-start recovery CTAs should name the exact template so destructive branching stays unmistakable"
         )
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template),
+            "Discard Current Workout & Start Template “Upper A”?",
+            "Template-detail discard confirmations should name the exact template before replacing the active workout"
+        )
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
+            "Your in-progress workout will be lost and RPT will immediately start Template “Upper A”. This action cannot be undone.",
+            "Template-detail discard confirmations should explain that the current workout will be lost before the selected template starts"
+        )
+    }
+
+    func testDiscardCurrentWorkoutAndStartTemplateConfirmationFallbackCopy() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "   ", exerciseNames: ["Bench Press"])
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template),
+            "Discard Current Workout & Start This Template?",
+            "Blank legacy template names should keep a safe generic discard-and-start confirmation title"
+        )
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
+            "Your in-progress workout will be lost and RPT will immediately start this template. This action cannot be undone.",
+            "Blank legacy template names should keep honest generic discard-and-start impact copy"
+        )
     }
 
     func testContinueCurrentWorkoutButtonTitle_namesSpecificDraftWhenAvailable() {

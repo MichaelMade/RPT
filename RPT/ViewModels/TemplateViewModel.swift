@@ -361,6 +361,22 @@ class TemplateViewModel: ObservableObject {
         "Discard & Start Template “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
     }
 
+    func discardCurrentWorkoutAndStartTemplateAlertTitle(for template: WorkoutTemplate) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Discard Current Workout & Start This Template?"
+            : "Discard Current Workout & Start Template “\(displayName)”?”
+    }
+
+    func discardCurrentWorkoutAndStartTemplateAlertMessage(for template: WorkoutTemplate) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let templateTarget = displayName == "Template"
+            ? "this template"
+            : "Template “\(displayName)”"
+
+        return "Your in-progress workout will be lost and RPT will immediately start \(templateTarget). This action cannot be undone."
+    }
+
     func reviewTemplateButtonTitle(for template: WorkoutTemplate) -> String {
         "Review “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
     }
