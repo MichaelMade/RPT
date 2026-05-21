@@ -26,6 +26,8 @@ struct TemplatesListView: View {
     @State private var createTemplatePrefillExercises: [TemplateExercise] = []
     @State private var quickStartTemplate: WorkoutTemplate?
     @State private var quickStartConfirmationMessage: String?
+    @State private var templateToDiscardAndStart: WorkoutTemplate?
+    @State private var showingDiscardAndStartConfirmation = false
     
     private let templateManager = TemplateManager.shared
     
@@ -223,7 +225,8 @@ struct TemplatesListView: View {
                                 }
 
                                 Button(role: .destructive) {
-                                    discardActiveWorkoutAndOpenTemplate(matchedTemplate)
+                                    templateToDiscardAndStart = matchedTemplate
+                                    showingDiscardAndStartConfirmation = true
                                 } label: {
                                     Label(
                                         viewModel.discardAndStartTemplateButtonTitle(for: matchedTemplate),
@@ -414,6 +417,23 @@ struct TemplatesListView: View {
                 }
             } message: {
                 Text(quickStartConfirmationMessage ?? "")
+            }
+            .alert(
+                templateToDiscardAndStart.map { viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: $0) }
+                    ?? "Discard Current Workout & Start This Template?",
+                isPresented: $showingDiscardAndStartConfirmation,
+                presenting: templateToDiscardAndStart
+            ) { template in
+                Button(viewModel.discardAndStartTemplateButtonTitle(for: template), role: .destructive) {
+                    discardActiveWorkoutAndOpenTemplate(template)
+                    templateToDiscardAndStart = nil
+                }
+
+                Button("Cancel", role: .cancel) {
+                    templateToDiscardAndStart = nil
+                }
+            } message: { template in
+                Text(viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template))
             }
             .alert(templateStartFailureTitle, isPresented: Binding(
                 get: { templateStartFailureMessage != nil },

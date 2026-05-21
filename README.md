@@ -1,5 +1,6 @@
 # RPT
 
+- Templates list quick actions now add the same second confirmation before `Discard & Start Template …` replaces an in-progress workout, so the last remaining destructive template-start shortcut no longer skips the active-workout loss warning.
 - Workout Details now adds the same second confirmation before `Discard & Start Template …` replaces an in-progress workout from the Source Template card, so destructive reruns from history are much harder to trigger accidentally.
 - Active Workout discard confirmations now spell out the exact draft impact before removal (`This will remove 2 exercises and 5 sets from this draft, including 3 logged sets.`), so bailing out of a live session is easier to trust than the older generic warning.
 - Template Details now adds a second confirmation before `Discard & Start Template …` replaces an in-progress workout, with explicit copy that warns the current session will be lost before the selected plan starts, so a destructive handoff from the detail screen is much harder to trigger accidentally.
