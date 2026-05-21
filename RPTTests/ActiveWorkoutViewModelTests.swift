@@ -751,13 +751,19 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
     func testDiscardWorkoutCopy_namesSpecificWorkout() {
         let workout = workoutManager.createWorkout(name: "  Upper   A  ")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let warmup = workout.addSet(exercise: bench, weight: 45, reps: 10, isWarmup: true)
+        warmup.completedAt = .distantPast
+        let workingSet = workout.addSet(exercise: bench, weight: 185, reps: 8)
+        workingSet.completedAt = .distantPast
+
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
         XCTAssertEqual(viewModel.discardWorkoutAlertTitle(), "Discard “Upper A”?")
         XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard “Upper A”")
         XCTAssertEqual(
             viewModel.discardWorkoutMessage(),
-            "Are you sure you want to discard Upper A? This action cannot be undone."
+            "Discard Upper A? This will remove 1 exercise and 2 sets from this draft, including 2 logged sets. This action cannot be undone."
         )
     }
 
@@ -769,7 +775,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard Current Workout")
         XCTAssertEqual(
             viewModel.discardWorkoutMessage(),
-            "Are you sure you want to discard your current workout? This action cannot be undone."
+            "Discard your current workout? This draft has no exercises yet, but it will still be removed. This action cannot be undone."
         )
     }
 

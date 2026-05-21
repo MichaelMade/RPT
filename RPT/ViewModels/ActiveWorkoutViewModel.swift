@@ -98,11 +98,31 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     func discardWorkoutMessage() -> String {
+        let impactSummary = discardWorkoutImpactSummary()
+
         guard let displayName = specificWorkoutDisplayName else {
-            return "Are you sure you want to discard your current workout? This action cannot be undone."
+            return "Discard your current workout? \(impactSummary) This action cannot be undone."
         }
 
-        return "Are you sure you want to discard \(displayName)? This action cannot be undone."
+        return "Discard \(displayName)? \(impactSummary) This action cannot be undone."
+    }
+
+    private func discardWorkoutImpactSummary() -> String {
+        let exerciseCount = workout.exerciseCount
+        let setCount = workout.sets.count
+        let loggedSetCount = workout.sets.filter(\.isCompletedLoggedSet).count
+
+        guard exerciseCount > 0 || setCount > 0 else {
+            return "This draft has no exercises yet, but it will still be removed."
+        }
+
+        var summary = "This will remove \(exerciseCount) \(exerciseCount == 1 ? \"exercise\" : \"exercises\") and \(setCount) \(setCount == 1 ? \"set\" : \"sets\") from this draft"
+
+        if loggedSetCount > 0 {
+            summary += ", including \(loggedSetCount) logged \(loggedSetCount == 1 ? \"set\" : \"sets\")"
+        }
+
+        return summary + "."
     }
 
     func completeWorkoutAlertTitle() -> String {
