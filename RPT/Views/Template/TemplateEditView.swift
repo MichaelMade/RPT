@@ -211,7 +211,45 @@ struct TemplateEditView: View {
         return "Delete Exercise"
     }
 
-    static let deleteExerciseAlertMessage = "This exercise setup will be removed from this template."
+    static func deleteExerciseAlertMessage(for exercise: TemplateExercise?) -> String {
+        guard let exercise else {
+            return "This exercise setup will be removed from this template."
+        }
+
+        let hasNotes = TemplateExercise.normalizedDisplayNotes(exercise.notes) != nil
+        let hasRepTargets = !exercise.repRanges.isEmpty
+
+        guard exercise.suggestedSets > 0 || hasRepTargets || hasNotes else {
+            return "This exercise setup will be removed from this template."
+        }
+
+        if exercise.suggestedSets > 0 {
+            let setSummary = exercise.suggestedSets == 1 ? "1 planned set" : "\(exercise.suggestedSets) planned sets"
+            let repTargetSummary = exercise.suggestedSets == 1 ? "its rep target" : "their rep targets"
+
+            if hasRepTargets && hasNotes {
+                return "This will remove \(setSummary), \(repTargetSummary), and any exercise notes from this template."
+            }
+
+            if hasRepTargets {
+                return "This will remove \(setSummary) and \(repTargetSummary) from this template."
+            }
+
+            if hasNotes {
+                return "This will remove \(setSummary) and any exercise notes from this template."
+            }
+
+            return "This will remove \(setSummary) from this template."
+        }
+
+        if hasNotes {
+            return hasRepTargets
+                ? "This will remove the rep targets and any exercise notes from this template."
+                : "This will remove any exercise notes from this template."
+        }
+
+        return "This will remove the rep targets from this template."
+    }
 
     private static func specificTemplateExerciseDisplayName(_ rawExerciseName: String) -> String? {
         let displayName = TemplateExercise.normalizedDisplayName(rawExerciseName)
@@ -390,8 +428,8 @@ struct TemplateEditView: View {
                 Button("Keep Exercise", role: .cancel) {
                     exerciseToDelete = nil
                 }
-            } message: { _ in
-                Text(Self.deleteExerciseAlertMessage)
+            } message: { exercise in
+                Text(Self.deleteExerciseAlertMessage(for: exercise))
             }
             .alert(
                 saveResult.map(saveAlertTitle(for:)) ?? TemplateManager.MutationResult.persistenceFailure.alertTitle,

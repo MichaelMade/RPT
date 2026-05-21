@@ -112,9 +112,53 @@ final class TemplateEditViewTests: XCTestCase {
         )
     }
 
-    func testTemplateDeleteExerciseAlertMessage_isSpecificToTemplateEditing() {
+    func testTemplateDeleteExerciseAlertMessage_summarizesPlannedSetsRepTargetsAndNotes() {
+        let exercise = TemplateExercise(
+            exerciseName: "Bench Press",
+            suggestedSets: 3,
+            repRanges: [
+                TemplateRepRange(setNumber: 1, minReps: 6, maxReps: 8),
+                TemplateRepRange(setNumber: 2, minReps: 8, maxReps: 10),
+                TemplateRepRange(setNumber: 3, minReps: 10, maxReps: 12)
+            ],
+            notes: "Pause the first rep"
+        )
+
         XCTAssertEqual(
-            TemplateEditView.deleteExerciseAlertMessage,
+            TemplateEditView.deleteExerciseAlertMessage(for: exercise),
+            "This will remove 3 planned sets, their rep targets, and any exercise notes from this template."
+        )
+    }
+
+    func testTemplateDeleteExerciseAlertMessage_usesSingularRepTargetCopyForSingleSet() {
+        let exercise = TemplateExercise(
+            exerciseName: "Bench Press",
+            suggestedSets: 1,
+            repRanges: [
+                TemplateRepRange(setNumber: 1, minReps: 6, maxReps: 8)
+            ]
+        )
+
+        XCTAssertEqual(
+            TemplateEditView.deleteExerciseAlertMessage(for: exercise),
+            "This will remove 1 planned set and its rep target from this template."
+        )
+    }
+
+    func testTemplateDeleteExerciseAlertMessage_fallsBackForLegacyExercisesWithoutSetup() {
+        let exercise = TemplateExercise(
+            exerciseName: " ",
+            suggestedSets: 0,
+            repRanges: [],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateEditView.deleteExerciseAlertMessage(for: exercise),
+            "This exercise setup will be removed from this template."
+        )
+        XCTAssertEqual(
+            TemplateEditView.deleteExerciseAlertMessage(for: nil),
             "This exercise setup will be removed from this template."
         )
     }
