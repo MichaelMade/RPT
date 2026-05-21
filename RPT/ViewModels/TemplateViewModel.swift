@@ -81,6 +81,19 @@ class TemplateViewModel: ObservableObject {
         return terms
     }
 
+    private static func humanReadableList(_ parts: [String]) -> String {
+        switch parts.count {
+        case 0:
+            return ""
+        case 1:
+            return parts[0]
+        case 2:
+            return parts.joined(separator: " and ")
+        default:
+            return parts.dropLast().joined(separator: ", ") + ", and " + (parts.last ?? "")
+        }
+    }
+
     private static func matchesQueryTokens(_ queryTokens: [String], in rawValue: String) -> Bool {
         guard !queryTokens.isEmpty else {
             return false
@@ -400,8 +413,20 @@ class TemplateViewModel: ObservableObject {
 
         let exerciseCount = template.exercises.count
         let exerciseSummary = exerciseCount == 1 ? "1 exercise" : "\(exerciseCount) exercises"
+        let plannedSetCount = template.exercises.reduce(0) { $0 + max($1.suggestedSets, 0) }
+        let setSummary = plannedSetCount == 1 ? "1 planned set" : "\(plannedSetCount) planned sets"
+        let hasExerciseNotes = template.exercises.contains { !($0.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) }
+        let hasTemplateNotes = !template.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 
-        return "Delete “\(WorkoutTemplate.normalizedDisplayName(template.name))”? \(exerciseSummary) and any notes in this plan will be removed. This action cannot be undone."
+        var impactParts = [exerciseSummary, setSummary]
+
+        if hasExerciseNotes {
+            impactParts.append(hasTemplateNotes ? "exercise notes and template notes" : "exercise notes")
+        } else if hasTemplateNotes {
+            impactParts.append("template notes")
+        }
+
+        return "Delete “\(WorkoutTemplate.normalizedDisplayName(template.name))”? This will remove \(Self.humanReadableList(impactParts)). This action cannot be undone."
     }
 
     func deleteTemplateFailureAlertTitle(for template: WorkoutTemplate?) -> String {

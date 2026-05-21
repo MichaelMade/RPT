@@ -1279,7 +1279,7 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.deleteTemplateMessage(for: template),
-            "Delete “Upper A”? 1 exercise and any notes in this plan will be removed. This action cannot be undone.",
+            "Delete “Upper A”? This will remove 1 exercise and 3 planned sets. This action cannot be undone.",
             "Template delete confirmations should explain exactly which plan content will be removed"
         )
 
@@ -1321,6 +1321,23 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.deleteTemplateFailureMessage(for: nil),
             "This template could not be deleted right now. Please try again.",
             "Missing template context should keep the generic delete failure guidance"
+        )
+    }
+
+    func testDeleteTemplateConfirmationMessage_includesSetAndNotesImpact() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(
+            name: "  Pull   Day  ",
+            exerciseNames: ["Pull-Up", "Barbell Row"],
+            suggestedSets: 2,
+            exerciseNotes: ["Pause at top", ""],
+            notes: "Keep rest short"
+        )
+
+        XCTAssertEqual(
+            viewModel.deleteTemplateMessage(for: template),
+            "Delete “Pull Day”? This will remove 2 exercises, 4 planned sets, and exercise notes and template notes. This action cannot be undone.",
+            "Template delete confirmations should spell out planned-set and note impact before removing a routine"
         )
     }
 
