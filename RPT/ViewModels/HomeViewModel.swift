@@ -492,6 +492,22 @@ class HomeViewModel: ObservableObject {
         "Discard & Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
     }
 
+    func discardCurrentWorkoutAndStartFollowUpAlertTitle(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+
+        return displayName == "Workout"
+            ? "Discard Current Workout & Start This Follow-Up?"
+            : "Discard Current Workout & Start Follow-Up from “\(displayName)”?"
+    }
+
+    func discardCurrentWorkoutAndStartFollowUpAlertMessage(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+
+        return displayName == "Workout"
+            ? "Your in-progress workout will be lost before RPT starts the selected follow-up. This action cannot be undone."
+            : "Your in-progress workout will be lost and RPT will immediately start a follow-up from “\(displayName)”. This action cannot be undone."
+    }
+
     func startTemplateFailureAlertTitle(for template: WorkoutTemplate) -> String {
         let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
         return displayName == "Template"

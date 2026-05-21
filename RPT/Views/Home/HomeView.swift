@@ -20,11 +20,13 @@ struct HomeView: View {
     @State private var showingDeleteWorkoutAlert = false
     @State private var showingCopySummaryAlert = false
     @State private var showingFollowUpRecoveryAlert = false
+    @State private var showingDiscardAndStartFollowUpConfirmation = false
     @State private var showingTemplateStartRecoveryAlert = false
     @State private var showingDiscardAndStartTemplateConfirmation = false
     @State private var resumableWorkoutToReplace: Workout?
     @State private var workoutToDelete: Workout?
     @State private var workoutToStartFollowUp: Workout?
+    @State private var workoutToDiscardAndStartFollowUp: Workout?
     @State private var templateToStartFromHistory: WorkoutTemplate?
     @State private var templateToDiscardAndStart: WorkoutTemplate?
     @State private var copiedWorkoutName: String?
@@ -111,6 +113,22 @@ struct HomeView: View {
         }
 
         return TemplateViewModel().discardCurrentWorkoutAndStartTemplateAlertMessage(for: template)
+    }
+
+    static func discardCurrentWorkoutAndStartFollowUpAlertTitle(for workout: Workout?) -> String {
+        guard let workout else {
+            return "Discard Current Workout & Start This Follow-Up?"
+        }
+
+        return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout)
+    }
+
+    static func discardCurrentWorkoutAndStartFollowUpAlertMessage(for workout: Workout?) -> String {
+        guard let workout else {
+            return "Your in-progress workout will be lost before RPT starts the selected follow-up. This action cannot be undone."
+        }
+
+        return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout)
     }
     
     var body: some View {
@@ -464,7 +482,8 @@ struct HomeView: View {
                                             .buttonStyle(.bordered)
 
                                             Button(role: .destructive) {
-                                                discardActiveWorkoutAndStartFollowUp(from: matchedWorkout)
+                                                workoutToDiscardAndStartFollowUp = matchedWorkout
+                                                showingDiscardAndStartFollowUpConfirmation = true
                                             } label: {
                                                 Label(viewModel.discardAndStartFollowUpButtonTitle(for: matchedWorkout), systemImage: "trash")
                                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -643,8 +662,8 @@ struct HomeView: View {
                     }
 
                     Button(viewModel.discardAndStartFollowUpButtonTitle(for: workoutToStartFollowUp), role: .destructive) {
-                        discardActiveWorkoutAndStartFollowUp(from: workoutToStartFollowUp)
-                        self.workoutToStartFollowUp = nil
+                        workoutToDiscardAndStartFollowUp = workoutToStartFollowUp
+                        showingDiscardAndStartFollowUpConfirmation = true
                     }
                 }
 
@@ -656,6 +675,24 @@ struct HomeView: View {
                    let resumableWorkout = protectedResumableWorkout() {
                     Text(viewModel.activeWorkoutBlocksFollowUpMessage(for: resumableWorkout, startingFrom: workoutToStartFollowUp))
                 }
+            }
+            .alert(
+                Self.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workoutToDiscardAndStartFollowUp),
+                isPresented: $showingDiscardAndStartFollowUpConfirmation,
+                presenting: workoutToDiscardAndStartFollowUp
+            ) { workout in
+                Button(viewModel.discardAndStartFollowUpButtonTitle(for: workout), role: .destructive) {
+                    discardActiveWorkoutAndStartFollowUp(from: workout)
+                    workoutToDiscardAndStartFollowUp = nil
+                    workoutToStartFollowUp = nil
+                }
+
+                Button("Keep Current Workout", role: .cancel) {
+                    workoutToDiscardAndStartFollowUp = nil
+                    workoutToStartFollowUp = nil
+                }
+            } message: { workout in
+                Text(Self.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout))
             }
             .alert(templateStartRecoveryAlertTitle, isPresented: $showingTemplateStartRecoveryAlert) {
                 Button(

@@ -2,6 +2,40 @@ import XCTest
 @testable import RPT
 
 final class ExerciseDetailViewTests: XCTestCase {
+    func testDiscardCurrentWorkoutAndStartFollowUpAlertCopy_namesSpecificWorkout() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        XCTAssertEqual(
+            ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout),
+            "Discard Current Workout & Start Follow-Up from “Upper A”?"
+        )
+        XCTAssertEqual(
+            ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout),
+            "Your in-progress workout will be lost and RPT will immediately start a follow-up from “Upper A”. This action cannot be undone."
+        )
+    }
+
+    func testDiscardCurrentWorkoutAndStartFollowUpAlertCopy_fallsBackGracefully() {
+        let blankWorkout = Workout(name: " \n ", isCompleted: true)
+
+        XCTAssertEqual(
+            ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: blankWorkout),
+            "Discard Current Workout & Start This Follow-Up?"
+        )
+        XCTAssertEqual(
+            ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: blankWorkout),
+            "Your in-progress workout will be lost before RPT starts the selected follow-up. This action cannot be undone."
+        )
+        XCTAssertEqual(
+            ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: nil),
+            "Discard Current Workout & Start This Follow-Up?"
+        )
+        XCTAssertEqual(
+            ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: nil),
+            "Your in-progress workout will be lost before RPT starts the selected follow-up. This action cannot be undone."
+        )
+    }
+
     func testTemplateStartFailureAlertTitles_nameSpecificTemplate() {
         let template = WorkoutTemplate(name: "  Upper   A  ")
 
