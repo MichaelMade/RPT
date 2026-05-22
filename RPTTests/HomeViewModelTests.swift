@@ -485,6 +485,32 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testDiscardCurrentWorkoutAndStartFollowUpAlertMessage_mentionsSourceSessionCounts() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back])
+        workout.addSet(exercise: bench, weight: 185, reps: 8)
+        workout.addSet(exercise: row, weight: 135, reps: 10)
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout),
+            "Your in-progress workout will be lost and RPT will immediately start a follow-up from “Upper A”. Source session: 2 exercises • 2 sets. This action cannot be undone.",
+            "Discard-and-start follow-up confirmations should summarize the saved session they are about to reuse"
+        )
+    }
+
+    func testDiscardCurrentWorkoutAndStartFollowUpAlertMessage_usesWarmupOnlyFallbackSourceSummary() {
+        let workout = Workout(name: " \n ", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout),
+            "Your in-progress workout will be lost before RPT starts the selected follow-up. Source session: Warm-up sets only. This action cannot be undone.",
+            "Blank legacy names should still keep the follow-up confirmation honest about the source session"
+        )
+    }
+
     func testDeleteRecentWorkoutFailureMessage_usesFallbackWorkoutName() {
         let workout = Workout(name: "   ", isCompleted: true)
 

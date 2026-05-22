@@ -4,6 +4,10 @@ import XCTest
 final class WorkoutDetailViewTests: XCTestCase {
     func testDiscardCurrentWorkoutAndStartFollowUpAlertCopy_namesSpecificWorkout() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back])
+        workout.addSet(exercise: bench, weight: 185, reps: 8)
+        workout.addSet(exercise: row, weight: 135, reps: 10)
 
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout),
@@ -11,12 +15,14 @@ final class WorkoutDetailViewTests: XCTestCase {
         )
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout),
-            "Your in-progress workout will be lost and RPT will immediately start a follow-up from “Upper A”. This action cannot be undone."
+            "Your in-progress workout will be lost and RPT will immediately start a follow-up from “Upper A”. Source session: 2 exercises • 2 sets. This action cannot be undone."
         )
     }
 
     func testDiscardCurrentWorkoutAndStartFollowUpAlertCopy_fallsBackGracefully() {
         let blankWorkout = Workout(name: " \n ", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = blankWorkout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
 
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: blankWorkout),
@@ -24,7 +30,7 @@ final class WorkoutDetailViewTests: XCTestCase {
         )
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: blankWorkout),
-            "Your in-progress workout will be lost before RPT starts the selected follow-up. This action cannot be undone."
+            "Your in-progress workout will be lost before RPT starts the selected follow-up. Source session: Warm-up sets only. This action cannot be undone."
         )
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: nil),

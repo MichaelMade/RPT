@@ -440,15 +440,17 @@ class HomeViewModel: ObservableObject {
     func deleteRecentWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         var summaryParts = [WorkoutRow.relativeDateText(for: workout.date, now: now)]
-
-        if let countsFallbackText = WorkoutRow.countsFallbackText(for: workout) {
-            summaryParts.append(countsFallbackText)
-        } else {
-            summaryParts.append(WorkoutRow.exerciseCountText(for: workout))
-            summaryParts.append(WorkoutRow.setCountText(for: workout))
-        }
+        summaryParts.append(recentWorkoutSessionSummary(for: workout))
 
         return "Delete \(displayName) from history? \(summaryParts.joined(separator: " • ")) will be removed from your saved workout history."
+    }
+
+    private func recentWorkoutSessionSummary(for workout: Workout) -> String {
+        if let countsFallbackText = WorkoutRow.countsFallbackText(for: workout) {
+            return countsFallbackText
+        }
+
+        return "\(WorkoutRow.exerciseCountText(for: workout)) • \(WorkoutRow.setCountText(for: workout))"
     }
 
     func deleteRecentWorkoutFailureMessage(for workout: Workout) -> String {
@@ -520,10 +522,11 @@ class HomeViewModel: ObservableObject {
 
     func discardCurrentWorkoutAndStartFollowUpAlertMessage(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
+        let sourceSummary = recentWorkoutSessionSummary(for: workout)
 
         return displayName == "Workout"
-            ? "Your in-progress workout will be lost before RPT starts the selected follow-up. This action cannot be undone."
-            : "Your in-progress workout will be lost and RPT will immediately start a follow-up from “\(displayName)”. This action cannot be undone."
+            ? "Your in-progress workout will be lost before RPT starts the selected follow-up. Source session: \(sourceSummary). This action cannot be undone."
+            : "Your in-progress workout will be lost and RPT will immediately start a follow-up from “\(displayName)”. Source session: \(sourceSummary). This action cannot be undone."
     }
 
     func startTemplateFailureAlertTitle(for template: WorkoutTemplate) -> String {
