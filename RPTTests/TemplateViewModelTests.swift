@@ -1228,8 +1228,25 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
-            "Your in-progress workout will be lost and RPT will immediately start Template “Upper A”. This action cannot be undone.",
-            "Template-detail discard confirmations should explain that the current workout will be lost before the selected template starts"
+            "Your in-progress workout will be lost and RPT will immediately start Template “Upper A”. Source template: 1 exercise and 3 planned sets. This action cannot be undone.",
+            "Template-detail discard confirmations should explain both the destructive impact and the template payload before the selected plan starts"
+        )
+    }
+
+    func testDiscardCurrentWorkoutAndStartTemplateConfirmationIncludesNotesSummary() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(
+            name: "Pull Day",
+            exerciseNames: ["Barbell Row", "Lat Pulldown"],
+            suggestedSets: 2,
+            exerciseNotes: ["Keep elbows tucked", ""],
+            notes: "Deload week"
+        )
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
+            "Your in-progress workout will be lost and RPT will immediately start Template “Pull Day”. Source template: 2 exercises, 4 planned sets, and exercise notes and template notes. This action cannot be undone.",
+            "Discard-and-start template confirmations should call out when the incoming plan includes saved notes the user expects to land in the new draft"
         )
     }
 
@@ -1245,8 +1262,8 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
-            "Your in-progress workout will be lost and RPT will immediately start this template. This action cannot be undone.",
-            "Blank legacy template names should keep honest generic discard-and-start impact copy"
+            "Your in-progress workout will be lost and RPT will immediately start this template. Source template: 1 exercise and 3 planned sets. This action cannot be undone.",
+            "Blank legacy template names should keep honest generic discard-and-start impact copy while still summarizing the template payload"
         )
     }
 

@@ -373,8 +373,28 @@ class TemplateViewModel: ObservableObject {
         let templateTarget = displayName == "Template"
             ? "this template"
             : "Template “\(displayName)”"
+        let sourceSummary = startTemplateSourceSummary(for: template)
 
-        return "Your in-progress workout will be lost and RPT will immediately start \(templateTarget). This action cannot be undone."
+        return "Your in-progress workout will be lost and RPT will immediately start \(templateTarget). Source template: \(sourceSummary). This action cannot be undone."
+    }
+
+    private func startTemplateSourceSummary(for template: WorkoutTemplate) -> String {
+        let exerciseCount = template.exercises.count
+        let exerciseSummary = exerciseCount == 1 ? "1 exercise" : "\(exerciseCount) exercises"
+        let plannedSetCount = template.exercises.reduce(0) { $0 + max($1.suggestedSets, 0) }
+        let setSummary = plannedSetCount == 1 ? "1 planned set" : "\(plannedSetCount) planned sets"
+        let hasExerciseNotes = template.exercises.contains { !($0.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) }
+        let hasTemplateNotes = !template.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+        var parts = [exerciseSummary, setSummary]
+
+        if hasExerciseNotes {
+            parts.append(hasTemplateNotes ? "exercise notes and template notes" : "exercise notes")
+        } else if hasTemplateNotes {
+            parts.append("template notes")
+        }
+
+        return Self.humanReadableList(parts)
     }
 
     func reviewTemplateButtonTitle(for template: WorkoutTemplate) -> String {

@@ -62,7 +62,7 @@ final class HomeViewTests: XCTestCase {
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
-            "Your in-progress workout will be lost and RPT will immediately start Template “Upper A”. This action cannot be undone."
+            "Your in-progress workout will be lost and RPT will immediately start Template “Upper A”. Source template: 0 exercises and 0 planned sets. This action cannot be undone."
         )
     }
 
@@ -75,7 +75,7 @@ final class HomeViewTests: XCTestCase {
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartTemplateAlertMessage(for: blankTemplate),
-            "Your in-progress workout will be lost and RPT will immediately start this template. This action cannot be undone."
+            "Your in-progress workout will be lost and RPT will immediately start this template. Source template: 0 exercises and 0 planned sets. This action cannot be undone."
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartTemplateAlertTitle(for: nil),
