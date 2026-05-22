@@ -29,6 +29,14 @@ struct ActiveWorkoutView: View {
         self.showCustomBackButton = showCustomBackButton
         self.onCompleteWorkout = onCompleteWorkout
     }
+
+    private func presentDiscardConfirmationFromExitDialog() {
+        showingExitConfirmation = false
+
+        DispatchQueue.main.async {
+            showingConfirmationDialog = true
+        }
+    }
     
     var body: some View {
         NavigationStack {
@@ -229,12 +237,7 @@ struct ActiveWorkoutView: View {
                 }
 
                 Button(viewModel.discardWorkoutButtonTitle(), role: .destructive) {
-                    guard viewModel.discardAndMarkDiscardedSafely() else {
-                        return
-                    }
-
-                    onCompleteWorkout?()
-                    dismiss()
+                    presentDiscardConfirmationFromExitDialog()
                 }
 
                 Button("Cancel", role: .cancel) { }
