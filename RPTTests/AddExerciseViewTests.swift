@@ -79,10 +79,17 @@ final class AddExerciseViewTests: XCTestCase {
         )
     }
 
-    func testDiscardAlertMessage_matchesNewExerciseFlow() {
+    func testDiscardAlertMessage_usesFallbackCopyWhenNoSpecificFieldsChanged() {
         XCTAssertEqual(
-            AddExerciseView.discardAlertMessage(),
+            AddExerciseView.discardAlertMessage(changedFields: []),
             "You’ll lose this exercise draft and any setup changes."
+        )
+    }
+
+    func testDiscardAlertMessage_namesTheDraftFieldsThatWouldBeLost() {
+        XCTAssertEqual(
+            AddExerciseView.discardAlertMessage(changedFields: ["name", "primary muscles", "instructions"]),
+            "You’ll lose this exercise draft, including its name, primary muscles, and instructions."
         )
     }
 }

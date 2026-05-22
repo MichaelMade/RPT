@@ -87,8 +87,26 @@ struct AddExerciseView: View {
         return "Discard “\(displayName)”"
     }
 
-    static func discardAlertMessage() -> String {
-        "You’ll lose this exercise draft and any setup changes."
+    static func discardAlertMessage(changedFields: [String]) -> String {
+        guard !changedFields.isEmpty else {
+            return "You’ll lose this exercise draft and any setup changes."
+        }
+
+        return "You’ll lose this exercise draft, including its \(humanReadableList(changedFields))."
+    }
+
+    private static func humanReadableList(_ items: [String]) -> String {
+        switch items.count {
+        case 0:
+            return ""
+        case 1:
+            return items[0]
+        case 2:
+            return "\(items[0]) and \(items[1])"
+        default:
+            let head = items.dropLast().joined(separator: ", ")
+            return "\(head), and \(items.last!)"
+        }
     }
 
     @Environment(\.dismiss) private var dismiss
@@ -139,6 +157,32 @@ struct AddExerciseView: View {
 
     private var hasUnsavedChanges: Bool {
         currentDraftSnapshot != initialDraftSnapshot
+    }
+
+    private var discardImpactFields: [String] {
+        var fields: [String] = []
+
+        if currentDraftSnapshot.name != initialDraftSnapshot.name {
+            fields.append("name")
+        }
+
+        if currentDraftSnapshot.category != initialDraftSnapshot.category {
+            fields.append("category")
+        }
+
+        if currentDraftSnapshot.primaryMuscles != initialDraftSnapshot.primaryMuscles {
+            fields.append("primary muscles")
+        }
+
+        if currentDraftSnapshot.secondaryMuscles != initialDraftSnapshot.secondaryMuscles {
+            fields.append("secondary muscles")
+        }
+
+        if currentDraftSnapshot.instructions != initialDraftSnapshot.instructions {
+            fields.append("instructions")
+        }
+
+        return fields
     }
 
     init(
@@ -234,7 +278,7 @@ struct AddExerciseView: View {
                     dismiss()
                 }
             } message: {
-                Text(Self.discardAlertMessage())
+                Text(Self.discardAlertMessage(changedFields: discardImpactFields))
             }
             .interactiveDismissDisabled(hasUnsavedChanges)
             .toolbar {

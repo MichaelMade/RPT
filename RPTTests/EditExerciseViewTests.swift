@@ -182,10 +182,17 @@ final class EditExerciseViewTests: XCTestCase {
         )
     }
 
-    func testDiscardAlertMessage_matchesEditFlow() {
+    func testDiscardAlertMessage_usesFallbackCopyWhenNoSpecificFieldsChanged() {
         XCTAssertEqual(
-            EditExerciseView.discardAlertMessage(),
+            EditExerciseView.discardAlertMessage(changedFields: []),
             "You’ll lose your unsaved changes to this exercise."
+        )
+    }
+
+    func testDiscardAlertMessage_namesTheChangedFieldsThatWouldBeLost() {
+        XCTAssertEqual(
+            EditExerciseView.discardAlertMessage(changedFields: ["category", "secondary muscles"]),
+            "You’ll lose your unsaved changes to this exercise, including its category and secondary muscles."
         )
     }
 }
