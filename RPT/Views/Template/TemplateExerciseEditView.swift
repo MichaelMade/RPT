@@ -60,6 +60,20 @@ struct TemplateExerciseEditView: View {
         currentDraftSnapshot != initialDraftSnapshot
     }
 
+    private var discardImpactFields: [String] {
+        var fields: [String] = []
+
+        if currentDraftSnapshot.suggestedSets != initialDraftSnapshot.suggestedSets {
+            fields.append("planned set count")
+        }
+
+        if currentDraftSnapshot.notes != initialDraftSnapshot.notes {
+            fields.append("notes")
+        }
+
+        return fields
+    }
+
     private var discardAlertTitle: String {
         Self.discardAlertTitle(for: exercise.exerciseName)
     }
@@ -82,8 +96,26 @@ struct TemplateExerciseEditView: View {
             : "Discard “\(displayName)”"
     }
 
-    static var discardAlertMessage: String {
-        "You’ll lose your unsaved changes to this template exercise."
+    static func discardAlertMessage(changedFields: [String]) -> String {
+        guard !changedFields.isEmpty else {
+            return "You’ll lose your unsaved changes to this template exercise."
+        }
+
+        return "You’ll lose your unsaved changes to this template exercise, including its \(humanReadableList(changedFields))."
+    }
+
+    private static func humanReadableList(_ items: [String]) -> String {
+        switch items.count {
+        case 0:
+            return ""
+        case 1:
+            return items[0]
+        case 2:
+            return "\(items[0]) and \(items[1])"
+        default:
+            let head = items.dropLast().joined(separator: ", ")
+            return "\(head), and \(items.last!)"
+        }
     }
     
     var body: some View {
@@ -193,7 +225,7 @@ struct TemplateExerciseEditView: View {
                     showingDiscardConfirmation = false
                 }
             } message: {
-                Text(Self.discardAlertMessage)
+                Text(Self.discardAlertMessage(changedFields: discardImpactFields))
             }
             .interactiveDismissDisabled(hasUnsavedChanges)
         }

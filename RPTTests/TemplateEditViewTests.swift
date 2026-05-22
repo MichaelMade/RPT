@@ -80,10 +80,17 @@ final class TemplateEditViewTests: XCTestCase {
         )
     }
 
-    func testTemplateExerciseDiscardAlertMessage_isSpecificToTemplateExerciseEditing() {
+    func testTemplateExerciseDiscardAlertMessage_usesFallbackCopyWhenNoSpecificFieldsChanged() {
         XCTAssertEqual(
-            TemplateExerciseEditView.discardAlertMessage,
+            TemplateExerciseEditView.discardAlertMessage(changedFields: []),
             "You’ll lose your unsaved changes to this template exercise."
+        )
+    }
+
+    func testTemplateExerciseDiscardAlertMessage_namesTheChangedFieldsThatWouldBeLost() {
+        XCTAssertEqual(
+            TemplateExerciseEditView.discardAlertMessage(changedFields: ["planned set count", "notes"]),
+            "You’ll lose your unsaved changes to this template exercise, including its planned set count and notes."
         )
     }
 

@@ -1,5 +1,6 @@
 # RPT
 
+- Template exercise discard confirmations now name the exact unsaved fields that would be lost — currently `planned set count` and `notes` — so canceling out of routine-movement tuning is easier to trust than a generic warning when you’ve already tweaked the setup.
 - Add/Edit Exercise discard confirmations now name the exact unsaved fields that would be lost — for example `name`, `primary muscles`, `secondary muscles`, or `instructions` — so accidental cancel taps in longer custom-exercise edits are easier to trust than a generic throwaway warning.
 - Settings reset confirmations now make the final destructive step explicit too: single-setting resets use titles like `Reset Rest Timer (135 sec)?` with a matching `Reset Rest Timer` button, while broader resets collapse to count-based copy like `Reset 4 Customized Settings?`, so the last tap stays specific without turning the alert chrome into a wall of text.
 - Settings reset confirmations now name the exact customized preferences that will be restored — for example `Dark Mode (Dark)`, `Rest Timer (135 sec)`, or `RPT weight drops (100%, 85%, 80%)` — so the app’s broadest destructive preference reset is easier to trust before users tap the final red button.
