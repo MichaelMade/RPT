@@ -214,6 +214,24 @@ class HomeViewModel: ObservableObject {
             : "Discard “\(displayName)” & Start New Workout"
     }
 
+    func discardCurrentWorkoutAndStartFreshAlertTitle(for workout: Workout) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Discard Current Workout & Start New Workout?"
+            : "Discard “\(displayName)” & Start New Workout?"
+    }
+
+    func discardCurrentWorkoutAndStartFreshAlertMessage(for workout: Workout, now: Date = Date()) -> String {
+        let displayName = WorkoutRow.displayName(for: workout)
+        let workoutSummary = resumableWorkoutSummary(for: workout, now: now)
+
+        if displayName == "Workout" {
+            return "This will discard your in-progress workout (\(workoutSummary)) and immediately start a new workout. This action cannot be undone."
+        }
+
+        return "This will discard “\(displayName)” (\(workoutSummary)) and immediately start a new workout. This action cannot be undone."
+    }
+
     func activeWorkoutInProgressTitle(for workout: Workout?) -> String {
         guard let workout else {
             return "Current Workout In Progress"

@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s `Start New Workout` replacement flow now adds a second destructive confirmation before `Discard … & Start New Workout` deletes an in-progress draft, and that final alert summarizes the exact current-session impact before the new workout begins, so the app’s most prominent workout-replacement path no longer hinges on one fast destructive tap.
 - Active Workout set-edit discard confirmations now name the exact unsaved field/value changes they would throw away — for example `weight (185 lb → 190 lb)`, `reps (8 reps → 6 reps)`, or `RPE (9 → cleared)` — so backing out of a live set edit is easier to trust than the older generic warning.
 - Settings now renames its only destructive preference-reset button to match scope (`Reset Rest Timer` for a single tweak, `Reset Customized Settings` for broader changes), so users get a clearer last-minute cue before opening the reset confirmation.
 - Active Workout’s exit-sheet `Discard` action now routes through the same second confirmation as the overflow-menu discard path instead of deleting the live draft immediately, so a fast tap while backing out of a session can’t bypass the detailed loss warning.

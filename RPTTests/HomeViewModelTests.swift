@@ -825,6 +825,42 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testDiscardCurrentWorkoutAndStartFreshAlertCopy_namesSpecificDraftAndImpact() {
+        let startDate = Date(timeIntervalSince1970: 0)
+        let now = startDate.addingTimeInterval(30 * 60)
+        let workout = Workout(date: startDate, name: "  Upper   A  ")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        workout.addSet(exercise: bench, weight: 185, reps: 8)
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartFreshAlertTitle(for: workout),
+            "Discard “Upper A” & Start New Workout?",
+            "The second destructive start-fresh confirmation should name the exact draft being discarded"
+        )
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartFreshAlertMessage(for: workout, now: now),
+            "This will discard “Upper A” (Started 30m ago • 1 exercise • 1 set • Exercise started) and immediately start a new workout. This action cannot be undone.",
+            "The second destructive start-fresh confirmation should summarize the live draft impact before it is discarded"
+        )
+    }
+
+    func testDiscardCurrentWorkoutAndStartFreshAlertCopy_fallsBackForGenericDraftName() {
+        let startDate = Date(timeIntervalSince1970: 0)
+        let now = startDate.addingTimeInterval(10 * 60)
+        let workout = Workout(date: startDate, name: "   ")
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartFreshAlertTitle(for: workout),
+            "Discard Current Workout & Start New Workout?",
+            "Blank legacy workout names should keep the destructive start-fresh confirmation title generic"
+        )
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartFreshAlertMessage(for: workout, now: now),
+            "This will discard your in-progress workout (Started 10m ago • No exercises added yet) and immediately start a new workout. This action cannot be undone.",
+            "Blank legacy workout names should still explain the discard impact before starting fresh"
+        )
+    }
+
     func testStartFreshWorkoutMessage_includesWorkoutNameAndCurrentDraftSummary() {
         let startDate = Date(timeIntervalSince1970: 0)
         let now = startDate.addingTimeInterval(30 * 60)

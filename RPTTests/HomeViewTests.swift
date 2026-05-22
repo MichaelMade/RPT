@@ -2,6 +2,17 @@ import XCTest
 @testable import RPT
 
 final class HomeViewTests: XCTestCase {
+    func testDiscardCurrentWorkoutAndStartFreshAlertCopy_fallsBackGracefully() {
+        XCTAssertEqual(
+            HomeView.discardCurrentWorkoutAndStartFreshAlertTitle(for: nil),
+            "Discard Current Workout & Start New Workout?"
+        )
+        XCTAssertEqual(
+            HomeView.discardCurrentWorkoutAndStartFreshAlertMessage(for: nil),
+            "Your in-progress workout will be lost before RPT starts a new workout. This action cannot be undone."
+        )
+    }
+
     func testDiscardCurrentWorkoutAndStartFollowUpAlertCopy_namesSpecificWorkout() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
 

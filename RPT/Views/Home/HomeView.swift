@@ -20,6 +20,7 @@ struct HomeView: View {
     @State private var showingDeleteWorkoutAlert = false
     @State private var showingCopySummaryAlert = false
     @State private var showingFollowUpRecoveryAlert = false
+    @State private var showingDiscardAndStartFreshConfirmation = false
     @State private var showingDiscardAndStartFollowUpConfirmation = false
     @State private var showingTemplateStartRecoveryAlert = false
     @State private var showingDiscardAndStartTemplateConfirmation = false
@@ -113,6 +114,22 @@ struct HomeView: View {
         }
 
         return TemplateViewModel().discardCurrentWorkoutAndStartTemplateAlertMessage(for: template)
+    }
+
+    static func discardCurrentWorkoutAndStartFreshAlertTitle(for workout: Workout?) -> String {
+        guard let workout else {
+            return "Discard Current Workout & Start New Workout?"
+        }
+
+        return HomeViewModel().discardCurrentWorkoutAndStartFreshAlertTitle(for: workout)
+    }
+
+    static func discardCurrentWorkoutAndStartFreshAlertMessage(for workout: Workout?) -> String {
+        guard let workout else {
+            return "Your in-progress workout will be lost before RPT starts a new workout. This action cannot be undone."
+        }
+
+        return HomeViewModel().discardCurrentWorkoutAndStartFreshAlertMessage(for: workout)
     }
 
     static func discardCurrentWorkoutAndStartFollowUpAlertTitle(for workout: Workout?) -> String {
@@ -609,7 +626,7 @@ struct HomeView: View {
                 }
 
                 Button(startFreshDiscardButtonTitle, role: .destructive) {
-                    discardCurrentWorkoutAndStartFresh()
+                    showingDiscardAndStartFreshConfirmation = true
                 }
 
                 Button(
@@ -629,6 +646,20 @@ struct HomeView: View {
             } message: {
                 if let resumableWorkoutToReplace {
                     Text(viewModel.startFreshWorkoutMessage(for: resumableWorkoutToReplace))
+                }
+            }
+            .alert(
+                Self.discardCurrentWorkoutAndStartFreshAlertTitle(for: resumableWorkoutToReplace),
+                isPresented: $showingDiscardAndStartFreshConfirmation
+            ) {
+                Button(startFreshDiscardButtonTitle, role: .destructive) {
+                    discardCurrentWorkoutAndStartFresh()
+                }
+
+                Button("Keep Current Workout", role: .cancel) { }
+            } message: {
+                if let resumableWorkoutToReplace {
+                    Text(Self.discardCurrentWorkoutAndStartFreshAlertMessage(for: resumableWorkoutToReplace))
                 }
             }
             .alert(deleteWorkoutAlertTitle, isPresented: $showingDeleteWorkoutAlert) {
