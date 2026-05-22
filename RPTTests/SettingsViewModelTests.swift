@@ -182,6 +182,7 @@ final class SettingsViewModelTests: XCTestCase {
             defaultsViewModel.resetSettingsFooterText,
             "You’re already using the default display, timer, and RPT settings."
         )
+        XCTAssertEqual(defaultsViewModel.resetButtonTitle, "Reset All Settings")
         XCTAssertEqual(defaultsViewModel.resetConfirmationTitle, "Reset All Settings?")
         XCTAssertEqual(defaultsViewModel.resetConfirmationButtonTitle, "Reset Settings")
         XCTAssertEqual(
@@ -195,6 +196,7 @@ final class SettingsViewModelTests: XCTestCase {
             settingsManager: MockSettingsManager(settings: UserSettings(restTimerDuration: 135))
         )
 
+        XCTAssertEqual(customizedViewModel.resetButtonTitle, "Reset Rest Timer")
         XCTAssertEqual(customizedViewModel.resetConfirmationTitle, "Reset Rest Timer (135 sec)?")
         XCTAssertEqual(customizedViewModel.resetConfirmationButtonTitle, "Reset Rest Timer")
         XCTAssertEqual(
@@ -211,6 +213,7 @@ final class SettingsViewModelTests: XCTestCase {
 
         let customizedViewModel = SettingsViewModel(settingsManager: MockSettingsManager(settings: customizedSettings))
 
+        XCTAssertEqual(customizedViewModel.resetButtonTitle, "Reset Customized Settings")
         XCTAssertEqual(customizedViewModel.resetConfirmationTitle, "Reset 4 Customized Settings?")
         XCTAssertEqual(customizedViewModel.resetConfirmationButtonTitle, "Reset 4 Settings")
         XCTAssertEqual(

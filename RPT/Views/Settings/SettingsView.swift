@@ -89,7 +89,7 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Button("Reset All Settings") {
+                    Button(viewModel.resetButtonTitle) {
                         showingResetConfirmation = true
                     }
                     .foregroundColor(.red)

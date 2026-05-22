@@ -96,6 +96,17 @@ class SettingsViewModel: ObservableObject {
             : "You’re already using the default display, timer, and RPT settings."
     }
 
+    var resetButtonTitle: String {
+        switch customizedSettingLabels.count {
+        case 0:
+            return "Reset All Settings"
+        case 1:
+            return "Reset \(customizedSettingLabels[0])"
+        default:
+            return "Reset Customized Settings"
+        }
+    }
+
     var resetConfirmationTitle: String {
         let customizedSettings = customizedSettingsSummaryParts
 
