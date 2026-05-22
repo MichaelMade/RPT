@@ -282,7 +282,7 @@ struct ExerciseSetRowView: View {
                 onDelete()
             }
         } message: {
-            Text(Self.deleteAlertMessage)
+            Text(Self.deleteAlertMessage(for: set))
         }
     }
 
@@ -304,7 +304,27 @@ struct ExerciseSetRowView: View {
         "\(deleteButtonTitle(for: set))?"
     }
 
-    static let deleteAlertMessage = "This set will be removed from the current workout."
+    static func deleteAlertMessage(for set: ExerciseSet) -> String {
+        if set.isCompletedLoggedSet {
+            let kind = set.isWarmup ? "logged warm-up set" : "logged working set"
+
+            if set.displayRPE != nil {
+                return "This will remove this \(kind) and its recorded RPE from the current workout."
+            }
+
+            return "This will remove this \(kind) from the current workout."
+        }
+
+        if set.isWarmup {
+            return "This warm-up set will be removed from the current workout."
+        }
+
+        if set.weight == 0 && set.reps == 0 {
+            return "This empty set will be removed from the current workout."
+        }
+
+        return "This set will be removed from the current workout."
+    }
 
     static func discardChangesAlertTitle(for set: ExerciseSet) -> String {
         let prefix = set.isWarmup ? "Discard Warm-up Set Changes" : "Discard Set Changes"

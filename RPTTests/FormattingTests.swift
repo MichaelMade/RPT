@@ -186,8 +186,8 @@ final class FormattingTests: XCTestCase {
             "Delete Set 185 lb × 8 reps?"
         )
         XCTAssertEqual(
-            ExerciseSetRowView.deleteAlertMessage,
-            "This set will be removed from the current workout."
+            ExerciseSetRowView.deleteAlertMessage(for: set),
+            "This will remove this logged working set from the current workout."
         )
     }
 
@@ -214,12 +214,31 @@ final class FormattingTests: XCTestCase {
             "Delete Warm-up Set BW × 10 reps?"
         )
         XCTAssertEqual(
+            ExerciseSetRowView.deleteAlertMessage(for: bodyweightWarmupSet),
+            "This will remove this logged warm-up set from the current workout."
+        )
+        XCTAssertEqual(
             ExerciseSetRowView.deleteButtonTitle(for: blankSet),
             "Delete Set"
         )
         XCTAssertEqual(
             ExerciseSetRowView.deleteAlertTitle(for: blankSet),
             "Delete Set?"
+        )
+        XCTAssertEqual(
+            ExerciseSetRowView.deleteAlertMessage(for: blankSet),
+            "This empty set will be removed from the current workout."
+        )
+    }
+
+    func testExerciseSetRowDeleteCopy_mentionsRecordedRPEWhenPresent() {
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Push")
+        let set = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout, rpe: 9)
+
+        XCTAssertEqual(
+            ExerciseSetRowView.deleteAlertMessage(for: set),
+            "This will remove this logged working set and its recorded RPE from the current workout."
         )
     }
 
