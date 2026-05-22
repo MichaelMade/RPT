@@ -83,6 +83,19 @@ class SettingsViewModel: ObservableObject {
         self.darkModePreference = self.settingsManager.settings.darkModePreference
     }
 
+    var canResetToDefaults: Bool {
+        restTimerDuration != UserSettings.defaultRestTimerDuration ||
+        defaultRPTPercentageDrops != UserSettings.defaultRPTPercentageDrops ||
+        showRPE != true ||
+        darkModePreference != .system
+    }
+
+    var resetSettingsFooterText: String {
+        canResetToDefaults
+            ? "This restores display, timer, and RPT defaults without affecting your saved workouts, templates, or exercise library."
+            : "You’re already using the default display, timer, and RPT settings."
+    }
+
     func resetToDefaults() {
         if !settingsManager.resetToDefaultsSafely() {
             presentSaveError(

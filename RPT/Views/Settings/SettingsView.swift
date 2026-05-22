@@ -93,8 +93,9 @@ struct SettingsView: View {
                         showingResetConfirmation = true
                     }
                     .foregroundColor(.red)
+                    .disabled(!viewModel.canResetToDefaults)
                 } footer: {
-                    Text("This restores display, timer, and RPT defaults without affecting your saved workouts, templates, or exercise library.")
+                    Text(viewModel.resetSettingsFooterText)
                 }
                 
                 // App Info Section

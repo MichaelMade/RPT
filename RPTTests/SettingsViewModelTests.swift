@@ -174,6 +174,30 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.allowedDropPercentageRange(for: 2), 10...30)
     }
 
+    func testCanResetToDefaults_isFalseForDefaultSettings() {
+        let defaultsViewModel = SettingsViewModel(settingsManager: MockSettingsManager())
+
+        XCTAssertFalse(defaultsViewModel.canResetToDefaults)
+        XCTAssertEqual(
+            defaultsViewModel.resetSettingsFooterText,
+            "You’re already using the default display, timer, and RPT settings."
+        )
+    }
+
+    func testCanResetToDefaults_isTrueAfterCustomizationAndFalseAfterReset() {
+        let customizedSettings = UserSettings(restTimerDuration: 135)
+        let mock = MockSettingsManager(settings: customizedSettings)
+        let customizedViewModel = SettingsViewModel(settingsManager: mock)
+
+        XCTAssertTrue(customizedViewModel.canResetToDefaults)
+        XCTAssertTrue(customizedViewModel.resetSettingsFooterText.contains("This restores display, timer, and RPT defaults"))
+
+        customizedViewModel.resetToDefaults()
+
+        XCTAssertFalse(customizedViewModel.canResetToDefaults)
+        XCTAssertEqual(customizedViewModel.restTimerDuration, UserSettings.defaultRestTimerDuration)
+    }
+
     func testShowRPE_failedSaveRevertsAndSurfacesErrorMessage() {
         let mock = MockSettingsManager(settings: UserSettings(showRPE: true))
         mock.shouldFailSave = true
