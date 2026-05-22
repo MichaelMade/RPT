@@ -96,6 +96,19 @@ class SettingsViewModel: ObservableObject {
             : "You’re already using the default display, timer, and RPT settings."
     }
 
+    var resetConfirmationMessage: String {
+        let customizedSettings = customizedSettingsSummaryParts
+
+        guard !customizedSettings.isEmpty else {
+            return "This will restore your display, timer, and RPT defaults. Your saved workouts, templates, and exercises will stay untouched."
+        }
+
+        let subject = Self.humanReadableList(customizedSettings)
+        let target = customizedSettings.count == 1 ? "its default value" : "their default values"
+
+        return "This will reset \(subject) to \(target). Your saved workouts, templates, and exercises will stay untouched."
+    }
+
     func resetToDefaults() {
         if !settingsManager.resetToDefaultsSafely() {
             presentSaveError(
@@ -153,6 +166,28 @@ class SettingsViewModel: ObservableObject {
         defaultRPTPercentageDrops = newDrops
     }
 
+    private var customizedSettingsSummaryParts: [String] {
+        var parts: [String] = []
+
+        if darkModePreference != .system {
+            parts.append("Dark Mode (\(darkModePreference.resetSummaryValue))")
+        }
+
+        if restTimerDuration != UserSettings.defaultRestTimerDuration {
+            parts.append("Rest Timer (\(restTimerDuration) sec)")
+        }
+
+        if showRPE != true {
+            parts.append("Show RPE Input (Off)")
+        }
+
+        if defaultRPTPercentageDrops != UserSettings.defaultRPTPercentageDrops {
+            parts.append("RPT weight drops (\(Self.formattedRPTDropSummary(defaultRPTPercentageDrops)))")
+        }
+
+        return parts
+    }
+
     private func syncFromPersistedSettings() {
         isSyncingFromPersistedSettings = true
         restTimerDuration = settingsManager.settings.restTimerDuration
@@ -165,5 +200,38 @@ class SettingsViewModel: ObservableObject {
     private func presentSaveError(title: String, message: String) {
         saveErrorTitle = title
         saveErrorMessage = message
+    }
+
+    private static func formattedRPTDropSummary(_ drops: [Double]) -> String {
+        drops
+            .map { "\(Int(($0 == 0 ? 1 : 1 - $0) * 100))%" }
+            .joined(separator: ", ")
+    }
+
+    private static func humanReadableList(_ items: [String]) -> String {
+        switch items.count {
+        case 0:
+            return ""
+        case 1:
+            return items[0]
+        case 2:
+            return "\(items[0]) and \(items[1])"
+        default:
+            let head = items.dropLast().joined(separator: ", ")
+            return "\(head), and \(items.last!)"
+        }
+    }
+}
+
+private extension DarkModePreference {
+    var resetSummaryValue: String {
+        switch self {
+        case .light:
+            return "Light"
+        case .dark:
+            return "Dark"
+        case .system:
+            return "System"
+        }
     }
 }

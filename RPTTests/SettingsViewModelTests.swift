@@ -182,6 +182,35 @@ final class SettingsViewModelTests: XCTestCase {
             defaultsViewModel.resetSettingsFooterText,
             "You’re already using the default display, timer, and RPT settings."
         )
+        XCTAssertEqual(
+            defaultsViewModel.resetConfirmationMessage,
+            "This will restore your display, timer, and RPT defaults. Your saved workouts, templates, and exercises will stay untouched."
+        )
+    }
+
+    func testResetConfirmationMessage_namesSingleCustomizedSetting() {
+        let customizedViewModel = SettingsViewModel(
+            settingsManager: MockSettingsManager(settings: UserSettings(restTimerDuration: 135))
+        )
+
+        XCTAssertEqual(
+            customizedViewModel.resetConfirmationMessage,
+            "This will reset Rest Timer (135 sec) to its default value. Your saved workouts, templates, and exercises will stay untouched."
+        )
+    }
+
+    func testResetConfirmationMessage_namesMultipleCustomizedSettings() {
+        let customizedSettings = UserSettings(restTimerDuration: 135)
+        customizedSettings.defaultRPTPercentageDrops = [0.0, 0.15, 0.20]
+        customizedSettings.showRPE = false
+        customizedSettings.darkModePreference = .dark
+
+        let customizedViewModel = SettingsViewModel(settingsManager: MockSettingsManager(settings: customizedSettings))
+
+        XCTAssertEqual(
+            customizedViewModel.resetConfirmationMessage,
+            "This will reset Dark Mode (Dark), Rest Timer (135 sec), Show RPE Input (Off), and RPT weight drops (100%, 85%, 80%) to their default values. Your saved workouts, templates, and exercises will stay untouched."
+        )
     }
 
     func testCanResetToDefaults_isTrueAfterCustomizationAndFalseAfterReset() {

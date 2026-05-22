@@ -1,5 +1,6 @@
 # RPT
 
+- Settings reset confirmations now name the exact customized preferences that will be restored — for example `Dark Mode (Dark)`, `Rest Timer (135 sec)`, or `RPT weight drops (100%, 85%, 80%)` — so the app’s broadest destructive preference reset is easier to trust before users tap the final red button.
 - Active Workout set delete confirmations now spell out whether users are removing a logged working set, a logged warm-up set, or just an empty placeholder draft, and they call out recorded RPE when present, so mid-session cleanup is easier to trust than the older one-size-fits-all warning.
 - Settings now disables `Reset All Settings` when nothing is customized and swaps in an `already using defaults` footer, so the only red destructive control on the screen no longer invites a meaningless no-op reset.
 - Follow-up restarts from Home, Workout Details, and Exercise Details now add a second confirmation before `Discard & Start Follow-Up …` replaces an in-progress workout, so destructive progression handoffs no longer skip the active-workout loss warning.

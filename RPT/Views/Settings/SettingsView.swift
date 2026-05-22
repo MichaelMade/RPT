@@ -133,7 +133,7 @@ struct SettingsView: View {
                     viewModel.resetToDefaults()
                 }
             } message: {
-                Text("This will restore your display, timer, and RPT defaults. Your saved workouts, templates, and exercises will stay untouched.")
+                Text(viewModel.resetConfirmationMessage)
             }
         }
     }
