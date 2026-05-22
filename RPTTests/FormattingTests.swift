@@ -252,8 +252,13 @@ final class FormattingTests: XCTestCase {
             "Discard Set Changes to 185 lb × 8 reps?"
         )
         XCTAssertEqual(
-            ExerciseSetRowView.discardChangesAlertMessage,
-            "Your changes to this set haven’t been saved."
+            ExerciseSetRowView.discardChangesAlertMessage(
+                for: set,
+                weightInput: "190",
+                repsInput: "6",
+                rpeInput: ""
+            ),
+            "This will discard your weight (185 lb → 190 lb) and reps (8 reps → 6 reps) changes for this set."
         )
     }
 
@@ -278,6 +283,48 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(
             ExerciseSetRowView.discardChangesAlertTitle(for: blankSet),
             "Discard Set Changes?"
+        )
+    }
+
+    func testExerciseSetRowDiscardChangesAlertMessage_handlesRPEClearsAndInvalidDrafts() {
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Push")
+        let set = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout, rpe: 9)
+
+        XCTAssertEqual(
+            ExerciseSetRowView.discardChangesAlertMessage(
+                for: set,
+                weightInput: "",
+                repsInput: "8",
+                rpeInput: ""
+            ),
+            "This will discard your weight (185 lb → cleared) and RPE (9 → cleared) changes for this set."
+        )
+
+        XCTAssertEqual(
+            ExerciseSetRowView.discardChangesAlertMessage(
+                for: set,
+                weightInput: "abc",
+                repsInput: "8",
+                rpeInput: "11x"
+            ),
+            "This will discard your weight (185 lb → “abc”) and RPE (9 → “11x”) changes for this set."
+        )
+    }
+
+    func testExerciseSetRowDiscardChangesAlertMessage_fallsBackWhenNoSpecificFieldChanged() {
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let workout = Workout(name: "Push")
+        let set = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout)
+
+        XCTAssertEqual(
+            ExerciseSetRowView.discardChangesAlertMessage(
+                for: set,
+                weightInput: "185",
+                repsInput: "8",
+                rpeInput: ""
+            ),
+            "Your changes to this set haven’t been saved."
         )
     }
 

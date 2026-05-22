@@ -270,7 +270,14 @@ struct ExerciseSetRowView: View {
                 isEditing = false
             }
         } message: {
-            Text(Self.discardChangesAlertMessage)
+            Text(
+                Self.discardChangesAlertMessage(
+                    for: set,
+                    weightInput: weightInput,
+                    repsInput: repsInput,
+                    rpeInput: rpeInput
+                )
+            )
         }
         .alert(Self.deleteAlertTitle(for: set), isPresented: $showingDeleteConfirmation) {
             Button("Keep Set", role: .cancel) {
@@ -340,7 +347,15 @@ struct ExerciseSetRowView: View {
         return "\(prefix) to \(weightText) × \(repsText)?"
     }
 
-    static let discardChangesAlertMessage = "Your changes to this set haven’t been saved."
+    static func discardChangesAlertMessage(for set: ExerciseSet, weightInput: String, repsInput: String, rpeInput: String) -> String {
+        let fieldSummaries = discardFieldSummaries(for: set, weightInput: weightInput, repsInput: repsInput, rpeInput: rpeInput)
+
+        guard !fieldSummaries.isEmpty else {
+            return "Your changes to this set haven’t been saved."
+        }
+
+        return "This will discard your \(joinedDiscardFieldSummary(fieldSummaries)) for this set."
+    }
 
     static func hasUnsavedChanges(comparedTo set: ExerciseSet, weightInput: String, repsInput: String, rpeInput: String) -> Bool {
         let parsedWeight = sanitizedInteger(from: weightInput, emptyValue: 0)
@@ -390,6 +405,98 @@ struct ExerciseSetRowView: View {
         }
 
         return parsedValue
+    }
+
+    private static func discardFieldSummaries(for set: ExerciseSet, weightInput: String, repsInput: String, rpeInput: String) -> [String] {
+        var summaries: [String] = []
+
+        if hasDraftFieldChanged(parsedValue: sanitizedInteger(from: weightInput, emptyValue: 0), rawInput: weightInput, currentValue: set.weight) {
+            summaries.append(
+                "weight (\(displayWeightText(weight: set.weight, exerciseCategory: set.exercise?.category)) → \(draftWeightText(weightInput, exerciseCategory: set.exercise?.category)))"
+            )
+        }
+
+        if hasDraftFieldChanged(parsedValue: sanitizedInteger(from: repsInput, emptyValue: 0), rawInput: repsInput, currentValue: set.reps) {
+            summaries.append("reps (\(displayRepsText(set.reps)) → \(draftRepsText(repsInput)))")
+        }
+
+        if hasDraftFieldChanged(parsedValue: sanitizedInteger(from: rpeInput, emptyValue: nil), rawInput: rpeInput, currentValue: set.displayRPE) {
+            summaries.append("RPE (\(displayRPEText(set.displayRPE)) → \(draftRPEText(rpeInput)))")
+        }
+
+        return summaries
+    }
+
+    private static func hasDraftFieldChanged(parsedValue: Int?, rawInput: String, currentValue: Int?) -> Bool {
+        if let parsedValue {
+            return parsedValue != currentValue
+        }
+
+        return !rawInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private static func draftWeightText(_ input: String, exerciseCategory: ExerciseCategory?) -> String {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmed.isEmpty else {
+            return "cleared"
+        }
+
+        guard let parsedWeight = Int(trimmed), parsedWeight >= 0 else {
+            return "“\(trimmed)”"
+        }
+
+        return displayWeightText(weight: parsedWeight, exerciseCategory: exerciseCategory)
+    }
+
+    private static func draftRepsText(_ input: String) -> String {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmed.isEmpty else {
+            return "cleared"
+        }
+
+        guard let parsedReps = Int(trimmed), parsedReps >= 0 else {
+            return "“\(trimmed)”"
+        }
+
+        return displayRepsText(parsedReps)
+    }
+
+    private static func draftRPEText(_ input: String) -> String {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmed.isEmpty else {
+            return "cleared"
+        }
+
+        guard let parsedRPE = Int(trimmed), parsedRPE >= 0 else {
+            return "“\(trimmed)”"
+        }
+
+        return String(parsedRPE)
+    }
+
+    private static func displayRPEText(_ rpe: Int?) -> String {
+        guard let rpe else {
+            return "blank"
+        }
+
+        return String(rpe)
+    }
+
+    private static func joinedDiscardFieldSummary(_ fields: [String]) -> String {
+        switch fields.count {
+        case 0:
+            return "changes"
+        case 1:
+            return fields[0] + " change"
+        case 2:
+            return fields[0] + " and " + fields[1] + " changes"
+        default:
+            let head = fields.dropLast().joined(separator: ", ")
+            return head + ", and " + fields.last! + " changes"
+        }
     }
     
     // MARK: - Helper Methods
