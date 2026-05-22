@@ -1,5 +1,6 @@
 # RPT
 
+- Settings reset confirmations now make the final destructive step explicit too: single-setting resets use titles like `Reset Rest Timer (135 sec)?` with a matching `Reset Rest Timer` button, while broader resets collapse to count-based copy like `Reset 4 Customized Settings?`, so the last tap stays specific without turning the alert chrome into a wall of text.
 - Settings reset confirmations now name the exact customized preferences that will be restored — for example `Dark Mode (Dark)`, `Rest Timer (135 sec)`, or `RPT weight drops (100%, 85%, 80%)` — so the app’s broadest destructive preference reset is easier to trust before users tap the final red button.
 - Active Workout set delete confirmations now spell out whether users are removing a logged working set, a logged warm-up set, or just an empty placeholder draft, and they call out recorded RPE when present, so mid-session cleanup is easier to trust than the older one-size-fits-all warning.
 - Settings now disables `Reset All Settings` when nothing is customized and swaps in an `already using defaults` footer, so the only red destructive control on the screen no longer invites a meaningless no-op reset.

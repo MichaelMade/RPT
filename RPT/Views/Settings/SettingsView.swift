@@ -127,9 +127,9 @@ struct SettingsView: View {
             } message: {
                 Text(viewModel.saveErrorMessage ?? "Your changes were not saved.")
             }
-            .alert("Reset All Settings?", isPresented: $showingResetConfirmation) {
+            .alert(viewModel.resetConfirmationTitle, isPresented: $showingResetConfirmation) {
                 Button("Cancel", role: .cancel) { }
-                Button("Reset Settings", role: .destructive) {
+                Button(viewModel.resetConfirmationButtonTitle, role: .destructive) {
                     viewModel.resetToDefaults()
                 }
             } message: {

@@ -96,6 +96,32 @@ class SettingsViewModel: ObservableObject {
             : "You’re already using the default display, timer, and RPT settings."
     }
 
+    var resetConfirmationTitle: String {
+        let customizedSettings = customizedSettingsSummaryParts
+
+        switch customizedSettings.count {
+        case 0:
+            return "Reset All Settings?"
+        case 1:
+            return "Reset \(customizedSettings[0])?"
+        default:
+            return "Reset \(customizedSettings.count) Customized Settings?"
+        }
+    }
+
+    var resetConfirmationButtonTitle: String {
+        let customizedSettingLabels = customizedSettingLabels
+
+        switch customizedSettingLabels.count {
+        case 0:
+            return "Reset Settings"
+        case 1:
+            return "Reset \(customizedSettingLabels[0])"
+        default:
+            return "Reset \(customizedSettingLabels.count) Settings"
+        }
+    }
+
     var resetConfirmationMessage: String {
         let customizedSettings = customizedSettingsSummaryParts
 
@@ -164,6 +190,28 @@ class SettingsViewModel: ObservableObject {
         var newDrops = defaultRPTPercentageDrops
         newDrops[index] = clampedValue / 100
         defaultRPTPercentageDrops = newDrops
+    }
+
+    private var customizedSettingLabels: [String] {
+        var labels: [String] = []
+
+        if darkModePreference != .system {
+            labels.append("Dark Mode")
+        }
+
+        if restTimerDuration != UserSettings.defaultRestTimerDuration {
+            labels.append("Rest Timer")
+        }
+
+        if showRPE != true {
+            labels.append("Show RPE Input")
+        }
+
+        if defaultRPTPercentageDrops != UserSettings.defaultRPTPercentageDrops {
+            labels.append("RPT Weight Drops")
+        }
+
+        return labels
     }
 
     private var customizedSettingsSummaryParts: [String] {

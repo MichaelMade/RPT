@@ -182,6 +182,8 @@ final class SettingsViewModelTests: XCTestCase {
             defaultsViewModel.resetSettingsFooterText,
             "You’re already using the default display, timer, and RPT settings."
         )
+        XCTAssertEqual(defaultsViewModel.resetConfirmationTitle, "Reset All Settings?")
+        XCTAssertEqual(defaultsViewModel.resetConfirmationButtonTitle, "Reset Settings")
         XCTAssertEqual(
             defaultsViewModel.resetConfirmationMessage,
             "This will restore your display, timer, and RPT defaults. Your saved workouts, templates, and exercises will stay untouched."
@@ -193,6 +195,8 @@ final class SettingsViewModelTests: XCTestCase {
             settingsManager: MockSettingsManager(settings: UserSettings(restTimerDuration: 135))
         )
 
+        XCTAssertEqual(customizedViewModel.resetConfirmationTitle, "Reset Rest Timer (135 sec)?")
+        XCTAssertEqual(customizedViewModel.resetConfirmationButtonTitle, "Reset Rest Timer")
         XCTAssertEqual(
             customizedViewModel.resetConfirmationMessage,
             "This will reset Rest Timer (135 sec) to its default value. Your saved workouts, templates, and exercises will stay untouched."
@@ -207,6 +211,8 @@ final class SettingsViewModelTests: XCTestCase {
 
         let customizedViewModel = SettingsViewModel(settingsManager: MockSettingsManager(settings: customizedSettings))
 
+        XCTAssertEqual(customizedViewModel.resetConfirmationTitle, "Reset 4 Customized Settings?")
+        XCTAssertEqual(customizedViewModel.resetConfirmationButtonTitle, "Reset 4 Settings")
         XCTAssertEqual(
             customizedViewModel.resetConfirmationMessage,
             "This will reset Dark Mode (Dark), Rest Timer (135 sec), Show RPE Input (Off), and RPT weight drops (100%, 85%, 80%) to their default values. Your saved workouts, templates, and exercises will stay untouched."
