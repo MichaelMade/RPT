@@ -302,6 +302,7 @@ RPT/
 
 ## Recent Improvements
 
+- Renaming a custom exercise now also updates matching template references behind the scenes, so templates that already used that movement keep starting normally instead of suddenly treating the renamed exercise as missing; added regression coverage in `ExerciseManagerTests`.
 - Active Workout persistence failures now name the exact workout or exercise when possible (`Couldn’t Save “Upper A”`, `Couldn’t Complete “Upper A”`, `Couldn’t Delete “Bench Press”`) instead of collapsing every error into a generic `Workout Action Failed` alert, so recovery is clearer during a live session; added regression coverage in `ActiveWorkoutViewModelTests`.
 - Active Workout destructive copy now names the exact draft or set target where it matters, including `Discard “Upper A”` for draft teardown and set-editor labels like `Delete Set 185 lb × 8 reps`, so in-progress cleanup is clearer and safer for VoiceOver users; added regression coverage in `ActiveWorkoutViewModelTests` and `FormattingTests`.
 - Templates tab single-result `Quick Actions` now uses the same exact `Continue “…”`, `Save & Start Template “…”`, and `Discard & Start Template “…”` wording as Template Details and workout history, so blocked template starts stay explicit about the current draft and selected plan instead of falling back to vaguer `Resume Current Workout` / `Open` copy; validated with `git diff --check` plus targeted source inspection.

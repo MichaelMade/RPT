@@ -250,12 +250,24 @@ class ExerciseManager {
         let originalPrimaryMuscles = exercise.primaryMuscleGroups
         let originalSecondaryMuscles = exercise.secondaryMuscleGroups
         let originalInstructions = exercise.instructions
+        let referencedTemplates = fetchAllTemplatesReferencingExercise(named: originalName)
+        let originalTemplateExercisesById = Dictionary(
+            uniqueKeysWithValues: referencedTemplates.map { ($0.id, $0.exercises) }
+        )
 
         exercise.name = sanitizedName
         exercise.category = category
         exercise.primaryMuscleGroups = primaryMuscleGroups
         exercise.secondaryMuscleGroups = secondaryMuscleGroups
         exercise.instructions = instructions
+
+        if !Self.namesCollide(originalName, sanitizedName) || originalName != sanitizedName {
+            propagateExerciseRename(
+                from: originalName,
+                to: sanitizedName,
+                across: referencedTemplates
+            )
+        }
 
         do {
             try dataManager.saveChanges()
@@ -266,6 +278,10 @@ class ExerciseManager {
             exercise.primaryMuscleGroups = originalPrimaryMuscles
             exercise.secondaryMuscleGroups = originalSecondaryMuscles
             exercise.instructions = originalInstructions
+            restoreTemplateExercises(
+                from: originalTemplateExercisesById,
+                across: referencedTemplates
+            )
             return .persistenceFailure
         }
     }
@@ -332,6 +348,37 @@ class ExerciseManager {
             template.exercises.contains { templateExercise in
                 Self.namesCollide(templateExercise.exerciseName, exerciseName)
             }
+        }
+    }
+
+    private func propagateExerciseRename(
+        from originalName: String,
+        to updatedName: String,
+        across templates: [WorkoutTemplate]
+    ) {
+        for template in templates {
+            template.exercises = template.exercises.map { templateExercise in
+                guard Self.namesCollide(templateExercise.exerciseName, originalName) else {
+                    return templateExercise
+                }
+
+                var updatedExercise = templateExercise
+                updatedExercise.exerciseName = TemplateExercise.normalizedDisplayName(updatedName)
+                return updatedExercise
+            }
+        }
+    }
+
+    private func restoreTemplateExercises(
+        from originalExercisesByTemplateId: [String: [TemplateExercise]],
+        across templates: [WorkoutTemplate]
+    ) {
+        for template in templates {
+            guard let originalExercises = originalExercisesByTemplateId[template.id] else {
+                continue
+            }
+
+            template.exercises = originalExercises
         }
     }
 

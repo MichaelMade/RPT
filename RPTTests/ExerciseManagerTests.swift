@@ -108,4 +108,53 @@ final class ExerciseManagerTests: XCTestCase {
             "This exercise could not be deleted right now. Please try again."
         )
     }
+
+    func testUpdateExercise_renamesMatchingTemplateReferences() throws {
+        let context = DataManager.shared.getModelContext()
+        let exercise = Exercise(
+            name: "Garage Dip",
+            category: .bodyweight,
+            primaryMuscleGroups: [.triceps],
+            secondaryMuscleGroups: [.chest],
+            instructions: ""
+        )
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                TemplateExercise(
+                    exerciseName: "  garage\n dip  ",
+                    suggestedSets: 3,
+                    repRanges: [],
+                    notes: ""
+                )
+            ],
+            notes: ""
+        )
+
+        context.insert(exercise)
+        context.insert(template)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(template)
+            context.delete(exercise)
+            try? context.save()
+        }
+
+        let result = ExerciseManager.shared.updateExercise(
+            exercise,
+            name: "Ring Dip",
+            category: .bodyweight,
+            primaryMuscleGroups: [.triceps],
+            secondaryMuscleGroups: [.chest],
+            instructions: ""
+        )
+
+        XCTAssertEqual(result, .success)
+        XCTAssertEqual(template.exercises.map(\.exerciseName), ["Ring Dip"])
+        XCTAssertEqual(
+            TemplateManager.shared.unavailableExerciseNames(in: template),
+            [],
+            "Renaming a custom exercise should not leave existing templates pointing at the stale name"
+        )
+    }
 }
