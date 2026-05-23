@@ -184,7 +184,7 @@ struct TemplateEditView: View {
             return "Discard “\(displayName)”"
         }
 
-        return isNewTemplate ? "Discard New Template" : "Discard Changes"
+        return isNewTemplate ? "Discard New Template" : "Discard Template Changes"
     }
 
     private static func specificTemplateDisplayName(_ rawTemplateName: String) -> String? {

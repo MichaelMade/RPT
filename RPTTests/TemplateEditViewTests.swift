@@ -30,6 +30,13 @@ final class TemplateEditViewTests: XCTestCase {
         )
     }
 
+    func testDiscardAlertActionTitle_fallsBackForBlankExistingTemplates() {
+        XCTAssertEqual(
+            TemplateEditView.discardAlertActionTitle(isNewTemplate: false, templateName: " \n\t "),
+            "Discard Template Changes"
+        )
+    }
+
     func testDiscardAlertTitles_useTemplateDisplayNameNormalizationForLongDrafts() {
         let longName = String(repeating: "Upper A ", count: 20)
         let expectedDisplayName = WorkoutTemplate.normalizedDisplayName(longName)
