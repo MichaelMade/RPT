@@ -51,15 +51,15 @@ struct AddExerciseView: View {
     let onExerciseSaved: ((String) -> Void)?
 
     static func navigationTitle(for rawExerciseName: String, context: CreationContext = .library) -> String {
-        let displayName = ExerciseManager.sanitizeExerciseName(rawExerciseName)
+        let displayName = Exercise.specificDisplayName(rawExerciseName)
 
         switch context {
         case .library:
-            return displayName.isEmpty ? "Add Exercise" : "Add “\(displayName)”"
+            return displayName.map { "Add “\($0)”" } ?? "Add Exercise"
         case .workout:
-            return displayName.isEmpty ? "Add Exercise to Workout" : "Add “\(displayName)” to Workout"
+            return displayName.map { "Add “\($0)” to Workout" } ?? "Add Exercise to Workout"
         case .template:
-            return displayName.isEmpty ? "Add Exercise to Template" : "Add “\(displayName)” to Template"
+            return displayName.map { "Add “\($0)” to Template" } ?? "Add Exercise to Template"
         }
     }
 
