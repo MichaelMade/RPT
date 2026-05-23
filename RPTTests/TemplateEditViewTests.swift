@@ -86,7 +86,7 @@ final class TemplateEditViewTests: XCTestCase {
         )
         XCTAssertEqual(
             TemplateExerciseEditView.discardAlertActionTitle(for: " \n\t "),
-            "Discard Changes"
+            "Discard Exercise Changes"
         )
     }
 

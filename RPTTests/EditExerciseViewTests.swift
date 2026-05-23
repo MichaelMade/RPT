@@ -182,6 +182,24 @@ final class EditExerciseViewTests: XCTestCase {
         )
     }
 
+    func testDiscardAlertActionTitle_fallsBackGracefullyForBlankLegacyExerciseNames() {
+        let exercise = Exercise(
+            name: " \n\t ",
+            category: .bodyweight,
+            primaryMuscleGroups: [.triceps],
+            secondaryMuscleGroups: [.chest],
+            instructions: ""
+        )
+
+        XCTAssertEqual(
+            EditExerciseView.discardAlertActionTitle(
+                for: " \n\t ",
+                fallbackExercise: exercise
+            ),
+            "Discard Exercise Changes"
+        )
+    }
+
     func testDiscardAlertMessage_usesFallbackCopyWhenNoSpecificFieldsChanged() {
         XCTAssertEqual(
             EditExerciseView.discardAlertMessage(changedFields: []),

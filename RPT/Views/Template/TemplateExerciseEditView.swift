@@ -92,7 +92,7 @@ struct TemplateExerciseEditView: View {
     static func discardAlertActionTitle(for exerciseName: String) -> String {
         let displayName = TemplateExercise.normalizedDisplayName(exerciseName)
         return displayName == "Unnamed Exercise"
-            ? "Discard Changes"
+            ? "Discard Exercise Changes"
             : "Discard “\(displayName)”"
     }
 

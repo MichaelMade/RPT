@@ -1,5 +1,6 @@
 # RPT
 
+- Edit Exercise and Template Exercise discard confirmations now keep their fallback destructive button contextual too (`Discard Exercise Changes`) when a legacy movement name is blank, so those editor exits no longer drop back to a vaguer generic `Discard Changes` label right at the final destructive tap.
 - Active Workout set-edit discard alerts now keep their final destructive button as specific as the alert title (`Discard Set Changes to 185 lb × 8 reps`, `Discard Warm-up Set Changes to BW × 10 reps`), so the last confirmation tap stays explicit instead of falling back to a vague generic `Discard Changes` label.
 - Add Custom Exercise titles now stay generic until there is a real draft name, so blank create flows no longer open under awkward placeholder headers like `Add “Exercise”`, `Add “Exercise” to Workout`, or `Add “Exercise” to Template` before the user has named anything.
 - Exercise Library delete confirmations now also call out overflow template impact more honestly (`It will also leave 4 templates (including “Push Day”, “Upper A”, and 2 more)...`) instead of only naming the first couple, so destructive library cleanup stays clearer before you orphan several routines that still depend on that custom movement.

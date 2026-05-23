@@ -64,7 +64,7 @@ struct EditExerciseView: View {
 
     static func discardAlertActionTitle(for rawExerciseName: String, fallbackExercise: Exercise) -> String {
         guard let displayName = Exercise.specificDisplayName(rawExerciseName) ?? fallbackExercise.specificDisplayName else {
-            return "Discard Changes"
+            return "Discard Exercise Changes"
         }
 
         return "Discard “\(displayName)”"
