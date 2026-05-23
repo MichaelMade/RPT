@@ -644,8 +644,15 @@ class ExerciseLibraryViewModel: ObservableObject {
 
         if impact.loggedSetCount > 0 {
             let setLabel = impact.loggedSetCount == 1 ? "logged set" : "logged sets"
-            let workoutLabel = impact.workoutCount == 1 ? "workout" : "workouts"
-            sentences.append("\(targetDescription) will remove \(impact.loggedSetCount) \(setLabel) from \(impact.workoutCount) \(workoutLabel)")
+            let workoutLabel = impact.loggedWorkoutCount == 1 ? "workout" : "workouts"
+            sentences.append("\(targetDescription) will remove \(impact.loggedSetCount) \(setLabel) from \(impact.loggedWorkoutCount) \(workoutLabel)")
+        }
+
+        if impact.draftSetCount > 0 {
+            let setLabel = impact.draftSetCount == 1 ? "draft set" : "draft sets"
+            let workoutLabel = impact.draftWorkoutCount == 1 ? "in-progress workout" : "in-progress workouts"
+            let prefix = impact.loggedSetCount > 0 ? "It will also remove" : "\(targetDescription) will remove"
+            sentences.append("\(prefix) \(impact.draftSetCount) unlogged \(setLabel) from \(impact.draftWorkoutCount) \(workoutLabel)")
         }
 
         if impact.templateCount > 0 {

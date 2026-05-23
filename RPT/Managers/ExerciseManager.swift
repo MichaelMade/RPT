@@ -13,11 +13,13 @@ import SwiftData
 class ExerciseManager {
     struct DeletionImpact: Equatable {
         let loggedSetCount: Int
-        let workoutCount: Int
+        let loggedWorkoutCount: Int
+        let draftSetCount: Int
+        let draftWorkoutCount: Int
         let templateCount: Int
 
         var hasImpactDetails: Bool {
-            loggedSetCount > 0 || workoutCount > 0 || templateCount > 0
+            loggedSetCount > 0 || draftSetCount > 0 || templateCount > 0
         }
     }
 
@@ -305,13 +307,18 @@ class ExerciseManager {
     }
 
     func deletionImpact(for exercise: Exercise) -> DeletionImpact {
-        let loggedSets = exercise.sets.filter { $0.workout != nil }
-        let workoutCount = Set(loggedSets.compactMap { $0.workout?.persistentModelID }).count
+        let workoutSets = exercise.sets.filter { $0.workout != nil }
+        let loggedSets = workoutSets.filter(\.isCompletedLoggedSet)
+        let draftSets = workoutSets.filter { !$0.isCompletedLoggedSet }
+        let loggedWorkoutCount = Set(loggedSets.compactMap { $0.workout?.persistentModelID }).count
+        let draftWorkoutCount = Set(draftSets.compactMap { $0.workout?.persistentModelID }).count
         let templateCount = fetchAllTemplatesReferencingExercise(named: exercise.name).count
 
         return DeletionImpact(
             loggedSetCount: loggedSets.count,
-            workoutCount: workoutCount,
+            loggedWorkoutCount: loggedWorkoutCount,
+            draftSetCount: draftSets.count,
+            draftWorkoutCount: draftWorkoutCount,
             templateCount: templateCount
         )
     }

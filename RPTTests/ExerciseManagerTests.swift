@@ -157,4 +157,53 @@ final class ExerciseManagerTests: XCTestCase {
             "Renaming a custom exercise should not leave existing templates pointing at the stale name"
         )
     }
+
+    func testDeletionImpact_countsLoggedDraftAndTemplateUsageSeparately() throws {
+        let context = DataManager.shared.getModelContext()
+        let exercise = Exercise(
+            name: "Garage Dip",
+            category: .bodyweight,
+            primaryMuscleGroups: [.triceps],
+            secondaryMuscleGroups: [.chest],
+            instructions: "",
+            isCustom: true
+        )
+        let loggedWorkout = Workout(name: "Logged Push", isCompleted: true)
+        let draftWorkout = Workout(name: "Draft Push")
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                TemplateExercise(
+                    exerciseName: "Garage Dip",
+                    suggestedSets: 3,
+                    repRanges: [],
+                    notes: ""
+                )
+            ],
+            notes: ""
+        )
+
+        context.insert(exercise)
+        context.insert(loggedWorkout)
+        context.insert(draftWorkout)
+        context.insert(template)
+        _ = loggedWorkout.addSet(exercise: exercise, weight: 0, reps: 12, isWarmup: true)
+        _ = loggedWorkout.addSet(exercise: exercise, weight: 45, reps: 8)
+        _ = draftWorkout.addSet(exercise: exercise, weight: 0, reps: 0)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(template)
+            context.delete(draftWorkout)
+            context.delete(loggedWorkout)
+            context.delete(exercise)
+            try? context.save()
+        }
+
+        let impact = ExerciseManager.shared.deletionImpact(for: exercise)
+
+        XCTAssertEqual(
+            impact,
+            .init(loggedSetCount: 2, loggedWorkoutCount: 1, draftSetCount: 1, draftWorkoutCount: 1, templateCount: 1)
+        )
+    }
 }

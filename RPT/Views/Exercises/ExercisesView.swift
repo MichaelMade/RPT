@@ -17,7 +17,7 @@ struct ExercisesView: View {
     @State private var createExercisePrefillName = ""
     @State private var exerciseToEdit: Exercise?
     @State private var exerciseToDelete: Exercise?
-    @State private var exerciseDeletionImpact = ExerciseManager.DeletionImpact(loggedSetCount: 0, workoutCount: 0, templateCount: 0)
+    @State private var exerciseDeletionImpact = ExerciseManager.DeletionImpact(loggedSetCount: 0, loggedWorkoutCount: 0, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 0)
     @State private var showingDeleteConfirmation = false
     @State private var deleteResult: ExerciseManager.DeletionResult?
     @State private var failedExerciseDeletionTarget: Exercise?
