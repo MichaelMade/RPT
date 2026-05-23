@@ -239,7 +239,20 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.deleteExerciseButtonTitle(for: blankExercise), "Delete Exercise")
         XCTAssertEqual(
             viewModel.deleteExerciseMessage(for: blankExercise),
-            "Are you sure you want to remove this exercise from the workout? This will remove 1 set from the workout, including 1 logged set."
+            "Are you sure you want to remove this exercise from the workout? This will remove 1 set from the workout, including 1 logged warm-up set."
+        )
+    }
+
+    func testDeleteExerciseCopySeparatesWorkingAndWarmupLoggedSetImpact() {
+        let workout = workoutManager.createWorkout(name: "Pull")
+        let exercise = Exercise(name: "Lat Pulldown", category: .compound, primaryMuscleGroups: [.back])
+        _ = workout.addSet(exercise: exercise, weight: 45, reps: 12, isWarmup: true)
+        _ = workout.addSet(exercise: exercise, weight: 140, reps: 8)
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(
+            viewModel.deleteExerciseMessage(for: exercise),
+            "Are you sure you want to remove “Lat Pulldown” from this workout? This will remove 2 sets from the workout, including 1 logged working set and 1 logged warm-up set."
         )
     }
 
@@ -763,7 +776,20 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard “Upper A”")
         XCTAssertEqual(
             viewModel.discardWorkoutMessage(),
-            "Discard Upper A? This will remove 1 exercise and 2 sets from this draft, including 2 logged sets. This action cannot be undone."
+            "Discard Upper A? This will remove 1 exercise and 2 sets from this draft, including 1 logged working set and 1 logged warm-up set. This action cannot be undone."
+        )
+    }
+
+    func testDiscardWorkoutCopy_callsOutWarmupOnlyDrafts() {
+        let workout = workoutManager.createWorkout(name: "Recovery")
+        let mobility = Exercise(name: "Band Pull-Apart", category: .bodyweight, primaryMuscleGroups: [.shoulders])
+        _ = workout.addSet(exercise: mobility, weight: 0, reps: 20, isWarmup: true)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(
+            viewModel.discardWorkoutMessage(),
+            "Discard Recovery? This will remove 1 exercise and 1 set from this draft, including 1 logged warm-up set. This action cannot be undone."
         )
     }
 

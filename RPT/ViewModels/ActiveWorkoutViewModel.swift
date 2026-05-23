@@ -110,7 +110,6 @@ class ActiveWorkoutViewModel: ObservableObject {
     private func discardWorkoutImpactSummary() -> String {
         let exerciseCount = workout.exerciseCount
         let setCount = workout.sets.count
-        let loggedSetCount = workout.sets.filter(\.isCompletedLoggedSet).count
 
         guard exerciseCount > 0 || setCount > 0 else {
             return "This draft has no exercises yet, but it will still be removed."
@@ -118,8 +117,8 @@ class ActiveWorkoutViewModel: ObservableObject {
 
         var summary = "This will remove \(exerciseCount) \(exerciseCount == 1 ? \"exercise\" : \"exercises\") and \(setCount) \(setCount == 1 ? \"set\" : \"sets\") from this draft"
 
-        if loggedSetCount > 0 {
-            summary += ", including \(loggedSetCount) logged \(loggedSetCount == 1 ? \"set\" : \"sets\")"
+        if let loggedSetSummary = loggedSetBreakdownSummary(for: workout.sets) {
+            summary += ", including \(loggedSetSummary)"
         }
 
         return summary + "."
@@ -227,15 +226,43 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
 
         let totalSetCount = matchingSets.count
-        let loggedSetCount = matchingSets.filter(\.isCompletedLoggedSet).count
         let totalSetSummary = totalSetCount == 1 ? "1 set" : "\(totalSetCount) sets"
 
-        guard loggedSetCount > 0 else {
+        guard let loggedSetSummary = loggedSetBreakdownSummary(for: matchingSets) else {
             return "This will remove \(totalSetSummary) from the workout."
         }
 
-        let loggedSetSummary = loggedSetCount == 1 ? "1 logged set" : "\(loggedSetCount) logged sets"
         return "This will remove \(totalSetSummary) from the workout, including \(loggedSetSummary)."
+    }
+
+    private func loggedSetBreakdownSummary(for sets: [ExerciseSet]) -> String? {
+        let loggedSets = sets.filter(\.isCompletedLoggedSet)
+
+        guard !loggedSets.isEmpty else {
+            return nil
+        }
+
+        let warmupCount = loggedSets.filter(\.isWarmup).count
+        let workingCount = loggedSets.count - warmupCount
+
+        if warmupCount == 0 {
+            return workingCount == 1 ? "1 logged set" : "\(workingCount) logged sets"
+        }
+
+        if workingCount == 0 {
+            return warmupCount == 1
+                ? "1 logged warm-up set"
+                : "\(warmupCount) logged warm-up sets"
+        }
+
+        let workingSummary = workingCount == 1
+            ? "1 logged working set"
+            : "\(workingCount) logged working sets"
+        let warmupSummary = warmupCount == 1
+            ? "1 logged warm-up set"
+            : "\(warmupCount) logged warm-up sets"
+
+        return "\(workingSummary) and \(warmupSummary)"
     }
     
     init(workout: Workout, workoutManager: WorkoutManager? = nil, exerciseManager: ExerciseManager? = nil, settingsManager: SettingsManager? = nil) {

@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout discard/remove confirmations now distinguish logged working sets from logged warm-up sets (`including 1 logged working set and 1 logged warm-up set`, `including 1 logged warm-up set`), so destructive workout cleanup tells the truth about exactly what training data would be lost.
 - Settings reset failures now stay specific too: if restoring defaults fails, the error alert names the exact preference or preferences that stayed unchanged (`Couldn’t Reset Rest Timer`, `Couldn’t Reset 4 Settings`, etc.), so the app’s only destructive settings flow no longer falls back to a vague generic failure.
 - New/Edit Template discard confirmations now name the exact unsaved template changes they would throw away — for example `name`, `exercise list`, `planned sets or rep targets`, and `exercise notes` — so backing out of longer routine edits is easier to trust than the older generic warning.
 - Follow-up restart confirmations from Home, Workout Details, and Exercise Details now summarize the saved source session too (`Source session: 2 exercises • 2 sets.` / `Warm-up sets only.`), so replacing an in-progress workout is less ambiguous when several similar history entries are in play.
