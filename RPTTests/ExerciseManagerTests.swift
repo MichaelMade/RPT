@@ -203,7 +203,16 @@ final class ExerciseManagerTests: XCTestCase {
 
         XCTAssertEqual(
             impact,
-            .init(loggedSetCount: 2, loggedWorkingSetCount: 1, loggedWarmupSetCount: 1, loggedWorkoutCount: 1, draftSetCount: 1, draftWorkoutCount: 1, templateCount: 1)
+            .init(
+                loggedSetCount: 2,
+                loggedWorkingSetCount: 1,
+                loggedWarmupSetCount: 1,
+                loggedWorkoutCount: 1,
+                draftSetCount: 1,
+                draftWorkoutCount: 1,
+                templateCount: 1,
+                templateNames: ["Push Day"]
+            )
         )
     }
 }

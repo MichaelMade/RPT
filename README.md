@@ -1,5 +1,6 @@
 # RPT
 
+- Exercise Library delete confirmations now also name the specific affected template when possible (`It will also leave 1 template (“Push Day”)...`) and summarize the first couple when several will break, so destructive library cleanup is clearer before you orphan routines that still depend on that custom movement.
 - Exercise Library delete confirmations now break logged history loss into working vs warm-up sets too (`including 3 logged working sets and 2 logged warm-up sets`, `including 2 logged warm-up sets`), so removing a custom movement tells the truth about whether you are wiping real training work, warm-up data, or both.
 - Exercise Library delete confirmations now also warn about unlogged draft usage in live workouts (`It will also remove 3 unlogged draft sets from 1 in-progress workout.`), so deleting a custom movement from the library no longer understates the damage when that lift is still sitting inside an unfinished session.
 - Active Workout discard/remove confirmations now distinguish logged working sets from logged warm-up sets (`including 1 logged working set and 1 logged warm-up set`, `including 1 logged warm-up set`), so destructive workout cleanup tells the truth about exactly what training data would be lost.

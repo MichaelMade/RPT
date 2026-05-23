@@ -660,11 +660,36 @@ class ExerciseLibraryViewModel: ObservableObject {
         if impact.templateCount > 0 {
             let templateLabel = impact.templateCount == 1 ? "template" : "templates"
             let referenceVerb = impact.templateCount == 1 ? "references" : "reference"
-            sentences.append("\(impact.templateCount) \(templateLabel) still \(referenceVerb) it and will skip it when started until you replace or remove it")
+            let templatePrefix = templateReferenceSummary(for: impact)
+                .map { "\(impact.templateCount) \(templateLabel) (\($0))" }
+                ?? "\(impact.templateCount) \(templateLabel)"
+            let sentencePrefix = (impact.loggedSetCount > 0 || impact.draftSetCount > 0)
+                ? "It will also leave"
+                : "\(targetDescription) will leave"
+            sentences.append("\(sentencePrefix) \(templatePrefix) that still \(referenceVerb) it and will skip it when started until you replace or remove it")
         }
 
         return sentences.joined(separator: ". ") + "."
     }
+
+    private static func templateReferenceSummary(for impact: ExerciseManager.DeletionImpact) -> String? {
+        let displayNames = impact.templateNames.filter { !$0.isEmpty }
+
+        guard !displayNames.isEmpty else {
+            return nil
+        }
+
+        if displayNames.count == 1 {
+            return "“\(displayNames[0])”"
+        }
+
+        if displayNames.count == 2 {
+            return "“\(displayNames[0])” and “\(displayNames[1])”"
+        }
+
+        return "including “\(displayNames[0])” and “\(displayNames[1])”"
+    }
+
 
     private static func loggedDeletionBreakdown(for impact: ExerciseManager.DeletionImpact) -> String? {
         let workingCount = impact.loggedWorkingSetCount

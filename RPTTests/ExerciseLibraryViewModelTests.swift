@@ -748,7 +748,7 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertEqual(
             ExerciseLibraryViewModel.deletionConfirmationMessage(
                 for: nil,
-                impact: .init(loggedSetCount: 0, loggedWorkingSetCount: 0, loggedWarmupSetCount: 0, loggedWorkoutCount: 0, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 0)
+                impact: .init(loggedSetCount: 0, loggedWorkingSetCount: 0, loggedWarmupSetCount: 0, loggedWorkoutCount: 0, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 0, templateNames: [])
             ),
             "Deleting this exercise cannot be undone."
         )
@@ -765,9 +765,9 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertEqual(
             ExerciseLibraryViewModel.deletionConfirmationMessage(
                 for: exercise,
-                impact: .init(loggedSetCount: 5, loggedWorkingSetCount: 3, loggedWarmupSetCount: 2, loggedWorkoutCount: 2, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 1)
+                impact: .init(loggedSetCount: 5, loggedWorkingSetCount: 3, loggedWarmupSetCount: 2, loggedWorkoutCount: 2, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 1, templateNames: ["Push Day"])
             ),
-            "Deleting “Garage Dip” will remove 5 logged sets from 2 workouts, including 3 logged working sets and 2 logged warm-up sets. 1 template still references it and will skip it when started until you replace or remove it."
+            "Deleting “Garage Dip” will remove 5 logged sets from 2 workouts, including 3 logged working sets and 2 logged warm-up sets. It will also leave 1 template (“Push Day”) that still references it and will skip it when started until you replace or remove it."
         )
     }
 
@@ -782,7 +782,7 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertEqual(
             ExerciseLibraryViewModel.deletionConfirmationMessage(
                 for: blankExercise,
-                impact: .init(loggedSetCount: 1, loggedWorkingSetCount: 1, loggedWarmupSetCount: 0, loggedWorkoutCount: 1, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 0)
+                impact: .init(loggedSetCount: 1, loggedWorkingSetCount: 1, loggedWarmupSetCount: 0, loggedWorkoutCount: 1, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 0, templateNames: [])
             ),
             "Deleting this exercise will remove 1 logged set from 1 workout, including 1 logged working set."
         )
@@ -799,9 +799,26 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertEqual(
             ExerciseLibraryViewModel.deletionConfirmationMessage(
                 for: exercise,
-                impact: .init(loggedSetCount: 2, loggedWorkingSetCount: 0, loggedWarmupSetCount: 2, loggedWorkoutCount: 1, draftSetCount: 3, draftWorkoutCount: 1, templateCount: 0)
+                impact: .init(loggedSetCount: 2, loggedWorkingSetCount: 0, loggedWarmupSetCount: 2, loggedWorkoutCount: 1, draftSetCount: 3, draftWorkoutCount: 1, templateCount: 0, templateNames: [])
             ),
             "Deleting “Garage Dip” will remove 2 logged sets from 1 workout, including 2 logged warm-up sets. It will also remove 3 unlogged draft sets from 1 in-progress workout."
+        )
+    }
+
+    func testDeletionConfirmationMessage_namesMultipleReferencingTemplatesWhenNeeded() {
+        let exercise = Exercise(
+            name: "Garage Dip",
+            category: .bodyweight,
+            primaryMuscleGroups: [.chest],
+            isCustom: true
+        )
+
+        XCTAssertEqual(
+            ExerciseLibraryViewModel.deletionConfirmationMessage(
+                for: exercise,
+                impact: .init(loggedSetCount: 0, loggedWorkingSetCount: 0, loggedWarmupSetCount: 0, loggedWorkoutCount: 0, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 3, templateNames: ["Push Day", "Upper A", "Upper B"])
+            ),
+            "Deleting “Garage Dip” will leave 3 templates (including “Push Day” and “Upper A”) that still reference it and will skip it when started until you replace or remove it."
         )
     }
 

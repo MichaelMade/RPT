@@ -19,6 +19,7 @@ class ExerciseManager {
         let draftSetCount: Int
         let draftWorkoutCount: Int
         let templateCount: Int
+        let templateNames: [String]
 
         var hasImpactDetails: Bool {
             loggedSetCount > 0 || draftSetCount > 0 || templateCount > 0
@@ -316,7 +317,12 @@ class ExerciseManager {
         let draftSets = workoutSets.filter { !$0.isCompletedLoggedSet }
         let loggedWorkoutCount = Set(loggedSets.compactMap { $0.workout?.persistentModelID }).count
         let draftWorkoutCount = Set(draftSets.compactMap { $0.workout?.persistentModelID }).count
-        let templateCount = fetchAllTemplatesReferencingExercise(named: exercise.name).count
+        let referencingTemplates = fetchAllTemplatesReferencingExercise(named: exercise.name)
+        let templateNames = referencingTemplates
+            .map { WorkoutTemplate.normalizedDisplayName($0.name) }
+            .sorted { lhs, rhs in
+                Self.normalizedNameLookupKey(lhs) < Self.normalizedNameLookupKey(rhs)
+            }
 
         return DeletionImpact(
             loggedSetCount: loggedSets.count,
@@ -325,7 +331,8 @@ class ExerciseManager {
             loggedWorkoutCount: loggedWorkoutCount,
             draftSetCount: draftSets.count,
             draftWorkoutCount: draftWorkoutCount,
-            templateCount: templateCount
+            templateCount: referencingTemplates.count,
+            templateNames: templateNames
         )
     }
     
