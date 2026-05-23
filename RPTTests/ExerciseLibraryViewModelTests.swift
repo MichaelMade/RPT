@@ -818,7 +818,7 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
                 for: exercise,
                 impact: .init(loggedSetCount: 0, loggedWorkingSetCount: 0, loggedWarmupSetCount: 0, loggedWorkoutCount: 0, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 3, templateNames: ["Push Day", "Upper A", "Upper B"])
             ),
-            "Deleting “Garage Dip” will leave 3 templates (including “Push Day” and “Upper A”) that still reference it and will skip it when started until you replace or remove it."
+            "Deleting “Garage Dip” will leave 3 templates (including “Push Day”, “Upper A”, and 1 more) that still reference it and will skip it when started until you replace or remove it."
         )
     }
 

@@ -687,7 +687,12 @@ class ExerciseLibraryViewModel: ObservableObject {
             return "“\(displayNames[0])” and “\(displayNames[1])”"
         }
 
-        return "including “\(displayNames[0])” and “\(displayNames[1])”"
+        let additionalCount = displayNames.count - 2
+        let additionalSummary = additionalCount == 1
+            ? "1 more"
+            : "\(additionalCount) more"
+
+        return "including “\(displayNames[0])”, “\(displayNames[1])”, and \(additionalSummary)"
     }
 
 
