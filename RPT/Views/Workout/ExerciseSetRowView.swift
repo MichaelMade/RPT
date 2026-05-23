@@ -265,7 +265,7 @@ struct ExerciseSetRowView: View {
         }
         .alert(Self.discardChangesAlertTitle(for: set), isPresented: $showingDiscardChangesAlert) {
             Button("Keep Editing", role: .cancel) {}
-            Button("Discard Changes", role: .destructive) {
+            Button(Self.discardChangesAlertActionTitle(for: set), role: .destructive) {
                 showingDiscardChangesAlert = false
                 isEditing = false
             }
@@ -333,18 +333,22 @@ struct ExerciseSetRowView: View {
         return "This set will be removed from the current workout."
     }
 
-    static func discardChangesAlertTitle(for set: ExerciseSet) -> String {
+    static func discardChangesAlertActionTitle(for set: ExerciseSet) -> String {
         let prefix = set.isWarmup ? "Discard Warm-up Set Changes" : "Discard Set Changes"
         let hasMeaningfulLoad = set.weight > 0 || set.exercise?.category == .bodyweight
         let hasMeaningfulReps = set.reps > 0
 
         guard hasMeaningfulLoad || hasMeaningfulReps else {
-            return "\(prefix)?"
+            return prefix
         }
 
         let weightText = displayWeightText(weight: set.weight, exerciseCategory: set.exercise?.category)
         let repsText = displayRepsText(set.reps)
-        return "\(prefix) to \(weightText) × \(repsText)?"
+        return "\(prefix) to \(weightText) × \(repsText)"
+    }
+
+    static func discardChangesAlertTitle(for set: ExerciseSet) -> String {
+        "\(discardChangesAlertActionTitle(for: set))?"
     }
 
     static func discardChangesAlertMessage(for set: ExerciseSet, weightInput: String, repsInput: String, rpeInput: String) -> String {

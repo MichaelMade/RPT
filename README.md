@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout set-edit discard alerts now keep their final destructive button as specific as the alert title (`Discard Set Changes to 185 lb × 8 reps`, `Discard Warm-up Set Changes to BW × 10 reps`), so the last confirmation tap stays explicit instead of falling back to a vague generic `Discard Changes` label.
 - Add Custom Exercise titles now stay generic until there is a real draft name, so blank create flows no longer open under awkward placeholder headers like `Add “Exercise”`, `Add “Exercise” to Workout`, or `Add “Exercise” to Template` before the user has named anything.
 - Exercise Library delete confirmations now also call out overflow template impact more honestly (`It will also leave 4 templates (including “Push Day”, “Upper A”, and 2 more)...`) instead of only naming the first couple, so destructive library cleanup stays clearer before you orphan several routines that still depend on that custom movement.
 - Exercise Library delete confirmations now break logged history loss into working vs warm-up sets too (`including 3 logged working sets and 2 logged warm-up sets`, `including 2 logged warm-up sets`), so removing a custom movement tells the truth about whether you are wiping real training work, warm-up data, or both.

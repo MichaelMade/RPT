@@ -248,6 +248,10 @@ final class FormattingTests: XCTestCase {
         let set = ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: workout)
 
         XCTAssertEqual(
+            ExerciseSetRowView.discardChangesAlertActionTitle(for: set),
+            "Discard Set Changes to 185 lb × 8 reps"
+        )
+        XCTAssertEqual(
             ExerciseSetRowView.discardChangesAlertTitle(for: set),
             "Discard Set Changes to 185 lb × 8 reps?"
         )
@@ -277,8 +281,16 @@ final class FormattingTests: XCTestCase {
         let blankSet = ExerciseSet(weight: 0, reps: 0, exercise: weightedExercise, workout: workout)
 
         XCTAssertEqual(
+            ExerciseSetRowView.discardChangesAlertActionTitle(for: bodyweightWarmupSet),
+            "Discard Warm-up Set Changes to BW × 10 reps"
+        )
+        XCTAssertEqual(
             ExerciseSetRowView.discardChangesAlertTitle(for: bodyweightWarmupSet),
             "Discard Warm-up Set Changes to BW × 10 reps?"
+        )
+        XCTAssertEqual(
+            ExerciseSetRowView.discardChangesAlertActionTitle(for: blankSet),
+            "Discard Set Changes"
         )
         XCTAssertEqual(
             ExerciseSetRowView.discardChangesAlertTitle(for: blankSet),
