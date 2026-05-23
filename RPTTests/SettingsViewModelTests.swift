@@ -248,7 +248,19 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(failingViewModel.saveErrorMessage, "RPE visibility changes could not be saved.")
     }
 
-    func testResetToDefaults_failedSavePreservesSettingsAndSurfacesErrorMessage() {
+    func testResetToDefaults_failedSavePreservesSingleSettingAndNamesItInError() {
+        let mock = MockSettingsManager(settings: UserSettings(restTimerDuration: 135))
+        mock.shouldFailSave = true
+        let failingViewModel = SettingsViewModel(settingsManager: mock)
+
+        failingViewModel.resetToDefaults()
+
+        XCTAssertEqual(failingViewModel.restTimerDuration, 135)
+        XCTAssertEqual(failingViewModel.saveErrorTitle, "Couldn’t Reset Rest Timer")
+        XCTAssertEqual(failingViewModel.saveErrorMessage, "Rest Timer (135 sec) is still unchanged. Please try again.")
+    }
+
+    func testResetToDefaults_failedSavePreservesMultipleSettingsAndNamesThemInError() {
         let mockSettings = UserSettings(restTimerDuration: 135)
         mockSettings.defaultRPTPercentageDrops = [0.0, 0.15, 0.20]
         mockSettings.showRPE = false
@@ -264,8 +276,11 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(failingViewModel.defaultRPTPercentageDrops, [0.0, 0.15, 0.20])
         XCTAssertFalse(failingViewModel.showRPE)
         XCTAssertEqual(failingViewModel.darkModePreference, .dark)
-        XCTAssertEqual(failingViewModel.saveErrorTitle, "Couldn’t Reset Settings")
-        XCTAssertEqual(failingViewModel.saveErrorMessage, "Settings could not be reset right now.")
+        XCTAssertEqual(failingViewModel.saveErrorTitle, "Couldn’t Reset 4 Settings")
+        XCTAssertEqual(
+            failingViewModel.saveErrorMessage,
+            "Dark Mode (Dark), Rest Timer (135 sec), Show RPE Input (Off), and RPT weight drops (100%, 85%, 80%) are still unchanged. Please try again."
+        )
     }
 
     func testClearSaveError_resetsBackToDefaultAlertTitle() {

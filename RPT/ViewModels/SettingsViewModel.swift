@@ -147,10 +147,12 @@ class SettingsViewModel: ObservableObject {
     }
 
     func resetToDefaults() {
+        let customizedSettings = customizedSettingsSummaryParts
+
         if !settingsManager.resetToDefaultsSafely() {
             presentSaveError(
-                title: "Couldn’t Reset Settings",
-                message: "Settings could not be reset right now."
+                title: resetFailureTitle(for: customizedSettings),
+                message: resetFailureMessage(for: customizedSettings)
             )
         }
 
@@ -259,6 +261,29 @@ class SettingsViewModel: ObservableObject {
     private func presentSaveError(title: String, message: String) {
         saveErrorTitle = title
         saveErrorMessage = message
+    }
+
+    private func resetFailureTitle(for customizedSettings: [String]) -> String {
+        switch customizedSettings.count {
+        case 0:
+            return "Couldn’t Reset Settings"
+        case 1:
+            let label = customizedSettingLabels.first ?? "Settings"
+            return "Couldn’t Reset \(label)"
+        default:
+            return "Couldn’t Reset \(customizedSettings.count) Settings"
+        }
+    }
+
+    private func resetFailureMessage(for customizedSettings: [String]) -> String {
+        switch customizedSettings.count {
+        case 0:
+            return "Settings could not be reset right now."
+        case 1:
+            return "\(customizedSettings[0]) is still unchanged. Please try again."
+        default:
+            return "\(Self.humanReadableList(customizedSettings)) are still unchanged. Please try again."
+        }
     }
 
     private static func formattedRPTDropSummary(_ drops: [Double]) -> String {
