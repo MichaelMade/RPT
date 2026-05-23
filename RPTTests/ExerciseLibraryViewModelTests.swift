@@ -748,7 +748,7 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertEqual(
             ExerciseLibraryViewModel.deletionConfirmationMessage(
                 for: nil,
-                impact: .init(loggedSetCount: 0, loggedWorkoutCount: 0, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 0)
+                impact: .init(loggedSetCount: 0, loggedWorkingSetCount: 0, loggedWarmupSetCount: 0, loggedWorkoutCount: 0, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 0)
             ),
             "Deleting this exercise cannot be undone."
         )
@@ -765,9 +765,9 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertEqual(
             ExerciseLibraryViewModel.deletionConfirmationMessage(
                 for: exercise,
-                impact: .init(loggedSetCount: 5, loggedWorkoutCount: 2, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 1)
+                impact: .init(loggedSetCount: 5, loggedWorkingSetCount: 3, loggedWarmupSetCount: 2, loggedWorkoutCount: 2, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 1)
             ),
-            "Deleting “Garage Dip” will remove 5 logged sets from 2 workouts. 1 template still references it and will skip it when started until you replace or remove it."
+            "Deleting “Garage Dip” will remove 5 logged sets from 2 workouts, including 3 logged working sets and 2 logged warm-up sets. 1 template still references it and will skip it when started until you replace or remove it."
         )
     }
 
@@ -782,9 +782,9 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertEqual(
             ExerciseLibraryViewModel.deletionConfirmationMessage(
                 for: blankExercise,
-                impact: .init(loggedSetCount: 1, loggedWorkoutCount: 1, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 0)
+                impact: .init(loggedSetCount: 1, loggedWorkingSetCount: 1, loggedWarmupSetCount: 0, loggedWorkoutCount: 1, draftSetCount: 0, draftWorkoutCount: 0, templateCount: 0)
             ),
-            "Deleting this exercise will remove 1 logged set from 1 workout."
+            "Deleting this exercise will remove 1 logged set from 1 workout, including 1 logged working set."
         )
     }
 
@@ -799,9 +799,9 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertEqual(
             ExerciseLibraryViewModel.deletionConfirmationMessage(
                 for: exercise,
-                impact: .init(loggedSetCount: 2, loggedWorkoutCount: 1, draftSetCount: 3, draftWorkoutCount: 1, templateCount: 0)
+                impact: .init(loggedSetCount: 2, loggedWorkingSetCount: 0, loggedWarmupSetCount: 2, loggedWorkoutCount: 1, draftSetCount: 3, draftWorkoutCount: 1, templateCount: 0)
             ),
-            "Deleting “Garage Dip” will remove 2 logged sets from 1 workout. It will also remove 3 unlogged draft sets from 1 in-progress workout."
+            "Deleting “Garage Dip” will remove 2 logged sets from 1 workout, including 2 logged warm-up sets. It will also remove 3 unlogged draft sets from 1 in-progress workout."
         )
     }
 

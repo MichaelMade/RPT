@@ -645,7 +645,9 @@ class ExerciseLibraryViewModel: ObservableObject {
         if impact.loggedSetCount > 0 {
             let setLabel = impact.loggedSetCount == 1 ? "logged set" : "logged sets"
             let workoutLabel = impact.loggedWorkoutCount == 1 ? "workout" : "workouts"
-            sentences.append("\(targetDescription) will remove \(impact.loggedSetCount) \(setLabel) from \(impact.loggedWorkoutCount) \(workoutLabel)")
+            let breakdown = loggedDeletionBreakdown(for: impact)
+            let breakdownSuffix = breakdown.map { ", including \($0)" } ?? ""
+            sentences.append("\(targetDescription) will remove \(impact.loggedSetCount) \(setLabel) from \(impact.loggedWorkoutCount) \(workoutLabel)\(breakdownSuffix)")
         }
 
         if impact.draftSetCount > 0 {
@@ -662,5 +664,35 @@ class ExerciseLibraryViewModel: ObservableObject {
         }
 
         return sentences.joined(separator: ". ") + "."
+    }
+
+    private static func loggedDeletionBreakdown(for impact: ExerciseManager.DeletionImpact) -> String? {
+        let workingCount = impact.loggedWorkingSetCount
+        let warmupCount = impact.loggedWarmupSetCount
+
+        guard workingCount > 0 || warmupCount > 0 else {
+            return nil
+        }
+
+        if workingCount == 0 {
+            return warmupCount == 1
+                ? "1 logged warm-up set"
+                : "\(warmupCount) logged warm-up sets"
+        }
+
+        if warmupCount == 0 {
+            return workingCount == 1
+                ? "1 logged working set"
+                : "\(workingCount) logged working sets"
+        }
+
+        let workingSummary = workingCount == 1
+            ? "1 logged working set"
+            : "\(workingCount) logged working sets"
+        let warmupSummary = warmupCount == 1
+            ? "1 logged warm-up set"
+            : "\(warmupCount) logged warm-up sets"
+
+        return "\(workingSummary) and \(warmupSummary)"
     }
 }
