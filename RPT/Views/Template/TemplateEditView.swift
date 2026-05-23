@@ -133,7 +133,10 @@ struct TemplateEditView: View {
     }
 
     private var discardAlertMessage: String {
-        Self.discardAlertMessage(isNewTemplate: isNewTemplate)
+        Self.discardAlertMessage(
+            isNewTemplate: isNewTemplate,
+            changedFields: discardImpactFields
+        )
     }
 
     private var discardAlertActionTitle: String {
@@ -189,10 +192,86 @@ struct TemplateEditView: View {
         return displayName == "Template" ? nil : displayName
     }
 
-    static func discardAlertMessage(isNewTemplate: Bool) -> String {
-        isNewTemplate
-            ? "You’ll lose this template draft and any exercise setup changes."
-            : "You’ll lose your unsaved changes to this template."
+    static func discardAlertMessage(isNewTemplate: Bool, changedFields: [String]) -> String {
+        let prefix = isNewTemplate
+            ? "You’ll lose this template draft"
+            : "You’ll lose your unsaved changes to this template"
+
+        guard !changedFields.isEmpty else {
+            return prefix + "."
+        }
+
+        return prefix + ", including its \(humanReadableList(changedFields))."
+    }
+
+    private var discardImpactFields: [String] {
+        var fields: [String] = []
+
+        if currentDraftSnapshot.name != initialDraftSnapshot.name {
+            fields.append("name")
+        }
+
+        if currentDraftSnapshot.notes != initialDraftSnapshot.notes {
+            fields.append("notes")
+        }
+
+        if exerciseLineupChanged {
+            fields.append("exercise list")
+        }
+
+        if exerciseProgrammingChanged {
+            fields.append("planned sets or rep targets")
+        }
+
+        if exerciseNotesChanged {
+            fields.append("exercise notes")
+        }
+
+        return fields
+    }
+
+    private var exerciseLineupChanged: Bool {
+        guard currentDraftSnapshot.exercises.count == initialDraftSnapshot.exercises.count else {
+            return true
+        }
+
+        return zip(currentDraftSnapshot.exercises, initialDraftSnapshot.exercises).contains { current, initial in
+            current.id != initial.id || current.name != initial.name
+        }
+    }
+
+    private var exerciseProgrammingChanged: Bool {
+        guard currentDraftSnapshot.exercises.count == initialDraftSnapshot.exercises.count else {
+            return false
+        }
+
+        return zip(currentDraftSnapshot.exercises, initialDraftSnapshot.exercises).contains { current, initial in
+            current.suggestedSets != initial.suggestedSets || current.repRanges != initial.repRanges
+        }
+    }
+
+    private var exerciseNotesChanged: Bool {
+        guard currentDraftSnapshot.exercises.count == initialDraftSnapshot.exercises.count else {
+            return false
+        }
+
+        return zip(currentDraftSnapshot.exercises, initialDraftSnapshot.exercises).contains { current, initial in
+            current.notes != initial.notes
+        }
+    }
+
+    private static func humanReadableList(_ items: [String]) -> String {
+        switch items.count {
+        case 0:
+            return ""
+        case 1:
+            return items[0]
+        case 2:
+            return "\(items[0]) and \(items[1])"
+        default:
+            let head = items.dropLast().joined(separator: ", ")
+            return "\(head), and \(items.last!)"
+        }
     }
 
     static func deleteExerciseAlertTitle(for exerciseName: String) -> String {

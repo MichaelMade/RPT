@@ -1,5 +1,6 @@
 # RPT
 
+- New/Edit Template discard confirmations now name the exact unsaved template changes they would throw away — for example `name`, `exercise list`, `planned sets or rep targets`, and `exercise notes` — so backing out of longer routine edits is easier to trust than the older generic warning.
 - Follow-up restart confirmations from Home, Workout Details, and Exercise Details now summarize the saved source session too (`Source session: 2 exercises • 2 sets.` / `Warm-up sets only.`), so replacing an in-progress workout is less ambiguous when several similar history entries are in play.
 - Home’s `Start New Workout` replacement flow now adds a second destructive confirmation before `Discard … & Start New Workout` deletes an in-progress draft, and that final alert summarizes the exact current-session impact before the new workout begins, so the app’s most prominent workout-replacement path no longer hinges on one fast destructive tap.
 - Active Workout set-edit discard confirmations now name the exact unsaved field/value changes they would throw away — for example `weight (185 lb → 190 lb)`, `reps (8 reps → 6 reps)`, or `RPE (9 → cleared)` — so backing out of a live set edit is easier to trust than the older generic warning.

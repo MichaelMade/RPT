@@ -44,14 +44,24 @@ final class TemplateEditViewTests: XCTestCase {
         )
     }
 
-    func testDiscardAlertMessage_matchesNewVsExistingFlows() {
+    func testDiscardAlertMessage_matchesNewVsExistingFlowsWhenNothingSpecificChanged() {
         XCTAssertEqual(
-            TemplateEditView.discardAlertMessage(isNewTemplate: true),
-            "You’ll lose this template draft and any exercise setup changes."
+            TemplateEditView.discardAlertMessage(isNewTemplate: true, changedFields: []),
+            "You’ll lose this template draft."
         )
         XCTAssertEqual(
-            TemplateEditView.discardAlertMessage(isNewTemplate: false),
+            TemplateEditView.discardAlertMessage(isNewTemplate: false, changedFields: []),
             "You’ll lose your unsaved changes to this template."
+        )
+    }
+
+    func testDiscardAlertMessage_namesTheChangedTemplateFieldsThatWouldBeLost() {
+        XCTAssertEqual(
+            TemplateEditView.discardAlertMessage(
+                isNewTemplate: false,
+                changedFields: ["name", "exercise list", "exercise notes"]
+            ),
+            "You’ll lose your unsaved changes to this template, including its name, exercise list, and exercise notes."
         )
     }
 
