@@ -239,7 +239,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.deleteExerciseButtonTitle(for: blankExercise), "Delete Exercise")
         XCTAssertEqual(
             viewModel.deleteExerciseMessage(for: blankExercise),
-            "Are you sure you want to remove this exercise from the workout? This will remove 1 set from the workout, including 1 logged warm-up set."
+            "Are you sure you want to remove this exercise from the workout? This will remove 1 warm-up set from the workout, including 1 logged warm-up set."
         )
     }
 
@@ -265,6 +265,19 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(
             viewModel.deleteExerciseMessage(for: exercise),
             "Are you sure you want to remove “Lat Pulldown” from this workout? This will remove 1 set from the workout."
+        )
+    }
+
+    func testDeleteExerciseCopyMentionsWarmupAndWorkingDraftSetMixBeforeAnythingIsLogged() {
+        let workout = workoutManager.createWorkout(name: "Pull")
+        let exercise = Exercise(name: "Lat Pulldown", category: .compound, primaryMuscleGroups: [.back])
+        _ = workout.addSet(exercise: exercise, weight: 0, reps: 0, isWarmup: true)
+        _ = workout.addSet(exercise: exercise, weight: 0, reps: 0)
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(
+            viewModel.deleteExerciseMessage(for: exercise),
+            "Are you sure you want to remove “Lat Pulldown” from this workout? This will remove 2 sets from the workout (1 working set and 1 warm-up set)."
         )
     }
 

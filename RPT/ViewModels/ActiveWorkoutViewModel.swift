@@ -227,12 +227,48 @@ class ActiveWorkoutViewModel: ObservableObject {
 
         let totalSetCount = matchingSets.count
         let totalSetSummary = totalSetCount == 1 ? "1 set" : "\(totalSetCount) sets"
+        let setTypeBreakdown = setTypeBreakdownSummary(for: matchingSets)
+        let loggedSetSummary = loggedSetBreakdownSummary(for: matchingSets)
 
-        guard let loggedSetSummary = loggedSetBreakdownSummary(for: matchingSets) else {
+        if let setTypeBreakdown, let loggedSetSummary {
+            return "This will remove \(totalSetSummary) from the workout (\(setTypeBreakdown)), including \(loggedSetSummary)."
+        }
+
+        if let setTypeBreakdown {
+            return totalSetCount == 1
+                ? "This will remove \(setTypeBreakdown) from the workout."
+                : "This will remove \(totalSetSummary) from the workout (\(setTypeBreakdown))."
+        }
+
+        guard let loggedSetSummary else {
             return "This will remove \(totalSetSummary) from the workout."
         }
 
         return "This will remove \(totalSetSummary) from the workout, including \(loggedSetSummary)."
+    }
+
+    private func setTypeBreakdownSummary(for sets: [ExerciseSet]) -> String? {
+        let warmupCount = sets.filter(\.isWarmup).count
+        let workingCount = sets.count - warmupCount
+
+        if warmupCount == 0 || workingCount == 0 {
+            if warmupCount == 0 {
+                return nil
+            }
+
+            return warmupCount == 1
+                ? "1 warm-up set"
+                : "\(warmupCount) warm-up sets"
+        }
+
+        let workingSummary = workingCount == 1
+            ? "1 working set"
+            : "\(workingCount) working sets"
+        let warmupSummary = warmupCount == 1
+            ? "1 warm-up set"
+            : "\(warmupCount) warm-up sets"
+
+        return "\(workingSummary) and \(warmupSummary)"
     }
 
     private func loggedSetBreakdownSummary(for sets: [ExerciseSet]) -> String? {

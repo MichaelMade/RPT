@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout delete confirmations now call out warm-up-vs-working draft mix before you lose it (`1 warm-up set`, `2 sets (1 working set and 1 warm-up set)`), so removing an exercise from a live workout stays honest even before any of those sets have been logged.
 - History delete confirmations now call out mixed working + warm-up data too (`1 exercise • 2 logged sets (1 working, 1 warm-up)`), so removing a saved session no longer hides the warm-up portion of the training data being erased.
 - Edit Template discard confirmations now keep their fallback destructive button contextual too (`Discard Template Changes`) when a legacy routine name is blank, so the last destructive tap no longer falls back to a vaguer generic `Discard Changes` label right after warning about unsaved template edits.
 - Edit Exercise and Template Exercise discard confirmations now keep their fallback destructive button contextual too (`Discard Exercise Changes`) when a legacy movement name is blank, so those editor exits no longer drop back to a vaguer generic `Discard Changes` label right at the final destructive tap.
