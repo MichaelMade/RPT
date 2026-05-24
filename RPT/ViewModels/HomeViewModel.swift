@@ -486,7 +486,10 @@ class HomeViewModel: ObservableObject {
     }
 
     func deleteRecentWorkoutFailureMessage(for workout: Workout) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Couldn’t delete this workout from history. Keep it for now, then try again."
+        }
+
         return "Couldn’t delete \(displayName) from history. Keep it for now, then try again."
     }
 
@@ -541,7 +544,10 @@ class HomeViewModel: ObservableObject {
     }
 
     func startFollowUpFailureMessage(for workout: Workout) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Couldn’t start this follow-up. Keep this workout in history, then try again."
+        }
+
         return "Couldn’t start a follow-up from \(displayName). Keep it in history, then try again."
     }
 
@@ -691,7 +697,14 @@ class HomeViewModel: ObservableObject {
     }
 
     func activeWorkoutPersistenceFailureMessage(for action: FollowUpPersistenceAction, startingFollowUpFrom workout: Workout) -> String {
-        let followUpName = WorkoutRow.displayName(for: workout)
+        guard let followUpName = specificSavedWorkoutName(for: workout) else {
+            switch action {
+            case .saveForLater:
+                return "Couldn’t save the current workout. Keep it open, then try starting this follow-up again."
+            case .discard:
+                return "Couldn’t discard the current workout. Keep it open, then try starting this follow-up again."
+            }
+        }
 
         switch action {
         case .saveForLater:

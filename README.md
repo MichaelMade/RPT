@@ -1,5 +1,6 @@
 # RPT
 
+- Saved-workout failure and retry messages now stay generic for blank legacy workout names too (`Couldn’t delete this workout from history...`, `Couldn’t start this follow-up...`) instead of leaking awkward placeholder text like `Couldn’t delete Workout...` or `start a follow-up from Workout` when recovery copy references an unnamed session.
 - Home’s direct follow-up CTA and Workout Detail’s source-template shortcut now reuse the same safe fallback copy as the rest of the app (`Start This Follow-Up`, `Review Template`) when blank legacy names collapse to placeholders, instead of leaking awkward labels like `Start Follow-Up from “Workout”` or `Start Template “Template”`.
 - Workout-summary copy confirmations now stay generic for blank legacy workout names too (`Copied the workout summary...`) instead of awkwardly claiming they copied the summary for `Workout` when a saved session never had a real title.
 - Saved-workout history actions now stay generic for blank legacy workout names too (`Review Workout`, `Copy Workout Summary`, `Delete This Workout?`, `Start This Follow-Up`) instead of leaking awkward placeholder copy like `Review “Workout”` or `Delete “Workout”?`.

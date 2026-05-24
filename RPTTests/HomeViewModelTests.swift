@@ -561,15 +561,15 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
-    func testDeleteRecentWorkoutFailureMessage_usesFallbackWorkoutName() {
+    func testDeleteRecentWorkoutFailureMessage_usesGenericFallbackForBlankWorkoutName() {
         let workout = Workout(name: "   ", isCompleted: true)
 
         let message = viewModel.deleteRecentWorkoutFailureMessage(for: workout)
 
         XCTAssertEqual(
             message,
-            "Couldn’t delete Workout from history. Keep it for now, then try again.",
-            "Delete failures should still read naturally when the saved workout name is blank or corrupted"
+            "Couldn’t delete this workout from history. Keep it for now, then try again.",
+            "Delete failures should stay generic when the saved workout name is blank or corrupted"
         )
     }
 
@@ -1529,6 +1529,21 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testActiveWorkoutPersistenceFailureMessages_useGenericFallbackForBlankWorkoutName() {
+        let blankWorkout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureMessage(for: .saveForLater, startingFollowUpFrom: blankWorkout),
+            "Couldn’t save the current workout. Keep it open, then try starting this follow-up again.",
+            "Blank legacy workout names should keep save-for-later retry copy generic instead of leaking a placeholder workout name"
+        )
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureMessage(for: .discard, startingFollowUpFrom: blankWorkout),
+            "Couldn’t discard the current workout. Keep it open, then try starting this follow-up again.",
+            "Blank legacy workout names should keep discard retry copy generic instead of leaking a placeholder workout name"
+        )
+    }
+
     func testActiveWorkoutPersistenceFailureAlertTitle_usesGenericFallbackForBlankWorkoutName() {
         let blankWorkout = Workout(name: "   ", isCompleted: true)
 
@@ -1637,6 +1652,16 @@ final class HomeViewModelTests: XCTestCase {
                 "Blocked follow-up recovery should surface the save-for-later retry message when the current draft cannot be persisted"
             )
         }
+    }
+
+    func testStartFollowUpFailureMessage_usesGenericFallbackForBlankWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.startFollowUpFailureMessage(for: workout),
+            "Couldn’t start this follow-up. Keep this workout in history, then try again.",
+            "Blank legacy workout names should keep follow-up start failures generic instead of leaking a placeholder source name"
+        )
     }
 
     func testStartFollowUpAfterPersistingActiveWorkout_successStartsNewDraft() {
