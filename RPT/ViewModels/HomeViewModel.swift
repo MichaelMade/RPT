@@ -434,7 +434,11 @@ class HomeViewModel: ObservableObject {
     }
 
     func deleteRecentWorkoutAlertTitle(for workout: Workout) -> String {
-        "Delete “\(WorkoutRow.displayName(for: workout))”?"
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Delete This Workout?"
+        }
+
+        return "Delete “\(displayName)”?”
     }
 
     func deleteRecentWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
@@ -442,7 +446,10 @@ class HomeViewModel: ObservableObject {
         var summaryParts = [WorkoutRow.relativeDateText(for: workout.date, now: now)]
         summaryParts.append(savedWorkoutSessionSummary(for: workout))
 
-        return "Delete \(displayName) from history? \(summaryParts.joined(separator: " • ")) will be removed from your saved workout history."
+        let target = displayName == "Workout"
+            ? "this workout"
+            : displayName
+        return "Delete \(target) from history? \(summaryParts.joined(separator: " • ")) will be removed from your saved workout history."
     }
 
     private func savedWorkoutSessionSummary(for workout: Workout) -> String {
@@ -473,13 +480,22 @@ class HomeViewModel: ObservableObject {
         savedWorkoutSessionSummary(for: workout)
     }
 
+    private func specificSavedWorkoutName(for workout: Workout) -> String? {
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout" ? nil : displayName
+    }
+
     func deleteRecentWorkoutFailureMessage(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return "Couldn’t delete \(displayName) from history. Keep it for now, then try again."
     }
 
     func deleteRecentWorkoutFailureAlertTitle(for workout: Workout) -> String {
-        "Couldn’t Delete “\(WorkoutRow.displayName(for: workout))”"
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Couldn’t Delete This Workout"
+        }
+
+        return "Couldn’t Delete “\(displayName)”"
     }
 
     func presentStartWorkoutFailure(_ message: String, title: String = "Workout Action Failed") {
@@ -493,19 +509,35 @@ class HomeViewModel: ObservableObject {
     }
 
     func reviewWorkoutButtonTitle(for workout: Workout) -> String {
-        "Review “\(WorkoutRow.displayName(for: workout))”"
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Review Workout"
+        }
+
+        return "Review “\(displayName)”"
     }
 
     func copySummaryButtonTitle(for workout: Workout) -> String {
-        "Copy Summary for “\(WorkoutRow.displayName(for: workout))”"
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Copy Workout Summary"
+        }
+
+        return "Copy Summary for “\(displayName)”"
     }
 
     func deleteRecentWorkoutButtonTitle(for workout: Workout) -> String {
-        "Delete “\(WorkoutRow.displayName(for: workout))” from History"
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Delete Workout from History"
+        }
+
+        return "Delete “\(displayName)” from History"
     }
 
     func deleteRecentWorkoutConfirmationButtonTitle(for workout: Workout) -> String {
-        "Delete “\(WorkoutRow.displayName(for: workout))”"
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Delete This Workout"
+        }
+
+        return "Delete “\(displayName)”"
     }
 
     func startFollowUpFailureMessage(for workout: Workout) -> String {
@@ -521,15 +553,27 @@ class HomeViewModel: ObservableObject {
     }
 
     func followUpWorkoutButtonTitle(for workout: Workout) -> String {
-        "Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Start This Follow-Up"
+        }
+
+        return "Start Follow-Up from “\(displayName)”"
     }
 
     func saveAndStartFollowUpButtonTitle(for workout: Workout) -> String {
-        "Save & Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Save & Start This Follow-Up"
+        }
+
+        return "Save & Start Follow-Up from “\(displayName)”"
     }
 
     func discardAndStartFollowUpButtonTitle(for workout: Workout) -> String {
-        "Discard & Start Follow-Up from “\(WorkoutRow.displayName(for: workout))”"
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Discard & Start This Follow-Up"
+        }
+
+        return "Discard & Start Follow-Up from “\(displayName)”"
     }
 
     func discardCurrentWorkoutAndStartFollowUpAlertTitle(for workout: Workout) -> String {

@@ -588,8 +588,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.deleteRecentWorkoutFailureAlertTitle(for: workout),
-            "Couldn’t Delete “Workout”",
-            "Delete failure alerts should keep an honest fallback title for blank workout names"
+            "Couldn’t Delete This Workout",
+            "Delete failure alerts should stay generic when the saved workout name is blank or corrupted"
         )
     }
 
@@ -1298,6 +1298,16 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testFollowUpWorkoutButtonTitle_usesGenericFallbackForBlankWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.followUpWorkoutButtonTitle(for: workout),
+            "Start This Follow-Up",
+            "Blank legacy workout names should keep follow-up CTAs generic instead of quoting a placeholder workout name"
+        )
+    }
+
     func testReviewWorkoutButtonTitle_usesNormalizedWorkoutName() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
 
@@ -1305,6 +1315,16 @@ final class HomeViewModelTests: XCTestCase {
             viewModel.reviewWorkoutButtonTitle(for: workout),
             "Review “Upper A”",
             "Review CTA copy should use the normalized saved workout name so stacked history cards stay easy to scan"
+        )
+    }
+
+    func testReviewWorkoutButtonTitle_usesGenericFallbackForBlankWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.reviewWorkoutButtonTitle(for: workout),
+            "Review Workout",
+            "Blank legacy workout names should keep review CTAs generic instead of quoting a placeholder workout name"
         )
     }
 
@@ -1318,6 +1338,16 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testSaveAndStartFollowUpButtonTitle_usesGenericFallbackForBlankWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.saveAndStartFollowUpButtonTitle(for: workout),
+            "Save & Start This Follow-Up",
+            "Blank legacy workout names should keep save-and-start follow-up CTAs generic instead of quoting a placeholder workout name"
+        )
+    }
+
     func testDiscardAndStartFollowUpButtonTitle_usesNormalizedWorkoutName() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
 
@@ -1325,6 +1355,16 @@ final class HomeViewModelTests: XCTestCase {
             viewModel.discardAndStartFollowUpButtonTitle(for: workout),
             "Discard & Start Follow-Up from “Upper A”",
             "Destructive follow-up recovery CTA copy should name the saved workout so conflict-resolution choices stay unmistakable"
+        )
+    }
+
+    func testDiscardAndStartFollowUpButtonTitle_usesGenericFallbackForBlankWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.discardAndStartFollowUpButtonTitle(for: workout),
+            "Discard & Start This Follow-Up",
+            "Blank legacy workout names should keep destructive follow-up CTAs generic instead of quoting a placeholder workout name"
         )
     }
 
@@ -1338,6 +1378,16 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testCopySummaryButtonTitle_usesGenericFallbackForBlankWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.copySummaryButtonTitle(for: workout),
+            "Copy Workout Summary",
+            "Blank legacy workout names should keep copy-summary CTAs generic instead of quoting a placeholder workout name"
+        )
+    }
+
     func testDeleteRecentWorkoutButtonTitle_usesNormalizedWorkoutName() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
 
@@ -1345,6 +1395,16 @@ final class HomeViewModelTests: XCTestCase {
             viewModel.deleteRecentWorkoutButtonTitle(for: workout),
             "Delete “Upper A” from History",
             "Delete CTA copy should use the normalized saved workout name so destructive history cleanup stays unmistakable"
+        )
+    }
+
+    func testDeleteRecentWorkoutButtonTitle_usesGenericFallbackForBlankWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.deleteRecentWorkoutButtonTitle(for: workout),
+            "Delete Workout from History",
+            "Blank legacy workout names should keep delete CTAs generic instead of quoting a placeholder workout name"
         )
     }
 
@@ -1358,6 +1418,16 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testDeleteRecentWorkoutConfirmationButtonTitle_usesGenericFallbackForBlankWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.deleteRecentWorkoutConfirmationButtonTitle(for: workout),
+            "Delete This Workout",
+            "Blank legacy workout names should keep destructive confirmation CTAs generic instead of quoting a placeholder workout name"
+        )
+    }
+
     func testDeleteRecentWorkoutAlertTitle_usesNormalizedWorkoutName() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
 
@@ -1365,6 +1435,26 @@ final class HomeViewModelTests: XCTestCase {
             viewModel.deleteRecentWorkoutAlertTitle(for: workout),
             "Delete “Upper A”?",
             "Delete alert titles should name the exact saved workout so Workout Details confirmations stay unmistakable"
+        )
+    }
+
+    func testDeleteRecentWorkoutAlertTitle_usesGenericFallbackForBlankWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.deleteRecentWorkoutAlertTitle(for: workout),
+            "Delete This Workout?",
+            "Blank legacy workout names should keep destructive alert titles generic instead of quoting a placeholder workout name"
+        )
+    }
+
+    func testDeleteRecentWorkoutMessage_usesGenericFallbackForBlankWorkoutName() {
+        let workout = Workout(name: "   ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.deleteRecentWorkoutMessage(for: workout, now: workout.date),
+            "Delete this workout from history? Today • No sets logged will be removed from your saved workout history.",
+            "Blank legacy workout names should keep delete confirmation copy generic instead of pretending the placeholder workout name is meaningful"
         )
     }
 

@@ -1,5 +1,6 @@
 # RPT
 
+- Saved-workout history actions now stay generic for blank legacy workout names too (`Review Workout`, `Copy Workout Summary`, `Delete This Workout?`, `Start This Follow-Up`) instead of leaking awkward placeholder copy like `Review “Workout”` or `Delete “Workout”?`.
 - Template alert bodies and failure titles now stay generic for blank legacy routine names too (`Delete this template?`, `Unable to Delete Template`, `Couldn’t Start This Template`) instead of leaking awkward placeholder copy like `Delete “Template”?` or `Couldn’t Delete “Template”`.
 - Template action labels now fall back to honest generic copy for blank legacy routine names (`Start This Template`, `Review Template`, `Delete Template?`) instead of awkward placeholder phrasing like `Start Template “Template”` or `Delete “Template”?`.
 - Home’s saved-workout delete and follow-up replacement confirmations now stay specific for working-only sessions too (`2 exercises • 2 working sets`) instead of falling back to generic `set` wording whenever no warm-up data is involved.
