@@ -1599,6 +1599,16 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testSourceTemplateQuickActionTitle_usesGenericFallbackForPlaceholderTemplateName() {
+        let workout = Workout(name: "Push Day", isCompleted: true, startedFromTemplate: "Template")
+
+        XCTAssertEqual(
+            viewModel.sourceTemplateQuickActionTitle(for: workout),
+            "Start This Template",
+            "Placeholder legacy template names should fall back to the same generic start-template copy used elsewhere in the app"
+        )
+    }
+
     func testSourceTemplateQuickActionTitle_returnsNilWithoutUsableTemplateName() {
         let emptyTemplateWorkout = Workout(name: "Push Day", isCompleted: true, startedFromTemplate: "   ")
         let noTemplateWorkout = Workout(name: "Push Day", isCompleted: true)

@@ -614,7 +614,10 @@ class HomeViewModel: ObservableObject {
             return nil
         }
 
-        return "Start Template “\(templateName)”"
+        let displayName = WorkoutTemplate.normalizedDisplayName(templateName)
+        return displayName == "Template"
+            ? "Start This Template"
+            : "Start Template “\(displayName)”"
     }
 
     func followUpWorkoutHelperText(for workout: Workout) -> String {
