@@ -604,8 +604,7 @@ struct ExerciseDetailView: View {
     }
 
     private var copySummaryMessage: String {
-        let workoutName = copiedWorkoutName ?? "Workout"
-        return "Copied the summary for \(workoutName) so it’s ready to paste anywhere you need it."
+        WorkoutRow.copySummaryMessage(forWorkoutNamed: copiedWorkoutName)
     }
 
     private func sourceTemplate(for workout: Workout) -> WorkoutTemplate? {

@@ -895,6 +895,21 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(WorkoutDetailView.displayName(for: spacedNameWorkout), "Upper Body Session")
     }
 
+    func testWorkoutCopySummaryMessage_staysGenericForBlankNames() {
+        XCTAssertEqual(
+            WorkoutRow.copySummaryMessage(forWorkoutNamed: nil),
+            "Copied the workout summary so it’s ready to paste anywhere you need it."
+        )
+        XCTAssertEqual(
+            WorkoutRow.copySummaryMessage(forWorkoutNamed: "Workout"),
+            "Copied the workout summary so it’s ready to paste anywhere you need it."
+        )
+        XCTAssertEqual(
+            WorkoutRow.copySummaryMessage(forWorkoutNamed: "  Upper   Body\nSession  "),
+            "Copied the summary for Upper Body Session so it’s ready to paste anywhere you need it."
+        )
+    }
+
     func testWorkoutDetailDisplayExerciseName_fallsBackForBlankAndNormalizesWhitespace() {
         let blankExercise = Exercise(name: "   \n   ", category: .compound, primaryMuscleGroups: [.chest])
         XCTAssertEqual(WorkoutDetailView.displayExerciseName(blankExercise), "Exercise")

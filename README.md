@@ -1,5 +1,6 @@
 # RPT
 
+- Workout-summary copy confirmations now stay generic for blank legacy workout names too (`Copied the workout summary...`) instead of awkwardly claiming they copied the summary for `Workout` when a saved session never had a real title.
 - Saved-workout history actions now stay generic for blank legacy workout names too (`Review Workout`, `Copy Workout Summary`, `Delete This Workout?`, `Start This Follow-Up`) instead of leaking awkward placeholder copy like `Review “Workout”` or `Delete “Workout”?`.
 - Template alert bodies and failure titles now stay generic for blank legacy routine names too (`Delete this template?`, `Unable to Delete Template`, `Couldn’t Start This Template`) instead of leaking awkward placeholder copy like `Delete “Template”?` or `Couldn’t Delete “Template”`.
 - Template action labels now fall back to honest generic copy for blank legacy routine names (`Start This Template`, `Review Template`, `Delete Template?`) instead of awkward placeholder phrasing like `Start Template “Template”` or `Delete “Template”?`.

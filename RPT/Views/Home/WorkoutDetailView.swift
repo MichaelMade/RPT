@@ -634,7 +634,7 @@ struct WorkoutDetailView: View {
         .alert("Workout Summary Copied", isPresented: $showingCopySummaryAlert) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("Copied the summary for \(Self.displayName(for: workout)) so it’s ready to paste anywhere you need it.")
+            Text(WorkoutRow.copySummaryMessage(forWorkoutNamed: Self.displayName(for: workout)))
         }
         .alert(homeViewModel.deleteRecentWorkoutAlertTitle(for: workout), isPresented: $showingDeleteWorkoutAlert) {
             Button(homeViewModel.deleteRecentWorkoutConfirmationButtonTitle(for: workout), role: .destructive) {

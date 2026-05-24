@@ -51,6 +51,19 @@ struct WorkoutRow: View {
         return "Template • \(templateName)"
     }
 
+    static func copySummaryMessage(forWorkoutNamed workoutName: String?) -> String {
+        let normalizedName = workoutName?
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        guard let normalizedName, !normalizedName.isEmpty, normalizedName != "Workout" else {
+            return "Copied the workout summary so it’s ready to paste anywhere you need it."
+        }
+
+        return "Copied the summary for \(normalizedName) so it’s ready to paste anywhere you need it."
+    }
+
     static func relativeDateText(
         for date: Date,
         now: Date = Date(),
