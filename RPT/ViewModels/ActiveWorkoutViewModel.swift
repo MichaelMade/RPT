@@ -115,7 +115,9 @@ class ActiveWorkoutViewModel: ObservableObject {
             return "This draft has no exercises yet, but it will still be removed."
         }
 
-        var summary = "This will remove \(exerciseCount) \(exerciseCount == 1 ? \"exercise\" : \"exercises\") and \(setCount) \(setCount == 1 ? \"set\" : \"sets\") from this draft"
+        let exerciseSummary = "\(exerciseCount) \(exerciseCount == 1 ? "exercise" : "exercises")"
+        let setSummary = setTypeBreakdownSummary(for: workout.sets) ?? "\(setCount) \(setCount == 1 ? "set" : "sets")"
+        var summary = "This will remove \(exerciseSummary) and \(setSummary) from this draft"
 
         if let loggedSetSummary = loggedSetBreakdownSummary(for: workout.sets) {
             summary += ", including \(loggedSetSummary)"
@@ -251,11 +253,11 @@ class ActiveWorkoutViewModel: ObservableObject {
         let warmupCount = sets.filter(\.isWarmup).count
         let workingCount = sets.count - warmupCount
 
-        if warmupCount == 0 || workingCount == 0 {
-            if warmupCount == 0 {
-                return nil
-            }
+        if warmupCount == 0 {
+            return workingCount == 1 ? "1 working set" : "\(workingCount) working sets"
+        }
 
+        if workingCount == 0 {
             return warmupCount == 1
                 ? "1 warm-up set"
                 : "\(warmupCount) warm-up sets"
@@ -282,7 +284,9 @@ class ActiveWorkoutViewModel: ObservableObject {
         let workingCount = loggedSets.count - warmupCount
 
         if warmupCount == 0 {
-            return workingCount == 1 ? "1 logged set" : "\(workingCount) logged sets"
+            return workingCount == 1
+                ? "1 logged working set"
+                : "\(workingCount) logged working sets"
         }
 
         if workingCount == 0 {
