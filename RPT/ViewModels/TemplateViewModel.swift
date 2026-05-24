@@ -350,15 +350,24 @@ class TemplateViewModel: ObservableObject {
     }
 
     func startTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        "Start Template “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Start This Template"
+            : "Start Template “\(displayName)”"
     }
 
     func saveAndStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        "Save & Start Template “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Save & Start This Template"
+            : "Save & Start Template “\(displayName)”"
     }
 
     func discardAndStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        "Discard & Start Template “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Discard & Start This Template"
+            : "Discard & Start Template “\(displayName)”"
     }
 
     func discardCurrentWorkoutAndStartTemplateAlertTitle(for template: WorkoutTemplate) -> String {
@@ -398,11 +407,17 @@ class TemplateViewModel: ObservableObject {
     }
 
     func reviewTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        "Review “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Review Template"
+            : "Review “\(displayName)”"
     }
 
     func editTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        "Edit “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Edit Template"
+            : "Edit “\(displayName)”"
     }
 
     static func templateEditorNavigationTitle(isNewTemplate: Bool, templateName: String) -> String {
@@ -427,11 +442,17 @@ class TemplateViewModel: ObservableObject {
     }
 
     func duplicateTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        "Duplicate “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Duplicate Template"
+            : "Duplicate “\(displayName)”"
     }
 
     func deleteTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        "Delete “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Delete Template"
+            : "Delete “\(displayName)”"
     }
 
     func deleteTemplateAlertTitle(for template: WorkoutTemplate?) -> String {
@@ -439,7 +460,10 @@ class TemplateViewModel: ObservableObject {
             return "Delete Template?"
         }
 
-        return "Delete “\(WorkoutTemplate.normalizedDisplayName(template.name))”?"
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Delete Template?"
+            : "Delete “\(displayName)”?"
     }
 
     func deleteTemplateMessage(for template: WorkoutTemplate?) -> String {

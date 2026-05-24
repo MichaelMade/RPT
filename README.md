@@ -1,5 +1,6 @@
 # RPT
 
+- Template action labels now fall back to honest generic copy for blank legacy routine names (`Start This Template`, `Review Template`, `Delete Template?`) instead of awkward placeholder phrasing like `Start Template “Template”` or `Delete “Template”?`.
 - Home’s saved-workout delete and follow-up replacement confirmations now stay specific for working-only sessions too (`2 exercises • 2 working sets`) instead of falling back to generic `set` wording whenever no warm-up data is involved.
 - Fixed a Home follow-up confirmation regression by restoring the shared recent-workout session summary helper, and those `Discard Current Workout & Start Follow-Up …` alerts now keep the same working-vs-warm-up breakdown (`1 exercise • 2 logged sets (1 working, 1 warm-up)`) as history delete confirmations.
 - Active Workout delete/discard confirmations now stay specific for working-only drafts too (`2 working sets`, `including 1 logged working set`) instead of collapsing them back to generic `set`/`logged set` wording whenever no warm-up data is involved.

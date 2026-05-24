@@ -1233,6 +1233,20 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testTemplateActionTitles_fallBackForGenericTemplateName() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "   ", exerciseNames: ["Bench Press"])
+
+        XCTAssertEqual(viewModel.startTemplateButtonTitle(for: template), "Start This Template")
+        XCTAssertEqual(viewModel.saveAndStartTemplateButtonTitle(for: template), "Save & Start This Template")
+        XCTAssertEqual(viewModel.discardAndStartTemplateButtonTitle(for: template), "Discard & Start This Template")
+        XCTAssertEqual(viewModel.reviewTemplateButtonTitle(for: template), "Review Template")
+        XCTAssertEqual(viewModel.editTemplateButtonTitle(for: template), "Edit Template")
+        XCTAssertEqual(viewModel.duplicateTemplateButtonTitle(for: template), "Duplicate Template")
+        XCTAssertEqual(viewModel.deleteTemplateButtonTitle(for: template), "Delete Template")
+        XCTAssertEqual(viewModel.deleteTemplateAlertTitle(for: template), "Delete Template?")
+    }
+
     func testDiscardCurrentWorkoutAndStartTemplateConfirmationIncludesNotesSummary() {
         let viewModel = TemplateViewModel()
         let template = makeTemplate(
