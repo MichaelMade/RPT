@@ -185,6 +185,14 @@ struct WorkoutDetailView: View {
         return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout)
     }
 
+    static func openSourceTemplateButtonTitle(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Review Template"
+        }
+
+        return TemplateViewModel().reviewTemplateButtonTitle(for: template)
+    }
+
     init(workout: Workout) {
         self.workout = workout
         self._activeWorkoutBinding = .constant(nil)
@@ -465,7 +473,7 @@ struct WorkoutDetailView: View {
                                     activeWorkoutBlockMessage: sourceTemplateBlockMessage(for: sourceTemplate)
                                 )
                             } label: {
-                                Label("Start Template “\(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name))”", systemImage: "square.on.square")
+                                Label(WorkoutDetailView.openSourceTemplateButtonTitle(for: sourceTemplate), systemImage: "square.on.square")
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
                             .buttonStyle(.bordered)

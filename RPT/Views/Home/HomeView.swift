@@ -147,6 +147,14 @@ struct HomeView: View {
 
         return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout)
     }
+
+    static func startFollowUpButtonTitle(for workout: Workout?) -> String {
+        guard let workout else {
+            return "Start This Follow-Up"
+        }
+
+        return HomeViewModel().startFollowUpButtonTitle(for: workout)
+    }
     
     var body: some View {
         NavigationStack {
@@ -511,7 +519,7 @@ struct HomeView: View {
                                         Button {
                                             startFollowUpWorkout(from: matchedWorkout)
                                         } label: {
-                                            Label("Start Follow-Up from “\(WorkoutRow.displayName(for: matchedWorkout))”", systemImage: "arrow.triangle.2.circlepath")
+                                            Label(HomeView.startFollowUpButtonTitle(for: matchedWorkout), systemImage: "arrow.triangle.2.circlepath")
                                                 .frame(maxWidth: .infinity, alignment: .leading)
                                         }
                                         .buttonStyle(.borderedProminent)

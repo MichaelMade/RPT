@@ -53,6 +53,24 @@ final class HomeViewTests: XCTestCase {
         )
     }
 
+    func testStartFollowUpButtonTitle_fallsBackGracefully() {
+        let namedWorkout = Workout(name: "  Upper   A  ", isCompleted: true)
+        XCTAssertEqual(
+            HomeView.startFollowUpButtonTitle(for: namedWorkout),
+            "Start Follow-Up from “Upper A”"
+        )
+
+        let blankWorkout = Workout(name: " \n ", isCompleted: true)
+        XCTAssertEqual(
+            HomeView.startFollowUpButtonTitle(for: blankWorkout),
+            "Start This Follow-Up"
+        )
+        XCTAssertEqual(
+            HomeView.startFollowUpButtonTitle(for: nil),
+            "Start This Follow-Up"
+        )
+    }
+
     func testDiscardCurrentWorkoutAndStartTemplateAlertCopy_namesSpecificTemplate() {
         let template = WorkoutTemplate(name: "  Upper   A  ")
 

@@ -910,6 +910,25 @@ final class FormattingTests: XCTestCase {
         )
     }
 
+    func testWorkoutDetailOpenSourceTemplateButtonTitle_staysGenericForBlankNames() {
+        XCTAssertEqual(
+            WorkoutDetailView.openSourceTemplateButtonTitle(for: nil),
+            "Review Template"
+        )
+
+        let blankTemplate = WorkoutTemplate(name: " \n ")
+        XCTAssertEqual(
+            WorkoutDetailView.openSourceTemplateButtonTitle(for: blankTemplate),
+            "Review Template"
+        )
+
+        let namedTemplate = WorkoutTemplate(name: "  Upper   Body\nSession  ")
+        XCTAssertEqual(
+            WorkoutDetailView.openSourceTemplateButtonTitle(for: namedTemplate),
+            "Review Template “Upper Body Session”"
+        )
+    }
+
     func testWorkoutDetailDisplayExerciseName_fallsBackForBlankAndNormalizesWhitespace() {
         let blankExercise = Exercise(name: "   \n   ", category: .compound, primaryMuscleGroups: [.chest])
         XCTAssertEqual(WorkoutDetailView.displayExerciseName(blankExercise), "Exercise")
