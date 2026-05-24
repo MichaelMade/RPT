@@ -548,6 +548,19 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testDiscardCurrentWorkoutAndStartFollowUpAlertMessage_mentionsWorkingAndWarmupBreakdownWhenBothExist() {
+        let workout = Workout(name: "Upper A", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        workout.addSet(exercise: bench, weight: 185, reps: 8)
+        workout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout),
+            "Your in-progress workout will be lost and RPT will immediately start a follow-up from “Upper A”. Source session: 1 exercise • 2 logged sets (1 working, 1 warm-up). This action cannot be undone.",
+            "Follow-up confirmations should keep the same working-vs-warm-up specificity as history delete confirmations"
+        )
+    }
+
     func testDeleteRecentWorkoutFailureMessage_usesFallbackWorkoutName() {
         let workout = Workout(name: "   ", isCompleted: true)
 
