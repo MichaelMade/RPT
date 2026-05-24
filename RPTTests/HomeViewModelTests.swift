@@ -410,8 +410,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "Delete Upper A from history? Today • 6:45 AM • 2 exercises • 2 sets will be removed from your saved workout history.",
-            "Delete confirmation should identify the workout and make it clear that the saved history entry and its logged sets will be removed"
+            "Delete Upper A from history? Today • 6:45 AM • 2 exercises • 2 working sets will be removed from your saved workout history.",
+            "Delete confirmation should stay specific for working-only saved sessions instead of falling back to generic set wording"
         )
     }
 
@@ -531,8 +531,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout),
-            "Your in-progress workout will be lost and RPT will immediately start a follow-up from “Upper A”. Source session: 2 exercises • 2 sets. This action cannot be undone.",
-            "Discard-and-start follow-up confirmations should summarize the saved session they are about to reuse"
+            "Your in-progress workout will be lost and RPT will immediately start a follow-up from “Upper A”. Source session: 2 exercises • 2 working sets. This action cannot be undone.",
+            "Discard-and-start follow-up confirmations should stay specific for working-only source sessions too"
         )
     }
 

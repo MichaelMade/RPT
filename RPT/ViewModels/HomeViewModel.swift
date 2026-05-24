@@ -461,6 +461,11 @@ class HomeViewModel: ObservableObject {
             return "\(WorkoutRow.exerciseCountText(for: workout)) • \(totalLoggedSetSummary) (\(workingSummary), \(warmupSummary))"
         }
 
+        if workingCount > 0 {
+            let workingSetSummary = workingCount == 1 ? "1 working set" : "\(workingCount) working sets"
+            return "\(WorkoutRow.exerciseCountText(for: workout)) • \(workingSetSummary)"
+        }
+
         return "\(WorkoutRow.exerciseCountText(for: workout)) • \(WorkoutRow.setCountText(for: workout))"
     }
 

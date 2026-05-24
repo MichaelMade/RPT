@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s saved-workout delete and follow-up replacement confirmations now stay specific for working-only sessions too (`2 exercises • 2 working sets`) instead of falling back to generic `set` wording whenever no warm-up data is involved.
 - Fixed a Home follow-up confirmation regression by restoring the shared recent-workout session summary helper, and those `Discard Current Workout & Start Follow-Up …` alerts now keep the same working-vs-warm-up breakdown (`1 exercise • 2 logged sets (1 working, 1 warm-up)`) as history delete confirmations.
 - Active Workout delete/discard confirmations now stay specific for working-only drafts too (`2 working sets`, `including 1 logged working set`) instead of collapsing them back to generic `set`/`logged set` wording whenever no warm-up data is involved.
 - Active Workout delete confirmations now call out warm-up-vs-working draft mix before you lose it (`1 warm-up set`, `2 sets (1 working set and 1 warm-up set)`), so removing an exercise from a live workout stays honest even before any of those sets have been logged.
