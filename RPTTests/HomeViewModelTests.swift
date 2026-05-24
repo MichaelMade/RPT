@@ -415,6 +415,43 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testDeleteRecentWorkoutMessage_mentionsWorkingAndWarmupBreakdownWhenBothExist() {
+        var calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+        let workoutDate = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 13,
+            hour: 6,
+            minute: 45
+        ).date!
+        let now = DateComponents(
+            calendar: calendar,
+            timeZone: timeZone,
+            year: 2026,
+            month: 5,
+            day: 13,
+            hour: 8,
+            minute: 0
+        ).date!
+
+        let workout = Workout(date: workoutDate, name: "Upper A", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        workout.addSet(exercise: bench, weight: 185, reps: 8)
+        workout.addSet(exercise: bench, weight: 45, reps: 12, isWarmup: true)
+
+        let message = viewModel.deleteRecentWorkoutMessage(for: workout, now: now)
+
+        XCTAssertEqual(
+            message,
+            "Delete Upper A from history? Today • 6:45 AM • 1 exercise • 2 logged sets (1 working, 1 warm-up) will be removed from your saved workout history.",
+            "Delete confirmation should call out both working and warm-up data when removing a mixed saved session from history"
+        )
+    }
+
     func testDeleteRecentWorkoutMessage_usesWarmupOnlyFallbackCopy() {
         var calendar = Calendar(identifier: .gregorian)
         let timeZone = TimeZone(secondsFromGMT: 0)!

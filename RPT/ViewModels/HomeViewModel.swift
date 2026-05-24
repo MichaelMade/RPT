@@ -440,14 +440,25 @@ class HomeViewModel: ObservableObject {
     func deleteRecentWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         var summaryParts = [WorkoutRow.relativeDateText(for: workout.date, now: now)]
-        summaryParts.append(recentWorkoutSessionSummary(for: workout))
+        summaryParts.append(deleteRecentWorkoutSessionSummary(for: workout))
 
         return "Delete \(displayName) from history? \(summaryParts.joined(separator: " • ")) will be removed from your saved workout history."
     }
 
-    private func recentWorkoutSessionSummary(for workout: Workout) -> String {
+    private func deleteRecentWorkoutSessionSummary(for workout: Workout) -> String {
         if let countsFallbackText = WorkoutRow.countsFallbackText(for: workout) {
             return countsFallbackText
+        }
+
+        let loggedSets = workout.sets.filter(\.isCompletedLoggedSet)
+        let warmupCount = loggedSets.filter(\.isWarmup).count
+        let workingCount = loggedSets.count - warmupCount
+
+        if workingCount > 0, warmupCount > 0 {
+            let totalLoggedSetSummary = "\(loggedSets.count) logged sets"
+            let workingSummary = "\(workingCount) working"
+            let warmupSummary = "\(warmupCount) warm-up"
+            return "\(WorkoutRow.exerciseCountText(for: workout)) • \(totalLoggedSetSummary) (\(workingSummary), \(warmupSummary))"
         }
 
         return "\(WorkoutRow.exerciseCountText(for: workout)) • \(WorkoutRow.setCountText(for: workout))"
