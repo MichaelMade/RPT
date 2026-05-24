@@ -471,6 +471,10 @@ class TemplateViewModel: ObservableObject {
             return "Delete this template? This action cannot be undone."
         }
 
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let templateTarget = displayName == "Template"
+            ? "Delete this template?"
+            : "Delete “\(displayName)”?"
         let exerciseCount = template.exercises.count
         let exerciseSummary = exerciseCount == 1 ? "1 exercise" : "\(exerciseCount) exercises"
         let plannedSetCount = template.exercises.reduce(0) { $0 + max($1.suggestedSets, 0) }
@@ -486,7 +490,7 @@ class TemplateViewModel: ObservableObject {
             impactParts.append("template notes")
         }
 
-        return "Delete “\(WorkoutTemplate.normalizedDisplayName(template.name))”? This will remove \(Self.humanReadableList(impactParts)). This action cannot be undone."
+        return "\(templateTarget) This will remove \(Self.humanReadableList(impactParts)). This action cannot be undone."
     }
 
     func deleteTemplateFailureAlertTitle(for template: WorkoutTemplate?) -> String {
@@ -494,7 +498,10 @@ class TemplateViewModel: ObservableObject {
             return TemplateManager.DeletionResult.persistenceFailure.alertTitle
         }
 
-        return "Couldn’t Delete “\(WorkoutTemplate.normalizedDisplayName(template.name))”"
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? TemplateManager.DeletionResult.persistenceFailure.alertTitle
+            : "Couldn’t Delete “\(displayName)”"
     }
 
     func deleteTemplateFailureMessage(for template: WorkoutTemplate?) -> String {
@@ -502,7 +509,10 @@ class TemplateViewModel: ObservableObject {
             return TemplateManager.DeletionResult.persistenceFailure.alertMessage
         }
 
-        return "“\(WorkoutTemplate.normalizedDisplayName(template.name))” is still in your templates. Please try again."
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? TemplateManager.DeletionResult.persistenceFailure.alertMessage
+            : "“\(displayName)” is still in your templates. Please try again."
     }
 
     func startTemplateFailureAlertTitle(for template: WorkoutTemplate) -> String {

@@ -1245,6 +1245,40 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.duplicateTemplateButtonTitle(for: template), "Duplicate Template")
         XCTAssertEqual(viewModel.deleteTemplateButtonTitle(for: template), "Delete Template")
         XCTAssertEqual(viewModel.deleteTemplateAlertTitle(for: template), "Delete Template?")
+        XCTAssertEqual(
+            viewModel.deleteTemplateMessage(for: template),
+            "Delete this template? This will remove 1 exercise and 3 planned sets. This action cannot be undone."
+        )
+        XCTAssertEqual(
+            viewModel.deleteTemplateFailureAlertTitle(for: template),
+            "Unable to Delete Template"
+        )
+        XCTAssertEqual(
+            viewModel.deleteTemplateFailureMessage(for: template),
+            "This template could not be deleted right now. Please try again."
+        )
+        XCTAssertEqual(
+            viewModel.startTemplateFailureAlertTitle(for: template),
+            "Couldn’t Start This Template"
+        )
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template),
+            "Couldn’t Save & Start This Template"
+        )
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template),
+            "Couldn’t Discard & Start This Template"
+        )
+    }
+
+    func testDiscardAndStartTemplateAlertMessage_fallsBackForGenericTemplateName() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "   ", exerciseNames: ["Bench Press"])
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
+            "Your in-progress workout will be lost and RPT will immediately start this template. Source template: 1 exercise and 3 planned sets. This action cannot be undone."
+        )
     }
 
     func testDiscardCurrentWorkoutAndStartTemplateConfirmationIncludesNotesSummary() {
