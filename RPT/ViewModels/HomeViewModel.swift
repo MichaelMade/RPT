@@ -438,7 +438,7 @@ class HomeViewModel: ObservableObject {
             return "Delete This Workout?"
         }
 
-        return "Delete “\(displayName)”?”
+        return "Delete “\(displayName)”?"
     }
 
     func deleteRecentWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
