@@ -669,6 +669,29 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesPartialBlockedStartRecoveryCopy() throws {
+        let viewModel = TemplateViewModel()
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press", "Incline Dumbbell Press"]),
+            makeTemplate(name: "Ready Template", exerciseNames: ["Bench Press"])
+        ]
+        viewModel.searchText = "save & start partial template upper a"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Upper A"]
+        )
+    }
+
     func testFetchTemplates_matchesTemplateStatusSummaryCopyWhenAnotherWorkoutIsActive() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -1384,6 +1407,64 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.quickStartTemplateButtonTitle(for: template),
             "Start Partial Template",
             "Blank legacy template names should keep partial-start CTAs generic instead of surfacing the placeholder label"
+        )
+    }
+
+    func testPartialTemplateRecoveryTitlesStayExplicit() throws {
+        let viewModel = TemplateViewModel()
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = makeTemplate(
+            name: "  Upper   A  ",
+            exerciseNames: ["Bench Press", "Incline Dumbbell Press"]
+        )
+
+        XCTAssertEqual(viewModel.saveAndStartTemplateButtonTitle(for: template), "Save & Start Partial Template “Upper A”")
+        XCTAssertEqual(viewModel.discardAndStartTemplateButtonTitle(for: template), "Discard & Start Partial Template “Upper A”")
+        XCTAssertEqual(viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template), "Discard Current Workout & Start Partial Template “Upper A”?")
+        XCTAssertEqual(viewModel.startTemplateFailureAlertTitle(for: template), "Couldn’t Start Partial Template “Upper A”")
+        XCTAssertEqual(viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template), "Couldn’t Save & Start Partial Template “Upper A”")
+        XCTAssertEqual(viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template), "Couldn’t Discard & Start Partial Template “Upper A”")
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
+            "Your in-progress workout will be lost and RPT will immediately start the available part of Template “Upper A”. Source template: 2 exercises and 6 planned sets. This action cannot be undone.",
+            "Partial template recovery copy should warn that only the available portion of the routine will start when missing exercises are being skipped"
+        )
+    }
+
+    func testGenericPartialTemplateRecoveryTitlesStayExplicit() throws {
+        let viewModel = TemplateViewModel()
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = makeTemplate(
+            name: "   ",
+            exerciseNames: ["Bench Press", "Incline Dumbbell Press"]
+        )
+
+        XCTAssertEqual(viewModel.saveAndStartTemplateButtonTitle(for: template), "Save & Start Partial Template")
+        XCTAssertEqual(viewModel.discardAndStartTemplateButtonTitle(for: template), "Discard & Start Partial Template")
+        XCTAssertEqual(viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template), "Discard Current Workout & Start Partial Template?")
+        XCTAssertEqual(viewModel.startTemplateFailureAlertTitle(for: template), "Couldn’t Start Partial Template")
+        XCTAssertEqual(viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template), "Couldn’t Save & Start Partial Template")
+        XCTAssertEqual(viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template), "Couldn’t Discard & Start Partial Template")
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
+            "Your in-progress workout will be lost and RPT will immediately start the available part of this template. Source template: 2 exercises and 6 planned sets. This action cannot be undone.",
+            "Blank legacy template names should keep partial-start recovery copy generic while still warning that unavailable exercises will be skipped"
         )
     }
 

@@ -350,56 +350,58 @@ class TemplateViewModel: ObservableObject {
     }
 
     func startTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
-        return displayName == "Template"
-            ? "Start This Template"
-            : "Start Template “\(displayName)”"
+        "Start \(startTemplateActionTarget(for: template, partial: false))"
     }
 
     func quickStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
-        let isPartialStart = templateManager.startWorkoutConfirmationMessage(for: template) != nil
-
-        if isPartialStart {
-            return displayName == "Template"
-                ? "Start Partial Template"
-                : "Start Partial Template “\(displayName)”"
-        }
-
-        return displayName == "Template"
-            ? "Start This Template"
-            : "Start Template “\(displayName)”"
+        "Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
     }
 
     func saveAndStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
-        return displayName == "Template"
-            ? "Save & Start This Template"
-            : "Save & Start Template “\(displayName)”"
+        "Save & Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
     }
 
     func discardAndStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
-        return displayName == "Template"
-            ? "Discard & Start This Template"
-            : "Discard & Start Template “\(displayName)”"
+        "Discard & Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
     }
 
     func discardCurrentWorkoutAndStartTemplateAlertTitle(for template: WorkoutTemplate) -> String {
-        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
-        return displayName == "Template"
-            ? "Discard Current Workout & Start This Template?"
-            : "Discard Current Workout & Start Template “\(displayName)”?"
+        "Discard Current Workout & Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))?"
     }
 
     func discardCurrentWorkoutAndStartTemplateAlertMessage(for template: WorkoutTemplate) -> String {
-        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
-        let templateTarget = displayName == "Template"
-            ? "this template"
-            : "Template “\(displayName)”"
+        let templateTarget = startTemplateSentenceTarget(for: template, partial: isPartialTemplateStart(template))
         let sourceSummary = startTemplateSourceSummary(for: template)
 
         return "Your in-progress workout will be lost and RPT will immediately start \(templateTarget). Source template: \(sourceSummary). This action cannot be undone."
+    }
+
+    private func isPartialTemplateStart(_ template: WorkoutTemplate) -> Bool {
+        templateManager.startWorkoutConfirmationMessage(for: template) != nil
+    }
+
+    private func startTemplateActionTarget(for template: WorkoutTemplate, partial: Bool) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+
+        if displayName == "Template" {
+            return partial ? "Partial Template" : "This Template"
+        }
+
+        return partial
+            ? "Partial Template “\(displayName)”"
+            : "Template “\(displayName)”"
+    }
+
+    private func startTemplateSentenceTarget(for template: WorkoutTemplate, partial: Bool) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+
+        if displayName == "Template" {
+            return partial ? "the available part of this template" : "this template"
+        }
+
+        return partial
+            ? "the available part of Template “\(displayName)”"
+            : "Template “\(displayName)”"
     }
 
     private func startTemplateSourceSummary(for template: WorkoutTemplate) -> String {
@@ -531,27 +533,20 @@ class TemplateViewModel: ObservableObject {
     }
 
     func startTemplateFailureAlertTitle(for template: WorkoutTemplate) -> String {
-        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
-        return displayName == "Template"
-            ? "Couldn’t Start This Template"
-            : "Couldn’t Start Template “\(displayName)”"
+        "Couldn’t Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
     }
 
     func activeWorkoutPersistenceFailureAlertTitle(
         for action: ActiveWorkoutPersistenceAction,
         opening template: WorkoutTemplate
     ) -> String {
-        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let templateTarget = startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template))
 
         switch action {
         case .saveForLater:
-            return displayName == "Template"
-                ? "Couldn’t Save & Start This Template"
-                : "Couldn’t Save & Start Template “\(displayName)”"
+            return "Couldn’t Save & Start \(templateTarget)"
         case .discard:
-            return displayName == "Template"
-                ? "Couldn’t Discard & Start This Template"
-                : "Couldn’t Discard & Start Template “\(displayName)”"
+            return "Couldn’t Discard & Start \(templateTarget)"
         }
     }
 
@@ -829,6 +824,7 @@ class TemplateViewModel: ObservableObject {
             let startTemplateSuffix = templateName == "Template"
                 ? "before starting this template."
                 : "before starting \(templateName)."
+            let isPartialStart = templateManager.startWorkoutConfirmationMessage(for: template) != nil
 
             terms.append(contentsOf: [
                 "current workout",
@@ -861,6 +857,21 @@ class TemplateViewModel: ObservableObject {
                 "discard & start template",
                 "discard and start template"
             ])
+
+            if isPartialStart {
+                terms.append(contentsOf: [
+                    "save partial template",
+                    "save start partial template",
+                    "save & start partial template",
+                    "save and start partial template",
+                    "save & start partial template \(templateName)",
+                    "discard partial template",
+                    "discard start partial template",
+                    "discard & start partial template",
+                    "discard and start partial template",
+                    "discard & start partial template \(templateName)"
+                ])
+            }
         }
 
         if isOnlyBlockedByActiveWorkout {
