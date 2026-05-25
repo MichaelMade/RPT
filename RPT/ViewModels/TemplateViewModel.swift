@@ -361,7 +361,7 @@ class TemplateViewModel: ObservableObject {
     }
 
     func startTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        "Start \(startTemplateActionTarget(for: template, partial: false))"
+        "Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
     }
 
     func quickStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {

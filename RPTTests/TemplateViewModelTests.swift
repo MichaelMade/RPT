@@ -1364,7 +1364,7 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
-    func testQuickStartTemplateButtonTitle_namesPartialTemplateStarts() throws {
+    func testStartTemplateButtonTitles_namePartialTemplateStartsConsistently() throws {
         let viewModel = TemplateViewModel()
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
@@ -1381,13 +1381,18 @@ final class TemplateViewModelTests: XCTestCase {
         )
 
         XCTAssertEqual(
+            viewModel.startTemplateButtonTitle(for: template),
+            "Start Partial Template “Upper A”",
+            "Source-template CTAs should warn when a restart will skip unavailable exercises instead of claiming the full template will run"
+        )
+        XCTAssertEqual(
             viewModel.quickStartTemplateButtonTitle(for: template),
             "Start Partial Template “Upper A”",
             "Quick-start CTAs should stay anchored to the chosen template even when the run will skip unavailable exercises"
         )
     }
 
-    func testQuickStartTemplateButtonTitle_fallsBackForGenericPartialTemplateStarts() throws {
+    func testStartTemplateButtonTitles_fallBackForGenericPartialTemplateStarts() throws {
         let viewModel = TemplateViewModel()
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
@@ -1403,6 +1408,11 @@ final class TemplateViewModelTests: XCTestCase {
             exerciseNames: ["Bench Press", "Incline Dumbbell Press"]
         )
 
+        XCTAssertEqual(
+            viewModel.startTemplateButtonTitle(for: template),
+            "Start Partial Template",
+            "Blank legacy source-template CTAs should stay generic while still warning that the run is partial"
+        )
         XCTAssertEqual(
             viewModel.quickStartTemplateButtonTitle(for: template),
             "Start Partial Template",
