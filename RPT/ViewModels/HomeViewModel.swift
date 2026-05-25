@@ -548,7 +548,7 @@ class HomeViewModel: ObservableObject {
             return "Couldn’t start this follow-up. Keep this workout in history, then try again."
         }
 
-        return "Couldn’t start a follow-up from \(displayName). Keep it in history, then try again."
+        return "Couldn’t start a follow-up from “\(displayName)”. Keep it in history, then try again."
     }
 
     func startFollowUpFailureAlertTitle(for workout: Workout) -> String {
@@ -632,7 +632,7 @@ class HomeViewModel: ObservableObject {
             return "You already have a workout in progress: \(activeWorkoutSummary). Continue it, save it for later, or discard it before starting this follow-up."
         }
 
-        return "You already have a workout in progress: \(activeWorkoutSummary). Continue it, save it for later, or discard it before starting a follow-up from \(followUpName)."
+        return "You already have a workout in progress: \(activeWorkoutSummary). Continue it, save it for later, or discard it before starting a follow-up from “\(followUpName)”."
     }
 
     func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {
@@ -711,9 +711,9 @@ class HomeViewModel: ObservableObject {
 
         switch action {
         case .saveForLater:
-            return "Couldn’t save the current workout. Keep it open, then try starting a follow-up from \(followUpName) again."
+            return "Couldn’t save the current workout. Keep it open, then try starting a follow-up from “\(followUpName)” again."
         case .discard:
-            return "Couldn’t discard the current workout. Keep it open, then try starting a follow-up from \(followUpName) again."
+            return "Couldn’t discard the current workout. Keep it open, then try starting a follow-up from “\(followUpName)” again."
         }
     }
 

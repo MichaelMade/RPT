@@ -1499,7 +1499,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have a workout in progress: Started just now • Current Draft. Continue it, save it for later, or discard it before starting a follow-up from Upper A.",
+            "You already have a workout in progress: Started just now • Current Draft. Continue it, save it for later, or discard it before starting a follow-up from “Upper A”.",
             "Blocked follow-up copy should explain the current draft state and the exact saved workout the follow-up would come from"
         )
     }
@@ -1509,12 +1509,12 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutPersistenceFailureMessage(for: .saveForLater, startingFollowUpFrom: completedWorkout),
-            "Couldn’t save the current workout. Keep it open, then try starting a follow-up from Upper A again.",
+            "Couldn’t save the current workout. Keep it open, then try starting a follow-up from “Upper A” again.",
             "Save-for-later failures should explain that the current draft stayed open and the follow-up can be retried"
         )
         XCTAssertEqual(
             viewModel.activeWorkoutPersistenceFailureMessage(for: .discard, startingFollowUpFrom: completedWorkout),
-            "Couldn’t discard the current workout. Keep it open, then try starting a follow-up from Upper A again.",
+            "Couldn’t discard the current workout. Keep it open, then try starting a follow-up from “Upper A” again.",
             "Discard failures should explain that the current draft stayed open and the follow-up can be retried"
         )
         XCTAssertEqual(
@@ -1658,10 +1658,20 @@ final class HomeViewModelTests: XCTestCase {
         case .failure(let message):
             XCTAssertEqual(
                 message,
-                "Couldn’t save the current workout. Keep it open, then try starting a follow-up from Upper A again.",
+                "Couldn’t save the current workout. Keep it open, then try starting a follow-up from “Upper A” again.",
                 "Blocked follow-up recovery should surface the save-for-later retry message when the current draft cannot be persisted"
             )
         }
+    }
+
+    func testStartFollowUpFailureMessage_namesExactSavedWorkout() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.startFollowUpFailureMessage(for: workout),
+            "Couldn’t start a follow-up from “Upper A”. Keep it in history, then try again.",
+            "Named follow-up start failures should keep the saved workout clearly quoted in retry copy"
+        )
     }
 
     func testStartFollowUpFailureMessage_usesGenericFallbackForBlankWorkoutName() {
