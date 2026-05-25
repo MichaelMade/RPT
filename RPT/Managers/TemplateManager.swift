@@ -537,7 +537,7 @@ class TemplateManager {
         let duplicateCount = duplicateExerciseNames(in: template).count
 
         guard canStartWorkout(for: template) else {
-            return "Can't Start Workout"
+            return "Can't Start Template"
         }
 
         if blockedByActiveWorkout {
@@ -545,10 +545,10 @@ class TemplateManager {
         }
 
         guard unavailableCount > 0 || duplicateCount > 0 else {
-            return "Start Workout"
+            return "Start Template"
         }
 
-        return "Start Partial Workout"
+        return "Start Partial Template"
     }
 
     func startWorkoutDisabledMessage(for template: WorkoutTemplate) -> String? {

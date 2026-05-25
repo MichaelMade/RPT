@@ -578,7 +578,7 @@ final class TemplateManagerTests: XCTestCase {
             ["Incline Dumbbell Press"]
         )
         XCTAssertEqual(TemplateManager.shared.availableExerciseCount(in: template), 1)
-        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Partial Workout")
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Partial Template")
         XCTAssertEqual(
             TemplateManager.shared.partialStartConfirmationMessage(for: template),
             "1 template exercise will be skipped for now: Incline Dumbbell Press. Start this workout with the remaining 1 unique available exercise?"
@@ -664,7 +664,7 @@ final class TemplateManagerTests: XCTestCase {
             notes: ""
         )
 
-        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Partial Workout")
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Partial Template")
         XCTAssertEqual(
             TemplateManager.shared.startWorkoutConfirmationMessage(for: template),
             "Repeated entries for Bench Press will only be added once. Start this workout with the remaining 1 unique available exercise?"
@@ -973,7 +973,7 @@ final class TemplateManagerTests: XCTestCase {
         )
 
         XCTAssertEqual(TemplateManager.shared.availableExerciseCount(in: template), 0)
-        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Can't Start Workout")
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Can't Start Template")
         XCTAssertEqual(
             TemplateManager.shared.startWorkoutDisabledMessage(for: template),
             "None of this template’s unique exercises are currently available in your library. Restore or replace the missing exercises before starting."
@@ -992,7 +992,7 @@ final class TemplateManagerTests: XCTestCase {
         )
 
         XCTAssertEqual(TemplateManager.shared.availableExerciseCount(in: template), 0)
-        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Can't Start Workout")
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Can't Start Template")
         XCTAssertEqual(
             TemplateManager.shared.startWorkoutDisabledMessage(for: template),
             "This template can’t start right now because its only exercise is missing from your library. Restore or replace it before starting."
@@ -1007,7 +1007,7 @@ final class TemplateManagerTests: XCTestCase {
         )
 
         XCTAssertFalse(TemplateManager.shared.canStartWorkout(for: template))
-        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Can't Start Workout")
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Can't Start Template")
         XCTAssertEqual(
             TemplateManager.shared.startWorkoutDisabledMessage(for: template),
             "This template doesn’t have any exercises yet. Edit it to add at least one exercise before starting."
@@ -1031,7 +1031,7 @@ final class TemplateManagerTests: XCTestCase {
         )
 
         XCTAssertTrue(TemplateManager.shared.canStartWorkout(for: template))
-        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Workout")
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Template")
         XCTAssertEqual(
             TemplateManager.shared.templateDetailStatusSummary(for: template),
             "Ready to start with 1 exercise."
@@ -1139,7 +1139,7 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(
             TemplateManager.shared.startWorkoutActionTitle(for: template, blockedByActiveWorkout: true),
-            "Can't Start Workout"
+            "Can't Start Template"
         )
     }
 
@@ -1206,7 +1206,7 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(TemplateManager.shared.unavailableExerciseNames(in: template), ["Ghost Lift"])
         XCTAssertEqual(TemplateManager.shared.availableExerciseCount(in: template), 1)
-        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Partial Workout")
+        XCTAssertEqual(TemplateManager.shared.startWorkoutActionTitle(for: template), "Start Partial Template")
         XCTAssertEqual(
             TemplateManager.shared.templateDetailStatusSummary(for: template),
             "Starts with 1 of 2 unique exercises right now. 1 missing from your library • 1 repeated entry."
