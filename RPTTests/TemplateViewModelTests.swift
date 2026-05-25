@@ -1238,6 +1238,7 @@ final class TemplateViewModelTests: XCTestCase {
         let template = makeTemplate(name: "   ", exerciseNames: ["Bench Press"])
 
         XCTAssertEqual(viewModel.startTemplateButtonTitle(for: template), "Start This Template")
+        XCTAssertEqual(viewModel.quickStartTemplateButtonTitle(for: template), "Start This Template")
         XCTAssertEqual(viewModel.saveAndStartTemplateButtonTitle(for: template), "Save & Start This Template")
         XCTAssertEqual(viewModel.discardAndStartTemplateButtonTitle(for: template), "Discard & Start This Template")
         XCTAssertEqual(viewModel.reviewTemplateButtonTitle(for: template), "Review Template")
@@ -1268,6 +1269,52 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(
             viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template),
             "Couldn’t Discard & Start This Template"
+        )
+    }
+
+    func testQuickStartTemplateButtonTitle_namesPartialTemplateStarts() throws {
+        let viewModel = TemplateViewModel()
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = makeTemplate(
+            name: "  Upper   A  ",
+            exerciseNames: ["Bench Press", "Incline Dumbbell Press"]
+        )
+
+        XCTAssertEqual(
+            viewModel.quickStartTemplateButtonTitle(for: template),
+            "Start Partial Template “Upper A”",
+            "Quick-start CTAs should stay anchored to the chosen template even when the run will skip unavailable exercises"
+        )
+    }
+
+    func testQuickStartTemplateButtonTitle_fallsBackForGenericPartialTemplateStarts() throws {
+        let viewModel = TemplateViewModel()
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = makeTemplate(
+            name: "   ",
+            exerciseNames: ["Bench Press", "Incline Dumbbell Press"]
+        )
+
+        XCTAssertEqual(
+            viewModel.quickStartTemplateButtonTitle(for: template),
+            "Start Partial Template",
+            "Blank legacy template names should keep partial-start CTAs generic instead of surfacing the placeholder label"
         )
     }
 

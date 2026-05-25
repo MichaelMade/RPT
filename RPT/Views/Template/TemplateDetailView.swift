@@ -78,6 +78,14 @@ struct TemplateDetailView: View {
         templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
     }
 
+    private var startWorkoutButtonTitle: String {
+        guard !cannotStartWorkout, !isBlockedByActiveWorkout else {
+            return startWorkoutActionTitle
+        }
+
+        return templateViewModel.quickStartTemplateButtonTitle(for: template)
+    }
+
     private var templateStatusSummary: String {
         templateManager.templateDetailStatusSummary(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
     }
@@ -325,7 +333,7 @@ struct TemplateDetailView: View {
                         }) {
                             HStack {
                                 Image(systemName: "figure.strengthtraining.traditional")
-                                Text(startWorkoutActionTitle)
+                                Text(startWorkoutButtonTitle)
                                     .fontWeight(.semibold)
                             }
                             .frame(maxWidth: .infinity)
@@ -437,9 +445,9 @@ struct TemplateDetailView: View {
             .sheet(isPresented: $showingRestoreExerciseSheet) {
                 AddExerciseView(initialExerciseName: restoreExercisePrefillName)
             }
-            .alert(startWorkoutActionTitle, isPresented: $showingStartWorkoutConfirmation) {
+            .alert(startWorkoutButtonTitle, isPresented: $showingStartWorkoutConfirmation) {
                 Button("Cancel", role: .cancel) {}
-                Button(startWorkoutActionTitle) {
+                Button(startWorkoutButtonTitle) {
                     startWorkout()
                 }
             } message: {

@@ -211,7 +211,7 @@ struct TemplatesListView: View {
 
                             if !activeWorkoutBlocksTemplateStart,
                                matchedTemplateCanStart {
-                                Button(templateManager.startWorkoutActionTitle(for: matchedTemplate)) {
+                                Button(viewModel.quickStartTemplateButtonTitle(for: matchedTemplate)) {
                                     beginQuickStart(for: matchedTemplate)
                                 }
                             } else if let resumableWorkout,
@@ -396,7 +396,7 @@ struct TemplatesListView: View {
                 Text(viewModel.deleteTemplateFailureMessage(for: failedTemplateDeletionTarget))
             }
             .alert(
-                quickStartTemplate.map { templateManager.startWorkoutActionTitle(for: $0) } ?? "Start Workout",
+                quickStartTemplate.map { viewModel.quickStartTemplateButtonTitle(for: $0) } ?? "Start This Template",
                 isPresented: Binding(
                     get: { quickStartTemplate != nil && quickStartConfirmationMessage != nil },
                     set: { isPresented in
@@ -412,7 +412,7 @@ struct TemplatesListView: View {
                     quickStartConfirmationMessage = nil
                 }
 
-                Button(quickStartTemplate.map { templateManager.startWorkoutActionTitle(for: $0) } ?? "Start Workout") {
+                Button(quickStartTemplate.map { viewModel.quickStartTemplateButtonTitle(for: $0) } ?? "Start This Template") {
                     confirmQuickStart()
                 }
             } message: {

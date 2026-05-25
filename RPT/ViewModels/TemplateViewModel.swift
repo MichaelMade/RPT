@@ -356,6 +356,21 @@ class TemplateViewModel: ObservableObject {
             : "Start Template “\(displayName)”"
     }
 
+    func quickStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let isPartialStart = templateManager.startWorkoutConfirmationMessage(for: template) != nil
+
+        if isPartialStart {
+            return displayName == "Template"
+                ? "Start Partial Template"
+                : "Start Partial Template “\(displayName)”"
+        }
+
+        return displayName == "Template"
+            ? "Start This Template"
+            : "Start Template “\(displayName)”"
+    }
+
     func saveAndStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {
         let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
         return displayName == "Template"
