@@ -1534,6 +1534,28 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testActiveWorkoutInProgressTitle_namesSpecificDraftWhenAvailable() {
+        let viewModel = TemplateViewModel()
+        let workout = Workout(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutInProgressTitle(for: workout),
+            "“Upper A” In Progress",
+            "Blocked template states should name the exact in-progress workout when possible"
+        )
+    }
+
+    func testActiveWorkoutInProgressTitle_fallsBackForGenericDraftName() {
+        let viewModel = TemplateViewModel()
+        let workout = Workout(name: "   ")
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutInProgressTitle(for: workout),
+            "Current Workout In Progress",
+            "Unnamed drafts should keep the generic blocked-start status label"
+        )
+    }
+
     func testTemplateActionTitles_nameSpecificTemplate() {
         let viewModel = TemplateViewModel()
         let template = makeTemplate(name: "  Upper   A  ", exerciseNames: ["Bench Press"])

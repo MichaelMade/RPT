@@ -349,6 +349,17 @@ class TemplateViewModel: ObservableObject {
             : "Continue “\(displayName)”"
     }
 
+    func activeWorkoutInProgressTitle(for workout: Workout?) -> String {
+        guard let workout else {
+            return "Current Workout In Progress"
+        }
+
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Current Workout In Progress"
+            : "“\(displayName)” In Progress"
+    }
+
     func startTemplateButtonTitle(for template: WorkoutTemplate) -> String {
         "Start \(startTemplateActionTarget(for: template, partial: false))"
     }

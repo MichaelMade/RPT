@@ -16,6 +16,7 @@ struct TemplateDetailView: View {
     let onResumeActiveWorkout: (() -> Void)?
     let onSaveActiveWorkoutAndOpenTemplate: (() -> Void)?
     let onDiscardActiveWorkoutAndOpenTemplate: (() -> Void)?
+    let currentActiveWorkout: Workout?
     let activeWorkoutBlockMessage: String?
     @Environment(\.dismiss) private var dismiss
     @State private var startWorkoutFailureTitle = "Workout Action Failed"
@@ -75,7 +76,11 @@ struct TemplateDetailView: View {
     }
 
     private var startWorkoutActionTitle: String {
-        templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
+        guard isBlockedByActiveWorkout else {
+            return templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: false)
+        }
+
+        return templateViewModel.activeWorkoutInProgressTitle(for: currentActiveWorkout)
     }
 
     private var startWorkoutButtonTitle: String {
@@ -526,6 +531,7 @@ struct TemplateDetailView: View {
         onResumeActiveWorkout: nil,
         onSaveActiveWorkoutAndOpenTemplate: nil,
         onDiscardActiveWorkoutAndOpenTemplate: nil,
+        currentActiveWorkout: nil,
         activeWorkoutBlockMessage: nil
     )
 }

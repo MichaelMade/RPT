@@ -87,7 +87,8 @@ struct TemplatesListView: View {
     var body: some View {
         NavigationStack {
             List {
-                let activeWorkoutBlocksTemplateStart = protectedResumableWorkout() != nil
+                let resumableWorkout = protectedResumableWorkout()
+                let activeWorkoutBlocksTemplateStart = resumableWorkout != nil
                 let filteredTemplates = viewModel.fetchTemplates(blockedByActiveWorkout: activeWorkoutBlocksTemplateStart)
 
                 if let summary = viewModel.filteredResultsSummary(filteredCount: filteredTemplates.count) {
@@ -138,7 +139,9 @@ struct TemplatesListView: View {
                             let templateCannotStartOnItsOwn = templateManager.startWorkoutDisabledMessage(for: template) != nil
                             let isBlockedByActiveWorkout = activeWorkoutBlocksTemplateStart && !templateCannotStartOnItsOwn
                             let statusTone = templateManager.templateStatusTone(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
-                            let statusTitle = templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
+                            let statusTitle = isBlockedByActiveWorkout
+                                ? viewModel.activeWorkoutInProgressTitle(for: resumableWorkout)
+                                : templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: false)
 
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack(alignment: .top, spacing: 8) {
@@ -207,7 +210,6 @@ struct TemplatesListView: View {
                        let matchedTemplate = filteredTemplates.first {
                         Section("Quick Actions") {
                             let matchedTemplateCanStart = templateManager.canStartWorkout(for: matchedTemplate)
-                            let resumableWorkout = protectedResumableWorkout()
 
                             if !activeWorkoutBlocksTemplateStart,
                                matchedTemplateCanStart {
@@ -351,6 +353,7 @@ struct TemplatesListView: View {
                             : {
                                 discardActiveWorkoutAndOpenTemplate(template)
                             },
+                        currentActiveWorkout: protectedResumableWorkout(),
                         activeWorkoutBlockMessage: protectedResumableWorkout().map {
                             viewModel.activeWorkoutBlocksTemplateStartMessage(for: $0, opening: template)
                         }

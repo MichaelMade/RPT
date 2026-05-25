@@ -523,6 +523,7 @@ struct WorkoutDetailView: View {
                                     onDiscardActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil ? nil : {
                                         discardActiveWorkoutAndOpenTemplate(sourceTemplate)
                                     },
+                                    currentActiveWorkout: protectedResumableWorkout(),
                                     activeWorkoutBlockMessage: sourceTemplateBlockMessage(for: sourceTemplate)
                                 )
                             } label: {
