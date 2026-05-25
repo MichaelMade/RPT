@@ -288,6 +288,51 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesCurrentStartTemplateCTAForNamedTemplate() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "start template upper a"
+
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper A"])
+    }
+
+    func testFetchTemplates_matchesCurrentPartialStartTemplateCTA() throws {
+        let viewModel = TemplateViewModel()
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press", "Incline Dumbbell Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "start partial template upper a"
+
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper A"])
+    }
+
+    func testFetchTemplates_matchesGenericStartThisTemplateCTAForPlaceholderTemplateName() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "   ", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "start this template"
+
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["   "])
+    }
+
     func testFetchTemplates_matchesUnavailableExerciseRestoreRecoveryCopy() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

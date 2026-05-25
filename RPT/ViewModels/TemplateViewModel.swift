@@ -800,14 +800,26 @@ class TemplateViewModel: ObservableObject {
         ]
 
         if canStartWorkout {
+            let isPartialStart = templateManager.startWorkoutConfirmationMessage(for: template) != nil
+
             terms.append(contentsOf: [
                 "start workout",
+                "start template",
+                "start template \(templateName)",
                 "start \(templateName)",
+                "start this template",
                 "ready",
                 "ready to start",
                 "available",
                 "available exercises"
             ])
+
+            if isPartialStart {
+                terms.append(contentsOf: [
+                    "start partial template",
+                    "start partial template \(templateName)"
+                ])
+            }
         }
 
         if activeWorkoutAvailable {

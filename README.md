@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now matches the current template start CTA copy too (`Start Template “Upper A”`, `Start Partial Template “Upper A”`, `Start This Template`), so users can refind a routine using the same button wording shown in Template Details and Quick Actions instead of relying on older generic search phrases.
 - Workout Templates search now matches the current blocked-start recovery wording too (`Save & Start Template`, `Discard & Start Template`), so users can refind a blocked routine using the exact CTA copy RPT shows during active-workout conflicts instead of only the older `...Open Template` phrasing.
 - Template Details and single-template Quick Actions now keep their primary start CTA anchored to the selected routine (`Start Template “Upper A”`, `Start Partial Template “Upper A”`) instead of falling back to generic `Start Workout` / `Start Partial Workout` copy, so starting a plan feels consistent with the rest of RPT’s template flows.
 - Workout history/source-template metadata now stays generic for legacy placeholder routine names, so rows and missing-template cards show clean copy like `Template` / `This workout started from a saved template...` instead of awkward `Template • Template` or `started from Template` phrasing.
