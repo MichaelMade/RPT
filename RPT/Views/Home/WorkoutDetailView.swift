@@ -193,6 +193,19 @@ struct WorkoutDetailView: View {
         return TemplateViewModel().reviewTemplateButtonTitle(for: template)
     }
 
+    static func sourceTemplateDescription(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "This workout started from a saved template. Review the original plan or jump straight back into a fresh run from here."
+        }
+
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        if displayName == "Template" {
+            return "This workout started from a saved template. Review the original plan or jump straight back into a fresh run from here."
+        }
+
+        return "This workout started from \(displayName). Review the original plan or jump straight back into a fresh run from here."
+    }
+
     init(workout: Workout) {
         self.workout = workout
         self._activeWorkoutBinding = .constant(nil)
@@ -408,7 +421,7 @@ struct WorkoutDetailView: View {
                             .font(.headline)
 
                         if let sourceTemplate {
-                            Text("This workout started from \(WorkoutTemplate.normalizedDisplayName(sourceTemplate.name)). Review the original plan or jump straight back into a fresh run from here.")
+                            Text(Self.sourceTemplateDescription(for: sourceTemplate))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
 

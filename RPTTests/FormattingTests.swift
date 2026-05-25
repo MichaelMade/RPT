@@ -929,6 +929,25 @@ final class FormattingTests: XCTestCase {
         )
     }
 
+    func testWorkoutDetailSourceTemplateDescription_staysGenericForPlaceholderNames() {
+        XCTAssertEqual(
+            WorkoutDetailView.sourceTemplateDescription(for: nil),
+            "This workout started from a saved template. Review the original plan or jump straight back into a fresh run from here."
+        )
+
+        let blankTemplate = WorkoutTemplate(name: " \n ")
+        XCTAssertEqual(
+            WorkoutDetailView.sourceTemplateDescription(for: blankTemplate),
+            "This workout started from a saved template. Review the original plan or jump straight back into a fresh run from here."
+        )
+
+        let namedTemplate = WorkoutTemplate(name: "  Upper   Body\nSession  ")
+        XCTAssertEqual(
+            WorkoutDetailView.sourceTemplateDescription(for: namedTemplate),
+            "This workout started from Upper Body Session. Review the original plan or jump straight back into a fresh run from here."
+        )
+    }
+
     func testWorkoutDetailDisplayExerciseName_fallsBackForBlankAndNormalizesWhitespace() {
         let blankExercise = Exercise(name: "   \n   ", category: .compound, primaryMuscleGroups: [.chest])
         XCTAssertEqual(WorkoutDetailView.displayExerciseName(blankExercise), "Exercise")

@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Detail’s Source Template helper text now stays generic for legacy placeholder template names too (`This workout started from a saved template...`) instead of awkwardly claiming a session started from `Template`.
 - Fixed a Home saved-workout delete-confirmation typo so named history alerts now read cleanly (`Delete “Upper A”?`) instead of showing an extra trailing quote (`Delete “Upper A”?”`).
 - Home and Exercise History source-template shortcuts now fall back to honest generic copy (`Start This Template`) when legacy saved workouts only remember the placeholder template name `Template`, instead of surfacing awkward quick actions like `Start Template “Template”`.
 - Saved-workout failure and retry messages now stay generic for blank legacy workout names too (`Couldn’t delete this workout from history...`, `Couldn’t start this follow-up...`) instead of leaking awkward placeholder text like `Couldn’t delete Workout...` or `start a follow-up from Workout` when recovery copy references an unnamed session.
