@@ -683,7 +683,31 @@ final class TemplateViewModelTests: XCTestCase {
             ["Push Day"]
         )
 
+        viewModel.searchText = "save & start template"
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
+
+        viewModel.searchText = "save and start template"
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
+
         viewModel.searchText = "discard and open template"
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
+
+        viewModel.searchText = "discard & start template"
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
+
+        viewModel.searchText = "discard and start template"
         XCTAssertEqual(
             viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
             ["Push Day"]

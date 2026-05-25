@@ -839,9 +839,15 @@ class TemplateViewModel: ObservableObject {
                 "save open template",
                 "save & open template",
                 "save and open template",
+                "save start template",
+                "save & start template",
+                "save and start template",
                 "discard open template",
                 "discard & open template",
-                "discard and open template"
+                "discard and open template",
+                "discard start template",
+                "discard & start template",
+                "discard and start template"
             ])
         }
 
