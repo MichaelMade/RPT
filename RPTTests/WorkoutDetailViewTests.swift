@@ -41,4 +41,42 @@ final class WorkoutDetailViewTests: XCTestCase {
             "Your in-progress workout will be lost before RPT starts the selected follow-up. This action cannot be undone."
         )
     }
+
+    func testTemplateStartFailureAlertTitles_nameSpecificTemplate() {
+        let template = WorkoutTemplate(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            WorkoutDetailView.templateStartFailureAlertTitle(for: template),
+            "Couldn’t Start Template “Upper A”"
+        )
+        XCTAssertEqual(
+            WorkoutDetailView.templateSaveAndStartFailureAlertTitle(for: template),
+            "Couldn’t Save & Start Template “Upper A”"
+        )
+        XCTAssertEqual(
+            WorkoutDetailView.templateDiscardAndStartFailureAlertTitle(for: template),
+            "Couldn’t Discard & Start Template “Upper A”"
+        )
+    }
+
+    func testTemplateStartFailureAlertTitles_fallBackGracefully() {
+        let blankTemplate = WorkoutTemplate(name: " \n ")
+
+        XCTAssertEqual(
+            WorkoutDetailView.templateStartFailureAlertTitle(for: blankTemplate),
+            "Couldn’t Start This Template"
+        )
+        XCTAssertEqual(
+            WorkoutDetailView.templateSaveAndStartFailureAlertTitle(for: blankTemplate),
+            "Couldn’t Save & Start This Template"
+        )
+        XCTAssertEqual(
+            WorkoutDetailView.templateDiscardAndStartFailureAlertTitle(for: blankTemplate),
+            "Couldn’t Discard & Start This Template"
+        )
+        XCTAssertEqual(
+            WorkoutDetailView.templateStartFailureAlertTitle(for: nil),
+            "Workout Action Failed"
+        )
+    }
 }

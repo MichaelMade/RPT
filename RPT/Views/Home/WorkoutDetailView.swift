@@ -216,6 +216,30 @@ struct WorkoutDetailView: View {
         return "This workout started from \(displayName), but that template is no longer in your library."
     }
 
+    static func templateStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Workout Action Failed"
+        }
+
+        return TemplateViewModel().startTemplateFailureAlertTitle(for: template)
+    }
+
+    static func templateSaveAndStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Workout Action Failed"
+        }
+
+        return TemplateViewModel().activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template)
+    }
+
+    static func templateDiscardAndStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "Workout Action Failed"
+        }
+
+        return TemplateViewModel().activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template)
+    }
+
     init(workout: Workout) {
         self.workout = workout
         self._activeWorkoutBinding = .constant(nil)
@@ -316,7 +340,10 @@ struct WorkoutDetailView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            homeViewModel.presentStartWorkoutFailure(message)
+            homeViewModel.presentStartWorkoutFailure(
+                message,
+                title: Self.templateSaveAndStartFailureAlertTitle(for: template)
+            )
         }
     }
 
@@ -332,7 +359,10 @@ struct WorkoutDetailView: View {
         case .success(let startedWorkout):
             openStartedWorkout(startedWorkout)
         case .failure(let message):
-            homeViewModel.presentStartWorkoutFailure(message)
+            homeViewModel.presentStartWorkoutFailure(
+                message,
+                title: Self.templateDiscardAndStartFailureAlertTitle(for: template)
+            )
         }
     }
 

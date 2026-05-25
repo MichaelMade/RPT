@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Detail’s source-template recovery alerts now keep the exact template in save/discard failure titles (`Couldn’t Save & Start Template “Upper A”`, `Couldn’t Discard & Start This Template`) instead of falling back to a generic `Workout Action Failed`, so blocked reruns from history stay clearly anchored.
 - Home’s blocked follow-up and retry copy now quotes the exact saved workout name (`start a follow-up from “Upper A”`) in conflict/failure messages, so active-draft recovery stays easier to scan when several similarly named sessions are in play.
 - Workout Templates search now matches the current template start CTA copy too (`Start Template “Upper A”`, `Start Partial Template “Upper A”`, `Start This Template`), so users can refind a routine using the same button wording shown in Template Details and Quick Actions instead of relying on older generic search phrases.
 - Partial template conflict recovery now stays honest across buttons, alerts, and failure titles (`Save & Start Partial Template “Upper A”`, `Discard Current Workout & Start Partial Template “Upper A”?`, `Couldn’t Start Partial Template “Upper A”`), so RPT no longer implies a full-template restart when missing exercises mean it will only start the available portion of a routine.
