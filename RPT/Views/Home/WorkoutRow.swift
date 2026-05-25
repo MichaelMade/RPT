@@ -48,7 +48,9 @@ struct WorkoutRow: View {
             return nil
         }
 
-        return "Template • \(templateName)"
+        return templateName == "Template"
+            ? "Template"
+            : "Template • \(templateName)"
     }
 
     static func copySummaryMessage(forWorkoutNamed workoutName: String?) -> String {

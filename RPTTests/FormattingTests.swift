@@ -420,6 +420,10 @@ final class FormattingTests: XCTestCase {
             "Template • Renamed Upper Body A"
         )
 
+        let placeholderTemplateWorkout = Workout(name: "Push", startedFromTemplate: "  Template  ")
+        XCTAssertEqual(WorkoutRow.templateOriginName(for: placeholderTemplateWorkout), "Template")
+        XCTAssertEqual(WorkoutRow.templateOriginText(for: placeholderTemplateWorkout), "Template")
+
         let blankTemplateWorkout = Workout(name: "Push", startedFromTemplate: "   \n  ")
         XCTAssertNil(WorkoutRow.templateOriginName(for: blankTemplateWorkout))
         XCTAssertNil(WorkoutRow.templateOriginText(for: blankTemplateWorkout))
@@ -945,6 +949,21 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(
             WorkoutDetailView.sourceTemplateDescription(for: namedTemplate),
             "This workout started from Upper Body Session. Review the original plan or jump straight back into a fresh run from here."
+        )
+    }
+
+    func testWorkoutDetailUnavailableSourceTemplateMessage_staysGenericForPlaceholderNames() {
+        XCTAssertEqual(
+            WorkoutDetailView.unavailableSourceTemplateMessage(for: nil),
+            "This workout started from a saved template, but that template is no longer in your library."
+        )
+        XCTAssertEqual(
+            WorkoutDetailView.unavailableSourceTemplateMessage(for: "  Template  "),
+            "This workout started from a saved template, but that template is no longer in your library."
+        )
+        XCTAssertEqual(
+            WorkoutDetailView.unavailableSourceTemplateMessage(for: "  Upper   Body\nSession  "),
+            "This workout started from Upper Body Session, but that template is no longer in your library."
         )
     }
 

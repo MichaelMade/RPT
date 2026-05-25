@@ -206,6 +206,16 @@ struct WorkoutDetailView: View {
         return "This workout started from \(displayName). Review the original plan or jump straight back into a fresh run from here."
     }
 
+    static func unavailableSourceTemplateMessage(for templateName: String?) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(templateName ?? "")
+
+        guard displayName != "Template" else {
+            return "This workout started from a saved template, but that template is no longer in your library."
+        }
+
+        return "This workout started from \(displayName), but that template is no longer in your library."
+    }
+
     init(workout: Workout) {
         self.workout = workout
         self._activeWorkoutBinding = .constant(nil)
@@ -491,7 +501,7 @@ struct WorkoutDetailView: View {
                             }
                             .buttonStyle(.bordered)
                         } else {
-                            Text("This workout started from \(sourceTemplateName), but that template is no longer in your library.")
+                            Text(Self.unavailableSourceTemplateMessage(for: sourceTemplateName))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
