@@ -625,15 +625,7 @@ struct ExerciseDetailView: View {
             return nil
         }
 
-        let activeWorkoutName = WorkoutRow.displayName(for: activeWorkout)
-        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
-        let templateSuffix = templateName == "Template"
-            ? "before starting this template."
-            : "before starting \(templateName)."
-
-        return activeWorkoutName == "Workout"
-            ? "You already have a workout in progress. Continue it \(templateSuffix)"
-            : "You already have \(activeWorkoutName) in progress. Continue it \(templateSuffix)"
+        return templateViewModel.activeWorkoutBlocksTemplateStartMessage(for: activeWorkout, opening: template)
     }
 
     private func openStartedWorkout(_ startedWorkout: Workout) {

@@ -334,12 +334,23 @@ class TemplateViewModel: ObservableObject {
     }
 
     func activeWorkoutBlocksTemplateStartMessage(for workout: Workout, opening template: WorkoutTemplate) -> String {
-        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
-        let templateSuffix = templateName == "Template"
-            ? "before starting this template."
-            : "before starting \(templateName)."
-
+        let templateSuffix = startTemplateBlockSuffix(for: template)
         return "\(activeWorkoutPromptPrefix(for: workout)) Continue it, save it for later, or discard it \(templateSuffix)"
+    }
+
+    private func startTemplateBlockSuffix(for template: WorkoutTemplate) -> String {
+        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let isPartialStart = isPartialTemplateStart(template)
+
+        if templateName == "Template" {
+            return isPartialStart
+                ? "before starting the available part of this template."
+                : "before starting this template."
+        }
+
+        return isPartialStart
+            ? "before starting the available part of Template “\(templateName)”."
+            : "before starting \(templateName)."
     }
 
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
@@ -833,9 +844,7 @@ class TemplateViewModel: ObservableObject {
             let openTemplateSuffix = templateName == "Template"
                 ? "before opening this template."
                 : "before opening \(templateName)."
-            let startTemplateSuffix = templateName == "Template"
-                ? "before starting this template."
-                : "before starting \(templateName)."
+            let startTemplateSuffix = startTemplateBlockSuffix(for: template)
             let isPartialStart = templateManager.startWorkoutConfirmationMessage(for: template) != nil
 
             terms.append(contentsOf: [
@@ -872,6 +881,10 @@ class TemplateViewModel: ObservableObject {
 
             if isPartialStart {
                 terms.append(contentsOf: [
+                    "available part",
+                    templateName == "Template"
+                        ? "available part of this template"
+                        : "available part of template \(templateName)",
                     "save partial template",
                     "save start partial template",
                     "save & start partial template",
@@ -881,7 +894,8 @@ class TemplateViewModel: ObservableObject {
                     "discard start partial template",
                     "discard & start partial template",
                     "discard and start partial template",
-                    "discard & start partial template \(templateName)"
+                    "discard & start partial template \(templateName)",
+                    "continue it, save it for later, or discard it \(startTemplateSuffix)"
                 ])
             }
         }

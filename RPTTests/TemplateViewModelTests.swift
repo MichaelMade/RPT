@@ -709,6 +709,29 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesPartialBlockedStartAvailablePartCopy() throws {
+        let viewModel = TemplateViewModel()
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press", "Incline Dumbbell Press"]),
+            makeTemplate(name: "Ready Template", exerciseNames: ["Bench Press"])
+        ]
+        viewModel.searchText = "available part of template upper a"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Upper A"]
+        )
+    }
+
     func testFetchTemplates_matchesTemplateStatusSummaryCopyWhenAnotherWorkoutIsActive() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -1244,6 +1267,26 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(
             viewModel.activeWorkoutBlocksTemplateStartMessage(for: workout, opening: template),
             "You already have a workout in progress. Continue it, save it for later, or discard it before starting this template."
+        )
+    }
+
+    func testActiveWorkoutBlocksTemplateStartMessage_mentionsAvailablePartForPartialTemplate() throws {
+        let viewModel = TemplateViewModel()
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let workout = Workout(name: "Upper A")
+        let template = makeTemplate(name: "Lower Day", exerciseNames: ["Bench Press", "Incline Dumbbell Press"])
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutBlocksTemplateStartMessage(for: workout, opening: template),
+            "You already have Upper A in progress. Continue it, save it for later, or discard it before starting the available part of Template “Lower Day”."
         )
     }
 
