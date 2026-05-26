@@ -606,7 +606,15 @@ class HomeViewModel: ObservableObject {
             : "Couldn’t Start Template “\(displayName)”"
     }
 
-    func sourceTemplateQuickActionTitle(for workout: Workout, resolvedTemplateName: String? = nil) -> String? {
+    func sourceTemplateQuickActionTitle(
+        for workout: Workout,
+        resolvedTemplateName: String? = nil,
+        resolvedTemplate: WorkoutTemplate? = nil
+    ) -> String? {
+        if let resolvedTemplate {
+            return TemplateViewModel().startTemplateButtonTitle(for: resolvedTemplate)
+        }
+
         let preferredTemplateName = normalizedSummaryName(resolvedTemplateName)
             ?? normalizedSummaryName(workout.startedFromTemplate)
 

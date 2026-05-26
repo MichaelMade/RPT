@@ -299,7 +299,8 @@ struct ExerciseDetailView: View {
                                         if let sourceTemplate,
                                            let sourceTemplateQuickActionTitle = homeViewModel.sourceTemplateQuickActionTitle(
                                             for: entry.workout,
-                                            resolvedTemplateName: sourceTemplate.name
+                                            resolvedTemplateName: sourceTemplate.name,
+                                            resolvedTemplate: sourceTemplate
                                            ) {
                                             Button {
                                                 selectedSourceTemplate = sourceTemplate

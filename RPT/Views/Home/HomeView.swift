@@ -449,7 +449,8 @@ struct HomeView: View {
 
                                         if let sourceTemplateQuickActionTitle = viewModel.sourceTemplateQuickActionTitle(
                                             for: workout,
-                                            resolvedTemplateName: sourceTemplate.name
+                                            resolvedTemplateName: sourceTemplate.name,
+                                            resolvedTemplate: sourceTemplate
                                         ) {
                                             Button {
                                                 selectedSourceTemplate = sourceTemplate
@@ -552,7 +553,8 @@ struct HomeView: View {
 
                                         if let sourceTemplateQuickActionTitle = viewModel.sourceTemplateQuickActionTitle(
                                             for: matchedWorkout,
-                                            resolvedTemplateName: sourceTemplate.name
+                                            resolvedTemplateName: sourceTemplate.name,
+                                            resolvedTemplate: sourceTemplate
                                         ) {
                                             Button {
                                                 selectedSourceTemplate = sourceTemplate
