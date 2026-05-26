@@ -474,7 +474,10 @@ struct TemplateDetailView: View {
                 ),
                 isPresented: $showingDiscardAndStartConfirmation
             ) {
-                Button("Keep Current Workout", role: .cancel) { }
+                Button(
+                    templateViewModel.continueCurrentWorkoutButtonTitle(for: currentActiveWorkout),
+                    role: .cancel
+                ) { }
 
                 if let onDiscardActiveWorkoutAndOpenTemplate {
                     Button(

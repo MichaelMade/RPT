@@ -735,7 +735,11 @@ struct WorkoutDetailView: View {
                 workoutToDiscardAndStartFollowUp = nil
             }
 
-            Button("Keep Current Workout", role: .cancel) {
+            Button(
+                protectedResumableWorkout().map { homeViewModel.continueCurrentWorkoutButtonTitle(for: $0) }
+                ?? "Continue Current Workout",
+                role: .cancel
+            ) {
                 workoutToDiscardAndStartFollowUp = nil
             }
         } message: { workout in
@@ -745,7 +749,11 @@ struct WorkoutDetailView: View {
             discardAndStartSourceTemplateAlertTitle,
             isPresented: $showingDiscardAndStartSourceTemplateConfirmation
         ) {
-            Button("Keep Current Workout", role: .cancel) { }
+            Button(
+                protectedResumableWorkout().map { templateViewModel.continueCurrentWorkoutButtonTitle(for: $0) }
+                ?? "Continue Current Workout",
+                role: .cancel
+            ) { }
 
             if let sourceTemplate {
                 Button(

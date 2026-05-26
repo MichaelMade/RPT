@@ -1,5 +1,6 @@
 # RPT
 
+- Active-workout replacement alerts now reuse the exact live draft name in their safe cancel action too (`Continue “Upper A”`) instead of the last generic `Keep Current Workout` label, so discard-and-restart decisions across Home, Workout Details, Exercise Details, and Template Details stay easier to scan when several routines are in play.
 - Copied/exported workout summaries now quote specific source-template names too (`Template: “Upper A”`) and fall back to `Template: Saved template` for placeholder legacy names, so pasted history recaps stay consistent with the clearer on-screen template wording instead of drifting back to raw `Template: Upper A` / `Template: Template` lines.
 - Workout history and source-template labels now quote specific template names too (`Template • “Upper A”`) instead of mixing named template context back into unquoted row/detail metadata, so Home, Exercise Details, and Workout Detail all scan more consistently with the rest of RPT’s template wording.
 - Workout Detail’s missing `Source Template` fallback now keeps named plans quoted too (`This workout started from “Upper A”, but that template is no longer in your library.`), so deleted-template history reads with the same clearer template-name emphasis as the rest of RPT’s restart and review flows.

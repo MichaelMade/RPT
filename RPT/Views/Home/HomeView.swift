@@ -667,7 +667,11 @@ struct HomeView: View {
                     discardCurrentWorkoutAndStartFresh()
                 }
 
-                Button("Keep Current Workout", role: .cancel) { }
+                Button(
+                    resumableWorkoutToReplace.map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
+                    ?? "Continue Current Workout",
+                    role: .cancel
+                ) { }
             } message: {
                 if let resumableWorkoutToReplace {
                     Text(Self.discardCurrentWorkoutAndStartFreshAlertMessage(for: resumableWorkoutToReplace))
@@ -729,7 +733,11 @@ struct HomeView: View {
                     workoutToStartFollowUp = nil
                 }
 
-                Button("Keep Current Workout", role: .cancel) {
+                Button(
+                    protectedResumableWorkout().map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
+                    ?? "Continue Current Workout",
+                    role: .cancel
+                ) {
                     workoutToDiscardAndStartFollowUp = nil
                     workoutToStartFollowUp = nil
                 }
@@ -800,7 +808,11 @@ struct HomeView: View {
                     templateToStartFromHistory = nil
                 }
 
-                Button("Keep Current Workout", role: .cancel) {
+                Button(
+                    protectedResumableWorkout().map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
+                    ?? "Continue Current Workout",
+                    role: .cancel
+                ) {
                     templateToDiscardAndStart = nil
                     templateToStartFromHistory = nil
                 }
