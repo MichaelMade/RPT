@@ -1104,7 +1104,7 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertFalse(summary.contains("Notes:"))
     }
 
-    func testGenerateFormattedSummary_includesNormalizedTemplateOriginWhenAvailable() {
+    func testGenerateFormattedSummary_includesQuotedTemplateOriginWhenAvailable() {
         // Given
         let workout = Workout(name: "Push Day", startedFromTemplate: "  Upper  Body\nA  ")
 
@@ -1112,7 +1112,19 @@ final class WorkoutManagerLogicTests: XCTestCase {
         let summary = workout.generateFormattedSummary()
 
         // Then
-        XCTAssertTrue(summary.contains("Template: Upper Body A"))
+        XCTAssertTrue(summary.contains("Template: “Upper Body A”"))
+    }
+
+    func testGenerateFormattedSummary_usesGenericTemplateOriginForPlaceholderTemplateNames() {
+        // Given
+        let workout = Workout(name: "Push Day", startedFromTemplate: "  Template  ")
+
+        // When
+        let summary = workout.generateFormattedSummary()
+
+        // Then
+        XCTAssertTrue(summary.contains("Template: Saved template"))
+        XCTAssertFalse(summary.contains("Template: “Template”"))
     }
 
     func testGenerateFormattedSummary_collapsesMultilineNotesToSingleLine() {

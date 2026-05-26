@@ -408,6 +408,16 @@ final class Workout {
         return String(collapsedTemplateName.prefix(80))
     }
 
+    private func formattedSummaryTemplateOriginLine() -> String? {
+        guard let templateName = normalizedSummaryTemplateName() else {
+            return nil
+        }
+
+        return templateName == "Template"
+            ? "Template: Saved template"
+            : "Template: “\(templateName)”"
+    }
+
     private func summaryExerciseNamesInOrder() -> [String] {
         var seenExerciseNames: Set<String> = []
 
@@ -502,8 +512,8 @@ final class Workout {
 
         var summary = "\(summaryWorkoutName) - \(dateString)\n"
 
-        if let templateName = normalizedSummaryTemplateName() {
-            summary += "Template: \(templateName)\n"
+        if let templateOriginLine = formattedSummaryTemplateOriginLine() {
+            summary += "\(templateOriginLine)\n"
         }
 
         summary += "Exercises: \(exerciseList)\n"
