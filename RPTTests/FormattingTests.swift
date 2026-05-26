@@ -410,14 +410,14 @@ final class FormattingTests: XCTestCase {
     func testWorkoutRowTemplateOriginName_normalizesWhitespaceAndHidesBlankValues() {
         let templatedWorkout = Workout(name: "Push", startedFromTemplate: "  Upper  Body\nA  ")
         XCTAssertEqual(WorkoutRow.templateOriginName(for: templatedWorkout), "Upper Body A")
-        XCTAssertEqual(WorkoutRow.templateOriginText(for: templatedWorkout), "Template • Upper Body A")
+        XCTAssertEqual(WorkoutRow.templateOriginText(for: templatedWorkout), "Template • “Upper Body A”")
         XCTAssertEqual(
             WorkoutRow.templateOriginName(for: templatedWorkout, resolvedTemplateName: "  Renamed  Upper\nBody A  "),
             "Renamed Upper Body A"
         )
         XCTAssertEqual(
             WorkoutRow.templateOriginText(for: templatedWorkout, resolvedTemplateName: "  Renamed  Upper\nBody A  "),
-            "Template • Renamed Upper Body A"
+            "Template • “Renamed Upper Body A”"
         )
 
         let placeholderTemplateWorkout = Workout(name: "Push", startedFromTemplate: "  Template  ")
@@ -433,7 +433,7 @@ final class FormattingTests: XCTestCase {
         )
         XCTAssertEqual(
             WorkoutRow.templateOriginText(for: blankTemplateWorkout, resolvedTemplateName: "  Renamed   Upper A  "),
-            "Template • Renamed Upper A"
+            "Template • “Renamed Upper A”"
         )
     }
 
