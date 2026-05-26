@@ -1,5 +1,6 @@
 # RPT
 
+- Template replacement confirmations now name the exact in-progress workout when RPT knows it (`Discard “Push Day” & Start Template “Upper A”?`), so destructive template switches across Home, Exercise Details, Workout Details, and Templates make it clearer which live draft will be replaced before users commit.
 - Blocked source-template restart messaging now stays honest for partial reruns too, so Home, Exercise Details, and template search can all say users are starting only `the available part of Template “Upper A”` instead of implying a full-template restart when some original exercises are unavailable.
 - Workout Detail’s `Source Template` card now warns when a saved plan will only restart partially, so history reruns no longer imply a full fresh template run when some original exercises are currently unavailable.
 - Template blocked-start states now reuse the exact in-progress workout name in list/detail status badges *and* template search indexing (`“Upper A” In Progress`), so users can both spot and refind the right blocked routine using the same specific active-workout wording instead of a generic `Current Workout In Progress` label.

@@ -277,7 +277,10 @@ struct WorkoutDetailView: View {
             return "Discard Current Workout & Start This Template?"
         }
 
-        return templateViewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: sourceTemplate)
+        return templateViewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(
+            for: sourceTemplate,
+            currentWorkout: protectedResumableWorkout()
+        )
     }
 
     private var discardAndStartSourceTemplateAlertMessage: String {
@@ -285,7 +288,10 @@ struct WorkoutDetailView: View {
             return "Your in-progress workout will be lost before RPT starts the selected template. This action cannot be undone."
         }
 
-        return templateViewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: sourceTemplate)
+        return templateViewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(
+            for: sourceTemplate,
+            currentWorkout: protectedResumableWorkout()
+        )
     }
 
     private func protectedResumableWorkout() -> Workout? {
@@ -497,7 +503,13 @@ struct WorkoutDetailView: View {
                                     Button(role: .destructive) {
                                         showingDiscardAndStartSourceTemplateConfirmation = true
                                     } label: {
-                                        Label(templateViewModel.discardAndStartTemplateButtonTitle(for: sourceTemplate), systemImage: "trash")
+                                        Label(
+                                            templateViewModel.discardAndStartTemplateButtonTitle(
+                                                for: sourceTemplate,
+                                                currentWorkout: activeWorkout
+                                            ),
+                                            systemImage: "trash"
+                                        )
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     }
                                     .buttonStyle(.bordered)
@@ -740,7 +752,13 @@ struct WorkoutDetailView: View {
             Button("Keep Current Workout", role: .cancel) { }
 
             if let sourceTemplate {
-                Button(templateViewModel.discardAndStartTemplateButtonTitle(for: sourceTemplate), role: .destructive) {
+                Button(
+                    templateViewModel.discardAndStartTemplateButtonTitle(
+                        for: sourceTemplate,
+                        currentWorkout: protectedResumableWorkout()
+                    ),
+                    role: .destructive
+                ) {
                     discardActiveWorkoutAndOpenTemplate(sourceTemplate)
                 }
             }

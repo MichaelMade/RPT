@@ -383,7 +383,12 @@ struct TemplateDetailView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "trash")
-                                    Text(templateViewModel.discardAndStartTemplateButtonTitle(for: template))
+                                    Text(
+                                        templateViewModel.discardAndStartTemplateButtonTitle(
+                                            for: template,
+                                            currentWorkout: currentActiveWorkout
+                                        )
+                                    )
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -459,18 +464,32 @@ struct TemplateDetailView: View {
                 Text(startWorkoutConfirmationMessage ?? "")
             }
             .alert(
-                templateViewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template),
+                templateViewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(
+                    for: template,
+                    currentWorkout: currentActiveWorkout
+                ),
                 isPresented: $showingDiscardAndStartConfirmation
             ) {
                 Button("Keep Current Workout", role: .cancel) { }
 
                 if let onDiscardActiveWorkoutAndOpenTemplate {
-                    Button(templateViewModel.discardAndStartTemplateButtonTitle(for: template), role: .destructive) {
+                    Button(
+                        templateViewModel.discardAndStartTemplateButtonTitle(
+                            for: template,
+                            currentWorkout: currentActiveWorkout
+                        ),
+                        role: .destructive
+                    ) {
                         onDiscardActiveWorkoutAndOpenTemplate()
                     }
                 }
             } message: {
-                Text(templateViewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template))
+                Text(
+                    templateViewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(
+                        for: template,
+                        currentWorkout: currentActiveWorkout
+                    )
+                )
             }
             .alert(startWorkoutFailureTitle, isPresented: Binding(
                 get: { startWorkoutFailureMessage != nil },

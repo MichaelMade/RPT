@@ -236,7 +236,10 @@ struct TemplatesListView: View {
                                     showingDiscardAndStartConfirmation = true
                                 } label: {
                                     Label(
-                                        viewModel.discardAndStartTemplateButtonTitle(for: matchedTemplate),
+                                        viewModel.discardAndStartTemplateButtonTitle(
+                                            for: matchedTemplate,
+                                            currentWorkout: resumableWorkout
+                                        ),
                                         systemImage: "trash"
                                     )
                                 }
@@ -427,12 +430,22 @@ struct TemplatesListView: View {
                 Text(quickStartConfirmationMessage ?? "")
             }
             .alert(
-                templateToDiscardAndStart.map { viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: $0) }
-                    ?? "Discard Current Workout & Start This Template?",
+                templateToDiscardAndStart.map {
+                    viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(
+                        for: $0,
+                        currentWorkout: protectedResumableWorkout()
+                    )
+                } ?? "Discard Current Workout & Start This Template?",
                 isPresented: $showingDiscardAndStartConfirmation,
                 presenting: templateToDiscardAndStart
             ) { template in
-                Button(viewModel.discardAndStartTemplateButtonTitle(for: template), role: .destructive) {
+                Button(
+                    viewModel.discardAndStartTemplateButtonTitle(
+                        for: template,
+                        currentWorkout: protectedResumableWorkout()
+                    ),
+                    role: .destructive
+                ) {
                     discardActiveWorkoutAndOpenTemplate(template)
                     templateToDiscardAndStart = nil
                 }
@@ -441,7 +454,12 @@ struct TemplatesListView: View {
                     templateToDiscardAndStart = nil
                 }
             } message: { template in
-                Text(viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template))
+                Text(
+                    viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(
+                        for: template,
+                        currentWorkout: protectedResumableWorkout()
+                    )
+                )
             }
             .alert(templateStartFailureTitle, isPresented: Binding(
                 get: { templateStartFailureMessage != nil },

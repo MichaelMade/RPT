@@ -383,23 +383,46 @@ class TemplateViewModel: ObservableObject {
         "Save & Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
     }
 
-    func discardAndStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        "Discard & Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
+    func discardAndStartTemplateButtonTitle(for template: WorkoutTemplate, currentWorkout: Workout? = nil) -> String {
+        "\(discardCurrentWorkoutTitlePrefix(for: currentWorkout)) & Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
     }
 
-    func discardCurrentWorkoutAndStartTemplateAlertTitle(for template: WorkoutTemplate) -> String {
-        "Discard Current Workout & Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))?"
+    func discardCurrentWorkoutAndStartTemplateAlertTitle(for template: WorkoutTemplate, currentWorkout: Workout? = nil) -> String {
+        "\(discardCurrentWorkoutTitlePrefix(for: currentWorkout)) & Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))?"
     }
 
-    func discardCurrentWorkoutAndStartTemplateAlertMessage(for template: WorkoutTemplate) -> String {
+    func discardCurrentWorkoutAndStartTemplateAlertMessage(for template: WorkoutTemplate, currentWorkout: Workout? = nil) -> String {
         let templateTarget = startTemplateSentenceTarget(for: template, partial: isPartialTemplateStart(template))
         let sourceSummary = startTemplateSourceSummary(for: template)
+        let currentWorkoutLead = discardCurrentWorkoutMessageSubject(for: currentWorkout)
 
-        return "Your in-progress workout will be lost and RPT will immediately start \(templateTarget). Source template: \(sourceSummary). This action cannot be undone."
+        return "\(currentWorkoutLead) will be lost and RPT will immediately start \(templateTarget). Source template: \(sourceSummary). This action cannot be undone."
     }
 
     private func isPartialTemplateStart(_ template: WorkoutTemplate) -> Bool {
         templateManager.startWorkoutConfirmationMessage(for: template) != nil
+    }
+
+    private func discardCurrentWorkoutTitlePrefix(for workout: Workout?) -> String {
+        guard let workout else {
+            return "Discard Current Workout"
+        }
+
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Discard Current Workout"
+            : "Discard “\(displayName)”"
+    }
+
+    private func discardCurrentWorkoutMessageSubject(for workout: Workout?) -> String {
+        guard let workout else {
+            return "Your in-progress workout"
+        }
+
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Your in-progress workout"
+            : "“\(displayName)”"
     }
 
     private func startTemplateActionTarget(for template: WorkoutTemplate, partial: Bool) -> String {

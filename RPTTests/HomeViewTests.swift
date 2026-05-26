@@ -84,6 +84,20 @@ final class HomeViewTests: XCTestCase {
         )
     }
 
+    func testDiscardCurrentWorkoutAndStartTemplateAlertCopy_namesSpecificCurrentWorkoutWhenAvailable() {
+        let template = WorkoutTemplate(name: "  Upper   A  ")
+        let currentWorkout = Workout(name: "  Push   Day  ")
+
+        XCTAssertEqual(
+            HomeView.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template, currentWorkout: currentWorkout),
+            "Discard “Push Day” & Start Template “Upper A”?"
+        )
+        XCTAssertEqual(
+            HomeView.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template, currentWorkout: currentWorkout),
+            "“Push Day” will be lost and RPT will immediately start Template “Upper A”. Source template: 0 exercises and 0 planned sets. This action cannot be undone."
+        )
+    }
+
     func testDiscardCurrentWorkoutAndStartTemplateAlertCopy_fallsBackGracefully() {
         let blankTemplate = WorkoutTemplate(name: " \n ")
 

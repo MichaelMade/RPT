@@ -1383,6 +1383,26 @@ final class TemplateViewModelTests: XCTestCase {
             "Your in-progress workout will be lost and RPT will immediately start Template “Upper A”. Source template: 1 exercise and 3 planned sets. This action cannot be undone.",
             "Template-detail discard confirmations should explain both the destructive impact and the template payload before the selected plan starts"
         )
+
+        let currentWorkout = Workout(name: "  Push   Day  ")
+
+        XCTAssertEqual(
+            viewModel.discardAndStartTemplateButtonTitle(for: template, currentWorkout: currentWorkout),
+            "Discard “Push Day” & Start Template “Upper A”",
+            "Discard-and-start recovery CTAs should name the specific draft that will be replaced when that workout is known"
+        )
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template, currentWorkout: currentWorkout),
+            "Discard “Push Day” & Start Template “Upper A”?",
+            "Template discard confirmations should name the specific draft being replaced when that workout is known"
+        )
+
+        XCTAssertEqual(
+            viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template, currentWorkout: currentWorkout),
+            "“Push Day” will be lost and RPT will immediately start Template “Upper A”. Source template: 1 exercise and 3 planned sets. This action cannot be undone.",
+            "Template discard confirmations should name the exact workout that will be discarded when available"
+        )
     }
 
     func testTemplateActionTitles_fallBackForGenericTemplateName() {
