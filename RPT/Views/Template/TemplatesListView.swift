@@ -166,7 +166,13 @@ struct TemplatesListView: View {
                                 }
 
                                 HStack {
-                                    Text(templateManager.templateListExerciseSummary(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout))
+                                    Text(
+                                        templateManager.templateListExerciseSummary(
+                                            for: template,
+                                            blockedByActiveWorkout: isBlockedByActiveWorkout,
+                                            blockingWorkout: resumableWorkout
+                                        )
+                                    )
                                         .font(.caption)
                                         .foregroundColor(summaryColor(for: statusTone))
 

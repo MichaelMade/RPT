@@ -361,7 +361,11 @@ class TemplateManager {
         return firstOccurrenceId == exercise.id
     }
 
-    func templateListExerciseSummary(for template: WorkoutTemplate, blockedByActiveWorkout: Bool = false) -> String {
+    func templateListExerciseSummary(
+        for template: WorkoutTemplate,
+        blockedByActiveWorkout: Bool = false,
+        blockingWorkout: Workout? = nil
+    ) -> String {
         let totalCount = template.exercises.count
         let uniqueCount = uniqueTemplateExerciseCount(in: template)
         let availableCount = availableExerciseCount(in: template)
@@ -401,7 +405,7 @@ class TemplateManager {
             return baseSummary
         }
 
-        return baseSummary + " • current workout in progress"
+        return baseSummary + " • " + activeWorkoutSummarySuffix(for: blockingWorkout)
     }
 
     func templateListPreviewExerciseNames(for template: WorkoutTemplate, maxCount: Int = 2) -> [String] {
@@ -488,7 +492,11 @@ class TemplateManager {
         return .ready
     }
 
-    func templateDetailStatusSummary(for template: WorkoutTemplate, blockedByActiveWorkout: Bool = false) -> String {
+    func templateDetailStatusSummary(
+        for template: WorkoutTemplate,
+        blockedByActiveWorkout: Bool = false,
+        blockingWorkout: Workout? = nil
+    ) -> String {
         let availableCount = availableExerciseCount(in: template)
         let uniqueCount = uniqueTemplateExerciseCount(in: template)
         let unavailableCount = unavailableExerciseNames(in: template).count
@@ -522,7 +530,7 @@ class TemplateManager {
         }
 
         if blockedByActiveWorkout {
-            issueParts.append("Continue, save, or discard the current workout before starting this template")
+            issueParts.append(activeWorkoutStatusPrompt(for: blockingWorkout))
         }
 
         guard !issueParts.isEmpty else {
@@ -560,6 +568,28 @@ class TemplateManager {
         }
 
         return "Start Partial Template"
+    }
+
+    private func activeWorkoutSummarySuffix(for workout: Workout?) -> String {
+        guard let workout else {
+            return "current workout in progress"
+        }
+
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "current workout in progress"
+            : "“\(displayName)” in progress"
+    }
+
+    private func activeWorkoutStatusPrompt(for workout: Workout?) -> String {
+        guard let workout else {
+            return "Continue, save, or discard the current workout before starting this template"
+        }
+
+        let displayName = WorkoutRow.displayName(for: workout)
+        return displayName == "Workout"
+            ? "Continue, save, or discard the current workout before starting this template"
+            : "Continue, save, or discard “\(displayName)” before starting this template"
     }
 
     func startWorkoutDisabledMessage(for template: WorkoutTemplate) -> String? {

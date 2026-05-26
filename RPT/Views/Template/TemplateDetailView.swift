@@ -92,7 +92,11 @@ struct TemplateDetailView: View {
     }
 
     private var templateStatusSummary: String {
-        templateManager.templateDetailStatusSummary(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
+        templateManager.templateDetailStatusSummary(
+            for: template,
+            blockedByActiveWorkout: isBlockedByActiveWorkout,
+            blockingWorkout: currentActiveWorkout
+        )
     }
 
     private var statusTone: TemplateManager.TemplateStatusTone {

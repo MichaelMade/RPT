@@ -1024,8 +1024,20 @@ class TemplateViewModel: ObservableObject {
             ])
         }
 
-        terms.append(templateManager.templateListExerciseSummary(for: template, blockedByActiveWorkout: isOnlyBlockedByActiveWorkout))
-        terms.append(templateManager.templateDetailStatusSummary(for: template, blockedByActiveWorkout: isOnlyBlockedByActiveWorkout))
+        terms.append(
+            templateManager.templateListExerciseSummary(
+                for: template,
+                blockedByActiveWorkout: isOnlyBlockedByActiveWorkout,
+                blockingWorkout: activeWorkout
+            )
+        )
+        terms.append(
+            templateManager.templateDetailStatusSummary(
+                for: template,
+                blockedByActiveWorkout: isOnlyBlockedByActiveWorkout,
+                blockingWorkout: activeWorkout
+            )
+        )
         terms.append(
             templateManager.startWorkoutActionTitle(
                 for: template,
