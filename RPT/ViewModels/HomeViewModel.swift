@@ -600,10 +600,7 @@ class HomeViewModel: ObservableObject {
     }
 
     func startTemplateFailureAlertTitle(for template: WorkoutTemplate) -> String {
-        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
-        return displayName == "Template"
-            ? "Couldn’t Start This Template"
-            : "Couldn’t Start Template “\(displayName)”"
+        TemplateViewModel().startTemplateFailureAlertTitle(for: template)
     }
 
     func sourceTemplateQuickActionTitle(

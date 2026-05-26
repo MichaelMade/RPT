@@ -1579,6 +1579,31 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testStartTemplateFailureAlertTitle_usesPartialTemplateCopyWhenTemplateNeedsIt() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "  Upper   A  ",
+            exercises: [
+                TemplateExercise(exerciseName: "Bench Press", suggestedSets: 3, repRanges: []),
+                TemplateExercise(exerciseName: "Incline Dumbbell Press", suggestedSets: 3, repRanges: [])
+            ]
+        )
+
+        XCTAssertEqual(
+            viewModel.startTemplateFailureAlertTitle(for: template),
+            "Couldn’t Start Partial Template “Upper A”",
+            "Home source-template start failures should stay aligned with partial-template CTAs when missing exercises mean only part of a saved plan can restart"
+        )
+    }
+
     func testSourceTemplateQuickActionTitle_usesNormalizedTemplateName() {
         let workout = Workout(name: "Push Day", isCompleted: true, startedFromTemplate: "  Upper   A  ")
 
