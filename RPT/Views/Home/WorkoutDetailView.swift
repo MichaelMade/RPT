@@ -199,11 +199,17 @@ struct WorkoutDetailView: View {
         }
 
         let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let startsPartially = TemplateManager.shared.startWorkoutConfirmationMessage(for: template) != nil
+
         if displayName == "Template" {
-            return "This workout started from a saved template. Review the original plan or jump straight back into a fresh run from here."
+            return startsPartially
+                ? "This workout started from a saved template. Review the original plan or jump straight back into the available part of this template from here."
+                : "This workout started from a saved template. Review the original plan or jump straight back into a fresh run from here."
         }
 
-        return "This workout started from \(displayName). Review the original plan or jump straight back into a fresh run from here."
+        return startsPartially
+            ? "This workout started from “\(displayName)”. Review the original plan or jump straight back into the available part of that template from here."
+            : "This workout started from “\(displayName)”. Review the original plan or jump straight back into a fresh run from here."
     }
 
     static func unavailableSourceTemplateMessage(for templateName: String?) -> String {

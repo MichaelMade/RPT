@@ -1,4 +1,5 @@
 import XCTest
+import SwiftData
 @testable import RPT
 
 final class WorkoutDetailViewTests: XCTestCase {
@@ -77,6 +78,43 @@ final class WorkoutDetailViewTests: XCTestCase {
         XCTAssertEqual(
             WorkoutDetailView.templateStartFailureAlertTitle(for: nil),
             "Workout Action Failed"
+        )
+    }
+
+    func testSourceTemplateDescription_namesSpecificTemplateForFreshRestarts() {
+        let template = WorkoutTemplate(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            WorkoutDetailView.sourceTemplateDescription(for: template),
+            "This workout started from “Upper A”. Review the original plan or jump straight back into a fresh run from here."
+        )
+    }
+
+    func testSourceTemplateDescription_mentionsPartialTemplateRestartsWhenExercisesAreMissing() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(
+            name: "Workout Detail Partial Template Available \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest]
+        )
+        context.insert(availableExercise)
+        try context.save()
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let partialTemplate = WorkoutTemplate(
+            name: "  Upper   A  ",
+            exercises: [
+                TemplateExercise(exerciseName: availableExercise.name, suggestedSets: 3),
+                TemplateExercise(exerciseName: "Missing Exercise \(UUID().uuidString)", suggestedSets: 3)
+            ]
+        )
+
+        XCTAssertEqual(
+            WorkoutDetailView.sourceTemplateDescription(for: partialTemplate),
+            "This workout started from “Upper A”. Review the original plan or jump straight back into the available part of that template from here."
         )
     }
 }
