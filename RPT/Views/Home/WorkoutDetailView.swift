@@ -219,7 +219,7 @@ struct WorkoutDetailView: View {
             return "This workout started from a saved template, but that template is no longer in your library."
         }
 
-        return "This workout started from \(displayName), but that template is no longer in your library."
+        return "This workout started from “\(displayName)”, but that template is no longer in your library."
     }
 
     static func templateStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {

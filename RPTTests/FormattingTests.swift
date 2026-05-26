@@ -948,7 +948,7 @@ final class FormattingTests: XCTestCase {
         let namedTemplate = WorkoutTemplate(name: "  Upper   Body\nSession  ")
         XCTAssertEqual(
             WorkoutDetailView.sourceTemplateDescription(for: namedTemplate),
-            "This workout started from Upper Body Session. Review the original plan or jump straight back into a fresh run from here."
+            "This workout started from “Upper Body Session”. Review the original plan or jump straight back into a fresh run from here."
         )
     }
 
@@ -963,7 +963,7 @@ final class FormattingTests: XCTestCase {
         )
         XCTAssertEqual(
             WorkoutDetailView.unavailableSourceTemplateMessage(for: "  Upper   Body\nSession  "),
-            "This workout started from Upper Body Session, but that template is no longer in your library."
+            "This workout started from “Upper Body Session”, but that template is no longer in your library."
         )
     }
 
