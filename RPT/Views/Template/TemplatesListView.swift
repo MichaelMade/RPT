@@ -89,7 +89,10 @@ struct TemplatesListView: View {
             List {
                 let resumableWorkout = protectedResumableWorkout()
                 let activeWorkoutBlocksTemplateStart = resumableWorkout != nil
-                let filteredTemplates = viewModel.fetchTemplates(blockedByActiveWorkout: activeWorkoutBlocksTemplateStart)
+                let filteredTemplates = viewModel.fetchTemplates(
+                    blockedByActiveWorkout: activeWorkoutBlocksTemplateStart,
+                    activeWorkout: resumableWorkout
+                )
 
                 if let summary = viewModel.filteredResultsSummary(filteredCount: filteredTemplates.count) {
                     Text(summary)
@@ -139,9 +142,11 @@ struct TemplatesListView: View {
                             let templateCannotStartOnItsOwn = templateManager.startWorkoutDisabledMessage(for: template) != nil
                             let isBlockedByActiveWorkout = activeWorkoutBlocksTemplateStart && !templateCannotStartOnItsOwn
                             let statusTone = templateManager.templateStatusTone(for: template, blockedByActiveWorkout: isBlockedByActiveWorkout)
-                            let statusTitle = isBlockedByActiveWorkout
-                                ? viewModel.activeWorkoutInProgressTitle(for: resumableWorkout)
-                                : templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: false)
+                            let statusTitle = templateManager.startWorkoutActionTitle(
+                                for: template,
+                                blockedByActiveWorkout: isBlockedByActiveWorkout,
+                                blockingWorkout: resumableWorkout
+                            )
 
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack(alignment: .top, spacing: 8) {

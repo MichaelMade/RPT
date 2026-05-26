@@ -1,5 +1,6 @@
 # RPT
 
+- Template blocked-start states now reuse the exact in-progress workout name in list/detail status badges *and* template search indexing (`“Upper A” In Progress`), so users can both spot and refind the right blocked routine using the same specific active-workout wording instead of a generic `Current Workout In Progress` label.
 - Template screens now name the exact in-progress workout in blocked-start status badges (`“Upper A” In Progress`) instead of flattening every conflict to generic `Current Workout In Progress`, so dense template libraries and detail views are easier to scan before choosing whether to continue, save, or discard the live draft.
 - Workout Detail’s source-template recovery alerts now keep the exact template in save/discard failure titles (`Couldn’t Save & Start Template “Upper A”`, `Couldn’t Discard & Start This Template`) instead of falling back to a generic `Workout Action Failed`, so blocked reruns from history stay clearly anchored.
 - Home’s blocked follow-up and retry copy now quotes the exact saved workout name (`start a follow-up from “Upper A”`) in conflict/failure messages, so active-draft recovery stays easier to scan when several similarly named sessions are in play.

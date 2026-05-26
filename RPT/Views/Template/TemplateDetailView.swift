@@ -76,11 +76,11 @@ struct TemplateDetailView: View {
     }
 
     private var startWorkoutActionTitle: String {
-        guard isBlockedByActiveWorkout else {
-            return templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: false)
-        }
-
-        return templateViewModel.activeWorkoutInProgressTitle(for: currentActiveWorkout)
+        templateManager.startWorkoutActionTitle(
+            for: template,
+            blockedByActiveWorkout: isBlockedByActiveWorkout,
+            blockingWorkout: currentActiveWorkout
+        )
     }
 
     private var startWorkoutButtonTitle: String {

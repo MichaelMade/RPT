@@ -777,7 +777,8 @@ class TemplateViewModel: ObservableObject {
     private func issueSearchTerms(
         for template: WorkoutTemplate,
         activeWorkoutAvailable: Bool,
-        blockedByActiveWorkout: Bool
+        blockedByActiveWorkout: Bool,
+        activeWorkout: Workout? = nil
     ) -> [String] {
         let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
         let totalCount = template.exercises.count
@@ -988,7 +989,13 @@ class TemplateViewModel: ObservableObject {
 
         terms.append(templateManager.templateListExerciseSummary(for: template, blockedByActiveWorkout: isOnlyBlockedByActiveWorkout))
         terms.append(templateManager.templateDetailStatusSummary(for: template, blockedByActiveWorkout: isOnlyBlockedByActiveWorkout))
-        terms.append(templateManager.startWorkoutActionTitle(for: template, blockedByActiveWorkout: isOnlyBlockedByActiveWorkout))
+        terms.append(
+            templateManager.startWorkoutActionTitle(
+                for: template,
+                blockedByActiveWorkout: isOnlyBlockedByActiveWorkout,
+                blockingWorkout: activeWorkout
+            )
+        )
 
         if let startWorkoutDisabledMessage = templateManager.startWorkoutDisabledMessage(for: template) {
             terms.append(startWorkoutDisabledMessage)
@@ -1006,6 +1013,7 @@ class TemplateViewModel: ObservableObject {
         normalizedQuery: String,
         activeWorkoutAvailable: Bool,
         blockedByActiveWorkout: Bool,
+        activeWorkout: Workout?,
         exerciseMetadataLookup: [String: ExerciseSearchMetadata]
     ) -> Int? {
         if let basePriority = Self.searchMatchPriority(template: template, normalizedQuery: normalizedQuery) {
@@ -1029,7 +1037,8 @@ class TemplateViewModel: ObservableObject {
         let issueSearchTerms = issueSearchTerms(
             for: template,
             activeWorkoutAvailable: activeWorkoutAvailable,
-            blockedByActiveWorkout: blockedByActiveWorkout
+            blockedByActiveWorkout: blockedByActiveWorkout,
+            activeWorkout: activeWorkout
         )
 
         if let issuePriority = Self.searchTermMatchPriority(
@@ -1045,7 +1054,7 @@ class TemplateViewModel: ObservableObject {
         return nil
     }
 
-    func fetchTemplates(blockedByActiveWorkout: Bool = false) -> [WorkoutTemplate] {
+    func fetchTemplates(blockedByActiveWorkout: Bool = false, activeWorkout: Workout? = nil) -> [WorkoutTemplate] {
         let normalizedSearchLookup = Self.normalizedSearchLookupKey(normalizedSearchText)
         let exerciseMetadataLookup = exerciseSearchMetadataLookup()
 
@@ -1059,6 +1068,7 @@ class TemplateViewModel: ObservableObject {
                     normalizedQuery: normalizedSearchLookup,
                     activeWorkoutAvailable: blockedByActiveWorkout,
                     blockedByActiveWorkout: isBlockedByActiveWorkout,
+                    activeWorkout: activeWorkout,
                     exerciseMetadataLookup: exerciseMetadataLookup
                 )
 

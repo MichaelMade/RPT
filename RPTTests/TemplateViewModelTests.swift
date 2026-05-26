@@ -669,6 +669,23 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesSpecificBlockingWorkoutNameWhenAnotherWorkoutIsActive() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "upper a in progress"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: Workout(name: "  Upper   A  ")
+            ).map(\.name),
+            ["Push Day"]
+        )
+    }
+
     func testFetchTemplates_matchesPartialBlockedStartRecoveryCopy() throws {
         let viewModel = TemplateViewModel()
         let context = DataManager.shared.getModelContext()

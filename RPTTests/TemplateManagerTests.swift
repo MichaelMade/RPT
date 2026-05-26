@@ -1130,6 +1130,33 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
+    func testStartWorkoutActionTitle_namesSpecificBlockingWorkoutWhenAvailable() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+        let activeWorkout = Workout(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            TemplateManager.shared.startWorkoutActionTitle(
+                for: template,
+                blockedByActiveWorkout: true,
+                blockingWorkout: activeWorkout
+            ),
+            "“Upper A” In Progress"
+        )
+    }
+
     func testStartWorkoutActionTitle_keepsCantStartLabelWhenTemplateIsBlockedAndUnavailable() {
         let template = WorkoutTemplate(
             name: "Blocked Template",

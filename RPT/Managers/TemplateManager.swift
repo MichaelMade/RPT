@@ -532,7 +532,11 @@ class TemplateManager {
         return readySummary + " " + issueParts.joined(separator: " • ") + "."
     }
 
-    func startWorkoutActionTitle(for template: WorkoutTemplate, blockedByActiveWorkout: Bool = false) -> String {
+    func startWorkoutActionTitle(
+        for template: WorkoutTemplate,
+        blockedByActiveWorkout: Bool = false,
+        blockingWorkout: Workout? = nil
+    ) -> String {
         let unavailableCount = unavailableExerciseNames(in: template).count
         let duplicateCount = duplicateExerciseNames(in: template).count
 
@@ -541,7 +545,14 @@ class TemplateManager {
         }
 
         if blockedByActiveWorkout {
-            return "Current Workout In Progress"
+            guard let blockingWorkout else {
+                return "Current Workout In Progress"
+            }
+
+            let displayName = WorkoutRow.displayName(for: blockingWorkout)
+            return displayName == "Workout"
+                ? "Current Workout In Progress"
+                : "“\(displayName)” In Progress"
         }
 
         guard unavailableCount > 0 || duplicateCount > 0 else {
