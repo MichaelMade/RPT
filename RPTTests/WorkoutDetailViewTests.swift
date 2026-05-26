@@ -117,4 +117,64 @@ final class WorkoutDetailViewTests: XCTestCase {
             "This workout started from “Upper A”. Review the original plan or jump straight back into the available part of that template from here."
         )
     }
+
+    func testSourceTemplateBlockMessage_mentionsPartialTemplateWhenExercisesAreMissing() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(
+            name: "Workout Detail Block Message Available \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest]
+        )
+        context.insert(availableExercise)
+        try context.save()
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let partialTemplate = WorkoutTemplate(
+            name: "  Upper   A  ",
+            exercises: [
+                TemplateExercise(exerciseName: availableExercise.name, suggestedSets: 3),
+                TemplateExercise(exerciseName: "Missing Exercise \(UUID().uuidString)", suggestedSets: 3)
+            ]
+        )
+        let activeWorkout = Workout(name: "Push Day")
+
+        XCTAssertEqual(
+            WorkoutDetailView.sourceTemplateBlockMessage(for: partialTemplate, activeWorkout: activeWorkout),
+            "You already have Push Day in progress. Continue it before starting the available part of Template “Upper A”."
+        )
+    }
+
+    func testSourceTemplateBlockMessage_fallsBackGracefullyForUnnamedTemplateAndWorkout() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(
+            name: "Workout Detail Generic Block Message Available \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.back]
+        )
+        context.insert(availableExercise)
+        try context.save()
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let partialTemplate = WorkoutTemplate(
+            name: " \n ",
+            exercises: [
+                TemplateExercise(exerciseName: availableExercise.name, suggestedSets: 3),
+                TemplateExercise(exerciseName: "Missing Exercise \(UUID().uuidString)", suggestedSets: 3)
+            ]
+        )
+        let activeWorkout = Workout(name: " \n ")
+
+        XCTAssertEqual(
+            WorkoutDetailView.sourceTemplateBlockMessage(for: partialTemplate, activeWorkout: activeWorkout),
+            "You already have a workout in progress. Continue it before starting the available part of this template."
+        )
+        XCTAssertNil(WorkoutDetailView.sourceTemplateBlockMessage(for: nil, activeWorkout: activeWorkout))
+        XCTAssertNil(WorkoutDetailView.sourceTemplateBlockMessage(for: partialTemplate, activeWorkout: nil))
+    }
 }

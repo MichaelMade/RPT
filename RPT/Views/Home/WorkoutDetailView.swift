@@ -246,6 +246,14 @@ struct WorkoutDetailView: View {
         return TemplateViewModel().activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template)
     }
 
+    static func sourceTemplateBlockMessage(for template: WorkoutTemplate?, activeWorkout: Workout?) -> String? {
+        guard let template, let activeWorkout else {
+            return nil
+        }
+
+        return TemplateViewModel().activeWorkoutBlocksTemplateStartMessage(for: activeWorkout, opening: template)
+    }
+
     init(workout: Workout) {
         self.workout = workout
         self._activeWorkoutBinding = .constant(nil)
@@ -302,19 +310,7 @@ struct WorkoutDetailView: View {
     }
 
     private func sourceTemplateBlockMessage(for template: WorkoutTemplate) -> String? {
-        guard let activeWorkout = protectedResumableWorkout() else {
-            return nil
-        }
-
-        let activeWorkoutName = WorkoutRow.displayName(for: activeWorkout)
-        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
-        let templateSuffix = templateName == "Template"
-            ? "before starting this template."
-            : "before starting \(templateName)."
-
-        return activeWorkoutName == "Workout"
-            ? "You already have a workout in progress. Continue it \(templateSuffix)"
-            : "You already have \(activeWorkoutName) in progress. Continue it \(templateSuffix)"
+        Self.sourceTemplateBlockMessage(for: template, activeWorkout: protectedResumableWorkout())
     }
 
     private func openStartedWorkout(_ startedWorkout: Workout) {
