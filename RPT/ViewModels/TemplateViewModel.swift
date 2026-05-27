@@ -318,10 +318,11 @@ class TemplateViewModel: ObservableObject {
     }
 
     func activeWorkoutPromptPrefix(for workout: Workout) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "You already have a workout in progress."
-            : "You already have \(displayName) in progress."
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "You already have a workout in progress."
+        }
+
+        return "You already have \(displayName) in progress."
     }
 
     func activeWorkoutPromptMessage(for workout: Workout, opening template: WorkoutTemplate) -> String {
@@ -350,10 +351,11 @@ class TemplateViewModel: ObservableObject {
     }
 
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Continue Current Workout"
-            : "Continue “\(displayName)”"
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Continue Current Workout"
+        }
+
+        return "Continue “\(displayName)”"
     }
 
     func activeWorkoutInProgressTitle(for workout: Workout?) -> String {
@@ -361,10 +363,11 @@ class TemplateViewModel: ObservableObject {
             return "Current Workout In Progress"
         }
 
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Current Workout In Progress"
-            : "“\(displayName)” In Progress"
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Current Workout In Progress"
+        }
+
+        return "“\(displayName)” In Progress"
     }
 
     func startTemplateButtonTitle(for template: WorkoutTemplate) -> String {
@@ -400,25 +403,19 @@ class TemplateViewModel: ObservableObject {
     }
 
     private func discardCurrentWorkoutTitlePrefix(for workout: Workout?) -> String {
-        guard let workout else {
+        guard let workout, let displayName = WorkoutRow.specificDisplayName(for: workout) else {
             return "Discard Current Workout"
         }
 
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Discard Current Workout"
-            : "Discard “\(displayName)”"
+        return "Discard “\(displayName)”"
     }
 
     private func discardCurrentWorkoutMessageSubject(for workout: Workout?) -> String {
-        guard let workout else {
+        guard let workout, let displayName = WorkoutRow.specificDisplayName(for: workout) else {
             return "Your in-progress workout"
         }
 
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Your in-progress workout"
-            : "“\(displayName)”"
+        return "“\(displayName)”"
     }
 
     private func startTemplateActionTarget(for template: WorkoutTemplate, partial: Bool) -> String {

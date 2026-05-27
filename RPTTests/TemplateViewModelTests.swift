@@ -1637,12 +1637,23 @@ final class TemplateViewModelTests: XCTestCase {
 
     func testActiveWorkoutInProgressTitle_fallsBackForGenericDraftName() {
         let viewModel = TemplateViewModel()
-        let workout = Workout(name: "   ")
+        let blankWorkout = Workout(name: "   ")
+        let legacyPlaceholderWorkout = Workout(name: "Current Workout")
 
         XCTAssertEqual(
-            viewModel.activeWorkoutInProgressTitle(for: workout),
+            viewModel.activeWorkoutInProgressTitle(for: blankWorkout),
             "Current Workout In Progress",
             "Unnamed drafts should keep the generic blocked-start status label"
+        )
+        XCTAssertEqual(
+            viewModel.activeWorkoutInProgressTitle(for: legacyPlaceholderWorkout),
+            "Current Workout In Progress",
+            "Legacy placeholder draft names should keep the generic blocked-start status label"
+        )
+        XCTAssertEqual(
+            viewModel.continueCurrentWorkoutButtonTitle(for: legacyPlaceholderWorkout),
+            "Continue Current Workout",
+            "Legacy placeholder draft names should keep the generic continue label"
         )
     }
 

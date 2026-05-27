@@ -187,45 +187,49 @@ class HomeViewModel: ObservableObject {
     }
 
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Continue Current Workout"
-            : "Continue “\(displayName)”"
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Continue Current Workout"
+        }
+
+        return "Continue “\(displayName)”"
     }
 
     func replaceCurrentWorkoutAlertTitle(for workout: Workout) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Replace Current Workout?"
-            : "Replace “\(displayName)”?"
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Replace Current Workout?"
+        }
+
+        return "Replace “\(displayName)”?"
     }
 
     func saveAndStartFreshButtonTitle(for workout: Workout) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Save Current Workout & Start New Workout"
-            : "Save “\(displayName)” & Start New Workout"
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Save Current Workout & Start New Workout"
+        }
+
+        return "Save “\(displayName)” & Start New Workout"
     }
 
     func discardAndStartFreshButtonTitle(for workout: Workout) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Discard Current Workout & Start New Workout"
-            : "Discard “\(displayName)” & Start New Workout"
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Discard Current Workout & Start New Workout"
+        }
+
+        return "Discard “\(displayName)” & Start New Workout"
     }
 
     func discardCurrentWorkoutAndStartFreshAlertTitle(for workout: Workout) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Discard Current Workout & Start New Workout?"
-            : "Discard “\(displayName)” & Start New Workout?"
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Discard Current Workout & Start New Workout?"
+        }
+
+        return "Discard “\(displayName)” & Start New Workout?"
     }
 
     func discardCurrentWorkoutAndStartFreshAlertMessage(for workout: Workout, now: Date = Date()) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
         let workoutSummary = resumableWorkoutSummary(for: workout, now: now)
 
-        if displayName == "Workout" {
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
             return "This will discard your in-progress workout (\(workoutSummary)) and immediately start a new workout. This action cannot be undone."
         }
 
@@ -237,10 +241,11 @@ class HomeViewModel: ObservableObject {
             return "Current Workout In Progress"
         }
 
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Current Workout In Progress"
-            : "“\(displayName)” In Progress"
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Current Workout In Progress"
+        }
+
+        return "“\(displayName)” In Progress"
     }
 
     private func exerciseCountTextForResumableSummary(for workout: Workout) -> String {
@@ -442,13 +447,10 @@ class HomeViewModel: ObservableObject {
     }
 
     func deleteRecentWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
         var summaryParts = [WorkoutRow.relativeDateText(for: workout.date, now: now)]
         summaryParts.append(savedWorkoutSessionSummary(for: workout))
 
-        let target = displayName == "Workout"
-            ? "this workout"
-            : displayName
+        let target = WorkoutRow.specificDisplayName(for: workout) ?? "this workout"
         return "Delete \(target) from history? \(summaryParts.joined(separator: " • ")) will be removed from your saved workout history."
     }
 
@@ -481,8 +483,7 @@ class HomeViewModel: ObservableObject {
     }
 
     private func specificSavedWorkoutName(for workout: Workout) -> String? {
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout" ? nil : displayName
+        WorkoutRow.specificDisplayName(for: workout)
     }
 
     func deleteRecentWorkoutFailureMessage(for workout: Workout) -> String {

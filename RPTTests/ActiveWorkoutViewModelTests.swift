@@ -203,6 +203,17 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save your current workout?")
     }
 
+    func testCompleteWorkoutTitlesFallBackForLegacyCurrentWorkoutPlaceholder() {
+        let workout = workoutManager.createWorkout(name: "Current Workout")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.completeWorkoutAlertTitle(), "Complete Current Workout?")
+        XCTAssertEqual(viewModel.finishButtonTitle(), "Finish Current Workout")
+        XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete Current Workout & Save")
+        XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue Current Workout")
+        XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save your current workout?")
+    }
+
     func testDeleteExerciseCopyIncludesSpecificExerciseNameAndSetImpact() {
         let workout = workoutManager.createWorkout(name: "Pull")
         let exercise = Exercise(name: "  Bench   Press  ", category: .compound, primaryMuscleGroups: [.chest])

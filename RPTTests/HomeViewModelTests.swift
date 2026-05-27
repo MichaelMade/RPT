@@ -797,11 +797,17 @@ final class HomeViewModelTests: XCTestCase {
 
     func testActiveWorkoutInProgressTitle_fallsBackForBlankOrMissingDraftName() {
         let blankWorkout = Workout(name: "   ")
+        let legacyPlaceholderWorkout = Workout(name: "Current Workout")
 
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: blankWorkout),
             "Current Workout In Progress",
             "Blocked-workout titles should stay generic when the draft name is blank or corrupted"
+        )
+        XCTAssertEqual(
+            viewModel.activeWorkoutInProgressTitle(for: legacyPlaceholderWorkout),
+            "Current Workout In Progress",
+            "Blocked-workout titles should stay generic when older placeholder draft names resurface"
         )
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: nil),

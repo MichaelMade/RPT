@@ -30,6 +30,17 @@ struct WorkoutRow: View {
         return String(collapsedName.prefix(80))
     }
 
+    static func specificDisplayName(for workout: Workout) -> String? {
+        let displayName = displayName(for: workout)
+
+        switch displayName {
+        case "Workout", "Current Workout":
+            return nil
+        default:
+            return displayName
+        }
+    }
+
     static func templateOriginName(for workout: Workout, resolvedTemplateName: String? = nil) -> String? {
         let preferredTemplateName = (resolvedTemplateName ?? workout.startedFromTemplate ?? "")
             .components(separatedBy: .whitespacesAndNewlines)

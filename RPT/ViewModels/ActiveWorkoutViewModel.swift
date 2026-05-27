@@ -810,8 +810,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     // MARK: - Helper Methods
 
     private var specificWorkoutDisplayName: String? {
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout" ? nil : displayName
+        WorkoutRow.specificDisplayName(for: workout)
     }
 
     private func rollbackInsertedSet(_ set: ExerciseSet, for exercise: Exercise) {
