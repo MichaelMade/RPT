@@ -214,18 +214,18 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save your current workout?")
     }
 
-    func testDeleteExerciseCopyIncludesSpecificExerciseNameAndSetImpact() {
+    func testDeleteExerciseCopyIncludesSpecificExerciseNameAndWorkoutContext() {
         let workout = workoutManager.createWorkout(name: "Pull")
         let exercise = Exercise(name: "  Bench   Press  ", category: .compound, primaryMuscleGroups: [.chest])
         _ = workout.addSet(exercise: exercise, weight: 185, reps: 5)
         _ = workout.addSet(exercise: exercise, weight: 0, reps: 0)
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
-        XCTAssertEqual(viewModel.deleteExerciseAlertTitle(for: exercise), "Delete “Bench Press” from Workout?")
+        XCTAssertEqual(viewModel.deleteExerciseAlertTitle(for: exercise), "Delete “Bench Press” from “Pull”?")
         XCTAssertEqual(viewModel.deleteExerciseButtonTitle(for: exercise), "Delete “Bench Press”")
         XCTAssertEqual(
             viewModel.deleteExerciseMessage(for: exercise),
-            "Are you sure you want to remove “Bench Press” from this workout? This will remove 2 working sets from the workout, including 1 logged working set."
+            "Are you sure you want to remove “Bench Press” from “Pull”? This will remove 2 working sets from the workout, including 1 logged working set."
         )
     }
 
@@ -251,6 +251,19 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(
             viewModel.deleteExerciseMessage(for: blankExercise),
             "Are you sure you want to remove this exercise from the workout? This will remove 1 warm-up set from the workout, including 1 logged warm-up set."
+        )
+    }
+
+    func testDeleteExerciseCopyKeepsGenericWorkoutFallbackForLegacyPlaceholderNames() {
+        let workout = workoutManager.createWorkout(name: "Current Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: exercise, weight: 185, reps: 5)
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.deleteExerciseAlertTitle(for: exercise), "Delete “Bench Press” from Workout?")
+        XCTAssertEqual(
+            viewModel.deleteExerciseMessage(for: exercise),
+            "Are you sure you want to remove “Bench Press” from this workout? This will remove 1 working set from the workout, including 1 logged working set."
         )
     }
 

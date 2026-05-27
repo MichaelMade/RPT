@@ -200,7 +200,11 @@ class ActiveWorkoutViewModel: ObservableObject {
             return "Delete Exercise?"
         }
 
-        return "Delete “\(displayName)” from Workout?"
+        guard let workoutDisplayName = specificWorkoutDisplayName else {
+            return "Delete “\(displayName)” from Workout?"
+        }
+
+        return "Delete “\(displayName)” from “\(workoutDisplayName)”?”
     }
 
     func deleteExerciseButtonTitle(for exercise: Exercise) -> String {
@@ -222,7 +226,11 @@ class ActiveWorkoutViewModel: ObservableObject {
             return "Are you sure you want to remove this exercise from the workout? \(impactSummary)"
         }
 
-        return "Are you sure you want to remove “\(displayName)” from this workout? \(impactSummary)"
+        guard let workoutDisplayName = specificWorkoutDisplayName else {
+            return "Are you sure you want to remove “\(displayName)” from this workout? \(impactSummary)"
+        }
+
+        return "Are you sure you want to remove “\(displayName)” from “\(workoutDisplayName)”? \(impactSummary)"
     }
 
     private func deleteExerciseImpactSummary(for exercise: Exercise) -> String {
