@@ -842,7 +842,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.discardWorkoutMessage(),
-            "Discard “Recovery”? This will remove 1 exercise and 1 warm-up set from this draft, including 1 logged warm-up set. This action cannot be undone."
+            "Discard “Recovery”? This will remove 1 exercise and 1 warm-up set from “Recovery”, including 1 logged warm-up set. This action cannot be undone."
         )
     }
 
@@ -855,6 +855,16 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(
             viewModel.discardWorkoutMessage(),
             "Discard your current workout? This draft has no exercises yet, but it will still be removed. This action cannot be undone."
+        )
+    }
+
+    func testDiscardWorkoutCopy_namesEmptySpecificWorkoutDraftInBody() {
+        let workout = workoutManager.createWorkout(name: " Recovery ")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(
+            viewModel.discardWorkoutMessage(),
+            "Discard “Recovery”? “Recovery” has no exercises yet, but it will still be removed. This action cannot be undone."
         )
     }
 

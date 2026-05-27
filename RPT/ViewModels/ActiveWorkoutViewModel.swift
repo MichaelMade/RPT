@@ -98,7 +98,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     func discardWorkoutMessage() -> String {
-        let impactSummary = discardWorkoutImpactSummary()
+        let impactSummary = discardWorkoutImpactSummary(workoutName: specificWorkoutDisplayName)
 
         guard let displayName = specificWorkoutDisplayName else {
             return "Discard your current workout? \(impactSummary) This action cannot be undone."
@@ -107,17 +107,22 @@ class ActiveWorkoutViewModel: ObservableObject {
         return "Discard “\(displayName)”? \(impactSummary) This action cannot be undone."
     }
 
-    private func discardWorkoutImpactSummary() -> String {
+    private func discardWorkoutImpactSummary(workoutName: String?) -> String {
         let exerciseCount = workout.exerciseCount
         let setCount = workout.sets.count
 
         guard exerciseCount > 0 || setCount > 0 else {
-            return "This draft has no exercises yet, but it will still be removed."
+            guard let workoutName else {
+                return "This draft has no exercises yet, but it will still be removed."
+            }
+
+            return "“\(workoutName)” has no exercises yet, but it will still be removed."
         }
 
         let exerciseSummary = "\(exerciseCount) \(exerciseCount == 1 ? "exercise" : "exercises")"
         let setSummary = setTypeBreakdownSummary(for: workout.sets) ?? "\(setCount) \(setCount == 1 ? "set" : "sets")"
-        var summary = "This will remove \(exerciseSummary) and \(setSummary) from this draft"
+        let draftReference = workoutName.map { "“\($0)”" } ?? "this draft"
+        var summary = "This will remove \(exerciseSummary) and \(setSummary) from \(draftReference)"
 
         if let loggedSetSummary = loggedSetBreakdownSummary(for: workout.sets) {
             summary += ", including \(loggedSetSummary)"
