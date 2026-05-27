@@ -70,11 +70,16 @@ struct WorkoutRow: View {
             .filter { !$0.isEmpty }
             .joined(separator: " ")
 
-        guard let normalizedName, !normalizedName.isEmpty, normalizedName != "Workout" else {
+        guard let normalizedName, !normalizedName.isEmpty else {
             return "Copied the workout summary so it’s ready to paste anywhere you need it."
         }
 
-        return "Copied the summary for \(normalizedName) so it’s ready to paste anywhere you need it."
+        switch normalizedName {
+        case "Workout", "Current Workout":
+            return "Copied the workout summary so it’s ready to paste anywhere you need it."
+        default:
+            return "Copied the summary for \(normalizedName) so it’s ready to paste anywhere you need it."
+        }
     }
 
     static func relativeDateText(

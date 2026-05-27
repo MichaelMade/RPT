@@ -1,5 +1,6 @@
 # RPT
 
+- Copy-summary confirmations now treat the legacy placeholder draft name `Current Workout` the same as other generic fallbacks, so Home, Workout Details, and Exercise Details say `Copied the workout summary...` instead of the awkward `Copied the summary for Current Workout...` when older unnamed drafts are exported.
 - Active-workout conflict prompts now quote the real in-progress draft name inside their lead-in copy too (`You already have “Upper A” in progress...`) instead of dropping back to bare `Upper A` text in Home, Template, and source-template restart guidance, so replacement decisions scan more consistently with RPT’s other named workout alerts.
 - Legacy placeholder draft names like `Current Workout` now stay on the generic recovery path instead of being treated like real user-chosen workout names, so Active Workout, Home, and Template conflict prompts avoid awkward quoted copy such as `Continue “Current Workout”` or `Discard “Current Workout” & Start Template …` when older data resurfaces.
 - Active Workout failure messages now stay human and draft-aware too (`Couldn’t save “Upper A” right now. Keep it open, then try again.`) instead of surfacing raw persistence/debug phrasing like `Failed to save workout: ...`, so mid-session save/complete/discard/load errors stay clearer when a live workout hits trouble.
