@@ -325,11 +325,7 @@ class TemplateViewModel: ObservableObject {
     }
 
     func activeWorkoutPromptMessage(for workout: Workout, opening template: WorkoutTemplate) -> String {
-        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
-        let templateSuffix = templateName == "Template"
-            ? "before opening this template."
-            : "before opening \(templateName)."
-
+        let templateSuffix = "before opening \(templateReferenceText(for: template, fallback: "this template"))."
         return "\(activeWorkoutPromptPrefix(for: workout)) Save it for later, discard it, or keep going \(templateSuffix)"
     }
 
@@ -339,18 +335,18 @@ class TemplateViewModel: ObservableObject {
     }
 
     private func startTemplateBlockSuffix(for template: WorkoutTemplate) -> String {
-        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
         let isPartialStart = isPartialTemplateStart(template)
 
-        if templateName == "Template" {
-            return isPartialStart
-                ? "before starting the available part of this template."
-                : "before starting this template."
-        }
-
         return isPartialStart
-            ? "before starting the available part of Template “\(templateName)”."
-            : "before starting \(templateName)."
+            ? "before starting the available part of \(templateReferenceText(for: template, fallback: "this template"))."
+            : "before starting \(templateReferenceText(for: template, fallback: "this template"))."
+    }
+
+    private func templateReferenceText(for template: WorkoutTemplate, fallback: String) -> String {
+        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return templateName == "Template"
+            ? fallback
+            : "Template “\(templateName)”"
     }
 
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
