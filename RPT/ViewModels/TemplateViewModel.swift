@@ -322,7 +322,7 @@ class TemplateViewModel: ObservableObject {
             return "You already have a workout in progress."
         }
 
-        return "You already have \(displayName) in progress."
+        return "You already have “\(displayName)” in progress."
     }
 
     func activeWorkoutPromptMessage(for workout: Workout, opening template: WorkoutTemplate) -> String {

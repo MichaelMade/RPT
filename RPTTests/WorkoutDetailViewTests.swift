@@ -161,7 +161,7 @@ final class WorkoutDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             WorkoutDetailView.sourceTemplateBlockMessage(for: partialTemplate, activeWorkout: activeWorkout),
-            "You already have Push Day in progress. Continue it before starting the available part of Template “Upper A”."
+            "You already have “Push Day” in progress. Continue it before starting the available part of Template “Upper A”."
         )
     }
 

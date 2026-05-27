@@ -954,7 +954,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have Upper A in progress: Started 30m ago • 1 exercise • 1 set • Exercise started. Save it for later, discard it, or keep going.",
+            "You already have “Upper A” in progress: Started 30m ago • 1 exercise • 1 set • Exercise started. Save it for later, discard it, or keep going.",
             "Start-fresh guidance should identify the draft by name as well as reuse the resumable-workout summary so users know exactly what they are about to replace"
         )
     }

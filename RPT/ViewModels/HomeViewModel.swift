@@ -665,10 +665,11 @@ class HomeViewModel: ObservableObject {
     }
 
     func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "You already have a workout in progress:"
-            : "You already have \(displayName) in progress:"
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "You already have a workout in progress:"
+        }
+
+        return "You already have “\(displayName)” in progress:"
     }
 
     func startFreshWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
