@@ -83,7 +83,7 @@ class HomeViewModel: ObservableObject {
     }
 
     func startNewWorkoutFailureAlertTitle() -> String {
-        "Couldn't Start New Workout"
+        "Couldn’t Start New Workout"
     }
 
     func canStartFollowUpWorkout(from workout: Workout, activeWorkout: Workout?) -> Bool {
@@ -190,35 +190,35 @@ class HomeViewModel: ObservableObject {
         let displayName = WorkoutRow.displayName(for: workout)
         return displayName == "Workout"
             ? "Continue Current Workout"
-            : "Continue "\(displayName)""
+            : "Continue “\(displayName)”"
     }
 
     func replaceCurrentWorkoutAlertTitle(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return displayName == "Workout"
             ? "Replace Current Workout?"
-            : "Replace "\(displayName)"?"
+            : "Replace “\(displayName)”?"
     }
 
     func saveAndStartFreshButtonTitle(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return displayName == "Workout"
             ? "Save Current Workout & Start New Workout"
-            : "Save "\(displayName)" & Start New Workout"
+            : "Save “\(displayName)” & Start New Workout"
     }
 
     func discardAndStartFreshButtonTitle(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return displayName == "Workout"
             ? "Discard Current Workout & Start New Workout"
-            : "Discard "\(displayName)" & Start New Workout"
+            : "Discard “\(displayName)” & Start New Workout"
     }
 
     func discardCurrentWorkoutAndStartFreshAlertTitle(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return displayName == "Workout"
             ? "Discard Current Workout & Start New Workout?"
-            : "Discard "\(displayName)" & Start New Workout?"
+            : "Discard “\(displayName)” & Start New Workout?"
     }
 
     func discardCurrentWorkoutAndStartFreshAlertMessage(for workout: Workout, now: Date = Date()) -> String {
@@ -229,7 +229,7 @@ class HomeViewModel: ObservableObject {
             return "This will discard your in-progress workout (\(workoutSummary)) and immediately start a new workout. This action cannot be undone."
         }
 
-        return "This will discard "\(displayName)" (\(workoutSummary)) and immediately start a new workout. This action cannot be undone."
+        return "This will discard “\(displayName)” (\(workoutSummary)) and immediately start a new workout. This action cannot be undone."
     }
 
     func activeWorkoutInProgressTitle(for workout: Workout?) -> String {
@@ -240,7 +240,7 @@ class HomeViewModel: ObservableObject {
         let displayName = WorkoutRow.displayName(for: workout)
         return displayName == "Workout"
             ? "Current Workout In Progress"
-            : ""\(displayName)" In Progress"
+            : "“\(displayName)” In Progress"
     }
 
     private func exerciseCountTextForResumableSummary(for workout: Workout) -> String {
@@ -438,7 +438,7 @@ class HomeViewModel: ObservableObject {
             return "Delete This Workout?"
         }
 
-        return "Delete "\(displayName)"?"
+        return "Delete “\(displayName)”?"
     }
 
     func deleteRecentWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
@@ -487,18 +487,18 @@ class HomeViewModel: ObservableObject {
 
     func deleteRecentWorkoutFailureMessage(for workout: Workout) -> String {
         guard let displayName = specificSavedWorkoutName(for: workout) else {
-            return "Couldn't delete this workout from history. Keep it for now, then try again."
+            return "Couldn’t delete this workout from history. Keep it for now, then try again."
         }
 
-        return "Couldn't delete \(displayName) from history. Keep it for now, then try again."
+        return "Couldn’t delete \(displayName) from history. Keep it for now, then try again."
     }
 
     func deleteRecentWorkoutFailureAlertTitle(for workout: Workout) -> String {
         guard let displayName = specificSavedWorkoutName(for: workout) else {
-            return "Couldn't Delete This Workout"
+            return "Couldn’t Delete This Workout"
         }
 
-        return "Couldn't Delete "\(displayName)""
+        return "Couldn’t Delete “\(displayName)”"
     }
 
     func presentStartWorkoutFailure(_ message: String, title: String = "Workout Action Failed") {
@@ -516,7 +516,7 @@ class HomeViewModel: ObservableObject {
             return "Review Workout"
         }
 
-        return "Review "\(displayName)""
+        return "Review “\(displayName)”"
     }
 
     func copySummaryButtonTitle(for workout: Workout) -> String {
@@ -524,7 +524,7 @@ class HomeViewModel: ObservableObject {
             return "Copy Workout Summary"
         }
 
-        return "Copy Summary for "\(displayName)""
+        return "Copy Summary for “\(displayName)”"
     }
 
     func deleteRecentWorkoutButtonTitle(for workout: Workout) -> String {
@@ -532,7 +532,7 @@ class HomeViewModel: ObservableObject {
             return "Delete Workout from History"
         }
 
-        return "Delete "\(displayName)" from History"
+        return "Delete “\(displayName)” from History"
     }
 
     func deleteRecentWorkoutConfirmationButtonTitle(for workout: Workout) -> String {
@@ -540,22 +540,22 @@ class HomeViewModel: ObservableObject {
             return "Delete This Workout"
         }
 
-        return "Delete "\(displayName)""
+        return "Delete “\(displayName)”"
     }
 
     func startFollowUpFailureMessage(for workout: Workout) -> String {
         guard let displayName = specificSavedWorkoutName(for: workout) else {
-            return "Couldn't start this follow-up. Keep this workout in history, then try again."
+            return "Couldn’t start this follow-up. Keep this workout in history, then try again."
         }
 
-        return "Couldn't start a follow-up from "\(displayName)". Keep it in history, then try again."
+        return "Couldn’t start a follow-up from “\(displayName)”. Keep it in history, then try again."
     }
 
     func startFollowUpFailureAlertTitle(for workout: Workout) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         return displayName == "Workout"
-            ? "Couldn't Start This Follow-Up"
-            : "Couldn't Start Follow-Up from "\(displayName)""
+            ? "Couldn’t Start This Follow-Up"
+            : "Couldn’t Start Follow-Up from “\(displayName)”"
     }
 
     func followUpWorkoutButtonTitle(for workout: Workout) -> String {
@@ -563,7 +563,7 @@ class HomeViewModel: ObservableObject {
             return "Start This Follow-Up"
         }
 
-        return "Start Follow-Up from "\(displayName)""
+        return "Start Follow-Up from “\(displayName)”"
     }
 
     func saveAndStartFollowUpButtonTitle(for workout: Workout) -> String {
@@ -571,7 +571,7 @@ class HomeViewModel: ObservableObject {
             return "Save & Start This Follow-Up"
         }
 
-        return "Save & Start Follow-Up from "\(displayName)""
+        return "Save & Start Follow-Up from “\(displayName)”"
     }
 
     func discardAndStartFollowUpButtonTitle(for workout: Workout) -> String {
@@ -645,7 +645,7 @@ class HomeViewModel: ObservableObject {
         let displayName = WorkoutTemplate.normalizedDisplayName(templateName)
         return displayName == "Template"
             ? "Start This Template"
-            : "Start Template "\(displayName)""
+            : "Start Template “\(displayName)”"
     }
 
     func followUpWorkoutHelperText(for workout: Workout) -> String {
@@ -660,7 +660,7 @@ class HomeViewModel: ObservableObject {
             return "You already have a workout in progress: \(activeWorkoutSummary). Continue it, save it for later, or discard it before starting this follow-up."
         }
 
-        return "You already have a workout in progress: \(activeWorkoutSummary). Continue it, save it for later, or discard it before starting a follow-up from "\(followUpName)"."
+        return "You already have a workout in progress: \(activeWorkoutSummary). Continue it, save it for later, or discard it before starting a follow-up from “\(followUpName)”."
     }
 
     func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {
@@ -712,18 +712,18 @@ class HomeViewModel: ObservableObject {
     func startFreshFailureAlertTitle(for action: StartFreshPersistenceAction) -> String {
         switch action {
         case .saveForLater:
-            return "Couldn't Save & Start New Workout"
+            return "Couldn’t Save & Start New Workout"
         case .discard:
-            return "Couldn't Discard & Start New Workout"
+            return "Couldn’t Discard & Start New Workout"
         }
     }
 
     func startFreshFailureMessage(for action: StartFreshPersistenceAction) -> String {
         switch action {
         case .saveForLater:
-            return "Couldn't save the current workout. Keep this draft open, then try again."
+            return "Couldn’t save the current workout. Keep this draft open, then try again."
         case .discard:
-            return "Couldn't discard the current workout. Keep this draft open, then try again."
+            return "Couldn’t discard the current workout. Keep this draft open, then try again."
         }
     }
 
@@ -731,17 +731,17 @@ class HomeViewModel: ObservableObject {
         guard let followUpName = specificSavedWorkoutName(for: workout) else {
             switch action {
             case .saveForLater:
-                return "Couldn't save the current workout. Keep it open, then try starting this follow-up again."
+                return "Couldn’t save the current workout. Keep it open, then try starting this follow-up again."
             case .discard:
-                return "Couldn't discard the current workout. Keep it open, then try starting this follow-up again."
+                return "Couldn’t discard the current workout. Keep it open, then try starting this follow-up again."
             }
         }
 
         switch action {
         case .saveForLater:
-            return "Couldn't save the current workout. Keep it open, then try starting a follow-up from "\(followUpName)" again."
+            return "Couldn’t save the current workout. Keep it open, then try starting a follow-up from “\(followUpName)” again."
         case .discard:
-            return "Couldn't discard the current workout. Keep it open, then try starting a follow-up from "\(followUpName)" again."
+            return "Couldn’t discard the current workout. Keep it open, then try starting a follow-up from “\(followUpName)” again."
         }
     }
 
@@ -751,15 +751,15 @@ class HomeViewModel: ObservableObject {
     ) -> String {
         let displayName = WorkoutRow.displayName(for: workout)
         let namedTitle: (String) -> String = { actionLabel in
-            "Couldn't \(actionLabel) Follow-Up from "\(displayName)""
+            "Couldn’t \(actionLabel) Follow-Up from “\(displayName)”"
         }
 
         guard displayName != "Workout" else {
             switch action {
             case .saveForLater:
-                return "Couldn't Save & Start This Follow-Up"
+                return "Couldn’t Save & Start This Follow-Up"
             case .discard:
-                return "Couldn't Discard & Start This Follow-Up"
+                return "Couldn’t Discard & Start This Follow-Up"
             }
         }
 

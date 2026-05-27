@@ -1273,7 +1273,7 @@ final class HomeViewModelTests: XCTestCase {
         )
         XCTAssertEqual(
             failingViewModel.startWorkoutFailureMessage,
-            "Couldn’t start a follow-up from Upper A. Keep it in history, then try again.",
+            "Couldn’t start a follow-up from “Upper A”. Keep it in history, then try again.",
             "Follow-up creation failures should explain that the saved workout stayed in history and invite a retry"
         )
     }

@@ -1,5 +1,6 @@
 # RPT
 
+- Fixed Home’s named workout/template/follow-up labels and alerts after a malformed string-interpolation regression in `HomeViewModel` left several user-facing titles/messages with broken quote handling, restoring readable copy like `Continue “Upper A”`, `Delete “Upper A”?`, and `Start Template “Upper A”` across resume/history/template shortcuts.
 - Active Workout’s complete/discard dialog body copy now quotes the exact draft name too (`Would you like to complete and save “Upper A”?`, `Discard “Upper A”? ...`) instead of dropping back to unquoted names inside destructive confirmations, so the final save/finish/discard decisions scan more consistently with the rest of RPT’s named-workout wording.
 - Template-blocked recovery messaging now keeps named plans quoted in the explanatory body copy too (`before opening Template “Lower Day”`, `before starting Template “Lower Day”`) instead of dropping back to bare template names, so conflict guidance reads consistently with RPT’s template buttons, alerts, and source-template labels.
 - Follow-up replacement alerts on Home, Workout Details, and Exercise Details now name the exact in-progress draft being discarded too (`Discard “Push Day” & Start Follow-Up from “Upper A”?`), so destructive restart confirmations stop hiding which live workout will be replaced when several routines are in play.
