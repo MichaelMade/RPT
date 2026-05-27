@@ -132,20 +132,20 @@ struct HomeView: View {
         return HomeViewModel().discardCurrentWorkoutAndStartFreshAlertMessage(for: workout)
     }
 
-    static func discardCurrentWorkoutAndStartFollowUpAlertTitle(for workout: Workout?) -> String {
+    static func discardCurrentWorkoutAndStartFollowUpAlertTitle(for workout: Workout?, currentWorkout: Workout? = nil) -> String {
         guard let workout else {
             return "Discard Current Workout & Start This Follow-Up?"
         }
 
-        return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout)
+        return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout, currentWorkout: currentWorkout)
     }
 
-    static func discardCurrentWorkoutAndStartFollowUpAlertMessage(for workout: Workout?) -> String {
+    static func discardCurrentWorkoutAndStartFollowUpAlertMessage(for workout: Workout?, currentWorkout: Workout? = nil) -> String {
         guard let workout else {
             return "Your in-progress workout will be lost before RPT starts the selected follow-up. This action cannot be undone."
         }
 
-        return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout)
+        return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout, currentWorkout: currentWorkout)
     }
 
     static func startFollowUpButtonTitle(for workout: Workout?) -> String {
@@ -723,7 +723,10 @@ struct HomeView: View {
                 }
             }
             .alert(
-                Self.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workoutToDiscardAndStartFollowUp),
+                Self.discardCurrentWorkoutAndStartFollowUpAlertTitle(
+                    for: workoutToDiscardAndStartFollowUp,
+                    currentWorkout: protectedResumableWorkout()
+                ),
                 isPresented: $showingDiscardAndStartFollowUpConfirmation,
                 presenting: workoutToDiscardAndStartFollowUp
             ) { workout in
@@ -742,7 +745,12 @@ struct HomeView: View {
                     workoutToStartFollowUp = nil
                 }
             } message: { workout in
-                Text(Self.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout))
+                Text(
+                    Self.discardCurrentWorkoutAndStartFollowUpAlertMessage(
+                        for: workout,
+                        currentWorkout: protectedResumableWorkout()
+                    )
+                )
             }
             .alert(templateStartRecoveryAlertTitle, isPresented: $showingTemplateStartRecoveryAlert) {
                 Button(

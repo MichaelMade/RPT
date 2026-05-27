@@ -20,6 +20,24 @@ final class WorkoutDetailViewTests: XCTestCase {
         )
     }
 
+    func testDiscardCurrentWorkoutAndStartFollowUpAlertCopy_namesSpecificCurrentWorkoutWhenAvailable() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+        let currentWorkout = Workout(name: "  Push   Day  ")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back])
+        workout.addSet(exercise: bench, weight: 185, reps: 8)
+        workout.addSet(exercise: row, weight: 135, reps: 10)
+
+        XCTAssertEqual(
+            WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout, currentWorkout: currentWorkout),
+            "Discard “Push Day” & Start Follow-Up from “Upper A”?"
+        )
+        XCTAssertEqual(
+            WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout, currentWorkout: currentWorkout),
+            "“Push Day” will be lost and RPT will immediately start a follow-up from “Upper A”. Source session: 2 exercises • 2 sets. This action cannot be undone."
+        )
+    }
+
     func testDiscardCurrentWorkoutAndStartFollowUpAlertCopy_fallsBackGracefully() {
         let blankWorkout = Workout(name: " \n ", isCompleted: true)
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
@@ -31,7 +49,7 @@ final class WorkoutDetailViewTests: XCTestCase {
         )
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: blankWorkout),
-            "Your in-progress workout will be lost before RPT starts the selected follow-up. Source session: Warm-up sets only. This action cannot be undone."
+            "Your in-progress workout will be lost and RPT will immediately start the selected follow-up. Source session: Warm-up sets only. This action cannot be undone."
         )
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: nil),
