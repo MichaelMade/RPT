@@ -74,7 +74,7 @@ class ActiveWorkoutViewModel: ObservableObject {
 
     var exitDialogHelperText: String {
         helperTextForIncompleteExercises(enableActionLabel: completeWorkoutButtonTitle())
-        ?? "Save for later keeps it as a draft. Complete marks it as finished."
+        ?? "\(saveForLaterButtonTitle()) keeps it as a draft. \(completeWorkoutButtonTitle()) marks it as finished."
     }
 
     var canCompleteWorkoutFromExitDialog: Bool {

@@ -750,7 +750,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.exitDialogHelperText,
-            "Save for later keeps it as a draft. Complete marks it as finished."
+            "Save “Test Workout” for Later keeps it as a draft. Complete “Test Workout” & Save marks it as finished."
         )
         XCTAssertTrue(viewModel.canCompleteWorkoutFromExitDialog)
     }
@@ -770,6 +770,21 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
             "1 exercise left: Row. Tap the circle beside it when you're done to enable Complete “Test Workout” & Save."
         )
         XCTAssertFalse(viewModel.canCompleteWorkoutFromExitDialog)
+    }
+
+    func testExitDialogHelperText_whenAllExercisesCompletedAndWorkoutNameIsGeneric_usesCurrentWorkoutFallback() {
+        let workout = workoutManager.createWorkout(name: "   ")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: bench, weight: 185, reps: 6)
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+        viewModel.toggleExerciseCompletion(bench)
+
+        XCTAssertEqual(
+            viewModel.exitDialogHelperText,
+            "Save Current Workout for Later keeps it as a draft. Complete Current Workout & Save marks it as finished."
+        )
+        XCTAssertTrue(viewModel.canCompleteWorkoutFromExitDialog)
     }
 
     func testExitDialogHelperText_whenWorkoutNameIsGeneric_usesCurrentWorkoutFallback() {

@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout’s exit-sheet helper text now reuses the exact draft-aware exit actions too (`Save “Upper A” for Later`, `Complete “Upper A” & Save`) instead of falling back to generic `Save for later` / `Complete` wording once all exercises are done, so the final save-vs-finish decision stays easier to scan when several routines are in play.
 - Active-workout replacement alerts now reuse the exact live draft name in their safe cancel action too (`Continue “Upper A”`) instead of the last generic `Keep Current Workout` label, so discard-and-restart decisions across Home, Workout Details, Exercise Details, and Template Details stay easier to scan when several routines are in play.
 - Copied/exported workout summaries now quote specific source-template names too (`Template: “Upper A”`) and fall back to `Template: Saved template` for placeholder legacy names, so pasted history recaps stay consistent with the clearer on-screen template wording instead of drifting back to raw `Template: Upper A` / `Template: Template` lines.
 - Workout history and source-template labels now quote specific template names too (`Template • “Upper A”`) instead of mixing named template context back into unquoted row/detail metadata, so Home, Exercise Details, and Workout Detail all scan more consistently with the rest of RPT’s template wording.
