@@ -1,5 +1,6 @@
 # RPT
 
+- Copy-summary confirmations now quote real workout names too (`Copied the summary for “Upper A”...`) while still staying generic for placeholder drafts like `Workout` and `Current Workout`, so pasted-history feedback matches the rest of RPT’s named-workout wording instead of dropping back to bare unquoted titles.
 - Active Workout’s delete-exercise confirmations now include the live draft name when RPT knows it (`Delete “Bench Press” from “Pull”?`), so destructive exercise removal stays anchored to the exact session being edited instead of the vaguer `from Workout` wording; legacy placeholder drafts still keep the generic fallback.
 - Copy-summary confirmations now treat the legacy placeholder draft name `Current Workout` the same as other generic fallbacks, so Home, Workout Details, and Exercise Details say `Copied the workout summary...` instead of the awkward `Copied the summary for Current Workout...` when older unnamed drafts are exported.
 - Active-workout conflict prompts now quote the real in-progress draft name inside their lead-in copy too (`You already have “Upper A” in progress...`) instead of dropping back to bare `Upper A` text in Home, Template, and source-template restart guidance, so replacement decisions scan more consistently with RPT’s other named workout alerts.

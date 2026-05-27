@@ -78,7 +78,7 @@ struct WorkoutRow: View {
         case "Workout", "Current Workout":
             return "Copied the workout summary so it’s ready to paste anywhere you need it."
         default:
-            return "Copied the summary for \(normalizedName) so it’s ready to paste anywhere you need it."
+            return "Copied the summary for “\(normalizedName)” so it’s ready to paste anywhere you need it."
         }
     }
 

@@ -920,7 +920,7 @@ final class FormattingTests: XCTestCase {
         )
         XCTAssertEqual(
             WorkoutRow.copySummaryMessage(forWorkoutNamed: "  Upper   Body\nSession  "),
-            "Copied the summary for Upper Body Session so it’s ready to paste anywhere you need it."
+            "Copied the summary for “Upper Body Session” so it’s ready to paste anywhere you need it."
         )
     }
 
