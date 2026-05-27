@@ -325,7 +325,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         } catch {
             setError(
                 title: workoutFailureAlertTitle(action: "Load"),
-                message: "Error loading previous weights: \(error.localizedDescription)"
+                message: workoutFailureMessage(action: "Load")
             )
         }
         
@@ -443,7 +443,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         } catch {
             setError(
                 title: workoutFailureAlertTitle(action: "Rename"),
-                message: "Failed to update workout name: \(error.localizedDescription)"
+                message: workoutFailureMessage(action: "Rename")
             )
             return false
         }
@@ -465,7 +465,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         } catch {
             setError(
                 title: workoutFailureAlertTitle(action: "Save"),
-                message: "Failed to save workout: \(error.localizedDescription)"
+                message: workoutFailureMessage(action: "Save")
             )
             return false
         }
@@ -496,7 +496,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         } catch {
             setError(
                 title: workoutFailureAlertTitle(action: "Complete"),
-                message: "Failed to complete workout: \(error.localizedDescription)"
+                message: workoutFailureMessage(action: "Complete")
             )
             return false
         }
@@ -527,7 +527,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         } catch {
             setError(
                 title: workoutFailureAlertTitle(action: "Discard"),
-                message: "Failed to discard workout: \(error.localizedDescription)"
+                message: workoutFailureMessage(action: "Discard")
             )
             return false
         }
@@ -841,6 +841,25 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
 
         return "Couldn’t \(action) “\(displayName)”"
+    }
+
+    private func workoutFailureMessage(action: String) -> String {
+        let workoutReference = specificWorkoutDisplayName.map { "“\($0)”" } ?? "the current workout"
+
+        switch action {
+        case "Load":
+            return "Couldn’t load \(workoutReference) right now. Please try again."
+        case "Rename":
+            return "Couldn’t rename \(workoutReference) right now. Please try again."
+        case "Save":
+            return "Couldn’t save \(workoutReference) right now. Keep it open, then try again."
+        case "Complete":
+            return "Couldn’t complete \(workoutReference) right now. Keep it open, then try again."
+        case "Discard":
+            return "Couldn’t discard \(workoutReference) right now. Keep it open, then try again."
+        default:
+            return "Something went wrong with \(workoutReference). Please try again."
+        }
     }
 
     private func exerciseFailureAlertTitle(action: String, exercise: Exercise?) -> String {

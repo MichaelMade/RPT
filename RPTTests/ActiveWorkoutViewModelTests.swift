@@ -163,7 +163,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertFalse(viewModel.updateWorkoutNameSafely())
         XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Rename “Upper A”")
-        XCTAssertEqual(viewModel.errorMessage, "Failed to update workout name: saveFailed")
+        XCTAssertEqual(viewModel.errorMessage, "Couldn’t rename “Upper A” right now. Please try again.")
     }
 
     func testUpdateWorkoutNameSafely_failureUsesCurrentWorkoutFallbackForBlankNames() {
@@ -178,7 +178,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertFalse(viewModel.updateWorkoutNameSafely())
         XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Rename Current Workout")
-        XCTAssertEqual(viewModel.errorMessage, "Failed to update workout name: saveFailed")
+        XCTAssertEqual(viewModel.errorMessage, "Couldn’t rename the current workout right now. Please try again.")
     }
 
     func testCompleteWorkoutTitlesIncludeSpecificWorkoutName() {
@@ -641,7 +641,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(templateSet.reps, 8, "Failed template autofill saves should preserve the template target reps")
         XCTAssertNil(templateSet.rpe, "Failed template autofill saves should not leave copied RPE values behind")
         XCTAssertEqual(templateSet.completedAt, .distantPast, "Failed template autofill saves should keep placeholder sets incomplete")
-        XCTAssertEqual(viewModel.errorMessage, "Error loading previous weights: Failed to save workout")
+        XCTAssertEqual(viewModel.errorMessage, "Couldn’t load “Pull Day” right now. Please try again.")
     }
 
     func testShouldStartRestTimer_requiresCompletedWorkingSet() {
@@ -991,6 +991,27 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.errorMessage, "Failed to delete exercise: saveFailed")
     }
 
+    func testSaveAndCompleteFailuresUseSpecificWorkoutNameWhenAvailable() {
+        let workout = workoutManager.createWorkout(name: "Upper A")
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        XCTAssertFalse(viewModel.saveWorkoutSafely())
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Save “Upper A”")
+        XCTAssertEqual(viewModel.errorMessage, "Couldn’t save “Upper A” right now. Keep it open, then try again.")
+
+        XCTAssertFalse(viewModel.completeWorkoutSafely())
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Complete “Upper A”")
+        XCTAssertEqual(viewModel.errorMessage, "Couldn’t complete “Upper A” right now. Keep it open, then try again.")
+
+        XCTAssertFalse(viewModel.discardWorkoutSafely())
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Discard “Upper A”")
+        XCTAssertEqual(viewModel.errorMessage, "Couldn’t discard “Upper A” right now. Keep it open, then try again.")
+    }
+
     func testSaveAndCompleteFailuresUseCurrentWorkoutFallbackForBlankNames() {
         let workout = workoutManager.createWorkout(name: " \n ")
         let failingWorkoutManager = WorkoutManager(
@@ -1001,14 +1022,14 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertFalse(viewModel.saveWorkoutSafely())
         XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Save Current Workout")
-        XCTAssertEqual(viewModel.errorMessage, "Failed to save workout: Failed to save workout")
+        XCTAssertEqual(viewModel.errorMessage, "Couldn’t save the current workout right now. Keep it open, then try again.")
 
         XCTAssertFalse(viewModel.completeWorkoutSafely())
         XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Complete Current Workout")
-        XCTAssertEqual(viewModel.errorMessage, "Failed to complete workout: Failed to complete workout")
+        XCTAssertEqual(viewModel.errorMessage, "Couldn’t complete the current workout right now. Keep it open, then try again.")
 
         XCTAssertFalse(viewModel.discardWorkoutSafely())
         XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Discard Current Workout")
-        XCTAssertEqual(viewModel.errorMessage, "Failed to discard workout: Failed to delete workout")
+        XCTAssertEqual(viewModel.errorMessage, "Couldn’t discard the current workout right now. Keep it open, then try again.")
     }
 }
