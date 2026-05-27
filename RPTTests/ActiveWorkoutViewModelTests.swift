@@ -189,7 +189,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.finishButtonTitle(), "Finish “Upper A”")
         XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete “Upper A” & Save")
         XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue “Upper A”")
-        XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save Upper A?")
+        XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save “Upper A”?")
     }
 
     func testCompleteWorkoutTitlesFallBackForGenericWorkoutName() {
@@ -817,7 +817,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard “Upper A”")
         XCTAssertEqual(
             viewModel.discardWorkoutMessage(),
-            "Discard Upper A? This will remove 1 exercise and 2 sets from this draft, including 1 logged working set and 1 logged warm-up set. This action cannot be undone."
+            "Discard “Upper A”? This will remove 1 exercise and 2 sets from this draft, including 1 logged working set and 1 logged warm-up set. This action cannot be undone."
         )
     }
 
@@ -829,7 +829,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.discardWorkoutMessage(),
-            "Discard Push? This will remove 1 exercise and 1 working set from this draft, including 1 logged working set. This action cannot be undone."
+            "Discard “Push”? This will remove 1 exercise and 1 working set from this draft, including 1 logged working set. This action cannot be undone."
         )
     }
 
@@ -842,7 +842,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.discardWorkoutMessage(),
-            "Discard Recovery? This will remove 1 exercise and 1 warm-up set from this draft, including 1 logged warm-up set. This action cannot be undone."
+            "Discard “Recovery”? This will remove 1 exercise and 1 warm-up set from this draft, including 1 logged warm-up set. This action cannot be undone."
         )
     }
 

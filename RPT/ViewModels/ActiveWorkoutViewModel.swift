@@ -104,7 +104,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             return "Discard your current workout? \(impactSummary) This action cannot be undone."
         }
 
-        return "Discard \(displayName)? \(impactSummary) This action cannot be undone."
+        return "Discard “\(displayName)”? \(impactSummary) This action cannot be undone."
     }
 
     private func discardWorkoutImpactSummary() -> String {
@@ -187,7 +187,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             return "Would you like to complete and save your current workout?"
         }
 
-        return "Would you like to complete and save \(displayName)?"
+        return "Would you like to complete and save “\(displayName)”?"
     }
 
     func deleteExerciseAlertTitle(for exercise: Exercise?) -> String {
