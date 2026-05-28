@@ -187,23 +187,24 @@ final class FormattingTests: XCTestCase {
         )
         XCTAssertEqual(
             ExerciseSetRowView.deleteAlertMessage(for: set),
-            "This will remove this logged working set from the current workout."
+            "This will remove this logged working set from “Push”."
         )
     }
 
     func testExerciseSetRowDeleteCopy_handlesWarmupBodyweightAndBlankFallback() {
         let bodyweightExercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
         let weightedExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
-        let workout = Workout(name: "Pull")
+        let namedWorkout = Workout(name: "Pull")
+        let placeholderWorkout = Workout(name: "Current Workout")
 
         let bodyweightWarmupSet = ExerciseSet(
             weight: 0,
             reps: 10,
             exercise: bodyweightExercise,
-            workout: workout,
+            workout: namedWorkout,
             isWarmup: true
         )
-        let blankSet = ExerciseSet(weight: 0, reps: 0, exercise: weightedExercise, workout: workout)
+        let blankSet = ExerciseSet(weight: 0, reps: 0, exercise: weightedExercise, workout: placeholderWorkout)
 
         XCTAssertEqual(
             ExerciseSetRowView.deleteButtonTitle(for: bodyweightWarmupSet),
@@ -215,7 +216,7 @@ final class FormattingTests: XCTestCase {
         )
         XCTAssertEqual(
             ExerciseSetRowView.deleteAlertMessage(for: bodyweightWarmupSet),
-            "This will remove this logged warm-up set from the current workout."
+            "This will remove this logged warm-up set from “Pull”."
         )
         XCTAssertEqual(
             ExerciseSetRowView.deleteButtonTitle(for: blankSet),
@@ -238,7 +239,7 @@ final class FormattingTests: XCTestCase {
 
         XCTAssertEqual(
             ExerciseSetRowView.deleteAlertMessage(for: set),
-            "This will remove this logged working set and its recorded RPE from the current workout."
+            "This will remove this logged working set and its recorded RPE from “Push”."
         )
     }
 

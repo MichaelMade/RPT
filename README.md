@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout’s set-delete confirmations now keep the exact draft name in the destructive body copy too (`This will remove this logged working set from “Push”.`) instead of flattening back to generic `current workout` wording mid-session; legacy placeholder drafts like `Current Workout` still keep the safe fallback.
 - Workout Details and Exercise Details now keep missing-template restart failures specific too (`Couldn’t Start This Template`, `Couldn’t Save & Start This Template`, `Couldn’t Discard & Start This Template`) instead of falling back to the vague shared `Workout Action Failed` title when a template handoff loses its source context.
 - Home follow-up restart failure guidance now keeps the exact in-progress draft visible in the retry body too (`Couldn’t save “Push Day”. Keep it open, then try starting a follow-up from “Upper A” again.`) instead of flattening that blocked handoff back to generic `current workout` wording right when save/discard fails.
 - Template-start recovery failures now keep the exact in-progress draft and selected plan visible in the body copy too (`Couldn’t save “Push Day”. Keep it open, then try starting Template “Upper A” again.`), so blocked restarts from Home, Workout Details, Exercise Details, and Templates stay clearer when a save/discard handoff fails.

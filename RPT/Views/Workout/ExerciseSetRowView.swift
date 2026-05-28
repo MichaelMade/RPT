@@ -312,26 +312,37 @@ struct ExerciseSetRowView: View {
     }
 
     static func deleteAlertMessage(for set: ExerciseSet) -> String {
+        let workoutReference = deleteAlertWorkoutReference(for: set)
+
         if set.isCompletedLoggedSet {
             let kind = set.isWarmup ? "logged warm-up set" : "logged working set"
 
             if set.displayRPE != nil {
-                return "This will remove this \(kind) and its recorded RPE from the current workout."
+                return "This will remove this \(kind) and its recorded RPE from \(workoutReference)."
             }
 
-            return "This will remove this \(kind) from the current workout."
+            return "This will remove this \(kind) from \(workoutReference)."
         }
 
         if set.isWarmup {
-            return "This warm-up set will be removed from the current workout."
+            return "This warm-up set will be removed from \(workoutReference)."
         }
 
         if set.weight == 0 && set.reps == 0 {
-            return "This empty set will be removed from the current workout."
+            return "This empty set will be removed from \(workoutReference)."
         }
 
-        return "This set will be removed from the current workout."
+        return "This set will be removed from \(workoutReference)."
     }
++
++    private static func deleteAlertWorkoutReference(for set: ExerciseSet) -> String {
++        guard let workout = set.workout,
++              let displayName = WorkoutRow.specificDisplayName(for: workout) else {
++            return "the current workout"
++        }
++
++        return "“\(displayName)”"
++    }
 
     static func discardChangesAlertActionTitle(for set: ExerciseSet) -> String {
         let prefix = set.isWarmup ? "Discard Warm-up Set Changes" : "Discard Set Changes"
