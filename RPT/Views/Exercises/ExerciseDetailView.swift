@@ -82,7 +82,7 @@ struct ExerciseDetailView: View {
 
     static func templateStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
         guard let template else {
-            return "Workout Action Failed"
+            return "Couldn’t Start This Template"
         }
 
         return TemplateViewModel().startTemplateFailureAlertTitle(for: template)
@@ -90,7 +90,7 @@ struct ExerciseDetailView: View {
 
     static func templateSaveAndStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
         guard let template else {
-            return "Workout Action Failed"
+            return "Couldn’t Save & Start This Template"
         }
 
         return TemplateViewModel().activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template)
@@ -98,7 +98,7 @@ struct ExerciseDetailView: View {
 
     static func templateDiscardAndStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
         guard let template else {
-            return "Workout Action Failed"
+            return "Couldn’t Discard & Start This Template"
         }
 
         return TemplateViewModel().activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template)

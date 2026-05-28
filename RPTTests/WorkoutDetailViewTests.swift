@@ -95,7 +95,15 @@ final class WorkoutDetailViewTests: XCTestCase {
         )
         XCTAssertEqual(
             WorkoutDetailView.templateStartFailureAlertTitle(for: nil),
-            "Workout Action Failed"
+            "Couldn’t Start This Template"
+        )
+        XCTAssertEqual(
+            WorkoutDetailView.templateSaveAndStartFailureAlertTitle(for: nil),
+            "Couldn’t Save & Start This Template"
+        )
+        XCTAssertEqual(
+            WorkoutDetailView.templateDiscardAndStartFailureAlertTitle(for: nil),
+            "Couldn’t Discard & Start This Template"
         )
     }
 

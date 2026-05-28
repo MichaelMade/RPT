@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Details and Exercise Details now keep missing-template restart failures specific too (`Couldn’t Start This Template`, `Couldn’t Save & Start This Template`, `Couldn’t Discard & Start This Template`) instead of falling back to the vague shared `Workout Action Failed` title when a template handoff loses its source context.
 - Home follow-up restart failure guidance now keeps the exact in-progress draft visible in the retry body too (`Couldn’t save “Push Day”. Keep it open, then try starting a follow-up from “Upper A” again.`) instead of flattening that blocked handoff back to generic `current workout` wording right when save/discard fails.
 - Template-start recovery failures now keep the exact in-progress draft and selected plan visible in the body copy too (`Couldn’t save “Push Day”. Keep it open, then try starting Template “Upper A” again.`), so blocked restarts from Home, Workout Details, Exercise Details, and Templates stay clearer when a save/discard handoff fails.
 - Home’s in-progress workout summaries now prefer the current source-template name from stable template-ID lookup (`From Renamed Upper A`) instead of a stale remembered label after a plan rename, so resume and discard/start-fresh prompts stay anchored to the actual routine users recognize.
