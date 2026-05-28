@@ -399,6 +399,9 @@ final class FormattingTests: XCTestCase {
 
         let spacedNameWorkout = Workout(name: "  Upper   Body\nSession  ")
         XCTAssertEqual(WorkoutRow.displayName(for: spacedNameWorkout), "Upper Body Session")
+
+        let legacyPlaceholderWorkout = Workout(name: "  Current   Workout  ")
+        XCTAssertEqual(WorkoutRow.displayName(for: legacyPlaceholderWorkout), "Workout")
     }
 
     func testWorkoutRowDisplayName_clampsVeryLongNames() {

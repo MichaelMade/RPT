@@ -3,6 +3,12 @@ import SwiftData
 @testable import RPT
 
 final class WorkoutDetailViewTests: XCTestCase {
+    func testDisplayName_usesGenericFallbackForLegacyCurrentWorkoutPlaceholder() {
+        XCTAssertEqual(WorkoutDetailView.displayName(for: Workout(name: "Current Workout")), "Workout")
+        XCTAssertEqual(WorkoutDetailView.displayName(for: Workout(name: "  Current   Workout  ")), "Workout")
+        XCTAssertEqual(WorkoutDetailView.displayName(for: Workout(name: "Upper A")), "Upper A")
+    }
+
     func testDiscardCurrentWorkoutAndStartFollowUpAlertCopy_namesSpecificWorkout() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])

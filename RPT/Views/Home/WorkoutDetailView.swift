@@ -35,16 +35,7 @@ struct WorkoutDetailView: View {
     ]
 
     static func displayName(for workout: Workout) -> String {
-        let collapsedName = workout.name
-            .components(separatedBy: .whitespacesAndNewlines)
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
-
-        guard !collapsedName.isEmpty else {
-            return "Workout"
-        }
-
-        return String(collapsedName.prefix(80))
+        WorkoutRow.displayName(for: workout)
     }
 
     static func displayExerciseName(_ exercise: Exercise) -> String {
