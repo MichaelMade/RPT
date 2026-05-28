@@ -20,6 +20,7 @@ class HomeViewModel: ObservableObject {
 
     private let workoutManager: WorkoutManager
     private let userManager: UserManager
+    private let templateManager: TemplateManager
 
     @Published var recentWorkouts: [Workout] = []
     @Published var currentWorkout: Workout?
@@ -31,9 +32,11 @@ class HomeViewModel: ObservableObject {
     @Published var startWorkoutFailureMessage: String?
 
     init(workoutManager: WorkoutManager? = nil,
-         userManager: UserManager? = nil) {
+         userManager: UserManager? = nil,
+         templateManager: TemplateManager? = nil) {
         self.workoutManager = workoutManager ?? WorkoutManager.shared
         self.userManager = userManager ?? UserManager.shared
+        self.templateManager = templateManager ?? TemplateManager.shared
     }
 
     func loadRecentWorkouts() {
@@ -171,7 +174,7 @@ class HomeViewModel: ObservableObject {
     func resumableWorkoutSummary(for workout: Workout, now: Date = Date()) -> String {
         var parts: [String] = [workoutStartedSummary(for: workout.date, now: now)]
 
-        if let templateName = normalizedSummaryName(workout.startedFromTemplate) {
+        if let templateName = resumableWorkoutSourceTemplateName(for: workout) {
             parts.append("From \(templateName)")
         }
 
@@ -852,6 +855,15 @@ class HomeViewModel: ObservableObject {
         }
 
         return String(collapsedName.prefix(80))
+    }
+
+    private func resumableWorkoutSourceTemplateName(for workout: Workout) -> String? {
+        let resolvedTemplateName = templateManager
+            .sourceTemplate(for: workout)
+            .map(\.name)
+
+        return normalizedSummaryName(resolvedTemplateName)
+            ?? normalizedSummaryName(workout.startedFromTemplate)
     }
 
     private func hasFollowUpContent(in workout: Workout) -> Bool {

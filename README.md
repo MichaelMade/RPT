@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s in-progress workout summaries now prefer the current source-template name from stable template-ID lookup (`From Renamed Upper A`) instead of a stale remembered label after a plan rename, so resume and discard/start-fresh prompts stay anchored to the actual routine users recognize.
 - Home follow-up restart confirmations now keep the legacy placeholder draft name `Current Workout` on the generic recovery path instead of surfacing awkward quoted copy like `Discard “Current Workout” & Start Follow-Up ...`, so older unnamed in-progress drafts stay consistent with the app’s newer template and start-fresh wording.
 - Home’s `Start Fresh Instead` save/discard failure alerts now keep the exact in-progress draft name visible too (`Couldn’t Save & Start “Upper A”`, `Couldn’t discard “Upper A”. Keep this draft open, then try again.`) instead of flattening recovery back to generic `current workout` wording right when a replacement fails.
 - Copy-summary confirmations now quote real workout names too (`Copied the summary for “Upper A”...`) while still staying generic for placeholder drafts like `Workout` and `Current Workout`, so pasted-history feedback matches the rest of RPT’s named-workout wording instead of dropping back to bare unquoted titles.

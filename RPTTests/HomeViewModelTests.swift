@@ -755,6 +755,36 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(summary, "Started 2h ago • From Upper A • 1 exercise • 1 set • Exercise started", "Summary should show elapsed time, template origin, current draft counts, and whether logged work has started")
     }
 
+    func testResumableWorkoutSummary_prefersResolvedTemplateNameWhenSourceTemplateWasRenamed() throws {
+        let context = DataManager.shared.getModelContext()
+        let template = WorkoutTemplate(name: "  Renamed   Upper A  ")
+        context.insert(template)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(template)
+            try? context.save()
+        }
+
+        let startDate = Date(timeIntervalSince1970: 0)
+        let now = startDate.addingTimeInterval(20 * 60)
+        let workout = Workout(
+            date: startDate,
+            name: "Push Day",
+            startedFromTemplate: "Old Upper A",
+            startedFromTemplateID: template.id
+        )
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        workout.addSet(exercise: exercise, weight: 185, reps: 8)
+
+        let summary = viewModel.resumableWorkoutSummary(for: workout, now: now)
+
+        XCTAssertEqual(
+            summary,
+            "Started 20m ago • From Renamed Upper A • 1 exercise • 1 set • Exercise started",
+            "Resumable workout summaries should prefer the current template name from stable-ID lookup so renamed plans do not show stale source-template labels during resume/discard decisions"
+        )
+    }
+
     func testResumableWorkoutSummary_emptyDraftExplainsNoExercisesYet() {
         let startDate = Date(timeIntervalSince1970: 0)
         let now = startDate.addingTimeInterval(30)
