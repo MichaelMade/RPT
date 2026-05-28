@@ -1542,16 +1542,25 @@ final class HomeViewModelTests: XCTestCase {
 
     func testActiveWorkoutPersistenceFailureMessage_matchesActionAndWorkoutName() {
         let completedWorkout = Workout(name: "  Upper   A  ", isCompleted: true)
+        let activeWorkout = Workout(name: "  Push   Day  ")
 
         XCTAssertEqual(
-            viewModel.activeWorkoutPersistenceFailureMessage(for: .saveForLater, startingFollowUpFrom: completedWorkout),
-            "Couldn’t save the current workout. Keep it open, then try starting a follow-up from “Upper A” again.",
-            "Save-for-later failures should explain that the current draft stayed open and the follow-up can be retried"
+            viewModel.activeWorkoutPersistenceFailureMessage(
+                for: .saveForLater,
+                currentWorkout: activeWorkout,
+                startingFollowUpFrom: completedWorkout
+            ),
+            "Couldn’t save “Push Day”. Keep it open, then try starting a follow-up from “Upper A” again.",
+            "Save-for-later failures should keep the exact in-progress draft visible in retry guidance when follow-up start is blocked"
         )
         XCTAssertEqual(
-            viewModel.activeWorkoutPersistenceFailureMessage(for: .discard, startingFollowUpFrom: completedWorkout),
-            "Couldn’t discard the current workout. Keep it open, then try starting a follow-up from “Upper A” again.",
-            "Discard failures should explain that the current draft stayed open and the follow-up can be retried"
+            viewModel.activeWorkoutPersistenceFailureMessage(
+                for: .discard,
+                currentWorkout: activeWorkout,
+                startingFollowUpFrom: completedWorkout
+            ),
+            "Couldn’t discard “Push Day”. Keep it open, then try starting a follow-up from “Upper A” again.",
+            "Discard failures should keep the exact in-progress draft visible in retry guidance when follow-up start is blocked"
         )
         XCTAssertEqual(
             viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, startingFollowUpFrom: completedWorkout),
@@ -1749,8 +1758,8 @@ final class HomeViewModelTests: XCTestCase {
         case .failure(let message):
             XCTAssertEqual(
                 message,
-                "Couldn’t save the current workout. Keep it open, then try starting a follow-up from “Upper A” again.",
-                "Blocked follow-up recovery should surface the save-for-later retry message when the current draft cannot be persisted"
+                "Couldn’t save “Current Draft”. Keep it open, then try starting a follow-up from “Upper A” again.",
+                "Blocked follow-up recovery should surface the exact in-progress draft when persistence fails before a follow-up starts"
             )
         }
     }

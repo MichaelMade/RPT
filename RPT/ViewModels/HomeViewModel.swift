@@ -123,7 +123,13 @@ class HomeViewModel: ObservableObject {
         persist: (Workout) -> Bool
     ) -> Result<Workout, String> {
         guard persistWorkoutForFreshStart(activeWorkout, action: action, persist: persist) else {
-            return .failure(activeWorkoutPersistenceFailureMessage(for: action, startingFollowUpFrom: workout))
+            return .failure(
+                activeWorkoutPersistenceFailureMessage(
+                    for: action,
+                    currentWorkout: activeWorkout,
+                    startingFollowUpFrom: workout
+                )
+            )
         }
 
         guard startFollowUpWorkout(from: workout), let currentWorkout else {
@@ -739,21 +745,29 @@ class HomeViewModel: ObservableObject {
         }
     }
 
-    func activeWorkoutPersistenceFailureMessage(for action: FollowUpPersistenceAction, startingFollowUpFrom workout: Workout) -> String {
+    func activeWorkoutPersistenceFailureMessage(
+        for action: FollowUpPersistenceAction,
+        currentWorkout: Workout? = nil,
+        startingFollowUpFrom workout: Workout
+    ) -> String {
+        let draftReference = currentWorkout
+            .flatMap { WorkoutRow.specificDisplayName(for: $0) }
+            .map { "“\($0)”" } ?? "the current workout"
+
         guard let followUpName = specificSavedWorkoutName(for: workout) else {
             switch action {
             case .saveForLater:
-                return "Couldn’t save the current workout. Keep it open, then try starting this follow-up again."
+                return "Couldn’t save \(draftReference). Keep it open, then try starting this follow-up again."
             case .discard:
-                return "Couldn’t discard the current workout. Keep it open, then try starting this follow-up again."
+                return "Couldn’t discard \(draftReference). Keep it open, then try starting this follow-up again."
             }
         }
 
         switch action {
         case .saveForLater:
-            return "Couldn’t save the current workout. Keep it open, then try starting a follow-up from “\(followUpName)” again."
+            return "Couldn’t save \(draftReference). Keep it open, then try starting a follow-up from “\(followUpName)” again."
         case .discard:
-            return "Couldn’t discard the current workout. Keep it open, then try starting a follow-up from “\(followUpName)” again."
+            return "Couldn’t discard \(draftReference). Keep it open, then try starting a follow-up from “\(followUpName)” again."
         }
     }
 
