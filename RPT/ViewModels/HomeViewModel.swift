@@ -711,21 +711,34 @@ class HomeViewModel: ObservableObject {
         return true
     }
 
-    func startFreshFailureAlertTitle(for action: StartFreshPersistenceAction) -> String {
+    func startFreshFailureAlertTitle(for action: StartFreshPersistenceAction, currentWorkout: Workout? = nil) -> String {
+        let namedTitle: (String) -> String = { actionLabel in
+            guard let currentWorkout,
+                  let displayName = WorkoutRow.specificDisplayName(for: currentWorkout) else {
+                return "Couldn’t \(actionLabel) New Workout"
+            }
+
+            return "Couldn’t \(actionLabel) “\(displayName)”"
+        }
+
         switch action {
         case .saveForLater:
-            return "Couldn’t Save & Start New Workout"
+            return namedTitle("Save & Start")
         case .discard:
-            return "Couldn’t Discard & Start New Workout"
+            return namedTitle("Discard & Start")
         }
     }
 
-    func startFreshFailureMessage(for action: StartFreshPersistenceAction) -> String {
+    func startFreshFailureMessage(for action: StartFreshPersistenceAction, currentWorkout: Workout? = nil) -> String {
+        let draftReference = currentWorkout
+            .flatMap { WorkoutRow.specificDisplayName(for: $0) }
+            .map { "“\($0)”" } ?? "the current workout"
+
         switch action {
         case .saveForLater:
-            return "Couldn’t save the current workout. Keep this draft open, then try again."
+            return "Couldn’t save \(draftReference). Keep this draft open, then try again."
         case .discard:
-            return "Couldn’t discard the current workout. Keep this draft open, then try again."
+            return "Couldn’t discard \(draftReference). Keep this draft open, then try again."
         }
     }
 

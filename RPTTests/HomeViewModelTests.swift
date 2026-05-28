@@ -1822,6 +1822,21 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testStartFreshFailureAlertTitle_namesSpecificCurrentWorkout() {
+        let workout = Workout(name: "Upper A")
+
+        XCTAssertEqual(
+            viewModel.startFreshFailureAlertTitle(for: .saveForLater, currentWorkout: workout),
+            "Couldn’t Save & Start “Upper A”",
+            "Save-for-later failures should name the exact in-progress workout when available"
+        )
+        XCTAssertEqual(
+            viewModel.startFreshFailureAlertTitle(for: .discard, currentWorkout: workout),
+            "Couldn’t Discard & Start “Upper A”",
+            "Discard failures should name the exact in-progress workout when available"
+        )
+    }
+
     func testStartFreshFailureMessage_matchesAction() {
         XCTAssertEqual(
             viewModel.startFreshFailureMessage(for: .saveForLater),
@@ -1832,6 +1847,21 @@ final class HomeViewModelTests: XCTestCase {
             viewModel.startFreshFailureMessage(for: .discard),
             "Couldn’t discard the current workout. Keep this draft open, then try again.",
             "Discard failures should explain that the current draft stayed open"
+        )
+    }
+
+    func testStartFreshFailureMessage_namesSpecificCurrentWorkout() {
+        let workout = Workout(name: "Upper A")
+
+        XCTAssertEqual(
+            viewModel.startFreshFailureMessage(for: .saveForLater, currentWorkout: workout),
+            "Couldn’t save “Upper A”. Keep this draft open, then try again.",
+            "Save-for-later failures should keep the named draft visible in the recovery message"
+        )
+        XCTAssertEqual(
+            viewModel.startFreshFailureMessage(for: .discard, currentWorkout: workout),
+            "Couldn’t discard “Upper A”. Keep this draft open, then try again.",
+            "Discard failures should keep the named draft visible in the recovery message"
         )
     }
 }

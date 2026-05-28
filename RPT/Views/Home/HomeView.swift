@@ -939,8 +939,8 @@ struct HomeView: View {
             action: .saveForLater,
             persist: { WorkoutManager.shared.saveWorkoutSafely($0) }
         ) else {
-            startFreshFailureTitle = viewModel.startFreshFailureAlertTitle(for: .saveForLater)
-            startFreshFailureMessage = viewModel.startFreshFailureMessage(for: .saveForLater)
+            startFreshFailureTitle = viewModel.startFreshFailureAlertTitle(for: .saveForLater, currentWorkout: resumableWorkoutToReplace)
+            startFreshFailureMessage = viewModel.startFreshFailureMessage(for: .saveForLater, currentWorkout: resumableWorkoutToReplace)
             return
         }
 
@@ -956,8 +956,8 @@ struct HomeView: View {
             action: .discard,
             persist: { WorkoutManager.shared.deleteWorkoutSafely($0) }
         ) else {
-            startFreshFailureTitle = viewModel.startFreshFailureAlertTitle(for: .discard)
-            startFreshFailureMessage = viewModel.startFreshFailureMessage(for: .discard)
+            startFreshFailureTitle = viewModel.startFreshFailureAlertTitle(for: .discard, currentWorkout: resumableWorkoutToReplace)
+            startFreshFailureMessage = viewModel.startFreshFailureMessage(for: .discard, currentWorkout: resumableWorkoutToReplace)
             return
         }
 
