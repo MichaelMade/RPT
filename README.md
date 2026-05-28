@@ -1,5 +1,6 @@
 # RPT
 
+- Templates now keep legacy placeholder active-draft names like `Current Workout` on the generic blocked-start path in list summaries, detail helper text, and `… In Progress` badges, so template screens no longer surface awkward strings like `“Current Workout” In Progress` or `discard “Current Workout” before starting this template` when older drafts are still around.
 - Home follow-up failure/blocked-start alerts now keep legacy placeholder history names like `Current Workout` on the same generic path as blank names, so retry and conflict copy no longer surfaces awkward strings like `Couldn’t Start Follow-Up from “Current Workout”` or `starting a follow-up from “Current Workout”`.
 - Fixed an accidentally committed diff marker in `ExerciseSetRowView.swift` (`+    private static func ...`) that would break Swift compilation, restoring the shared workout-name helper for active-workout set-delete alerts.
 - Active Workout’s set-delete confirmations now keep the exact draft name in the destructive body copy too (`This will remove this logged working set from “Push”.`) instead of flattening back to generic `current workout` wording mid-session; legacy placeholder drafts like `Current Workout` still keep the safe fallback.

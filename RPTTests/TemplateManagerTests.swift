@@ -827,6 +827,33 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
+    func testTemplateListExerciseSummary_keepsLegacyCurrentWorkoutPlaceholderGeneric() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+        let activeWorkout = Workout(name: "Current Workout")
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateListExerciseSummary(
+                for: template,
+                blockedByActiveWorkout: true,
+                blockingWorkout: activeWorkout
+            ),
+            "1 exercise • current workout in progress"
+        )
+    }
+
     func testTemplateListExerciseSummary_namesSpecificBlockingWorkoutWhenAvailable() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
@@ -1162,6 +1189,33 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
+    func testTemplateDetailStatusSummary_keepsLegacyCurrentWorkoutPlaceholderGeneric() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+        let activeWorkout = Workout(name: "Current Workout")
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateDetailStatusSummary(
+                for: template,
+                blockedByActiveWorkout: true,
+                blockingWorkout: activeWorkout
+            ),
+            "Ready to start with 1 exercise. Continue, save, or discard the current workout before starting this template."
+        )
+    }
+
     func testStartWorkoutActionTitle_usesCurrentWorkoutLabelWhenAnotherWorkoutBlocksStart() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
@@ -1208,6 +1262,33 @@ final class TemplateManagerTests: XCTestCase {
                 blockingWorkout: activeWorkout
             ),
             "“Upper A” In Progress"
+        )
+    }
+
+    func testStartWorkoutActionTitle_keepsLegacyCurrentWorkoutPlaceholderGeneric() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+        let activeWorkout = Workout(name: "Current Workout")
+
+        XCTAssertEqual(
+            TemplateManager.shared.startWorkoutActionTitle(
+                for: template,
+                blockedByActiveWorkout: true,
+                blockingWorkout: activeWorkout
+            ),
+            "Current Workout In Progress"
         )
     }
 

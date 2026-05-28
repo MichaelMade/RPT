@@ -557,10 +557,11 @@ class TemplateManager {
                 return "Current Workout In Progress"
             }
 
-            let displayName = WorkoutRow.displayName(for: blockingWorkout)
-            return displayName == "Workout"
-                ? "Current Workout In Progress"
-                : "“\(displayName)” In Progress"
+            guard let displayName = WorkoutRow.specificDisplayName(for: blockingWorkout) else {
+                return "Current Workout In Progress"
+            }
+
+            return "“\(displayName)” In Progress"
         }
 
         guard unavailableCount > 0 || duplicateCount > 0 else {
@@ -575,10 +576,11 @@ class TemplateManager {
             return "current workout in progress"
         }
 
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "current workout in progress"
-            : "“\(displayName)” in progress"
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "current workout in progress"
+        }
+
+        return "“\(displayName)” in progress"
     }
 
     private func activeWorkoutStatusPrompt(for workout: Workout?) -> String {
@@ -586,10 +588,11 @@ class TemplateManager {
             return "Continue, save, or discard the current workout before starting this template"
         }
 
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Continue, save, or discard the current workout before starting this template"
-            : "Continue, save, or discard “\(displayName)” before starting this template"
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Continue, save, or discard the current workout before starting this template"
+        }
+
+        return "Continue, save, or discard “\(displayName)” before starting this template"
     }
 
     func startWorkoutDisabledMessage(for template: WorkoutTemplate) -> String? {
