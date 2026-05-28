@@ -1324,6 +1324,16 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testStartFollowUpFailureAlertTitle_usesGenericFallbackForLegacyCurrentWorkoutPlaceholder() {
+        let placeholderWorkout = Workout(name: "Current Workout", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.startFollowUpFailureAlertTitle(for: placeholderWorkout),
+            "Couldn’t Start This Follow-Up",
+            "Legacy placeholder workout names should stay on the generic follow-up failure title instead of surfacing awkward quoted placeholder copy"
+        )
+    }
+
     func testFollowUpWorkoutButtonTitle_usesNormalizedWorkoutName() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
 
@@ -1540,6 +1550,23 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testActiveWorkoutBlocksFollowUpMessage_usesGenericFallbackForLegacyCurrentWorkoutPlaceholder() {
+        let activeWorkout = Workout(name: "  Current   Draft  ")
+        let placeholderWorkout = Workout(name: "Current Workout", isCompleted: true)
+
+        let message = viewModel.activeWorkoutBlocksFollowUpMessage(
+            for: activeWorkout,
+            startingFrom: placeholderWorkout,
+            now: activeWorkout.date.addingTimeInterval(60)
+        )
+
+        XCTAssertEqual(
+            message,
+            "You already have a workout in progress: Started just now • Current Draft. Continue it, save it for later, or discard it before starting this follow-up.",
+            "Legacy placeholder history names should keep blocked follow-up guidance generic instead of quoting “Current Workout” as if it were a real source session"
+        )
+    }
+
     func testActiveWorkoutPersistenceFailureMessage_matchesActionAndWorkoutName() {
         let completedWorkout = Workout(name: "  Upper   A  ", isCompleted: true)
         let activeWorkout = Workout(name: "  Push   Day  ")
@@ -1601,6 +1628,21 @@ final class HomeViewModelTests: XCTestCase {
             viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, startingFollowUpFrom: blankWorkout),
             "Couldn’t Discard & Start This Follow-Up",
             "Blank legacy workout names should fall back to a generic discard-and-start failure title instead of quoting a placeholder name"
+        )
+    }
+
+    func testActiveWorkoutPersistenceFailureAlertTitle_usesGenericFallbackForLegacyCurrentWorkoutPlaceholder() {
+        let placeholderWorkout = Workout(name: "Current Workout", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, startingFollowUpFrom: placeholderWorkout),
+            "Couldn’t Save & Start This Follow-Up",
+            "Legacy placeholder workout names should keep save-and-start follow-up failures generic instead of surfacing quoted placeholder copy"
+        )
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, startingFollowUpFrom: placeholderWorkout),
+            "Couldn’t Discard & Start This Follow-Up",
+            "Legacy placeholder workout names should keep discard-and-start follow-up failures generic instead of surfacing quoted placeholder copy"
         )
     }
 
@@ -1781,6 +1823,16 @@ final class HomeViewModelTests: XCTestCase {
             viewModel.startFollowUpFailureMessage(for: workout),
             "Couldn’t start this follow-up. Keep this workout in history, then try again.",
             "Blank legacy workout names should keep follow-up start failures generic instead of leaking a placeholder source name"
+        )
+    }
+
+    func testStartFollowUpFailureMessage_usesGenericFallbackForLegacyCurrentWorkoutPlaceholder() {
+        let workout = Workout(name: "Current Workout", isCompleted: true)
+
+        XCTAssertEqual(
+            viewModel.startFollowUpFailureMessage(for: workout),
+            "Couldn’t start this follow-up. Keep this workout in history, then try again.",
+            "Legacy placeholder workout names should keep follow-up start failures generic instead of surfacing quoted placeholder source copy"
         )
     }
 

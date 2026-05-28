@@ -562,10 +562,11 @@ class HomeViewModel: ObservableObject {
     }
 
     func startFollowUpFailureAlertTitle(for workout: Workout) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Couldn’t Start This Follow-Up"
-            : "Couldn’t Start Follow-Up from “\(displayName)”"
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "Couldn’t Start This Follow-Up"
+        }
+
+        return "Couldn’t Start Follow-Up from “\(displayName)”"
     }
 
     func followUpWorkoutButtonTitle(for workout: Workout) -> String {
@@ -657,10 +658,9 @@ class HomeViewModel: ObservableObject {
     }
 
     func activeWorkoutBlocksFollowUpMessage(for activeWorkout: Workout, startingFrom workout: Workout, now: Date = Date()) -> String {
-        let followUpName = WorkoutRow.displayName(for: workout)
         let activeWorkoutSummary = resumableWorkoutSummary(for: activeWorkout, now: now)
 
-        if followUpName == "Workout" {
+        guard let followUpName = specificSavedWorkoutName(for: workout) else {
             return "You already have a workout in progress: \(activeWorkoutSummary). Continue it, save it for later, or discard it before starting this follow-up."
         }
 
@@ -775,12 +775,7 @@ class HomeViewModel: ObservableObject {
         for action: FollowUpPersistenceAction,
         startingFollowUpFrom workout: Workout
     ) -> String {
-        let displayName = WorkoutRow.displayName(for: workout)
-        let namedTitle: (String) -> String = { actionLabel in
-            "Couldn’t \(actionLabel) Follow-Up from “\(displayName)”"
-        }
-
-        guard displayName != "Workout" else {
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
             switch action {
             case .saveForLater:
                 return "Couldn’t Save & Start This Follow-Up"
@@ -791,9 +786,9 @@ class HomeViewModel: ObservableObject {
 
         switch action {
         case .saveForLater:
-            return namedTitle("Save & Start")
+            return "Couldn’t Save & Start Follow-Up from “\(displayName)”"
         case .discard:
-            return namedTitle("Discard & Start")
+            return "Couldn’t Discard & Start Follow-Up from “\(displayName)”"
         }
     }
 

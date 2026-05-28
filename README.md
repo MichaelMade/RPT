@@ -1,5 +1,6 @@
 # RPT
 
+- Home follow-up failure/blocked-start alerts now keep legacy placeholder history names like `Current Workout` on the same generic path as blank names, so retry and conflict copy no longer surfaces awkward strings like `Couldn’t Start Follow-Up from “Current Workout”` or `starting a follow-up from “Current Workout”`.
 - Fixed an accidentally committed diff marker in `ExerciseSetRowView.swift` (`+    private static func ...`) that would break Swift compilation, restoring the shared workout-name helper for active-workout set-delete alerts.
 - Active Workout’s set-delete confirmations now keep the exact draft name in the destructive body copy too (`This will remove this logged working set from “Push”.`) instead of flattening back to generic `current workout` wording mid-session; legacy placeholder drafts like `Current Workout` still keep the safe fallback.
 - Workout Details and Exercise Details now keep missing-template restart failures specific too (`Couldn’t Start This Template`, `Couldn’t Save & Start This Template`, `Couldn’t Discard & Start This Template`) instead of falling back to the vague shared `Workout Action Failed` title when a template handoff loses its source context.
