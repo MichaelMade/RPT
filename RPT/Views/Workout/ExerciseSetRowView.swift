@@ -334,15 +334,15 @@ struct ExerciseSetRowView: View {
 
         return "This set will be removed from \(workoutReference)."
     }
-+
-+    private static func deleteAlertWorkoutReference(for set: ExerciseSet) -> String {
-+        guard let workout = set.workout,
-+              let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-+            return "the current workout"
-+        }
-+
-+        return "“\(displayName)”"
-+    }
+
+    private static func deleteAlertWorkoutReference(for set: ExerciseSet) -> String {
+        guard let workout = set.workout,
+              let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "the current workout"
+        }
+
+        return "“\(displayName)”"
+    }
 
     static func discardChangesAlertActionTitle(for set: ExerciseSet) -> String {
         let prefix = set.isWarmup ? "Discard Warm-up Set Changes" : "Discard Set Changes"
