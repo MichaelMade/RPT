@@ -1,5 +1,6 @@
 # RPT
 
+- Template-start recovery failures now keep the exact in-progress draft and selected plan visible in the body copy too (`Couldn’t save “Push Day”. Keep it open, then try starting Template “Upper A” again.`), so blocked restarts from Home, Workout Details, Exercise Details, and Templates stay clearer when a save/discard handoff fails.
 - Home’s in-progress workout summaries now prefer the current source-template name from stable template-ID lookup (`From Renamed Upper A`) instead of a stale remembered label after a plan rename, so resume and discard/start-fresh prompts stay anchored to the actual routine users recognize.
 - Home follow-up restart confirmations now keep the legacy placeholder draft name `Current Workout` on the generic recovery path instead of surfacing awkward quoted copy like `Discard “Current Workout” & Start Follow-Up ...`, so older unnamed in-progress drafts stay consistent with the app’s newer template and start-fresh wording.
 - Home’s `Start Fresh Instead` save/discard failure alerts now keep the exact in-progress draft name visible too (`Couldn’t Save & Start “Upper A”`, `Couldn’t discard “Upper A”. Keep this draft open, then try again.`) instead of flattening recovery back to generic `current workout` wording right when a replacement fails.

@@ -588,12 +588,34 @@ class TemplateViewModel: ObservableObject {
         }
     }
 
-    func activeWorkoutPersistenceFailureMessage(for action: ActiveWorkoutPersistenceAction) -> String {
+    func activeWorkoutPersistenceFailureMessage(
+        for action: ActiveWorkoutPersistenceAction,
+        currentWorkout: Workout? = nil,
+        opening template: WorkoutTemplate? = nil
+    ) -> String {
+        let templateRetryTarget: String
+
+        if let template {
+            templateRetryTarget = startTemplateSentenceTarget(for: template, partial: isPartialTemplateStart(template))
+        } else {
+            templateRetryTarget = "the template"
+        }
+
+        if let currentWorkout,
+           let displayName = WorkoutRow.specificDisplayName(for: currentWorkout) {
+            switch action {
+            case .saveForLater:
+                return "Couldn’t save “\(displayName)”. Keep it open, then try starting \(templateRetryTarget) again."
+            case .discard:
+                return "Couldn’t discard “\(displayName)”. Keep it open, then try starting \(templateRetryTarget) again."
+            }
+        }
+
         switch action {
         case .saveForLater:
-            return "Couldn’t save the current workout. Keep it open, then try starting from the template again."
+            return "Couldn’t save the current workout. Keep it open, then try starting \(templateRetryTarget) again."
         case .discard:
-            return "Couldn’t discard the current workout. Keep it open, then try starting from the template again."
+            return "Couldn’t discard the current workout. Keep it open, then try starting \(templateRetryTarget) again."
         }
     }
 
@@ -604,7 +626,7 @@ class TemplateViewModel: ObservableObject {
         persist: (Workout) -> Bool
     ) -> Result<Workout, String> {
         guard persistActiveWorkoutBeforeTemplateStart(activeWorkout, action: action, persist: persist) else {
-            return .failure(activeWorkoutPersistenceFailureMessage(for: action))
+            return .failure(activeWorkoutPersistenceFailureMessage(for: action, currentWorkout: activeWorkout, opening: template))
         }
 
         guard let startedWorkout = createWorkoutFromTemplate(template) else {

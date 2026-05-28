@@ -1341,12 +1341,54 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutPersistenceFailureMessage(for: .saveForLater),
-            "Couldn’t save the current workout. Keep it open, then try starting from the template again."
+            "Couldn’t save the current workout. Keep it open, then try starting the template again."
         )
 
         XCTAssertEqual(
             viewModel.activeWorkoutPersistenceFailureMessage(for: .discard),
-            "Couldn’t discard the current workout. Keep it open, then try starting from the template again."
+            "Couldn’t discard the current workout. Keep it open, then try starting the template again."
+        )
+    }
+
+    func testActiveWorkoutPersistenceFailureMessage_namesCurrentWorkoutAndTemplateWhenAvailable() {
+        let viewModel = TemplateViewModel()
+        let currentWorkout = Workout(name: "  Push   Day  ")
+        let template = makeTemplate(name: "  Upper   A  ", exerciseNames: ["Bench Press"])
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureMessage(
+                for: .saveForLater,
+                currentWorkout: currentWorkout,
+                opening: template
+            ),
+            "Couldn’t save “Push Day”. Keep it open, then try starting Template “Upper A” again.",
+            "Template restart failures should keep both the live draft and the selected plan visible when recovery fails"
+        )
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureMessage(
+                for: .discard,
+                currentWorkout: currentWorkout,
+                opening: template
+            ),
+            "Couldn’t discard “Push Day”. Keep it open, then try starting Template “Upper A” again.",
+            "Discard restart failures should keep the live draft named in the recovery guidance"
+        )
+    }
+
+    func testActiveWorkoutPersistenceFailureMessage_staysHonestForPartialTemplateStarts() {
+        let viewModel = TemplateViewModel()
+        let currentWorkout = Workout(name: "Push Day")
+        let template = makeTemplate(name: "Upper A", exerciseNames: ["Bench Press", "Missing Exercise"])
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutPersistenceFailureMessage(
+                for: .saveForLater,
+                currentWorkout: currentWorkout,
+                opening: template
+            ),
+            "Couldn’t save “Push Day”. Keep it open, then try starting the available part of Template “Upper A” again.",
+            "Partial-template restart failures should not imply RPT can still start the full original plan"
         )
     }
 
@@ -1800,7 +1842,7 @@ final class TemplateViewModelTests: XCTestCase {
         case .failure(let message):
             XCTAssertEqual(
                 message,
-                "Couldn’t discard the current workout. Keep it open, then try starting from the template again."
+                "Couldn’t discard the current workout. Keep it open, then try starting Template “Push Day” again."
             )
         }
     }
