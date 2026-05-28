@@ -602,25 +602,19 @@ class HomeViewModel: ObservableObject {
     }
 
     private func discardCurrentWorkoutTitlePrefix(for workout: Workout?) -> String {
-        guard let workout else {
+        guard let workout, let displayName = WorkoutRow.specificDisplayName(for: workout) else {
             return "Discard Current Workout"
         }
 
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Discard Current Workout"
-            : "Discard “\(displayName)”"
+        return "Discard “\(displayName)”"
     }
 
     private func discardCurrentWorkoutMessageSubject(for workout: Workout?) -> String {
-        guard let workout else {
+        guard let workout, let displayName = WorkoutRow.specificDisplayName(for: workout) else {
             return "Your in-progress workout"
         }
 
-        let displayName = WorkoutRow.displayName(for: workout)
-        return displayName == "Workout"
-            ? "Your in-progress workout"
-            : "“\(displayName)”"
+        return "“\(displayName)”"
     }
 
     func startTemplateFailureAlertTitle(for template: WorkoutTemplate) -> String {

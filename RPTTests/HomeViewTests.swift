@@ -48,6 +48,24 @@ final class HomeViewTests: XCTestCase {
         )
     }
 
+    func testDiscardCurrentWorkoutAndStartFollowUpAlertCopy_keepsLegacyPlaceholderCurrentWorkoutGeneric() {
+        let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+        let currentWorkout = Workout(name: "Current Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let row = Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back])
+        workout.addSet(exercise: bench, weight: 185, reps: 8)
+        workout.addSet(exercise: row, weight: 135, reps: 10)
+
+        XCTAssertEqual(
+            HomeView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout, currentWorkout: currentWorkout),
+            "Discard Current Workout & Start Follow-Up from “Upper A”?"
+        )
+        XCTAssertEqual(
+            HomeView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout, currentWorkout: currentWorkout),
+            "Your in-progress workout will be lost and RPT will immediately start a follow-up from “Upper A”. Source session: 2 exercises • 2 sets. This action cannot be undone."
+        )
+    }
+
     func testDiscardCurrentWorkoutAndStartFollowUpAlertCopy_fallsBackGracefully() {
         let blankWorkout = Workout(name: " \n ", isCompleted: true)
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
