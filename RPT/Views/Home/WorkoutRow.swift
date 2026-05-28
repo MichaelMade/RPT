@@ -18,7 +18,11 @@ struct WorkoutRow: View {
     }
 
     static func displayName(for workout: Workout) -> String {
-        let collapsedName = workout.name
+        displayName(forWorkoutName: workout.name)
+    }
+
+    static func displayName(forWorkoutName workoutName: String) -> String {
+        let collapsedName = workoutName
             .components(separatedBy: .whitespacesAndNewlines)
             .filter { !$0.isEmpty }
             .joined(separator: " ")

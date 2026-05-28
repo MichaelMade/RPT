@@ -417,6 +417,12 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(WorkoutRow.specificDisplayName(for: Workout(name: "Upper A")), "Upper A")
     }
 
+    func testWorkoutRowDisplayNameForWorkoutName_normalizesLegacyPlaceholderAndWhitespace() {
+        XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: "Current Workout"), "Workout")
+        XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: "  Current   Workout  "), "Workout")
+        XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: "  Upper   A  "), "Upper A")
+    }
+
     func testWorkoutRowTemplateOriginName_normalizesWhitespaceAndHidesBlankValues() {
         let templatedWorkout = Workout(name: "Push", startedFromTemplate: "  Upper  Body\nA  ")
         XCTAssertEqual(WorkoutRow.templateOriginName(for: templatedWorkout), "Upper Body A")

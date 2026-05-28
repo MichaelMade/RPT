@@ -11,6 +11,10 @@ import SwiftData
 struct ActiveWorkoutView: View {
     static let toolbarSaveForLaterLabel = "Save for Later"
 
+    static func navigationTitle(for workoutName: String) -> String {
+        WorkoutRow.displayName(forWorkoutName: workoutName)
+    }
+
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: ActiveWorkoutViewModel
     @State private var showingExerciseSelector = false
@@ -158,7 +162,7 @@ struct ActiveWorkoutView: View {
                     .animation(.spring(), value: viewModel.showingRestTimer)
                 }
             }
-            .navigationTitle(viewModel.workoutName)
+            .navigationTitle(Self.navigationTitle(for: viewModel.workoutName))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 // Save the current workout as a draft and close the sheet.
