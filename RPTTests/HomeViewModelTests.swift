@@ -892,8 +892,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.replaceCurrentWorkoutAlertTitle(for: workout),
-            "Replace Current Workout?",
-            "Start-fresh confirmation titles should stay generic when the active draft name is blank or corrupted"
+            "Replace This Workout?",
+            "Start-fresh confirmation titles should keep unnamed or legacy drafts on the newer display-safe generic wording"
         )
     }
 
@@ -912,8 +912,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.saveAndStartFreshButtonTitle(for: workout),
-            "Save Current Workout & Start New Workout",
-            "Save-and-start CTAs should stay generic when the active draft has no usable name"
+            "Save This Workout & Start New Workout",
+            "Save-and-start CTAs should keep unnamed or legacy drafts on the newer display-safe generic wording"
         )
     }
 
@@ -932,8 +932,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.discardAndStartFreshButtonTitle(for: workout),
-            "Discard Current Workout & Start New Workout",
-            "Discard-and-start CTAs should stay generic when the active draft has no usable name"
+            "Discard This Workout & Start New Workout",
+            "Discard-and-start CTAs should keep unnamed or legacy drafts on the newer display-safe generic wording"
         )
     }
 
@@ -963,8 +963,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.discardCurrentWorkoutAndStartFreshAlertTitle(for: workout),
-            "Discard Current Workout & Start New Workout?",
-            "Blank legacy workout names should keep the destructive start-fresh confirmation title generic"
+            "Discard This Workout & Start New Workout?",
+            "Blank legacy workout names should keep the destructive start-fresh confirmation on the newer display-safe generic wording"
         )
         XCTAssertEqual(
             viewModel.discardCurrentWorkoutAndStartFreshAlertMessage(for: workout, now: now),

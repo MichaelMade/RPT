@@ -5,7 +5,7 @@ final class HomeViewTests: XCTestCase {
     func testDiscardCurrentWorkoutAndStartFreshAlertCopy_fallsBackGracefully() {
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartFreshAlertTitle(for: nil),
-            "Discard Current Workout & Start New Workout?"
+            "Discard This Workout & Start New Workout?"
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartFreshAlertMessage(for: nil),

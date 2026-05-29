@@ -70,7 +70,7 @@ struct HomeView: View {
 
     private var startFreshAlertTitle: String {
         guard let resumableWorkoutToReplace else {
-            return "Replace Current Workout?"
+            return "Replace This Workout?"
         }
 
         return viewModel.replaceCurrentWorkoutAlertTitle(for: resumableWorkoutToReplace)
@@ -78,7 +78,7 @@ struct HomeView: View {
 
     private var startFreshSaveButtonTitle: String {
         guard let resumableWorkoutToReplace else {
-            return "Save Current Workout & Start New Workout"
+            return "Save This Workout & Start New Workout"
         }
 
         return viewModel.saveAndStartFreshButtonTitle(for: resumableWorkoutToReplace)
@@ -86,7 +86,7 @@ struct HomeView: View {
 
     private var startFreshDiscardButtonTitle: String {
         guard let resumableWorkoutToReplace else {
-            return "Discard Current Workout & Start New Workout"
+            return "Discard This Workout & Start New Workout"
         }
 
         return viewModel.discardAndStartFreshButtonTitle(for: resumableWorkoutToReplace)
@@ -118,7 +118,7 @@ struct HomeView: View {
 
     static func discardCurrentWorkoutAndStartFreshAlertTitle(for workout: Workout?) -> String {
         guard let workout else {
-            return "Discard Current Workout & Start New Workout?"
+            return "Discard This Workout & Start New Workout?"
         }
 
         return HomeViewModel().discardCurrentWorkoutAndStartFreshAlertTitle(for: workout)

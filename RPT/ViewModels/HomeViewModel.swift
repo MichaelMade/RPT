@@ -205,7 +205,7 @@ class HomeViewModel: ObservableObject {
 
     func replaceCurrentWorkoutAlertTitle(for workout: Workout) -> String {
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Replace Current Workout?"
+            return "Replace This Workout?"
         }
 
         return "Replace “\(displayName)”?"
@@ -213,7 +213,7 @@ class HomeViewModel: ObservableObject {
 
     func saveAndStartFreshButtonTitle(for workout: Workout) -> String {
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Save Current Workout & Start New Workout"
+            return "Save This Workout & Start New Workout"
         }
 
         return "Save “\(displayName)” & Start New Workout"
@@ -221,7 +221,7 @@ class HomeViewModel: ObservableObject {
 
     func discardAndStartFreshButtonTitle(for workout: Workout) -> String {
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Discard Current Workout & Start New Workout"
+            return "Discard This Workout & Start New Workout"
         }
 
         return "Discard “\(displayName)” & Start New Workout"
@@ -229,7 +229,7 @@ class HomeViewModel: ObservableObject {
 
     func discardCurrentWorkoutAndStartFreshAlertTitle(for workout: Workout) -> String {
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Discard Current Workout & Start New Workout?"
+            return "Discard This Workout & Start New Workout?"
         }
 
         return "Discard “\(displayName)” & Start New Workout?"
