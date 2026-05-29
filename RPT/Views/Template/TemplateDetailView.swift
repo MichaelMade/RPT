@@ -9,6 +9,14 @@ import SwiftUI
 import SwiftData
 
 struct TemplateDetailView: View {
+    static func emptyExercisesHelperMessage(
+        for template: WorkoutTemplate,
+        templateManager: TemplateManager = .shared
+    ) -> String {
+        templateManager.startWorkoutDisabledMessage(for: template)
+            ?? "Add at least one exercise to this template before starting."
+    }
+
     let template: WorkoutTemplate
     let onStartWorkout: (Workout) -> Void
     let onEditTemplate: (() -> Void)?
@@ -197,7 +205,7 @@ struct TemplateDetailView: View {
                                     .font(.headline)
                                     .foregroundColor(.secondary)
 
-                                Text("Add at least 1 exercise to this template before starting a workout.")
+                                Text(Self.emptyExercisesHelperMessage(for: template))
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
