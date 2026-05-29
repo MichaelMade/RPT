@@ -1606,12 +1606,12 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutPersistenceFailureMessage(for: .saveForLater, startingFollowUpFrom: blankWorkout),
-            "Couldn’t save the current workout. Keep it open, then try starting this follow-up again.",
+            "Couldn’t save this workout. Keep it open, then try starting this follow-up again.",
             "Blank legacy workout names should keep save-for-later retry copy generic instead of leaking a placeholder workout name"
         )
         XCTAssertEqual(
             viewModel.activeWorkoutPersistenceFailureMessage(for: .discard, startingFollowUpFrom: blankWorkout),
-            "Couldn’t discard the current workout. Keep it open, then try starting this follow-up again.",
+            "Couldn’t discard this workout. Keep it open, then try starting this follow-up again.",
             "Blank legacy workout names should keep discard retry copy generic instead of leaking a placeholder workout name"
         )
     }
@@ -1931,12 +1931,12 @@ final class HomeViewModelTests: XCTestCase {
     func testStartFreshFailureMessage_matchesAction() {
         XCTAssertEqual(
             viewModel.startFreshFailureMessage(for: .saveForLater),
-            "Couldn’t save the current workout. Keep this draft open, then try again.",
+            "Couldn’t save this workout. Keep this draft open, then try again.",
             "Save-for-later failures should explain that the current draft stayed open"
         )
         XCTAssertEqual(
             viewModel.startFreshFailureMessage(for: .discard),
-            "Couldn’t discard the current workout. Keep this draft open, then try again.",
+            "Couldn’t discard this workout. Keep this draft open, then try again.",
             "Discard failures should explain that the current draft stayed open"
         )
     }

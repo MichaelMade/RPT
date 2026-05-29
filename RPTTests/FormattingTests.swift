@@ -228,7 +228,7 @@ final class FormattingTests: XCTestCase {
         )
         XCTAssertEqual(
             ExerciseSetRowView.deleteAlertMessage(for: blankSet),
-            "This empty set will be removed from the current workout."
+            "This empty set will be removed from this workout."
         )
     }
 

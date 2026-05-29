@@ -1,5 +1,6 @@
 # RPT
 
+- RPT’s remaining generic fallback alerts and active-workout set-delete copy now say `this workout` instead of `the current workout`, so save/discard retry messages and unnamed set cleanup stay aligned with the app’s newer `This Workout` wording instead of slipping back to older placeholder phrasing.
 - Template list/detail blocked-start helper copy now stays on the same display-safe generic fallback wording as the rest of RPT (`workout in progress`, `Continue, save, or discard this workout before starting this template`) instead of slipping back to `current workout` in template summaries when an unnamed or legacy draft is open.
 - Active Workout’s generic complete/discard confirmation bodies now say `this workout` (`Would you like to complete and save this workout?`, `Discard this workout? …`) instead of reviving `your current workout`, so unnamed and legacy drafts keep the same display-safe wording inside the final confirmation copy too.
 - Blocked follow-up/template discard confirmations now stay on the same display-safe `This Workout` fallback path as the rest of RPT (`Discard This Workout & Start This Follow-Up?`, `Discard This Workout & Start Template “Upper A”?`) instead of reviving the stale `Current Workout` placeholder when the in-progress draft is unnamed or legacy.

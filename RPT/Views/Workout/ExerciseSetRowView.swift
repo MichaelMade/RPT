@@ -338,7 +338,7 @@ struct ExerciseSetRowView: View {
     private static func deleteAlertWorkoutReference(for set: ExerciseSet) -> String {
         guard let workout = set.workout,
               let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "the current workout"
+            return "this workout"
         }
 
         return "“\(displayName)”"

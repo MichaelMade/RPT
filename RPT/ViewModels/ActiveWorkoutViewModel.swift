@@ -854,7 +854,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     private func workoutFailureMessage(action: String) -> String {
-        let workoutReference = specificWorkoutDisplayName.map { "“\($0)”" } ?? "the current workout"
+        let workoutReference = specificWorkoutDisplayName.map { "“\($0)”" } ?? "this workout"
 
         switch action {
         case "Load":

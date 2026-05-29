@@ -613,9 +613,9 @@ class TemplateViewModel: ObservableObject {
 
         switch action {
         case .saveForLater:
-            return "Couldn’t save the current workout. Keep it open, then try starting \(templateRetryTarget) again."
+            return "Couldn’t save this workout. Keep it open, then try starting \(templateRetryTarget) again."
         case .discard:
-            return "Couldn’t discard the current workout. Keep it open, then try starting \(templateRetryTarget) again."
+            return "Couldn’t discard this workout. Keep it open, then try starting \(templateRetryTarget) again."
         }
     }
 

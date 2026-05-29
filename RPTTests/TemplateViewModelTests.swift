@@ -1394,12 +1394,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutPersistenceFailureMessage(for: .saveForLater),
-            "Couldn’t save the current workout. Keep it open, then try starting the template again."
+            "Couldn’t save this workout. Keep it open, then try starting the template again."
         )
 
         XCTAssertEqual(
             viewModel.activeWorkoutPersistenceFailureMessage(for: .discard),
-            "Couldn’t discard the current workout. Keep it open, then try starting the template again."
+            "Couldn’t discard this workout. Keep it open, then try starting the template again."
         )
     }
 
@@ -1895,7 +1895,7 @@ final class TemplateViewModelTests: XCTestCase {
         case .failure(let message):
             XCTAssertEqual(
                 message,
-                "Couldn’t discard the current workout. Keep it open, then try starting Template “Push Day” again."
+                "Couldn’t discard this workout. Keep it open, then try starting Template “Push Day” again."
             )
         }
     }

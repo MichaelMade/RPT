@@ -735,7 +735,7 @@ class HomeViewModel: ObservableObject {
     func startFreshFailureMessage(for action: StartFreshPersistenceAction, currentWorkout: Workout? = nil) -> String {
         let draftReference = currentWorkout
             .flatMap { WorkoutRow.specificDisplayName(for: $0) }
-            .map { "“\($0)”" } ?? "the current workout"
+            .map { "“\($0)”" } ?? "this workout"
 
         switch action {
         case .saveForLater:
@@ -752,7 +752,7 @@ class HomeViewModel: ObservableObject {
     ) -> String {
         let draftReference = currentWorkout
             .flatMap { WorkoutRow.specificDisplayName(for: $0) }
-            .map { "“\($0)”" } ?? "the current workout"
+            .map { "“\($0)”" } ?? "this workout"
 
         guard let followUpName = specificSavedWorkoutName(for: workout) else {
             switch action {
