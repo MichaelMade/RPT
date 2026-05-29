@@ -613,7 +613,7 @@ class HomeViewModel: ObservableObject {
 
     private func discardCurrentWorkoutTitlePrefix(for workout: Workout?) -> String {
         guard let workout, let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Discard Current Workout"
+            return "Discard This Workout"
         }
 
         return "Discard “\(displayName)”"

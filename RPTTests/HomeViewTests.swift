@@ -22,7 +22,7 @@ final class HomeViewTests: XCTestCase {
 
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout),
-            "Discard Current Workout & Start Follow-Up from “Upper A”?"
+            "Discard This Workout & Start Follow-Up from “Upper A”?"
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout),
@@ -58,7 +58,7 @@ final class HomeViewTests: XCTestCase {
 
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout, currentWorkout: currentWorkout),
-            "Discard Current Workout & Start Follow-Up from “Upper A”?"
+            "Discard This Workout & Start Follow-Up from “Upper A”?"
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout, currentWorkout: currentWorkout),
@@ -73,7 +73,7 @@ final class HomeViewTests: XCTestCase {
 
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: blankWorkout),
-            "Discard Current Workout & Start This Follow-Up?"
+            "Discard This Workout & Start This Follow-Up?"
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: blankWorkout),
@@ -81,7 +81,7 @@ final class HomeViewTests: XCTestCase {
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: nil),
-            "Discard Current Workout & Start This Follow-Up?"
+            "Discard This Workout & Start This Follow-Up?"
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: nil),
@@ -112,7 +112,7 @@ final class HomeViewTests: XCTestCase {
 
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template),
-            "Discard Current Workout & Start Template “Upper A”?"
+            "Discard This Workout & Start Template “Upper A”?"
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
@@ -139,7 +139,7 @@ final class HomeViewTests: XCTestCase {
 
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartTemplateAlertTitle(for: blankTemplate),
-            "Discard Current Workout & Start This Template?"
+            "Discard This Workout & Start This Template?"
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartTemplateAlertMessage(for: blankTemplate),
@@ -147,7 +147,7 @@ final class HomeViewTests: XCTestCase {
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartTemplateAlertTitle(for: nil),
-            "Discard Current Workout & Start This Template?"
+            "Discard This Workout & Start This Template?"
         )
         XCTAssertEqual(
             HomeView.discardCurrentWorkoutAndStartTemplateAlertMessage(for: nil),

@@ -11,7 +11,7 @@ final class ExerciseDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout),
-            "Discard Current Workout & Start Follow-Up from “Upper A”?"
+            "Discard This Workout & Start Follow-Up from “Upper A”?"
         )
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout),
@@ -44,7 +44,7 @@ final class ExerciseDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: blankWorkout),
-            "Discard Current Workout & Start This Follow-Up?"
+            "Discard This Workout & Start This Follow-Up?"
         )
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: blankWorkout),
@@ -52,7 +52,7 @@ final class ExerciseDetailViewTests: XCTestCase {
         )
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: nil),
-            "Discard Current Workout & Start This Follow-Up?"
+            "Discard This Workout & Start This Follow-Up?"
         )
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: nil),
@@ -111,7 +111,7 @@ final class ExerciseDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template),
-            "Discard Current Workout & Start Template “Upper A”?"
+            "Discard This Workout & Start Template “Upper A”?"
         )
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
@@ -138,7 +138,7 @@ final class ExerciseDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartTemplateAlertTitle(for: blankTemplate),
-            "Discard Current Workout & Start This Template?"
+            "Discard This Workout & Start This Template?"
         )
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartTemplateAlertMessage(for: blankTemplate),
@@ -146,7 +146,7 @@ final class ExerciseDetailViewTests: XCTestCase {
         )
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartTemplateAlertTitle(for: nil),
-            "Discard Current Workout & Start This Template?"
+            "Discard This Workout & Start This Template?"
         )
         XCTAssertEqual(
             ExerciseDetailView.discardCurrentWorkoutAndStartTemplateAlertMessage(for: nil),

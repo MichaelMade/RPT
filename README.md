@@ -1,5 +1,6 @@
 # RPT
 
+- Blocked follow-up/template discard confirmations now stay on the same display-safe `This Workout` fallback path as the rest of RPT (`Discard This Workout & Start This Follow-Up?`, `Discard This Workout & Start Template “Upper A”?`) instead of reviving the stale `Current Workout` placeholder when the in-progress draft is unnamed or legacy.
 - Home’s `Start New Workout` replacement flow now keeps unnamed or legacy drafts on the same display-safe generic wording as the rest of the app (`Replace This Workout?`, `Save This Workout & Start New Workout`, `Discard This Workout & Start New Workout?`) instead of resurfacing the stale `Current Workout` placeholder in the app’s primary workout-replacement prompts.
 - Home and template blocked-start recovery now use the same display-safe generic fallback labels users already see elsewhere (`Continue Workout`, `Workout In Progress`) instead of resurfacing the stale `Current Workout` placeholder when an unnamed or legacy draft is open.
 - Workout Templates search now indexes the exact blocked-start CTA copy that includes the live draft name (`Continue “Push Day”`, `Discard “Push Day” & Start Template “Upper A”`, plus the matching recovery message), so when another workout is already open users can find the right template from the same action text they see on screen instead of only broader generic recovery phrases.

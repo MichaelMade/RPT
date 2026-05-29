@@ -1454,7 +1454,7 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template),
-            "Discard Current Workout & Start Template “Upper A”?",
+            "Discard This Workout & Start Template “Upper A”?",
             "Template-detail discard confirmations should name the exact template before replacing the active workout"
         )
 
@@ -1598,7 +1598,7 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.saveAndStartTemplateButtonTitle(for: template), "Save & Start Partial Template “Upper A”")
         XCTAssertEqual(viewModel.discardAndStartTemplateButtonTitle(for: template), "Discard & Start Partial Template “Upper A”")
-        XCTAssertEqual(viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template), "Discard Current Workout & Start Partial Template “Upper A”?")
+        XCTAssertEqual(viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template), "Discard This Workout & Start Partial Template “Upper A”?")
         XCTAssertEqual(viewModel.startTemplateFailureAlertTitle(for: template), "Couldn’t Start Partial Template “Upper A”")
         XCTAssertEqual(viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template), "Couldn’t Save & Start Partial Template “Upper A”")
         XCTAssertEqual(viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template), "Couldn’t Discard & Start Partial Template “Upper A”")
@@ -1627,7 +1627,7 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.saveAndStartTemplateButtonTitle(for: template), "Save & Start Partial Template")
         XCTAssertEqual(viewModel.discardAndStartTemplateButtonTitle(for: template), "Discard & Start Partial Template")
-        XCTAssertEqual(viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template), "Discard Current Workout & Start Partial Template?")
+        XCTAssertEqual(viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template), "Discard This Workout & Start Partial Template?")
         XCTAssertEqual(viewModel.startTemplateFailureAlertTitle(for: template), "Couldn’t Start Partial Template")
         XCTAssertEqual(viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template), "Couldn’t Save & Start Partial Template")
         XCTAssertEqual(viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template), "Couldn’t Discard & Start Partial Template")
@@ -1671,7 +1671,7 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template),
-            "Discard Current Workout & Start This Template?",
+            "Discard This Workout & Start This Template?",
             "Blank legacy template names should keep a safe generic discard-and-start confirmation title"
         )
 

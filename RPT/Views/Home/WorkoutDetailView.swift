@@ -162,7 +162,7 @@ struct WorkoutDetailView: View {
 
     static func discardCurrentWorkoutAndStartFollowUpAlertTitle(for workout: Workout?, currentWorkout: Workout? = nil) -> String {
         guard let workout else {
-            return "Discard Current Workout & Start This Follow-Up?"
+            return "Discard This Workout & Start This Follow-Up?"
         }
 
         return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout, currentWorkout: currentWorkout)
@@ -273,7 +273,7 @@ struct WorkoutDetailView: View {
 
     private var discardAndStartSourceTemplateAlertTitle: String {
         guard let sourceTemplate else {
-            return "Discard Current Workout & Start This Template?"
+            return "Discard This Workout & Start This Template?"
         }
 
         return templateViewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(

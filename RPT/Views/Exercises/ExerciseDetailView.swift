@@ -106,7 +106,7 @@ struct ExerciseDetailView: View {
 
     static func discardCurrentWorkoutAndStartTemplateAlertTitle(for template: WorkoutTemplate?, currentWorkout: Workout? = nil) -> String {
         guard let template else {
-            return "Discard Current Workout & Start This Template?"
+            return "Discard This Workout & Start This Template?"
         }
 
         return TemplateViewModel().discardCurrentWorkoutAndStartTemplateAlertTitle(for: template, currentWorkout: currentWorkout)
@@ -122,7 +122,7 @@ struct ExerciseDetailView: View {
 
     static func discardCurrentWorkoutAndStartFollowUpAlertTitle(for workout: Workout?, currentWorkout: Workout? = nil) -> String {
         guard let workout else {
-            return "Discard Current Workout & Start This Follow-Up?"
+            return "Discard This Workout & Start This Follow-Up?"
         }
 
         return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout, currentWorkout: currentWorkout)

@@ -441,7 +441,7 @@ struct TemplatesListView: View {
                         for: $0,
                         currentWorkout: protectedResumableWorkout()
                     )
-                } ?? "Discard Current Workout & Start This Template?",
+                } ?? "Discard This Workout & Start This Template?",
                 isPresented: $showingDiscardAndStartConfirmation,
                 presenting: templateToDiscardAndStart
             ) { template in

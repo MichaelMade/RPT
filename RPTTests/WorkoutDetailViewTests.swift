@@ -18,7 +18,7 @@ final class WorkoutDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout),
-            "Discard Current Workout & Start Follow-Up from “Upper A”?"
+            "Discard This Workout & Start Follow-Up from “Upper A”?"
         )
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout),
@@ -51,7 +51,7 @@ final class WorkoutDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: blankWorkout),
-            "Discard Current Workout & Start This Follow-Up?"
+            "Discard This Workout & Start This Follow-Up?"
         )
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: blankWorkout),
@@ -59,7 +59,7 @@ final class WorkoutDetailViewTests: XCTestCase {
         )
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertTitle(for: nil),
-            "Discard Current Workout & Start This Follow-Up?"
+            "Discard This Workout & Start This Follow-Up?"
         )
         XCTAssertEqual(
             WorkoutDetailView.discardCurrentWorkoutAndStartFollowUpAlertMessage(for: nil),
