@@ -429,7 +429,6 @@ class ActiveWorkoutViewModel: ObservableObject {
     
     func updateWorkoutName() throws {
         let originalWorkoutName = workout.name
-        let originalFieldValue = workoutName
         let sanitizedName = workoutManager.sanitizedWorkoutName(workoutName)
         workoutName = sanitizedName
         workout.name = sanitizedName
@@ -438,7 +437,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             try workoutManager.saveWorkout(workout)
         } catch {
             workout.name = originalWorkoutName
-            workoutName = originalFieldValue
+            workoutName = originalWorkoutName
             throw error
         }
     }

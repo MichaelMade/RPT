@@ -136,7 +136,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.workoutName.contains("  "))
     }
 
-    func testUpdateWorkoutName_failedSaveRestoresPriorModelAndFieldValue() {
+    func testUpdateWorkoutName_failedSaveRestoresPriorModelAndVisibleFieldValue() {
         let workout = workoutManager.createWorkout(name: "Original")
         let failingWorkoutManager = WorkoutManager(
             dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
@@ -148,7 +148,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertThrowsError(try viewModel.updateWorkoutName())
         XCTAssertEqual(workout.name, "Original")
-        XCTAssertEqual(viewModel.workoutName, "  New   Workout Name  ")
+        XCTAssertEqual(viewModel.workoutName, "Original")
     }
 
     func testUpdateWorkoutNameSafely_failureUsesNamedWorkoutAlertTitle() {
@@ -162,6 +162,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         viewModel.workoutName = "Lower B"
 
         XCTAssertFalse(viewModel.updateWorkoutNameSafely())
+        XCTAssertEqual(viewModel.workoutName, "Upper A")
         XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Rename “Upper A”")
         XCTAssertEqual(viewModel.errorMessage, "Couldn’t rename “Upper A” right now. Please try again.")
     }
@@ -177,6 +178,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         viewModel.workoutName = "Lower B"
 
         XCTAssertFalse(viewModel.updateWorkoutNameSafely())
+        XCTAssertEqual(viewModel.workoutName, "   ")
         XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Rename Current Workout")
         XCTAssertEqual(viewModel.errorMessage, "Couldn’t rename the current workout right now. Please try again.")
     }
