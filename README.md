@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout now shows the same display-safe `Workout` label in its live rename field when older drafts still store blank names or the legacy `Current Workout` placeholder, including after a failed rename rollback, so the editor no longer resurfaces stale raw placeholder text the rest of the app already hides.
 - Template Details now reuses the same disabled-start guidance in its empty exercise state that the start button and status helpers already use, so blank templates consistently explain that users need to add at least one exercise before starting instead of mixing in a shorter mismatched hint.
 - Active Workout now snaps the rename field back to the saved draft name if a live rename fails, so a persistence error can’t leave the visible title/input stuck on an unsaved workout name that never actually took effect.
 - Active Workout now normalizes legacy placeholder draft titles like `Current Workout` in the live screen’s navigation bar too, so older unnamed sessions stay aligned with the rest of the app’s generic `Workout` wording instead of briefly surfacing that stale placeholder while you train.

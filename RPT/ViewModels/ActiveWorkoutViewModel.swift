@@ -320,7 +320,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     
     init(workout: Workout, workoutManager: WorkoutManager? = nil, exerciseManager: ExerciseManager? = nil, settingsManager: SettingsManager? = nil) {
         self.workout = workout
-        self.workoutName = workout.name
+        self.workoutName = Self.visibleWorkoutName(for: workout.name)
         self.workoutManager = workoutManager ?? WorkoutManager.shared
         self.exerciseManager = exerciseManager ?? ExerciseManager.shared
         self.settingsManager = settingsManager ?? SettingsManager.shared
@@ -437,7 +437,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             try workoutManager.saveWorkout(workout)
         } catch {
             workout.name = originalWorkoutName
-            workoutName = originalWorkoutName
+            workoutName = Self.visibleWorkoutName(for: originalWorkoutName)
             throw error
         }
     }
@@ -818,6 +818,10 @@ class ActiveWorkoutViewModel: ObservableObject {
 
     private var specificWorkoutDisplayName: String? {
         WorkoutRow.specificDisplayName(for: workout)
+    }
+
+    private static func visibleWorkoutName(for workoutName: String) -> String {
+        WorkoutRow.displayName(forWorkoutName: workoutName)
     }
 
     private func rollbackInsertedSet(_ set: ExerciseSet, for exercise: Exercise) {

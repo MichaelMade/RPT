@@ -136,6 +136,22 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.workoutName.contains("  "))
     }
 
+    func testInit_normalizesLegacyCurrentWorkoutPlaceholderInVisibleField() {
+        let workout = workoutManager.createWorkout(name: "Current Workout")
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.workoutName, "Workout")
+    }
+
+    func testInit_normalizesBlankWorkoutNameInVisibleField() {
+        let workout = workoutManager.createWorkout(name: "   ")
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.workoutName, "Workout")
+    }
+
     func testUpdateWorkoutName_failedSaveRestoresPriorModelAndVisibleFieldValue() {
         let workout = workoutManager.createWorkout(name: "Original")
         let failingWorkoutManager = WorkoutManager(
@@ -178,7 +194,23 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         viewModel.workoutName = "Lower B"
 
         XCTAssertFalse(viewModel.updateWorkoutNameSafely())
-        XCTAssertEqual(viewModel.workoutName, "   ")
+        XCTAssertEqual(viewModel.workoutName, "Workout")
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Rename Current Workout")
+        XCTAssertEqual(viewModel.errorMessage, "Couldn’t rename the current workout right now. Please try again.")
+    }
+
+    func testUpdateWorkoutNameSafely_failureRestoresDisplaySafePlaceholderFieldForLegacyCurrentWorkout() {
+        let workout = workoutManager.createWorkout(name: "Current Workout")
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+        let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
+
+        viewModel.workoutName = "Lower B"
+
+        XCTAssertFalse(viewModel.updateWorkoutNameSafely())
+        XCTAssertEqual(viewModel.workoutName, "Workout")
         XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Rename Current Workout")
         XCTAssertEqual(viewModel.errorMessage, "Couldn’t rename the current workout right now. Please try again.")
     }
