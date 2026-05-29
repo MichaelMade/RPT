@@ -940,6 +940,18 @@ class TemplateViewModel: ObservableObject {
 
         if isOnlyBlockedByActiveWorkout {
             terms.append("blocked")
+
+            if let activeWorkout {
+                terms.append(contentsOf: [
+                    continueCurrentWorkoutButtonTitle(for: activeWorkout),
+                    activeWorkoutInProgressTitle(for: activeWorkout),
+                    activeWorkoutBlocksTemplateStartMessage(for: activeWorkout, opening: template),
+                    saveAndStartTemplateButtonTitle(for: template),
+                    discardAndStartTemplateButtonTitle(for: template, currentWorkout: activeWorkout),
+                    discardCurrentWorkoutAndStartTemplateAlertTitle(for: template, currentWorkout: activeWorkout),
+                    discardCurrentWorkoutAndStartTemplateAlertMessage(for: template, currentWorkout: activeWorkout)
+                ])
+            }
         }
 
         if totalCount == 0 {

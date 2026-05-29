@@ -822,6 +822,44 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesExactContinueCTAForBlockingWorkoutName() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Push Day")
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+
+        viewModel.searchText = "Continue “Push Day”"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Upper A"]
+        )
+    }
+
+    func testFetchTemplates_matchesExactDiscardAndStartCTAForBlockingWorkoutName() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Push Day")
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+
+        viewModel.searchText = "Discard “Push Day” & Start Template “Upper A”"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Upper A"]
+        )
+    }
+
     func testFetchTemplates_matchesKeepGoingBeforeOpeningTemplatePromptWhenAnotherWorkoutIsActive() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
