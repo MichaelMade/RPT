@@ -101,7 +101,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         let impactSummary = discardWorkoutImpactSummary(workoutName: specificWorkoutDisplayName)
 
         guard let displayName = specificWorkoutDisplayName else {
-            return "Discard your current workout? \(impactSummary) This action cannot be undone."
+            return "Discard this workout? \(impactSummary) This action cannot be undone."
         }
 
         return "Discard “\(displayName)”? \(impactSummary) This action cannot be undone."
@@ -189,7 +189,7 @@ class ActiveWorkoutViewModel: ObservableObject {
 
     func completeWorkoutMessage() -> String {
         guard let displayName = specificWorkoutDisplayName else {
-            return "Would you like to complete and save your current workout?"
+            return "Would you like to complete and save this workout?"
         }
 
         return "Would you like to complete and save “\(displayName)”?"

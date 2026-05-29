@@ -1,5 +1,6 @@
 # RPT
 
+- Active Workout’s generic complete/discard confirmation bodies now say `this workout` (`Would you like to complete and save this workout?`, `Discard this workout? …`) instead of reviving `your current workout`, so unnamed and legacy drafts keep the same display-safe wording inside the final confirmation copy too.
 - Blocked follow-up/template discard confirmations now stay on the same display-safe `This Workout` fallback path as the rest of RPT (`Discard This Workout & Start This Follow-Up?`, `Discard This Workout & Start Template “Upper A”?`) instead of reviving the stale `Current Workout` placeholder when the in-progress draft is unnamed or legacy.
 - Home’s `Start New Workout` replacement flow now keeps unnamed or legacy drafts on the same display-safe generic wording as the rest of the app (`Replace This Workout?`, `Save This Workout & Start New Workout`, `Discard This Workout & Start New Workout?`) instead of resurfacing the stale `Current Workout` placeholder in the app’s primary workout-replacement prompts.
 - Home and template blocked-start recovery now use the same display-safe generic fallback labels users already see elsewhere (`Continue Workout`, `Workout In Progress`) instead of resurfacing the stale `Current Workout` placeholder when an unnamed or legacy draft is open.

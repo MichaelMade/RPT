@@ -234,7 +234,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.finishButtonTitle(), "Finish This Workout")
         XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete This Workout & Save")
         XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue This Workout")
-        XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save your current workout?")
+        XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save this workout?")
     }
 
     func testCompleteWorkoutTitlesFallBackForLegacyCurrentWorkoutPlaceholder() {
@@ -245,7 +245,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.finishButtonTitle(), "Finish This Workout")
         XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete This Workout & Save")
         XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue This Workout")
-        XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save your current workout?")
+        XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save this workout?")
     }
 
     func testDeleteExerciseCopyIncludesSpecificExerciseNameAndWorkoutContext() {
@@ -912,7 +912,19 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard This Workout")
         XCTAssertEqual(
             viewModel.discardWorkoutMessage(),
-            "Discard your current workout? This draft has no exercises yet, but it will still be removed. This action cannot be undone."
+            "Discard this workout? This draft has no exercises yet, but it will still be removed. This action cannot be undone."
+        )
+    }
+
+    func testDiscardWorkoutCopy_fallsBackForLegacyCurrentWorkoutPlaceholder() {
+        let workout = workoutManager.createWorkout(name: "Current Workout")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(viewModel.discardWorkoutAlertTitle(), "Discard This Workout?")
+        XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard This Workout")
+        XCTAssertEqual(
+            viewModel.discardWorkoutMessage(),
+            "Discard this workout? This draft has no exercises yet, but it will still be removed. This action cannot be undone."
         )
     }
 
