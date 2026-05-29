@@ -197,7 +197,7 @@ class HomeViewModel: ObservableObject {
 
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Continue Current Workout"
+            return "Continue Workout"
         }
 
         return "Continue “\(displayName)”"
@@ -247,11 +247,11 @@ class HomeViewModel: ObservableObject {
 
     func activeWorkoutInProgressTitle(for workout: Workout?) -> String {
         guard let workout else {
-            return "Current Workout In Progress"
+            return "Workout In Progress"
         }
 
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Current Workout In Progress"
+            return "Workout In Progress"
         }
 
         return "“\(displayName)” In Progress"

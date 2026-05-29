@@ -1234,7 +1234,7 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(
             TemplateManager.shared.startWorkoutActionTitle(for: template, blockedByActiveWorkout: true),
-            "Current Workout In Progress"
+            "Workout In Progress"
         )
     }
 
@@ -1288,7 +1288,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Current Workout In Progress"
+            "Workout In Progress"
         )
     }
 

@@ -1699,7 +1699,7 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.continueCurrentWorkoutButtonTitle(for: workout),
-            "Continue Current Workout",
+            "Continue Workout",
             "Unnamed drafts should keep the generic continue label"
         )
     }
@@ -1722,17 +1722,17 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: blankWorkout),
-            "Current Workout In Progress",
+            "Workout In Progress",
             "Unnamed drafts should keep the generic blocked-start status label"
         )
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: legacyPlaceholderWorkout),
-            "Current Workout In Progress",
+            "Workout In Progress",
             "Legacy placeholder draft names should keep the generic blocked-start status label"
         )
         XCTAssertEqual(
             viewModel.continueCurrentWorkoutButtonTitle(for: legacyPlaceholderWorkout),
-            "Continue Current Workout",
+            "Continue Workout",
             "Legacy placeholder draft names should keep the generic continue label"
         )
     }

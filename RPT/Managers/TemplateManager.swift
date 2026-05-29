@@ -554,11 +554,11 @@ class TemplateManager {
 
         if blockedByActiveWorkout {
             guard let blockingWorkout else {
-                return "Current Workout In Progress"
+                return "Workout In Progress"
             }
 
             guard let displayName = WorkoutRow.specificDisplayName(for: blockingWorkout) else {
-                return "Current Workout In Progress"
+                return "Workout In Progress"
             }
 
             return "“\(displayName)” In Progress"

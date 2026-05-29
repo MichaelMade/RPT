@@ -810,7 +810,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.continueCurrentWorkoutButtonTitle(for: workout),
-            "Continue Current Workout",
+            "Continue Workout",
             "Continue CTAs should stay generic when the active draft has no usable name"
         )
     }
@@ -831,17 +831,17 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: blankWorkout),
-            "Current Workout In Progress",
+            "Workout In Progress",
             "Blocked-workout titles should stay generic when the draft name is blank or corrupted"
         )
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: legacyPlaceholderWorkout),
-            "Current Workout In Progress",
+            "Workout In Progress",
             "Blocked-workout titles should stay generic when older placeholder draft names resurface"
         )
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: nil),
-            "Current Workout In Progress",
+            "Workout In Progress",
             "Blocked-workout titles should stay generic when no resumable workout is currently available"
         )
     }

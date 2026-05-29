@@ -546,7 +546,7 @@ struct ExerciseDetailView: View {
 
             Button(
                 protectedResumableWorkout().map { homeViewModel.continueCurrentWorkoutButtonTitle(for: $0) }
-                ?? "Continue Current Workout",
+                ?? "Continue Workout",
                 role: .cancel
             ) {
                 workoutToDiscardAndStartFollowUp = nil
@@ -580,7 +580,7 @@ struct ExerciseDetailView: View {
 
             Button(
                 protectedResumableWorkout().map { templateViewModel.continueCurrentWorkoutButtonTitle(for: $0) }
-                ?? "Continue Current Workout",
+                ?? "Continue Workout",
                 role: .cancel
             ) {
                 templateToDiscardAndStart = nil

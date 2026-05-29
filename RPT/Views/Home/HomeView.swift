@@ -642,7 +642,7 @@ struct HomeView: View {
 
                 Button(
                     resumableWorkoutToReplace.map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
-                    ?? "Continue Current Workout"
+                    ?? "Continue Workout"
                 ) {
                     if let resumableWorkoutToReplace {
                         activeWorkoutBinding = resumableWorkoutToReplace
@@ -669,7 +669,7 @@ struct HomeView: View {
 
                 Button(
                     resumableWorkoutToReplace.map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
-                    ?? "Continue Current Workout",
+                    ?? "Continue Workout",
                     role: .cancel
                 ) { }
             } message: {
@@ -693,7 +693,7 @@ struct HomeView: View {
             .alert(followUpRecoveryAlertTitle, isPresented: $showingFollowUpRecoveryAlert) {
                 Button(
                     protectedResumableWorkout().map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
-                    ?? "Continue Current Workout"
+                    ?? "Continue Workout"
                 ) {
                     if let resumableWorkout = protectedResumableWorkout() {
                         openStartedWorkout(resumableWorkout)
@@ -738,7 +738,7 @@ struct HomeView: View {
 
                 Button(
                     protectedResumableWorkout().map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
-                    ?? "Continue Current Workout",
+                    ?? "Continue Workout",
                     role: .cancel
                 ) {
                     workoutToDiscardAndStartFollowUp = nil
@@ -755,7 +755,7 @@ struct HomeView: View {
             .alert(templateStartRecoveryAlertTitle, isPresented: $showingTemplateStartRecoveryAlert) {
                 Button(
                     protectedResumableWorkout().map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
-                    ?? "Continue Current Workout"
+                    ?? "Continue Workout"
                 ) {
                     if let resumableWorkout = protectedResumableWorkout() {
                         openStartedWorkout(resumableWorkout)
@@ -818,7 +818,7 @@ struct HomeView: View {
 
                 Button(
                     protectedResumableWorkout().map { viewModel.continueCurrentWorkoutButtonTitle(for: $0) }
-                    ?? "Continue Current Workout",
+                    ?? "Continue Workout",
                     role: .cancel
                 ) {
                     templateToDiscardAndStart = nil
