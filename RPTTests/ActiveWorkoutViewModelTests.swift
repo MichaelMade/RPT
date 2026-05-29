@@ -195,7 +195,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertFalse(viewModel.updateWorkoutNameSafely())
         XCTAssertEqual(viewModel.workoutName, "Workout")
-        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Rename Current Workout")
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Rename This Workout")
         XCTAssertEqual(viewModel.errorMessage, "Couldn’t rename the current workout right now. Please try again.")
     }
 
@@ -211,7 +211,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertFalse(viewModel.updateWorkoutNameSafely())
         XCTAssertEqual(viewModel.workoutName, "Workout")
-        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Rename Current Workout")
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Rename This Workout")
         XCTAssertEqual(viewModel.errorMessage, "Couldn’t rename the current workout right now. Please try again.")
     }
 
@@ -1079,15 +1079,15 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let viewModel = ActiveWorkoutViewModel(workout: workout, workoutManager: failingWorkoutManager)
 
         XCTAssertFalse(viewModel.saveWorkoutSafely())
-        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Save Current Workout")
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Save This Workout")
         XCTAssertEqual(viewModel.errorMessage, "Couldn’t save the current workout right now. Keep it open, then try again.")
 
         XCTAssertFalse(viewModel.completeWorkoutSafely())
-        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Complete Current Workout")
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Complete This Workout")
         XCTAssertEqual(viewModel.errorMessage, "Couldn’t complete the current workout right now. Keep it open, then try again.")
 
         XCTAssertFalse(viewModel.discardWorkoutSafely())
-        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Discard Current Workout")
+        XCTAssertEqual(viewModel.errorAlertTitle, "Couldn’t Discard This Workout")
         XCTAssertEqual(viewModel.errorMessage, "Couldn’t discard the current workout right now. Keep it open, then try again.")
     }
 }

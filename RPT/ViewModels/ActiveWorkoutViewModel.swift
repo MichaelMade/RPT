@@ -883,15 +883,15 @@ class ActiveWorkoutViewModel: ObservableObject {
     private func genericWorkoutFailureAlertTitle(action: String) -> String {
         switch action {
         case "Load":
-            return "Couldn’t Load Current Workout"
+            return "Couldn’t Load This Workout"
         case "Rename":
-            return "Couldn’t Rename Current Workout"
+            return "Couldn’t Rename This Workout"
         case "Save":
-            return "Couldn’t Save Current Workout"
+            return "Couldn’t Save This Workout"
         case "Complete":
-            return "Couldn’t Complete Current Workout"
+            return "Couldn’t Complete This Workout"
         case "Discard":
-            return "Couldn’t Discard Current Workout"
+            return "Couldn’t Discard This Workout"
         default:
             return "Workout Action Failed"
         }
