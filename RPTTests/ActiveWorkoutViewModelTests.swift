@@ -230,10 +230,10 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let workout = workoutManager.createWorkout(name: "Workout")
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
-        XCTAssertEqual(viewModel.completeWorkoutAlertTitle(), "Complete Current Workout?")
-        XCTAssertEqual(viewModel.finishButtonTitle(), "Finish Current Workout")
-        XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete Current Workout & Save")
-        XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue Current Workout")
+        XCTAssertEqual(viewModel.completeWorkoutAlertTitle(), "Complete This Workout?")
+        XCTAssertEqual(viewModel.finishButtonTitle(), "Finish This Workout")
+        XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete This Workout & Save")
+        XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue This Workout")
         XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save your current workout?")
     }
 
@@ -241,10 +241,10 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let workout = workoutManager.createWorkout(name: "Current Workout")
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
-        XCTAssertEqual(viewModel.completeWorkoutAlertTitle(), "Complete Current Workout?")
-        XCTAssertEqual(viewModel.finishButtonTitle(), "Finish Current Workout")
-        XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete Current Workout & Save")
-        XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue Current Workout")
+        XCTAssertEqual(viewModel.completeWorkoutAlertTitle(), "Complete This Workout?")
+        XCTAssertEqual(viewModel.finishButtonTitle(), "Finish This Workout")
+        XCTAssertEqual(viewModel.completeWorkoutButtonTitle(), "Complete This Workout & Save")
+        XCTAssertEqual(viewModel.continueWorkoutButtonTitle(), "Continue This Workout")
         XCTAssertEqual(viewModel.completeWorkoutMessage(), "Would you like to complete and save your current workout?")
     }
 
@@ -840,7 +840,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.exitDialogHelperText,
-            "Save Current Workout for Later keeps it as a draft. Complete Current Workout & Save marks it as finished."
+            "Save This Workout for Later keeps it as a draft. Complete This Workout & Save marks it as finished."
         )
         XCTAssertTrue(viewModel.canCompleteWorkoutFromExitDialog)
     }
@@ -857,7 +857,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.exitDialogHelperText,
-            "1 exercise left: Row. Tap the circle beside it when you're done to enable Complete Current Workout & Save."
+            "1 exercise left: Row. Tap the circle beside it when you're done to enable Complete This Workout & Save."
         )
     }
 
@@ -908,8 +908,8 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let workout = workoutManager.createWorkout(name: "   ")
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
-        XCTAssertEqual(viewModel.discardWorkoutAlertTitle(), "Discard Current Workout?")
-        XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard Current Workout")
+        XCTAssertEqual(viewModel.discardWorkoutAlertTitle(), "Discard This Workout?")
+        XCTAssertEqual(viewModel.discardWorkoutButtonTitle(), "Discard This Workout")
         XCTAssertEqual(
             viewModel.discardWorkoutMessage(),
             "Discard your current workout? This draft has no exercises yet, but it will still be removed. This action cannot be undone."
@@ -939,9 +939,9 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let workout = workoutManager.createWorkout(name: "Workout")
         let viewModel = ActiveWorkoutViewModel(workout: workout)
 
-        XCTAssertEqual(viewModel.exitWorkoutMenuTitle(), "Exit Current Workout")
-        XCTAssertEqual(viewModel.saveForLaterButtonTitle(), "Save Current Workout for Later")
-        XCTAssertEqual(viewModel.discardWorkoutMenuTitle(), "Discard Current Workout")
+        XCTAssertEqual(viewModel.exitWorkoutMenuTitle(), "Exit This Workout")
+        XCTAssertEqual(viewModel.saveForLaterButtonTitle(), "Save This Workout for Later")
+        XCTAssertEqual(viewModel.discardWorkoutMenuTitle(), "Discard This Workout")
     }
 
     func testDeleteSet_removesSetFromExerciseRelationship() throws {
