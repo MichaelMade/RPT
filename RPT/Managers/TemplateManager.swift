@@ -573,11 +573,11 @@ class TemplateManager {
 
     private func activeWorkoutSummarySuffix(for workout: Workout?) -> String {
         guard let workout else {
-            return "current workout in progress"
+            return "workout in progress"
         }
 
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "current workout in progress"
+            return "workout in progress"
         }
 
         return "“\(displayName)” in progress"
@@ -585,11 +585,11 @@ class TemplateManager {
 
     private func activeWorkoutStatusPrompt(for workout: Workout?) -> String {
         guard let workout else {
-            return "Continue, save, or discard the current workout before starting this template"
+            return "Continue, save, or discard this workout before starting this template"
         }
 
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Continue, save, or discard the current workout before starting this template"
+            return "Continue, save, or discard this workout before starting this template"
         }
 
         return "Continue, save, or discard “\(displayName)” before starting this template"

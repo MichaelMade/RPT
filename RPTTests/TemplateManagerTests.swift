@@ -823,7 +823,7 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(
             TemplateManager.shared.templateListExerciseSummary(for: template, blockedByActiveWorkout: true),
-            "1 exercise • current workout in progress"
+            "1 exercise • workout in progress"
         )
     }
 
@@ -850,7 +850,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "1 exercise • current workout in progress"
+            "1 exercise • workout in progress"
         )
     }
 
@@ -1158,7 +1158,7 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(
             TemplateManager.shared.templateDetailStatusSummary(for: template, blockedByActiveWorkout: true),
-            "Ready to start with 1 exercise. Continue, save, or discard the current workout before starting this template."
+            "Ready to start with 1 exercise. Continue, save, or discard this workout before starting this template."
         )
     }
 
@@ -1212,7 +1212,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. Continue, save, or discard the current workout before starting this template."
+            "Ready to start with 1 exercise. Continue, save, or discard this workout before starting this template."
         )
     }
 

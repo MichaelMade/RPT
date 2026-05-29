@@ -288,6 +288,21 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesThisWorkoutBlockedStartGuidanceWhenActiveWorkoutExists() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Ghost Day", exerciseNames: ["Ghost Lift"]),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "continue, save, or discard this workout before starting this template"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Ghost Day", "Push Day"]
+        )
+    }
+
     func testFetchTemplates_matchesCurrentStartTemplateCTAForNamedTemplate() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
