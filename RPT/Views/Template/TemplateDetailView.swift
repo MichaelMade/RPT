@@ -17,6 +17,30 @@ struct TemplateDetailView: View {
             ?? "Add at least one exercise to this template before starting."
     }
 
+    static func startWorkoutHelperMessages(
+        for template: WorkoutTemplate,
+        startWorkoutDisabledMessage: String?,
+        activeWorkoutBlockMessage: String?,
+        templateManager: TemplateManager = .shared
+    ) -> [String] {
+        var messages: [String] = []
+
+        let emptyExercisesMessage = template.exercises.isEmpty
+            ? emptyExercisesHelperMessage(for: template, templateManager: templateManager)
+            : nil
+
+        if let startWorkoutDisabledMessage,
+           startWorkoutDisabledMessage != emptyExercisesMessage {
+            messages.append(startWorkoutDisabledMessage)
+        }
+
+        if let activeWorkoutBlockMessage, !messages.contains(activeWorkoutBlockMessage) {
+            messages.append(activeWorkoutBlockMessage)
+        }
+
+        return messages
+    }
+
     let template: WorkoutTemplate
     let onStartWorkout: (Workout) -> Void
     let onEditTemplate: (() -> Void)?
@@ -70,17 +94,12 @@ struct TemplateDetailView: View {
     }
 
     private var resolvedStartWorkoutHelperMessages: [String] {
-        var messages: [String] = []
-
-        if let startWorkoutDisabledMessage {
-            messages.append(startWorkoutDisabledMessage)
-        }
-
-        if let activeWorkoutBlockMessage, !messages.contains(activeWorkoutBlockMessage) {
-            messages.append(activeWorkoutBlockMessage)
-        }
-
-        return messages
+        Self.startWorkoutHelperMessages(
+            for: template,
+            startWorkoutDisabledMessage: startWorkoutDisabledMessage,
+            activeWorkoutBlockMessage: activeWorkoutBlockMessage,
+            templateManager: templateManager
+        )
     }
 
     private var startWorkoutActionTitle: String {
