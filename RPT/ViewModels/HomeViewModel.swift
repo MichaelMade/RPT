@@ -698,7 +698,15 @@ class HomeViewModel: ObservableObject {
     }
 
     func startFreshWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {
-        "\(startFreshWorkoutPromptPrefix(for: workout)) \(resumableWorkoutSummary(for: workout, now: now)). Save it for later, discard it, or keep going."
+        "\(startFreshWorkoutPromptPrefix(for: workout)) \(resumableWorkoutSummary(for: workout, now: now)). \(startFreshRecoveryInstruction(for: workout))"
+    }
+
+    private func startFreshRecoveryInstruction(for workout: Workout) -> String {
+        guard workout.sets.isEmpty else {
+            return "Save it for later, discard it, or keep going."
+        }
+
+        return "Add an exercise to keep going, save it for later, or discard it."
     }
 
     func shouldResumeIncompleteWorkout(workoutDate: Date?, discardTimestamp: Date?, wasAnyWorkoutDiscarded: Bool) -> Bool {

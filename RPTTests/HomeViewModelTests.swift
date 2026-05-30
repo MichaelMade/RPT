@@ -1025,8 +1025,20 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have a workout in progress: Started just now • No exercises added yet. Save it for later, discard it, or keep going.",
-            "Start-fresh guidance should stay natural even when the draft name is blank or corrupted"
+            "You already have a workout in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it.",
+            "Start-fresh guidance should tell users how to recover from an empty draft even when the name is blank or corrupted"
+        )
+    }
+
+    func testStartFreshWorkoutMessage_guidesEmptyNamedDraftToAddExerciseBeforeReplacingIt() {
+        let workout = Workout(date: Date(timeIntervalSince1970: 0), name: "  Upper   A  ")
+
+        let message = viewModel.startFreshWorkoutMessage(for: workout, now: Date(timeIntervalSince1970: 10))
+
+        XCTAssertEqual(
+            message,
+            "You already have “Upper A” in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it.",
+            "Start-fresh guidance should stop vaguely saying to keep going when the in-progress draft is still empty"
         )
     }
 
