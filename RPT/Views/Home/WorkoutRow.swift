@@ -32,9 +32,13 @@ struct WorkoutRow: View {
         }
 
         let normalizedName = String(collapsedName.prefix(80))
+        let placeholderKey = collapsedName.folding(
+            options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive],
+            locale: Locale(identifier: "en_US_POSIX")
+        )
 
-        switch normalizedName {
-        case "Current Workout":
+        switch placeholderKey {
+        case "current workout":
             return "Workout"
         default:
             return normalizedName

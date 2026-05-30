@@ -9,6 +9,7 @@ final class ActiveWorkoutViewTests: XCTestCase {
     func testNavigationTitleNormalizesLegacyPlaceholderNames() {
         XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "Current Workout"), "Workout")
         XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "  Current   Workout  "), "Workout")
+        XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: " current workout "), "Workout")
         XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "Upper A"), "Upper A")
     }
 }

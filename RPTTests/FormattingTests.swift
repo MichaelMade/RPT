@@ -102,7 +102,7 @@ final class FormattingTests: XCTestCase {
     }
 
     func testFormattedSummary_normalizesLegacyPlaceholderWorkoutName() {
-        let workout = Workout(name: "  Current   Workout  ")
+        let workout = Workout(name: "  current   workout  ")
 
         let formattedSummary = workout.generateFormattedSummary()
 
@@ -111,8 +111,8 @@ final class FormattingTests: XCTestCase {
             "Legacy placeholder workout names should export with the same generic Workout label shown elsewhere in the app"
         )
         XCTAssertFalse(
-            formattedSummary.hasPrefix("Current Workout - "),
-            "Formatted summary exports should not leak the stale Current Workout placeholder"
+            formattedSummary.lowercased().hasPrefix("current workout - "),
+            "Formatted summary exports should not leak the stale Current Workout placeholder, even when older data varies only by casing"
         )
     }
     
@@ -429,12 +429,14 @@ final class FormattingTests: XCTestCase {
     func testWorkoutRowSpecificDisplayName_treatsLegacyCurrentWorkoutPlaceholderAsGeneric() {
         XCTAssertNil(WorkoutRow.specificDisplayName(for: Workout(name: "Current Workout")))
         XCTAssertNil(WorkoutRow.specificDisplayName(for: Workout(name: "  Current   Workout  ")))
+        XCTAssertNil(WorkoutRow.specificDisplayName(for: Workout(name: " current workout ")))
         XCTAssertEqual(WorkoutRow.specificDisplayName(for: Workout(name: "Upper A")), "Upper A")
     }
 
     func testWorkoutRowDisplayNameForWorkoutName_normalizesLegacyPlaceholderAndWhitespace() {
         XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: "Current Workout"), "Workout")
         XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: "  Current   Workout  "), "Workout")
+        XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: " current workout "), "Workout")
         XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: "  Upper   A  "), "Upper A")
     }
 
