@@ -353,6 +353,7 @@ final class HomeViewModelTests: XCTestCase {
 
     func testRecentWorkoutsEmptyState_withNamedResumableDraftUsesWorkoutName() {
         let draft = Workout(name: "Push Day", isCompleted: false)
+        draft.sets = [ExerciseSet(weight: 135, reps: 8, isCompleted: true)]
 
         let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
 
@@ -360,13 +361,32 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(emptyState.subtitle, "Finish “Push Day” to see it show up here with your latest stats.")
     }
 
+    func testRecentWorkoutsEmptyState_withNamedEmptyDraftPointsToAddingExercisesOrSaving() {
+        let draft = Workout(name: "Push Day", isCompleted: false)
+
+        let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
+
+        XCTAssertEqual(emptyState.title, "No completed workouts yet")
+        XCTAssertEqual(emptyState.subtitle, "Add an exercise to “Push Day” before finishing it, or save it for later to keep it as a draft.")
+    }
+
     func testRecentWorkoutsEmptyState_withPlaceholderDraftStaysGeneric() {
         let draft = Workout(name: "Current Workout", isCompleted: false)
+        draft.sets = [ExerciseSet(weight: 135, reps: 8, isCompleted: true)]
 
         let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
 
         XCTAssertEqual(emptyState.title, "No completed workouts yet")
         XCTAssertEqual(emptyState.subtitle, "Finish this workout to see it show up here with your latest stats.")
+    }
+
+    func testRecentWorkoutsEmptyState_withPlaceholderEmptyDraftStaysGeneric() {
+        let draft = Workout(name: "Current Workout", isCompleted: false)
+
+        let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
+
+        XCTAssertEqual(emptyState.title, "No completed workouts yet")
+        XCTAssertEqual(emptyState.subtitle, "Add an exercise before finishing this workout, or save it for later to keep it as a draft.")
     }
 
     func testShouldShowSingleRecentWorkoutQuickActions_onlyForSoloHistoryEntry() {

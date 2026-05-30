@@ -418,7 +418,13 @@ class HomeViewModel: ObservableObject {
     func recentWorkoutsEmptyState(activeWorkout: Workout?) -> (title: String, subtitle: String) {
         if let activeWorkout = resumableWorkout(activeWorkout: activeWorkout) {
             let subtitle: String
-            if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
+            if activeWorkout.exerciseCount == 0 {
+                if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
+                    subtitle = "Add an exercise to “\(displayName)” before finishing it, or save it for later to keep it as a draft."
+                } else {
+                    subtitle = "Add an exercise before finishing this workout, or save it for later to keep it as a draft."
+                }
+            } else if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
                 subtitle = "Finish “\(displayName)” to see it show up here with your latest stats."
             } else {
                 subtitle = "Finish this workout to see it show up here with your latest stats."
