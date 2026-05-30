@@ -798,6 +798,18 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         )
     }
 
+    func testExitDialogHelperText_whenWorkoutHasNoExercises_explainsFinishIsUnavailable() {
+        let workout = workoutManager.createWorkout(name: "Test Workout")
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(
+            viewModel.exitDialogHelperText,
+            "Save “Test Workout” for Later keeps it as a draft. Add at least one exercise before you can finish this workout."
+        )
+        XCTAssertFalse(viewModel.canCompleteWorkoutFromExitDialog)
+    }
+
     func testExitDialogHelperText_whenAllExercisesCompleted_usesCompletionMessaging() {
         let workout = workoutManager.createWorkout(name: "Test Workout")
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
@@ -859,6 +871,18 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
             viewModel.exitDialogHelperText,
             "1 exercise left: Row. Tap the circle beside it when you're done to enable Complete This Workout & Save."
         )
+    }
+
+    func testExitDialogHelperText_whenWorkoutHasNoExercisesAndGenericName_usesCurrentWorkoutFallback() {
+        let workout = workoutManager.createWorkout(name: "   ")
+
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertEqual(
+            viewModel.exitDialogHelperText,
+            "Save This Workout for Later keeps it as a draft. Add at least one exercise before you can finish this workout."
+        )
+        XCTAssertFalse(viewModel.canCompleteWorkoutFromExitDialog)
     }
 
     func testDiscardWorkoutCopy_namesSpecificWorkout() {

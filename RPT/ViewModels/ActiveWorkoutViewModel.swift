@@ -73,8 +73,12 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     var exitDialogHelperText: String {
-        helperTextForIncompleteExercises(enableActionLabel: completeWorkoutButtonTitle())
-        ?? "\(saveForLaterButtonTitle()) keeps it as a draft. \(completeWorkoutButtonTitle()) marks it as finished."
+        if exerciseOrder.isEmpty {
+            return "\(saveForLaterButtonTitle()) keeps it as a draft. Add at least one exercise before you can finish this workout."
+        }
+
+        return helperTextForIncompleteExercises(enableActionLabel: completeWorkoutButtonTitle())
+            ?? "\(saveForLaterButtonTitle()) keeps it as a draft. \(completeWorkoutButtonTitle()) marks it as finished."
     }
 
     var canCompleteWorkoutFromExitDialog: Bool {
