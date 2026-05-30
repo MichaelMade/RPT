@@ -351,13 +351,22 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(emptyState.subtitle, "Complete a workout and your latest sessions will show up here for quick review.")
     }
 
-    func testRecentWorkoutsEmptyState_withResumableDraftExplainsWhyHistoryIsEmpty() {
-        let draft = Workout(name: "Draft Workout", isCompleted: false)
+    func testRecentWorkoutsEmptyState_withNamedResumableDraftUsesWorkoutName() {
+        let draft = Workout(name: "Push Day", isCompleted: false)
 
         let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
 
         XCTAssertEqual(emptyState.title, "No completed workouts yet")
-        XCTAssertEqual(emptyState.subtitle, "Finish your current workout to see it show up here with your latest stats.")
+        XCTAssertEqual(emptyState.subtitle, "Finish “Push Day” to see it show up here with your latest stats.")
+    }
+
+    func testRecentWorkoutsEmptyState_withPlaceholderDraftStaysGeneric() {
+        let draft = Workout(name: "Current Workout", isCompleted: false)
+
+        let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
+
+        XCTAssertEqual(emptyState.title, "No completed workouts yet")
+        XCTAssertEqual(emptyState.subtitle, "Finish this workout to see it show up here with your latest stats.")
     }
 
     func testShouldShowSingleRecentWorkoutQuickActions_onlyForSoloHistoryEntry() {

@@ -416,10 +416,17 @@ class HomeViewModel: ObservableObject {
     }
 
     func recentWorkoutsEmptyState(activeWorkout: Workout?) -> (title: String, subtitle: String) {
-        if resumableWorkout(activeWorkout: activeWorkout) != nil {
+        if let activeWorkout = resumableWorkout(activeWorkout: activeWorkout) {
+            let subtitle: String
+            if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
+                subtitle = "Finish “\(displayName)” to see it show up here with your latest stats."
+            } else {
+                subtitle = "Finish this workout to see it show up here with your latest stats."
+            }
+
             return (
                 title: "No completed workouts yet",
-                subtitle: "Finish your current workout to see it show up here with your latest stats."
+                subtitle: subtitle
             )
         }
 
