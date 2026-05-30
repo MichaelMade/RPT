@@ -3,9 +3,11 @@ import SwiftData
 @testable import RPT
 
 final class WorkoutDetailViewTests: XCTestCase {
-    func testDisplayName_usesGenericFallbackForLegacyCurrentWorkoutPlaceholder() {
+    func testDisplayName_usesGenericFallbackForLegacyPlaceholderNames() {
         XCTAssertEqual(WorkoutDetailView.displayName(for: Workout(name: "Current Workout")), "Workout")
         XCTAssertEqual(WorkoutDetailView.displayName(for: Workout(name: "  Current   Workout  ")), "Workout")
+        XCTAssertEqual(WorkoutDetailView.displayName(for: Workout(name: "Current Draft")), "Workout")
+        XCTAssertEqual(WorkoutDetailView.displayName(for: Workout(name: "  Current   Draft  ")), "Workout")
         XCTAssertEqual(WorkoutDetailView.displayName(for: Workout(name: "Upper A")), "Upper A")
     }
 

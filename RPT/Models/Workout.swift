@@ -386,7 +386,7 @@ final class Workout {
         )
 
         switch placeholderKey {
-        case "current workout":
+        case "current workout", "current draft":
             return "Workout"
         default:
             return normalizedName

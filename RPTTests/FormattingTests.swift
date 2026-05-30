@@ -101,18 +101,25 @@ final class FormattingTests: XCTestCase {
         XCTAssertFalse(formattedSummary.contains("kg"), "Formatted summary should not contain 'kg' as the weight unit")
     }
 
-    func testFormattedSummary_normalizesLegacyPlaceholderWorkoutName() {
-        let workout = Workout(name: "  current   workout  ")
-
-        let formattedSummary = workout.generateFormattedSummary()
+    func testFormattedSummary_normalizesLegacyPlaceholderWorkoutNames() {
+        let currentWorkoutSummary = Workout(name: "  current   workout  ").generateFormattedSummary()
+        let currentDraftSummary = Workout(name: "  Current   Draft  ").generateFormattedSummary()
 
         XCTAssertTrue(
-            formattedSummary.hasPrefix("Workout - "),
+            currentWorkoutSummary.hasPrefix("Workout - "),
             "Legacy placeholder workout names should export with the same generic Workout label shown elsewhere in the app"
         )
         XCTAssertFalse(
-            formattedSummary.lowercased().hasPrefix("current workout - "),
+            currentWorkoutSummary.lowercased().hasPrefix("current workout - "),
             "Formatted summary exports should not leak the stale Current Workout placeholder, even when older data varies only by casing"
+        )
+        XCTAssertTrue(
+            currentDraftSummary.hasPrefix("Workout - "),
+            "Legacy placeholder draft names should export with the same generic Workout label shown elsewhere in the app"
+        )
+        XCTAssertFalse(
+            currentDraftSummary.lowercased().hasPrefix("current draft - "),
+            "Formatted summary exports should not leak the stale Current Draft placeholder either"
         )
     }
     
@@ -426,17 +433,23 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(WorkoutRow.displayName(for: workout).count, 80)
     }
 
-    func testWorkoutRowSpecificDisplayName_treatsLegacyCurrentWorkoutPlaceholderAsGeneric() {
+    func testWorkoutRowSpecificDisplayName_treatsLegacyPlaceholderNamesAsGeneric() {
         XCTAssertNil(WorkoutRow.specificDisplayName(for: Workout(name: "Current Workout")))
         XCTAssertNil(WorkoutRow.specificDisplayName(for: Workout(name: "  Current   Workout  ")))
         XCTAssertNil(WorkoutRow.specificDisplayName(for: Workout(name: " current workout ")))
+        XCTAssertNil(WorkoutRow.specificDisplayName(for: Workout(name: "Current Draft")))
+        XCTAssertNil(WorkoutRow.specificDisplayName(for: Workout(name: "  Current   Draft  ")))
+        XCTAssertNil(WorkoutRow.specificDisplayName(for: Workout(name: " current draft ")))
         XCTAssertEqual(WorkoutRow.specificDisplayName(for: Workout(name: "Upper A")), "Upper A")
     }
 
-    func testWorkoutRowDisplayNameForWorkoutName_normalizesLegacyPlaceholderAndWhitespace() {
+    func testWorkoutRowDisplayNameForWorkoutName_normalizesLegacyPlaceholdersAndWhitespace() {
         XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: "Current Workout"), "Workout")
         XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: "  Current   Workout  "), "Workout")
         XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: " current workout "), "Workout")
+        XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: "Current Draft"), "Workout")
+        XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: "  Current   Draft  "), "Workout")
+        XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: " current draft "), "Workout")
         XCTAssertEqual(WorkoutRow.displayName(forWorkoutName: "  Upper   A  "), "Upper A")
     }
 
@@ -946,6 +959,10 @@ final class FormattingTests: XCTestCase {
             "Copied the workout summary so it’s ready to paste anywhere you need it."
         )
         XCTAssertEqual(
+            WorkoutRow.copySummaryMessage(forWorkoutNamed: "Current Draft"),
+            "Copied the workout summary so it’s ready to paste anywhere you need it."
+        )
+        XCTAssertEqual(
             WorkoutRow.copySummaryMessage(forWorkoutNamed: "  Upper   Body\nSession  "),
             "Copied the summary for “Upper Body Session” so it’s ready to paste anywhere you need it."
         )
@@ -956,6 +973,10 @@ final class FormattingTests: XCTestCase {
 
         XCTAssertEqual(
             WorkoutRow.copySummaryMessage(forWorkoutNamed: "  Current   Workout  "),
+            "Copied the workout summary so it’s ready to paste anywhere you need it."
+        )
+        XCTAssertEqual(
+            WorkoutRow.copySummaryMessage(forWorkoutNamed: "  Current   Draft  "),
             "Copied the workout summary so it’s ready to paste anywhere you need it."
         )
         XCTAssertEqual(

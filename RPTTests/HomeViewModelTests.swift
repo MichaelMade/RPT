@@ -1586,8 +1586,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have a workout in progress: Started just now • Current Draft. Continue it, save it for later, or discard it before starting a follow-up from “Upper A”.",
-            "Blocked follow-up copy should explain the current draft state and the exact saved workout the follow-up would come from"
+            "You already have a workout in progress: Started just now • Workout. Continue it, save it for later, or discard it before starting a follow-up from “Upper A”.",
+            "Blocked follow-up copy should keep placeholder draft names generic while still explaining the exact saved workout the follow-up would come from"
         )
     }
 
@@ -1603,8 +1603,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have a workout in progress: Started just now • Current Draft. Continue it, save it for later, or discard it before starting this follow-up.",
-            "Legacy placeholder history names should keep blocked follow-up guidance generic instead of quoting “Current Workout” as if it were a real source session"
+            "You already have a workout in progress: Started just now • Workout. Continue it, save it for later, or discard it before starting this follow-up.",
+            "Legacy placeholder names on either the active draft or source workout should keep blocked follow-up guidance generic instead of surfacing placeholder copy as if it were user-chosen"
         )
     }
 
@@ -1858,8 +1858,8 @@ final class HomeViewModelTests: XCTestCase {
         case .failure(let message):
             XCTAssertEqual(
                 message,
-                "Couldn’t save “Current Draft”. Keep it open, then try starting a follow-up from “Upper A” again.",
-                "Blocked follow-up recovery should surface the exact in-progress draft when persistence fails before a follow-up starts"
+                "Couldn’t save this workout. Keep it open, then try starting a follow-up from “Upper A” again.",
+                "Blocked follow-up recovery should keep placeholder draft names generic when persistence fails before a follow-up starts"
             )
         }
     }

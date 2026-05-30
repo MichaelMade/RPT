@@ -38,7 +38,7 @@ struct WorkoutRow: View {
         )
 
         switch placeholderKey {
-        case "current workout":
+        case "current workout", "current draft":
             return "Workout"
         default:
             return normalizedName
@@ -53,7 +53,7 @@ struct WorkoutRow: View {
         let displayName = displayName(forWorkoutName: workoutName)
 
         switch displayName {
-        case "Workout", "Current Workout":
+        case "Workout":
             return nil
         default:
             return displayName

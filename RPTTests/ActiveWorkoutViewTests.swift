@@ -17,6 +17,9 @@ final class ActiveWorkoutViewTests: XCTestCase {
         XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "Current Workout"), "Workout")
         XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "  Current   Workout  "), "Workout")
         XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: " current workout "), "Workout")
+        XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "Current Draft"), "Workout")
+        XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "  Current   Draft  "), "Workout")
+        XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: " current draft "), "Workout")
         XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "Upper A"), "Upper A")
     }
 }
