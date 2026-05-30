@@ -1596,6 +1596,23 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testActiveWorkoutBlocksFollowUpMessage_guidesEmptyDraftToAddExerciseBeforeStartingFollowUp() {
+        let activeWorkout = Workout(name: "Push Day")
+        let completedWorkout = Workout(name: "Upper A", isCompleted: true)
+
+        let message = viewModel.activeWorkoutBlocksFollowUpMessage(
+            for: activeWorkout,
+            startingFrom: completedWorkout,
+            now: activeWorkout.date.addingTimeInterval(60)
+        )
+
+        XCTAssertEqual(
+            message,
+            "You already have a workout in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting a follow-up from “Upper A”.",
+            "Blocked follow-up guidance should tell users how to recover from an empty draft instead of vaguely telling them to continue it"
+        )
+    }
+
     func testActiveWorkoutPersistenceFailureMessage_matchesActionAndWorkoutName() {
         let completedWorkout = Workout(name: "  Upper   A  ", isCompleted: true)
         let activeWorkout = Workout(name: "  Push   Day  ")

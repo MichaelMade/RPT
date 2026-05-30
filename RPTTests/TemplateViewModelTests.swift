@@ -1320,14 +1320,14 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
-    func testActiveWorkoutPromptMessage_fallsBackForGenericWorkoutAndTemplateNames() {
+    func testActiveWorkoutPromptMessage_guidesEmptyDraftToAddExerciseBeforeOpeningTemplate() {
         let viewModel = TemplateViewModel()
-        let workout = Workout(name: "   \n  ")
-        let template = makeTemplate(name: "   ", exerciseNames: ["Squat"])
+        let workout = Workout(name: "   ")
+        let template = makeTemplate(name: "\n", exerciseNames: ["Squat"])
 
         XCTAssertEqual(
             viewModel.activeWorkoutPromptMessage(for: workout, opening: template),
-            "You already have a workout in progress. Save it for later, discard it, or keep going before opening this template."
+            "You already have a workout in progress. Add an exercise to keep going, save it for later, or discard it before opening this template."
         )
     }
 
@@ -1342,14 +1342,14 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
-    func testActiveWorkoutBlocksTemplateStartMessage_fallsBackForGenericWorkoutAndTemplateNames() {
+    func testActiveWorkoutBlocksTemplateStartMessage_guidesEmptyDraftToAddExerciseBeforeStartingTemplate() {
         let viewModel = TemplateViewModel()
         let workout = Workout(name: "   ")
         let template = makeTemplate(name: "\n", exerciseNames: ["Squat"])
 
         XCTAssertEqual(
             viewModel.activeWorkoutBlocksTemplateStartMessage(for: workout, opening: template),
-            "You already have a workout in progress. Continue it, save it for later, or discard it before starting this template."
+            "You already have a workout in progress. Add an exercise to keep going, save it for later, or discard it before starting this template."
         )
     }
 

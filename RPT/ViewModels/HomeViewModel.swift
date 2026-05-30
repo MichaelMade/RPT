@@ -672,12 +672,21 @@ class HomeViewModel: ObservableObject {
 
     func activeWorkoutBlocksFollowUpMessage(for activeWorkout: Workout, startingFrom workout: Workout, now: Date = Date()) -> String {
         let activeWorkoutSummary = resumableWorkoutSummary(for: activeWorkout, now: now)
+        let recoveryInstruction = followUpRecoveryInstruction(for: activeWorkout)
 
         guard let followUpName = specificSavedWorkoutName(for: workout) else {
-            return "You already have a workout in progress: \(activeWorkoutSummary). Continue it, save it for later, or discard it before starting this follow-up."
+            return "You already have a workout in progress: \(activeWorkoutSummary). \(recoveryInstruction) before starting this follow-up."
         }
 
-        return "You already have a workout in progress: \(activeWorkoutSummary). Continue it, save it for later, or discard it before starting a follow-up from “\(followUpName)”."
+        return "You already have a workout in progress: \(activeWorkoutSummary). \(recoveryInstruction) before starting a follow-up from “\(followUpName)”."
+    }
+
+    private func followUpRecoveryInstruction(for activeWorkout: Workout) -> String {
+        guard activeWorkout.sets.isEmpty else {
+            return "Continue it, save it for later, or discard it"
+        }
+
+        return "Add an exercise to keep going, save it for later, or discard it"
     }
 
     func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {

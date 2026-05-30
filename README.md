@@ -1,5 +1,6 @@
 # RPT
 
+- Blocked follow-up/template recovery now tells users with a brand-new zero-exercise draft to add an exercise before switching away, instead of vaguely saying to `Continue` a draft that cannot be completed yet.
 - Template Details now avoids repeating the same empty-template start guidance in both the exercise section and the footer helpers, so blank templates stay clearer without duplicating the exact same recovery text twice on one screen.
 - Active Workout’s exit sheet now stops implying that an empty draft can already be completed, and instead tells users to add at least one exercise or save it for later until finishing is actually available.
 - Home’s empty recent-workouts state now stops telling users to `Finish` a brand-new draft that still has zero exercises, and instead points them toward adding an exercise or saving the draft for later until it can actually become a completed workout.

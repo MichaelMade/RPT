@@ -327,12 +327,28 @@ class TemplateViewModel: ObservableObject {
 
     func activeWorkoutPromptMessage(for workout: Workout, opening template: WorkoutTemplate) -> String {
         let templateSuffix = "before opening \(templateReferenceText(for: template, fallback: "this template"))."
-        return "\(activeWorkoutPromptPrefix(for: workout)) Save it for later, discard it, or keep going \(templateSuffix)"
+        return "\(activeWorkoutPromptPrefix(for: workout)) \(openingTemplateRecoveryInstruction(for: workout)) \(templateSuffix)"
     }
 
     func activeWorkoutBlocksTemplateStartMessage(for workout: Workout, opening template: WorkoutTemplate) -> String {
         let templateSuffix = startTemplateBlockSuffix(for: template)
-        return "\(activeWorkoutPromptPrefix(for: workout)) Continue it, save it for later, or discard it \(templateSuffix)"
+        return "\(activeWorkoutPromptPrefix(for: workout)) \(startingTemplateRecoveryInstruction(for: workout)) \(templateSuffix)"
+    }
+
+    private func openingTemplateRecoveryInstruction(for workout: Workout) -> String {
+        guard workout.sets.isEmpty else {
+            return "Save it for later, discard it, or keep going"
+        }
+
+        return "Add an exercise to keep going, save it for later, or discard it"
+    }
+
+    private func startingTemplateRecoveryInstruction(for workout: Workout) -> String {
+        guard workout.sets.isEmpty else {
+            return "Continue it, save it for later, or discard it"
+        }
+
+        return "Add an exercise to keep going, save it for later, or discard it"
     }
 
     private func startTemplateBlockSuffix(for template: WorkoutTemplate) -> String {
@@ -899,6 +915,8 @@ class TemplateViewModel: ObservableObject {
                 "continue current workout",
                 "continue workout",
                 "continue, save, or discard this workout before starting this template",
+                "add an exercise",
+                "add an exercise to keep going",
                 "save for later",
                 "save it for later",
                 "save this workout for later",
@@ -910,6 +928,8 @@ class TemplateViewModel: ObservableObject {
                 "keep going \(openTemplateSuffix)",
                 "continue it",
                 "continue it \(startTemplateSuffix)",
+                "add an exercise to keep going, save it for later, or discard it \(openTemplateSuffix)",
+                "add an exercise to keep going, save it for later, or discard it \(startTemplateSuffix)",
                 "save it for later, discard it, or keep going \(openTemplateSuffix)",
                 "continue it, save it for later, or discard it \(startTemplateSuffix)",
                 "save open template",
