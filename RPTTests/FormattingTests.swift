@@ -100,6 +100,21 @@ final class FormattingTests: XCTestCase {
         XCTAssertTrue(formattedSummary.contains("lb"), "Formatted summary should contain 'lb' as the weight unit")
         XCTAssertFalse(formattedSummary.contains("kg"), "Formatted summary should not contain 'kg' as the weight unit")
     }
+
+    func testFormattedSummary_normalizesLegacyPlaceholderWorkoutName() {
+        let workout = Workout(name: "  Current   Workout  ")
+
+        let formattedSummary = workout.generateFormattedSummary()
+
+        XCTAssertTrue(
+            formattedSummary.hasPrefix("Workout - "),
+            "Legacy placeholder workout names should export with the same generic Workout label shown elsewhere in the app"
+        )
+        XCTAssertFalse(
+            formattedSummary.hasPrefix("Current Workout - "),
+            "Formatted summary exports should not leak the stale Current Workout placeholder"
+        )
+    }
     
     // MARK: - Units Consistency Tests
 

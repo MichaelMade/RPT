@@ -379,7 +379,14 @@ final class Workout {
             return "Workout"
         }
 
-        return String(collapsedName.prefix(80))
+        let normalizedName = String(collapsedName.prefix(80))
+
+        switch normalizedName {
+        case "Current Workout":
+            return "Workout"
+        default:
+            return normalizedName
+        }
     }
 
     private func normalizedSummaryNotes() -> String? {
