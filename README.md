@@ -1,5 +1,6 @@
 # RPT
 
+- Copy-summary confirmations now reuse the same normalized workout-name path as history rows, so whitespace-heavy legacy placeholders still stay generic and very long workout titles get clamped before the toast quotes them instead of spilling raw draft text.
 - RPT’s remaining generic fallback alerts and active-workout set-delete copy now say `this workout` instead of `the current workout`, so save/discard retry messages and unnamed set cleanup stay aligned with the app’s newer `This Workout` wording instead of slipping back to older placeholder phrasing.
 - Template list/detail blocked-start helper copy now stays on the same display-safe generic fallback wording as the rest of RPT (`workout in progress`, `Continue, save, or discard this workout before starting this template`) instead of slipping back to `current workout` in template summaries when an unnamed or legacy draft is open.
 - Active Workout’s generic complete/discard confirmation bodies now say `this workout` (`Would you like to complete and save this workout?`, `Discard this workout? …`) instead of reviving `your current workout`, so unnamed and legacy drafts keep the same display-safe wording inside the final confirmation copy too.

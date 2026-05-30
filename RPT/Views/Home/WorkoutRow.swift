@@ -42,7 +42,11 @@ struct WorkoutRow: View {
     }
 
     static func specificDisplayName(for workout: Workout) -> String? {
-        let displayName = displayName(for: workout)
+        specificDisplayName(forWorkoutName: workout.name)
+    }
+
+    static func specificDisplayName(forWorkoutName workoutName: String) -> String? {
+        let displayName = displayName(forWorkoutName: workoutName)
 
         switch displayName {
         case "Workout", "Current Workout":
@@ -76,21 +80,11 @@ struct WorkoutRow: View {
     }
 
     static func copySummaryMessage(forWorkoutNamed workoutName: String?) -> String {
-        let normalizedName = workoutName?
-            .components(separatedBy: .whitespacesAndNewlines)
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
-
-        guard let normalizedName, !normalizedName.isEmpty else {
+        guard let workoutName, let displayName = specificDisplayName(forWorkoutName: workoutName) else {
             return "Copied the workout summary so it’s ready to paste anywhere you need it."
         }
 
-        switch normalizedName {
-        case "Workout", "Current Workout":
-            return "Copied the workout summary so it’s ready to paste anywhere you need it."
-        default:
-            return "Copied the summary for “\(normalizedName)” so it’s ready to paste anywhere you need it."
-        }
+        return "Copied the summary for “\(displayName)” so it’s ready to paste anywhere you need it."
     }
 
     static func relativeDateText(

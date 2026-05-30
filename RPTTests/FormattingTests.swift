@@ -934,6 +934,19 @@ final class FormattingTests: XCTestCase {
         )
     }
 
+    func testWorkoutCopySummaryMessage_reusesDisplayNameNormalizationForLegacyAndLongTitles() {
+        let longName = String(repeating: "A", count: 120)
+
+        XCTAssertEqual(
+            WorkoutRow.copySummaryMessage(forWorkoutNamed: "  Current   Workout  "),
+            "Copied the workout summary so it’s ready to paste anywhere you need it."
+        )
+        XCTAssertEqual(
+            WorkoutRow.copySummaryMessage(forWorkoutNamed: longName),
+            "Copied the summary for “\(String(repeating: "A", count: 80))” so it’s ready to paste anywhere you need it."
+        )
+    }
+
     func testWorkoutDetailOpenSourceTemplateButtonTitle_staysGenericForBlankNames() {
         XCTAssertEqual(
             WorkoutDetailView.openSourceTemplateButtonTitle(for: nil),
