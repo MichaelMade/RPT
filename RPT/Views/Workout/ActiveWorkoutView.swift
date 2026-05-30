@@ -10,6 +10,9 @@ import SwiftData
 
 struct ActiveWorkoutView: View {
     static let toolbarSaveForLaterLabel = "Save for Later"
+    static var emptyStateHelperMessage: String {
+        "Add at least one exercise before you can finish this workout. \(toolbarSaveForLaterLabel) keeps it as a draft if you're not ready yet."
+    }
 
     static func navigationTitle(for workoutName: String) -> String {
         WorkoutRow.displayName(forWorkoutName: workoutName)
@@ -75,9 +78,12 @@ struct ActiveWorkoutView: View {
                         .listStyle(.insetGrouped)
                     } else {
                         // Use the new EmptyWorkoutView component
-                        EmptyWorkoutView(onAddExercise: {
-                            showingExerciseSelector = true
-                        })
+                        EmptyWorkoutView(
+                            helperMessage: Self.emptyStateHelperMessage,
+                            onAddExercise: {
+                                showingExerciseSelector = true
+                            }
+                        )
                     }
                     
                     // Bottom action bar - only show when we have exercises

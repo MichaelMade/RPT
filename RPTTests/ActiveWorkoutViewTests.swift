@@ -6,6 +6,13 @@ final class ActiveWorkoutViewTests: XCTestCase {
         XCTAssertEqual(ActiveWorkoutView.toolbarSaveForLaterLabel, "Save for Later")
     }
 
+    func testEmptyStateHelperMessage_mentionsFinishRequirementAndDraftRecovery() {
+        XCTAssertEqual(
+            ActiveWorkoutView.emptyStateHelperMessage,
+            "Add at least one exercise before you can finish this workout. Save for Later keeps it as a draft if you're not ready yet."
+        )
+    }
+
     func testNavigationTitleNormalizesLegacyPlaceholderNames() {
         XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "Current Workout"), "Workout")
         XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "  Current   Workout  "), "Workout")
