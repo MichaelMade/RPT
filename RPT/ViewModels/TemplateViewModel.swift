@@ -884,6 +884,9 @@ class TemplateViewModel: ObservableObject {
                 : "before opening \(templateName)."
             let startTemplateSuffix = startTemplateBlockSuffix(for: template)
             let isPartialStart = templateManager.startWorkoutConfirmationMessage(for: template) != nil
+            let genericSaveAndStartTitle = saveAndStartTemplateButtonTitle(for: template)
+            let genericDiscardAndStartTitle = discardAndStartTemplateButtonTitle(for: template, currentWorkout: nil)
+            let genericDiscardAndStartAlertTitle = discardCurrentWorkoutAndStartTemplateAlertTitle(for: template, currentWorkout: nil)
 
             terms.append(contentsOf: [
                 "current workout",
@@ -894,9 +897,11 @@ class TemplateViewModel: ObservableObject {
                 "in progress",
                 "resume current workout",
                 "continue current workout",
+                "continue workout",
                 "continue, save, or discard this workout before starting this template",
                 "save for later",
                 "save it for later",
+                "save this workout for later",
                 "discard workout",
                 "discard current workout",
                 "discard this workout",
@@ -913,12 +918,15 @@ class TemplateViewModel: ObservableObject {
                 "save start template",
                 "save & start template",
                 "save and start template",
+                genericSaveAndStartTitle,
                 "discard open template",
                 "discard & open template",
                 "discard and open template",
                 "discard start template",
                 "discard & start template",
-                "discard and start template"
+                "discard and start template",
+                genericDiscardAndStartTitle,
+                genericDiscardAndStartAlertTitle
             ])
 
             if isPartialStart {

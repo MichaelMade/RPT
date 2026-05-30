@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also matches the exact generic blocked-start CTA copy users see for unnamed in-progress drafts (`Continue Workout`, `Save This Workout for Later`, `Discard This Workout & Start Template “Upper A”`), so template recovery still feels searchable even when there is no custom workout name to anchor on.
 - Legacy placeholder workout names now normalize case-insensitively across live titles and exported summaries too, so older/imported drafts like `current workout` still collapse back to the generic `Workout` label instead of leaking raw placeholder casing into the UI or pasted summaries.
 - Home’s empty recent-workouts state now names the in-progress draft when it has a real title (`Finish “Push Day”...`) while keeping the newer generic fallback for unnamed/legacy sessions, so first-run history feedback stays specific without leaking the stale `Current Workout` placeholder.
 - Copied workout summaries now normalize the legacy `Current Workout` placeholder in the exported header too, so paste/share output stays aligned with the app’s generic `Workout` label instead of leaking that stale draft name even when the toast already looks correct.

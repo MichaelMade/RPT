@@ -303,6 +303,36 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesGenericContinueWorkoutBlockedStartCTA() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Ghost Day", exerciseNames: ["Ghost Lift"]),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "continue workout"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Ghost Day", "Push Day"]
+        )
+    }
+
+    func testFetchTemplates_matchesGenericDiscardAndStartTemplateAlertTitle() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "discard this workout & start template upper a"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Upper A"]
+        )
+    }
+
     func testFetchTemplates_matchesCurrentStartTemplateCTAForNamedTemplate() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
