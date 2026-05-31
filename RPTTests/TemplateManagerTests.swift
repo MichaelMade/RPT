@@ -1158,7 +1158,7 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(
             TemplateManager.shared.templateDetailStatusSummary(for: template, blockedByActiveWorkout: true),
-            "Ready to start with 1 exercise. Continue, save, or discard this workout before starting this template."
+            "Ready to start with 1 exercise. Continue this workout, save it for later, or discard it before starting this template."
         )
     }
 
@@ -1240,7 +1240,35 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. Continue, save, or discard “Upper A” before starting this template."
+            "Ready to start with 1 exercise. Continue “Upper A”, save it for later, or discard it before starting this template."
+        )
+    }
+
+    func testTemplateDetailStatusSummary_keepsOpenLanguageForPlannedBlockingWorkout() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+        let activeWorkout = Workout(name: "Upper A")
+        _ = activeWorkout.addSet(exercise: availableExercise, weight: 185, reps: 8)
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateDetailStatusSummary(
+                for: template,
+                blockedByActiveWorkout: true,
+                blockingWorkout: activeWorkout
+            ),
+            "Ready to start with 1 exercise. Open “Upper A”, save it for later, or discard it before starting this template."
         )
     }
 

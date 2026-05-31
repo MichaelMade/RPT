@@ -397,6 +397,7 @@ RPT/
 
 ## Recent Improvements
 
+- Template Details’ status summary now matches the same active-draft recovery state as the rest of the app, switching between `Add an exercise ...`, `Open ...`, and `Continue ...` guidance instead of flattening every blocked template start into older generic `Continue, save, or discard ...` copy; added regression coverage in `TemplateManagerTests`.
 - Home and Template now share one `resumableWorkoutRecoveryInstruction(...)` helper for active-draft conflict copy, so `Add an exercise ...`, `Open it ...`, and `Continue it ...` wording stays aligned across start-fresh, follow-up, and template handoff flows; added regression coverage in `HomeViewModelTests`.
 - Renaming a custom exercise now also updates matching template references behind the scenes, so templates that already used that movement keep starting normally instead of suddenly treating the renamed exercise as missing; added regression coverage in `ExerciseManagerTests`.
 - Active Workout persistence failures now name the exact workout or exercise when possible (`Couldn’t Save “Upper A”`, `Couldn’t Complete “Upper A”`, `Couldn’t Delete “Bench Press”`) instead of collapsing every error into a generic `Workout Action Failed` alert, so recovery is clearer during a live session; added regression coverage in `ActiveWorkoutViewModelTests`.

@@ -585,7 +585,7 @@ class TemplateManager {
 
     private func activeWorkoutStatusPrompt(for workout: Workout?) -> String {
         guard let workout else {
-            return "Continue, save, or discard this workout before starting this template"
+            return "Continue this workout, save it for later, or discard it before starting this template"
         }
 
         if workout.sets.isEmpty {
@@ -596,11 +596,13 @@ class TemplateManager {
             return "Add an exercise to “\(displayName)” to keep going, save it for later, or discard it before starting this template"
         }
 
+        let actionPrefix = HomeViewModel.resumableWorkoutActionPrefix(for: workout)
+
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Continue, save, or discard this workout before starting this template"
+            return "\(actionPrefix) this workout, save it for later, or discard it before starting this template"
         }
 
-        return "Continue, save, or discard “\(displayName)” before starting this template"
+        return "\(actionPrefix) “\(displayName)”, save it for later, or discard it before starting this template"
     }
 
     func startWorkoutDisabledMessage(for template: WorkoutTemplate) -> String? {
