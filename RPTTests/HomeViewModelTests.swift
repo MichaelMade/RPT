@@ -1622,8 +1622,27 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have a workout in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting a follow-up from “Upper A”.",
-            "Blocked follow-up guidance should tell users how to recover from an empty draft instead of vaguely telling them to continue it"
+            "You already have “Push Day” in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting a follow-up from “Upper A”.",
+            "Blocked follow-up guidance should name real active drafts so users can tell which workout would be interrupted before starting a follow-up"
+        )
+    }
+
+    func testActiveWorkoutBlocksFollowUpMessage_namesSpecificActiveDraftWhenItExists() {
+        let activeWorkout = Workout(name: "Push Day")
+        let completedWorkout = Workout(name: "Upper A", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = activeWorkout.addSet(exercise: bench, weight: 185, reps: 8)
+
+        let message = viewModel.activeWorkoutBlocksFollowUpMessage(
+            for: activeWorkout,
+            startingFrom: completedWorkout,
+            now: activeWorkout.date.addingTimeInterval(60)
+        )
+
+        XCTAssertEqual(
+            message,
+            "You already have “Push Day” in progress: Started just now • 1 exercise • 1 set • Exercise started. Continue it, save it for later, or discard it before starting a follow-up from “Upper A”.",
+            "Blocked follow-up guidance should name the active draft when it has a real title so users can recognize which session is in the way"
         )
     }
 

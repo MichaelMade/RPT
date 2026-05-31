@@ -681,12 +681,13 @@ class HomeViewModel: ObservableObject {
     func activeWorkoutBlocksFollowUpMessage(for activeWorkout: Workout, startingFrom workout: Workout, now: Date = Date()) -> String {
         let activeWorkoutSummary = resumableWorkoutSummary(for: activeWorkout, now: now)
         let recoveryInstruction = followUpRecoveryInstruction(for: activeWorkout)
+        let promptPrefix = startFreshWorkoutPromptPrefix(for: activeWorkout)
 
         guard let followUpName = specificSavedWorkoutName(for: workout) else {
-            return "You already have a workout in progress: \(activeWorkoutSummary). \(recoveryInstruction) before starting this follow-up."
+            return "\(promptPrefix) \(activeWorkoutSummary). \(recoveryInstruction) before starting this follow-up."
         }
 
-        return "You already have a workout in progress: \(activeWorkoutSummary). \(recoveryInstruction) before starting a follow-up from “\(followUpName)”."
+        return "\(promptPrefix) \(activeWorkoutSummary). \(recoveryInstruction) before starting a follow-up from “\(followUpName)”."
     }
 
     private func followUpRecoveryInstruction(for activeWorkout: Workout) -> String {
