@@ -824,13 +824,25 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(summary, "Started just now • No exercises added yet", "Summary should explain empty drafts instead of showing zero-count noise")
     }
 
-    func testContinueCurrentWorkoutButtonTitle_namesSpecificDraftWhenAvailable() {
+    func testContinueCurrentWorkoutButtonTitle_namesSpecificDraftWhenWorkoutHasLoggedOrPlannedWork() {
         let workout = Workout(name: "  Upper   A  ")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: exercise, weight: 185, reps: 8)
 
         XCTAssertEqual(
             viewModel.continueCurrentWorkoutButtonTitle(for: workout),
             "Continue “Upper A”",
-            "Continue CTAs should name the exact in-progress workout when possible so recovery choices are easier to scan"
+            "Continue CTAs should keep the in-progress wording once the draft already contains workout content"
+        )
+    }
+
+    func testContinueCurrentWorkoutButtonTitle_usesOpenLanguageForEmptyNamedDraft() {
+        let workout = Workout(name: "  Upper   A  ")
+
+        XCTAssertEqual(
+            viewModel.continueCurrentWorkoutButtonTitle(for: workout),
+            "Open “Upper A”",
+            "Zero-exercise draft recovery should say Open so blocked flows do not imply the draft is already far enough along to simply continue"
         )
     }
 
@@ -839,8 +851,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.continueCurrentWorkoutButtonTitle(for: workout),
-            "Continue Workout",
-            "Continue CTAs should stay generic when the active draft has no usable name"
+            "Open Workout",
+            "Unnamed empty drafts should keep the clearer open-workout wording in blocked recovery flows"
         )
     }
 

@@ -1739,14 +1739,27 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
-    func testContinueCurrentWorkoutButtonTitle_namesSpecificDraftWhenAvailable() {
+    func testContinueCurrentWorkoutButtonTitle_namesSpecificDraftWhenWorkoutHasLoggedOrPlannedWork() {
+        let viewModel = TemplateViewModel()
+        let workout = Workout(name: "  Upper   A  ")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: exercise, weight: 185, reps: 8)
+
+        XCTAssertEqual(
+            viewModel.continueCurrentWorkoutButtonTitle(for: workout),
+            "Continue “Upper A”",
+            "Template-start recovery should keep the continue wording once the draft already contains workout content"
+        )
+    }
+
+    func testContinueCurrentWorkoutButtonTitle_usesOpenLanguageForEmptyNamedDraft() {
         let viewModel = TemplateViewModel()
         let workout = Workout(name: "  Upper   A  ")
 
         XCTAssertEqual(
             viewModel.continueCurrentWorkoutButtonTitle(for: workout),
-            "Continue “Upper A”",
-            "Template-start recovery should name the exact in-progress workout when possible"
+            "Open “Upper A”",
+            "Zero-exercise template conflicts should say Open so the safe action reads like reopening the draft before adding anything else"
         )
     }
 
@@ -1756,8 +1769,8 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.continueCurrentWorkoutButtonTitle(for: workout),
-            "Continue Workout",
-            "Unnamed drafts should keep the generic continue label"
+            "Open Workout",
+            "Unnamed empty drafts should keep the clearer open-workout wording"
         )
     }
 
@@ -1789,8 +1802,8 @@ final class TemplateViewModelTests: XCTestCase {
         )
         XCTAssertEqual(
             viewModel.continueCurrentWorkoutButtonTitle(for: legacyPlaceholderWorkout),
-            "Continue Workout",
-            "Legacy placeholder draft names should keep the generic continue label"
+            "Open Workout",
+            "Legacy placeholder empty drafts should keep the generic open-workout label"
         )
     }
 

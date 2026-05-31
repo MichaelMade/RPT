@@ -196,11 +196,13 @@ class HomeViewModel: ObservableObject {
     }
 
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
+        let actionPrefix = workout.sets.isEmpty ? "Open" : "Continue"
+
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Continue Workout"
+            return "\(actionPrefix) Workout"
         }
 
-        return "Continue “\(displayName)”"
+        return "\(actionPrefix) “\(displayName)”"
     }
 
     func replaceCurrentWorkoutAlertTitle(for workout: Workout) -> String {
