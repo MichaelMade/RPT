@@ -177,7 +177,7 @@ final class WorkoutDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             WorkoutDetailView.sourceTemplateBlockMessage(for: partialTemplate, activeWorkout: activeWorkout),
-            "You already have “Push Day” in progress. Continue it before starting the available part of Template “Upper A”."
+            "You already have “Push Day” in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting the available part of Template “Upper A”."
         )
     }
 
@@ -206,7 +206,7 @@ final class WorkoutDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             WorkoutDetailView.sourceTemplateBlockMessage(for: partialTemplate, activeWorkout: activeWorkout),
-            "You already have a workout in progress. Continue it before starting the available part of this template."
+            "You already have a workout in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting the available part of this template."
         )
         XCTAssertNil(WorkoutDetailView.sourceTemplateBlockMessage(for: nil, activeWorkout: activeWorkout))
         XCTAssertNil(WorkoutDetailView.sourceTemplateBlockMessage(for: partialTemplate, activeWorkout: nil))

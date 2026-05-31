@@ -1,5 +1,6 @@
 # RPT
 
+- Template conflict prompts now include the live draft summary (`Started just now • No exercises added yet`, etc.) before telling users to continue, save, or discard, so blocked template starts are clearer about what work is already in progress before they interrupt it.
 - Template restart recovery buttons now name the in-progress draft being saved too (`Save “Push Day” & Start Template “Upper A”`, including partial-template starts), so blocked template handoffs stay as explicit on the safe save path as they already were on the destructive discard path.
 - Home’s start-fresh and template-open draft-conflict prompts now lead with `Continue` for workouts that already have logged work, so the safest recovery path shows up first instead of burying it behind `save`/`discard` wording when users are deciding whether to replace or detour away from a live session.
 - Workout Details’ zero-exercise draft empty state now reuses the same finish/save-for-later guidance as the live workout screen, so users reviewing a brand-new draft get one consistent recovery message instead of a weaker detail-only hint.
