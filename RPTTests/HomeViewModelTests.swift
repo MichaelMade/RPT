@@ -869,6 +869,41 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testResumableWorkoutRecoveryInstruction_matchesEmptyDraftGuidance() {
+        let workout = Workout(name: "Upper A")
+
+        XCTAssertEqual(
+            HomeViewModel.resumableWorkoutRecoveryInstruction(for: workout),
+            "Add an exercise to keep going, save it for later, or discard it",
+            "Shared recovery guidance should keep empty drafts on the add-an-exercise path"
+        )
+    }
+
+    func testResumableWorkoutRecoveryInstruction_matchesUntouchedPlannedDraftGuidance() {
+        let workout = Workout(name: "Upper A")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = workout.addSet(exercise: exercise, weight: 185, reps: 8)
+        set.completedAt = .distantPast
+
+        XCTAssertEqual(
+            HomeViewModel.resumableWorkoutRecoveryInstruction(for: workout),
+            "Open it, save it for later, or discard it",
+            "Shared recovery guidance should keep untouched planned drafts on the reopen path"
+        )
+    }
+
+    func testResumableWorkoutRecoveryInstruction_matchesLoggedWorkoutGuidanceWithTerminator() {
+        let workout = Workout(name: "Upper A")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: exercise, weight: 185, reps: 8)
+
+        XCTAssertEqual(
+            HomeViewModel.resumableWorkoutRecoveryInstruction(for: workout, terminator: "."),
+            "Continue it, save it for later, or discard it.",
+            "Shared recovery guidance should preserve the continue wording and punctuation for in-progress drafts with logged work"
+        )
+    }
+
     func testActiveWorkoutInProgressTitle_namesSpecificDraftWhenAvailable() {
         let workout = Workout(name: "  Upper   A  ")
 

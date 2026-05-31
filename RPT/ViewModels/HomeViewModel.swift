@@ -213,6 +213,18 @@ class HomeViewModel: ObservableObject {
         return startedExercises > 0 ? "Continue" : "Open"
     }
 
+    static func resumableWorkoutRecoveryInstruction(for workout: Workout, terminator: String = "") -> String {
+        if workout.sets.isEmpty {
+            return "Add an exercise to keep going, save it for later, or discard it\(terminator)"
+        }
+
+        let actionText = resumableWorkoutActionPrefix(for: workout) == "Continue"
+            ? "Continue it"
+            : "Open it"
+
+        return "\(actionText), save it for later, or discard it\(terminator)"
+    }
+
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
         let actionPrefix = Self.resumableWorkoutActionPrefix(for: workout)
 
@@ -711,13 +723,7 @@ class HomeViewModel: ObservableObject {
     }
 
     private func followUpRecoveryInstruction(for activeWorkout: Workout) -> String {
-        if activeWorkout.sets.isEmpty {
-            return "Add an exercise to keep going, save it for later, or discard it"
-        }
-
-        return Self.resumableWorkoutActionPrefix(for: activeWorkout) == "Continue"
-            ? "Continue it, save it for later, or discard it"
-            : "Open it, save it for later, or discard it"
+        Self.resumableWorkoutRecoveryInstruction(for: activeWorkout)
     }
 
     func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {
@@ -733,13 +739,7 @@ class HomeViewModel: ObservableObject {
     }
 
     private func startFreshRecoveryInstruction(for workout: Workout) -> String {
-        if workout.sets.isEmpty {
-            return "Add an exercise to keep going, save it for later, or discard it."
-        }
-
-        return Self.resumableWorkoutActionPrefix(for: workout) == "Continue"
-            ? "Continue it, save it for later, or discard it."
-            : "Open it, save it for later, or discard it."
+        Self.resumableWorkoutRecoveryInstruction(for: workout, terminator: ".")
     }
 
     func shouldResumeIncompleteWorkout(workoutDate: Date?, discardTimestamp: Date?, wasAnyWorkoutDiscarded: Bool) -> Bool {

@@ -338,21 +338,11 @@ class TemplateViewModel: ObservableObject {
     }
 
     private func openingTemplateRecoveryInstruction(for workout: Workout) -> String {
-        recoveryInstruction(for: workout)
+        HomeViewModel.resumableWorkoutRecoveryInstruction(for: workout)
     }
 
     private func startingTemplateRecoveryInstruction(for workout: Workout) -> String {
-        recoveryInstruction(for: workout)
-    }
-
-    private func recoveryInstruction(for workout: Workout) -> String {
-        if workout.sets.isEmpty {
-            return "Add an exercise to keep going, save it for later, or discard it"
-        }
-
-        return HomeViewModel.resumableWorkoutActionPrefix(for: workout) == "Continue"
-            ? "Continue it, save it for later, or discard it"
-            : "Open it, save it for later, or discard it"
+        HomeViewModel.resumableWorkoutRecoveryInstruction(for: workout)
     }
 
     private func startTemplateBlockSuffix(for template: WorkoutTemplate) -> String {
