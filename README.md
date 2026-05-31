@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s start-fresh and template-open draft-conflict prompts now lead with `Continue` for workouts that already have logged work, so the safest recovery path shows up first instead of burying it behind `save`/`discard` wording when users are deciding whether to replace or detour away from a live session.
 - Workout Details’ zero-exercise draft empty state now reuses the same finish/save-for-later guidance as the live workout screen, so users reviewing a brand-new draft get one consistent recovery message instead of a weaker detail-only hint.
 - Legacy placeholder draft names like `Current Draft` now normalize to the same generic `Workout` label as `Current Workout`, so blocked-start guidance, navigation titles, and copied/exported summaries stop treating that stale internal-style name like a real routine title.
 - Blocked follow-up/template recovery now tells users with a brand-new zero-exercise draft to add an exercise before switching away, instead of vaguely saying to `Continue` a draft that cannot be completed yet.

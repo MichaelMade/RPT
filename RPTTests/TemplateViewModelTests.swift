@@ -1316,7 +1316,7 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutPromptMessage(for: workout, opening: template),
-            "You already have “Upper A” in progress. Save it for later, discard it, or keep going before opening Template “Lower Day”."
+            "You already have “Upper A” in progress. Continue it, save it for later, or discard it before opening Template “Lower Day”."
         )
     }
 
