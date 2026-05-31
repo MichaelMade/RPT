@@ -334,7 +334,7 @@ struct ExerciseDetailView: View {
                                                 Button {
                                                     saveActiveWorkoutAndOpenTemplate(sourceTemplate)
                                                 } label: {
-                                                    Label(templateViewModel.saveAndStartTemplateButtonTitle(for: sourceTemplate), systemImage: "square.and.arrow.down")
+                                                    Label(templateViewModel.saveAndStartTemplateButtonTitle(for: sourceTemplate, currentWorkout: resumableWorkout), systemImage: "square.and.arrow.down")
                                                         .font(.caption.weight(.semibold))
                                                         .frame(maxWidth: .infinity, alignment: .leading)
                                                 }

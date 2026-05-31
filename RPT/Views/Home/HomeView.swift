@@ -764,7 +764,7 @@ struct HomeView: View {
                 }
 
                 if let templateToStartFromHistory {
-                    Button(templateViewModel.saveAndStartTemplateButtonTitle(for: templateToStartFromHistory)) {
+                    Button(templateViewModel.saveAndStartTemplateButtonTitle(for: templateToStartFromHistory, currentWorkout: protectedResumableWorkout())) {
                         saveActiveWorkoutAndOpenTemplate(templateToStartFromHistory)
                         self.templateToStartFromHistory = nil
                     }

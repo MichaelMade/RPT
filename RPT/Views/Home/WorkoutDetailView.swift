@@ -482,7 +482,7 @@ struct WorkoutDetailView: View {
                                     Button {
                                         saveActiveWorkoutAndOpenTemplate(sourceTemplate)
                                     } label: {
-                                        Label(templateViewModel.saveAndStartTemplateButtonTitle(for: sourceTemplate), systemImage: "square.and.arrow.down")
+                                        Label(templateViewModel.saveAndStartTemplateButtonTitle(for: sourceTemplate, currentWorkout: activeWorkout), systemImage: "square.and.arrow.down")
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     }
                                     .buttonStyle(.bordered)

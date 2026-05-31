@@ -394,8 +394,8 @@ class TemplateViewModel: ObservableObject {
         "Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
     }
 
-    func saveAndStartTemplateButtonTitle(for template: WorkoutTemplate) -> String {
-        "Save & Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
+    func saveAndStartTemplateButtonTitle(for template: WorkoutTemplate, currentWorkout: Workout? = nil) -> String {
+        "\(saveCurrentWorkoutTitlePrefix(for: currentWorkout)) & Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
     }
 
     func discardAndStartTemplateButtonTitle(for template: WorkoutTemplate, currentWorkout: Workout? = nil) -> String {
@@ -424,6 +424,14 @@ class TemplateViewModel: ObservableObject {
         }
 
         return "Discard “\(displayName)”"
+    }
+
+    private func saveCurrentWorkoutTitlePrefix(for workout: Workout?) -> String {
+        guard let workout, let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Save This Workout"
+        }
+
+        return "Save “\(displayName)”"
     }
 
     private func discardCurrentWorkoutMessageSubject(for workout: Workout?) -> String {
@@ -979,7 +987,7 @@ class TemplateViewModel: ObservableObject {
                     continueCurrentWorkoutButtonTitle(for: activeWorkout),
                     activeWorkoutInProgressTitle(for: activeWorkout),
                     activeWorkoutBlocksTemplateStartMessage(for: activeWorkout, opening: template),
-                    saveAndStartTemplateButtonTitle(for: template),
+                    saveAndStartTemplateButtonTitle(for: template, currentWorkout: activeWorkout),
                     discardAndStartTemplateButtonTitle(for: template, currentWorkout: activeWorkout),
                     discardCurrentWorkoutAndStartTemplateAlertTitle(for: template, currentWorkout: activeWorkout),
                     discardCurrentWorkoutAndStartTemplateAlertMessage(for: template, currentWorkout: activeWorkout)

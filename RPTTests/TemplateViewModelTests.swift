@@ -1512,6 +1512,12 @@ final class TemplateViewModelTests: XCTestCase {
         let currentWorkout = Workout(name: "  Push   Day  ")
 
         XCTAssertEqual(
+            viewModel.saveAndStartTemplateButtonTitle(for: template, currentWorkout: currentWorkout),
+            "Save “Push Day” & Start Template “Upper A”",
+            "Save-and-start recovery CTAs should name the specific draft that will be saved when that workout is known"
+        )
+
+        XCTAssertEqual(
             viewModel.discardAndStartTemplateButtonTitle(for: template, currentWorkout: currentWorkout),
             "Discard “Push Day” & Start Template “Upper A”",
             "Discard-and-start recovery CTAs should name the specific draft that will be replaced when that workout is known"
@@ -1651,6 +1657,12 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
             "Your in-progress workout will be lost and RPT will immediately start the available part of Template “Upper A”. Source template: 2 exercises and 6 planned sets. This action cannot be undone.",
             "Partial template recovery copy should warn that only the available portion of the routine will start when missing exercises are being skipped"
+        )
+
+        let currentWorkout = Workout(name: " Push Day ")
+        XCTAssertEqual(
+            viewModel.saveAndStartTemplateButtonTitle(for: template, currentWorkout: currentWorkout),
+            "Save “Push Day” & Start Partial Template “Upper A”"
         )
     }
 

@@ -399,7 +399,7 @@ struct TemplateDetailView: View {
                             Button(action: onSaveActiveWorkoutAndOpenTemplate) {
                                 HStack {
                                     Image(systemName: "tray.and.arrow.down")
-                                    Text(templateViewModel.saveAndStartTemplateButtonTitle(for: template))
+                                    Text(templateViewModel.saveAndStartTemplateButtonTitle(for: template, currentWorkout: currentActiveWorkout))
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)

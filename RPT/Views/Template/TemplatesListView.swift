@@ -233,7 +233,7 @@ struct TemplatesListView: View {
                                     showActiveWorkoutSheet = true
                                 }
 
-                                Button(viewModel.saveAndStartTemplateButtonTitle(for: matchedTemplate)) {
+                                Button(viewModel.saveAndStartTemplateButtonTitle(for: matchedTemplate, currentWorkout: resumableWorkout)) {
                                     saveActiveWorkoutAndOpenTemplate(matchedTemplate)
                                 }
 
