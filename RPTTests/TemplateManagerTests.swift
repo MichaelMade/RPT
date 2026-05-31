@@ -1162,7 +1162,7 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
-    func testTemplateDetailStatusSummary_namesSpecificBlockingWorkoutWhenAvailable() throws {
+    func testTemplateDetailStatusSummary_asksNamedEmptyBlockingWorkoutToAddAnExercise() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         context.insert(availableExercise)
@@ -1185,11 +1185,11 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. Continue, save, or discard “Upper A” before starting this template."
+            "Ready to start with 1 exercise. Add an exercise to “Upper A” to keep going, save it for later, or discard it before starting this template."
         )
     }
 
-    func testTemplateDetailStatusSummary_keepsLegacyCurrentWorkoutPlaceholderGeneric() throws {
+    func testTemplateDetailStatusSummary_keepsLegacyCurrentWorkoutPlaceholderGenericForEmptyBlockingWorkout() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         context.insert(availableExercise)
@@ -1212,7 +1212,35 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. Continue, save, or discard this workout before starting this template."
+            "Ready to start with 1 exercise. Add an exercise to keep going, save it for later, or discard this workout before starting this template."
+        )
+    }
+
+    func testTemplateDetailStatusSummary_keepsContinueLanguageForBlockingWorkoutWithLoggedSets() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [sampleTemplateExercise(named: "Bench Press")],
+            notes: ""
+        )
+        let activeWorkout = Workout(name: "Upper A")
+        _ = activeWorkout.addSet(exercise: availableExercise, weight: 185, reps: 8)
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateDetailStatusSummary(
+                for: template,
+                blockedByActiveWorkout: true,
+                blockingWorkout: activeWorkout
+            ),
+            "Ready to start with 1 exercise. Continue, save, or discard “Upper A” before starting this template."
         )
     }
 

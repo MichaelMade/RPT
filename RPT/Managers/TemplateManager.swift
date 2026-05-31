@@ -588,6 +588,14 @@ class TemplateManager {
             return "Continue, save, or discard this workout before starting this template"
         }
 
+        if workout.sets.isEmpty {
+            guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+                return "Add an exercise to keep going, save it for later, or discard this workout before starting this template"
+            }
+
+            return "Add an exercise to “\(displayName)” to keep going, save it for later, or discard it before starting this template"
+        }
+
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
             return "Continue, save, or discard this workout before starting this template"
         }
