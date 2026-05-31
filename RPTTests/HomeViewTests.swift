@@ -107,6 +107,30 @@ final class HomeViewTests: XCTestCase {
         )
     }
 
+    func testSourceTemplateBlockMessage_matchesEmptyDraftRecoveryState() {
+        let template = WorkoutTemplate(name: "  Upper   A  ")
+        let workout = Workout(name: "Current Workout")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = workout.addSet(exercise: bench, weight: 0, reps: 0)
+
+        XCTAssertEqual(
+            HomeView.sourceTemplateBlockMessage(for: template, activeWorkout: workout),
+            "You already have a workout in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open it, save it for later, or discard it before starting Template “Upper A”."
+        )
+    }
+
+    func testSourceTemplateBlockMessage_matchesStartedDraftRecoveryState() {
+        let template = WorkoutTemplate(name: "  Upper   A  ")
+        let workout = Workout(name: "Push Day")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        workout.addSet(exercise: bench, weight: 185, reps: 8)
+
+        XCTAssertEqual(
+            HomeView.sourceTemplateBlockMessage(for: template, activeWorkout: workout),
+            "You already have “Push Day” in progress: Started just now • 1 exercise • 1 set • Exercise started. Continue it, save it for later, or discard it before starting Template “Upper A”."
+        )
+    }
+
     func testDiscardCurrentWorkoutAndStartTemplateAlertCopy_namesSpecificTemplate() {
         let template = WorkoutTemplate(name: "  Upper   A  ")
 

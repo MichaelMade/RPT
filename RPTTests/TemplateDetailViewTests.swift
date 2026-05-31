@@ -33,7 +33,13 @@ final class TemplateDetailViewTests: XCTestCase {
             notes: ""
         )
         let disabledMessage = "This template can’t start right now because its only exercise is missing from your library. Restore or replace it before starting."
-        let activeWorkoutMessage = "You already have a workout in progress. Continue it, save it for later, or discard it before starting this template."
+        let activeWorkout = Workout(name: "Push Day")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        activeWorkout.addSet(exercise: bench, weight: 185, reps: 8)
+        let activeWorkoutMessage = HomeView.sourceTemplateBlockMessage(
+            for: template,
+            activeWorkout: activeWorkout
+        )!
 
         XCTAssertEqual(
             TemplateDetailView.startWorkoutHelperMessages(

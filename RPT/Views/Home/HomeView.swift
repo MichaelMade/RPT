@@ -155,6 +155,14 @@ struct HomeView: View {
 
         return HomeViewModel().startFollowUpButtonTitle(for: workout)
     }
+
+    static func sourceTemplateBlockMessage(for template: WorkoutTemplate?, activeWorkout: Workout?) -> String? {
+        guard let template, let activeWorkout else {
+            return nil
+        }
+
+        return TemplateViewModel().activeWorkoutBlocksTemplateStartMessage(for: activeWorkout, opening: template)
+    }
     
     var body: some View {
         NavigationStack {
@@ -785,9 +793,13 @@ struct HomeView: View {
                     templateToStartFromHistory = nil
                 }
             } message: {
-                if let templateToStartFromHistory {
-                    Text(sourceTemplateBlockMessage(for: templateToStartFromHistory) ?? "You already have a workout in progress. Continue it, save it for later, or discard it before starting this template.")
-                }
+                Text(
+                    Self.sourceTemplateBlockMessage(
+                        for: templateToStartFromHistory,
+                        activeWorkout: protectedResumableWorkout()
+                    )
+                    ?? "You already have a workout in progress. Continue it, save it for later, or discard it before starting this template."
+                )
             }
             .alert("Workout Summary Copied", isPresented: $showingCopySummaryAlert) {
                 Button("OK", role: .cancel) {
@@ -887,11 +899,7 @@ struct HomeView: View {
     }
 
     private func sourceTemplateBlockMessage(for template: WorkoutTemplate) -> String? {
-        guard let activeWorkout = protectedResumableWorkout() else {
-            return nil
-        }
-
-        return templateViewModel.activeWorkoutBlocksTemplateStartMessage(for: activeWorkout, opening: template)
+        Self.sourceTemplateBlockMessage(for: template, activeWorkout: protectedResumableWorkout())
     }
 
     private func openStartedWorkout(_ startedWorkout: Workout) {
