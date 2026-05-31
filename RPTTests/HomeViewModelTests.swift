@@ -846,6 +846,19 @@ final class HomeViewModelTests: XCTestCase {
         )
     }
 
+    func testContinueCurrentWorkoutButtonTitle_usesOpenLanguageForUntouchedPlannedDraft() {
+        let workout = Workout(name: "  Upper   A  ")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = workout.addSet(exercise: exercise, weight: 185, reps: 8)
+        set.completedAt = .distantPast
+
+        XCTAssertEqual(
+            viewModel.continueCurrentWorkoutButtonTitle(for: workout),
+            "Open “Upper A”",
+            "Template-seeded or manually planned drafts should still say Open until the user has actually logged work"
+        )
+    }
+
     func testContinueCurrentWorkoutButtonTitle_fallsBackForGenericDraftName() {
         let workout = Workout(name: "   ")
 
@@ -1655,6 +1668,26 @@ final class HomeViewModelTests: XCTestCase {
             message,
             "You already have “Push Day” in progress: Started just now • 1 exercise • 1 set • Exercise started. Continue it, save it for later, or discard it before starting a follow-up from “Upper A”.",
             "Blocked follow-up guidance should name the active draft when it has a real title so users can recognize which session is in the way"
+        )
+    }
+
+    func testActiveWorkoutBlocksFollowUpMessage_guidesUntouchedPlannedDraftToOpenBeforeStartingFollowUp() {
+        let activeWorkout = Workout(name: "Push Day")
+        let completedWorkout = Workout(name: "Upper A", isCompleted: true)
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = activeWorkout.addSet(exercise: bench, weight: 185, reps: 8)
+        set.completedAt = .distantPast
+
+        let message = viewModel.activeWorkoutBlocksFollowUpMessage(
+            for: activeWorkout,
+            startingFrom: completedWorkout,
+            now: activeWorkout.date.addingTimeInterval(60)
+        )
+
+        XCTAssertEqual(
+            message,
+            "You already have “Push Day” in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open it, save it for later, or discard it before starting a follow-up from “Upper A”.",
+            "Blocked follow-up guidance should treat untouched planned drafts as something to reopen, not continue, until the user has logged work"
         )
     }
 

@@ -195,8 +195,26 @@ class HomeViewModel: ObservableObject {
         return parts.joined(separator: " • ")
     }
 
+    static func resumableWorkoutActionPrefix(for workout: Workout) -> String {
+        if workout.sets.isEmpty {
+            return "Open"
+        }
+
+        if workout.hasLoggedWarmupOnly {
+            return "Continue"
+        }
+
+        let startedExercises = Set(
+            workout.sets
+                .filter(\.isCompletedLoggedSet)
+                .compactMap { $0.exercise }
+        ).count
+
+        return startedExercises > 0 ? "Continue" : "Open"
+    }
+
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
-        let actionPrefix = workout.sets.isEmpty ? "Open" : "Continue"
+        let actionPrefix = Self.resumableWorkoutActionPrefix(for: workout)
 
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
             return "\(actionPrefix) Workout"
@@ -693,11 +711,13 @@ class HomeViewModel: ObservableObject {
     }
 
     private func followUpRecoveryInstruction(for activeWorkout: Workout) -> String {
-        guard activeWorkout.sets.isEmpty else {
-            return "Continue it, save it for later, or discard it"
+        if activeWorkout.sets.isEmpty {
+            return "Add an exercise to keep going, save it for later, or discard it"
         }
 
-        return "Add an exercise to keep going, save it for later, or discard it"
+        return Self.resumableWorkoutActionPrefix(for: activeWorkout) == "Continue"
+            ? "Continue it, save it for later, or discard it"
+            : "Open it, save it for later, or discard it"
     }
 
     func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {
@@ -713,11 +733,13 @@ class HomeViewModel: ObservableObject {
     }
 
     private func startFreshRecoveryInstruction(for workout: Workout) -> String {
-        guard workout.sets.isEmpty else {
-            return "Continue it, save it for later, or discard it."
+        if workout.sets.isEmpty {
+            return "Add an exercise to keep going, save it for later, or discard it."
         }
 
-        return "Add an exercise to keep going, save it for later, or discard it."
+        return Self.resumableWorkoutActionPrefix(for: workout) == "Continue"
+            ? "Continue it, save it for later, or discard it."
+            : "Open it, save it for later, or discard it."
     }
 
     func shouldResumeIncompleteWorkout(workoutDate: Date?, discardTimestamp: Date?, wasAnyWorkoutDiscarded: Bool) -> Bool {

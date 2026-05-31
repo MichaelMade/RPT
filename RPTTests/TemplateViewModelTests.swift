@@ -1373,6 +1373,20 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testActiveWorkoutBlocksTemplateStartMessage_guidesUntouchedPlannedDraftToOpenBeforeStartingTemplate() {
+        let viewModel = TemplateViewModel()
+        let workout = Workout(name: "Upper A")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = workout.addSet(exercise: exercise, weight: 185, reps: 8)
+        set.completedAt = .distantPast
+        let template = makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+
+        XCTAssertEqual(
+            viewModel.activeWorkoutBlocksTemplateStartMessage(for: workout, opening: template),
+            "You already have “Upper A” in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open it, save it for later, or discard it before starting Template “Lower Day”."
+        )
+    }
+
     func testStartTemplateFailureAlertTitles_nameSpecificTemplate() {
         let viewModel = TemplateViewModel()
         let template = makeTemplate(name: "  Upper   A  ", exerciseNames: ["Bench Press"])
@@ -1760,6 +1774,20 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.continueCurrentWorkoutButtonTitle(for: workout),
             "Open “Upper A”",
             "Zero-exercise template conflicts should say Open so the safe action reads like reopening the draft before adding anything else"
+        )
+    }
+
+    func testContinueCurrentWorkoutButtonTitle_usesOpenLanguageForUntouchedPlannedDraft() {
+        let viewModel = TemplateViewModel()
+        let workout = Workout(name: "  Upper   A  ")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = workout.addSet(exercise: exercise, weight: 185, reps: 8)
+        set.completedAt = .distantPast
+
+        XCTAssertEqual(
+            viewModel.continueCurrentWorkoutButtonTitle(for: workout),
+            "Open “Upper A”",
+            "Blocked template recovery should keep untouched planned drafts on the reopen path until the user has logged work"
         )
     }
 

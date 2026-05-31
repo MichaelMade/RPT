@@ -338,19 +338,21 @@ class TemplateViewModel: ObservableObject {
     }
 
     private func openingTemplateRecoveryInstruction(for workout: Workout) -> String {
-        guard workout.sets.isEmpty else {
-            return "Continue it, save it for later, or discard it"
-        }
-
-        return "Add an exercise to keep going, save it for later, or discard it"
+        recoveryInstruction(for: workout)
     }
 
     private func startingTemplateRecoveryInstruction(for workout: Workout) -> String {
-        guard workout.sets.isEmpty else {
-            return "Continue it, save it for later, or discard it"
+        recoveryInstruction(for: workout)
+    }
+
+    private func recoveryInstruction(for workout: Workout) -> String {
+        if workout.sets.isEmpty {
+            return "Add an exercise to keep going, save it for later, or discard it"
         }
 
-        return "Add an exercise to keep going, save it for later, or discard it"
+        return HomeViewModel.resumableWorkoutActionPrefix(for: workout) == "Continue"
+            ? "Continue it, save it for later, or discard it"
+            : "Open it, save it for later, or discard it"
     }
 
     private func startTemplateBlockSuffix(for template: WorkoutTemplate) -> String {
@@ -369,7 +371,7 @@ class TemplateViewModel: ObservableObject {
     }
 
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
-        let actionPrefix = workout.sets.isEmpty ? "Open" : "Continue"
+        let actionPrefix = HomeViewModel.resumableWorkoutActionPrefix(for: workout)
 
         guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
             return "\(actionPrefix) Workout"
