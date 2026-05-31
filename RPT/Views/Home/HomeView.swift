@@ -502,7 +502,7 @@ struct HomeView: View {
                                             Button {
                                                 saveActiveWorkoutAndStartFollowUp(from: matchedWorkout)
                                             } label: {
-                                                Label(viewModel.saveAndStartFollowUpButtonTitle(for: matchedWorkout), systemImage: "square.and.arrow.down")
+                                                Label(viewModel.saveAndStartFollowUpButtonTitle(for: matchedWorkout, currentWorkout: resumableWorkout), systemImage: "square.and.arrow.down")
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                             }
                                             .buttonStyle(.bordered)
@@ -511,7 +511,7 @@ struct HomeView: View {
                                                 workoutToDiscardAndStartFollowUp = matchedWorkout
                                                 showingDiscardAndStartFollowUpConfirmation = true
                                             } label: {
-                                                Label(viewModel.discardAndStartFollowUpButtonTitle(for: matchedWorkout), systemImage: "trash")
+                                                Label(viewModel.discardAndStartFollowUpButtonTitle(for: matchedWorkout, currentWorkout: resumableWorkout), systemImage: "trash")
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                             }
                                             .buttonStyle(.bordered)
@@ -702,12 +702,12 @@ struct HomeView: View {
                 }
 
                 if let workoutToStartFollowUp {
-                    Button(viewModel.saveAndStartFollowUpButtonTitle(for: workoutToStartFollowUp)) {
+                    Button(viewModel.saveAndStartFollowUpButtonTitle(for: workoutToStartFollowUp, currentWorkout: protectedResumableWorkout())) {
                         saveActiveWorkoutAndStartFollowUp(from: workoutToStartFollowUp)
                         self.workoutToStartFollowUp = nil
                     }
 
-                    Button(viewModel.discardAndStartFollowUpButtonTitle(for: workoutToStartFollowUp), role: .destructive) {
+                    Button(viewModel.discardAndStartFollowUpButtonTitle(for: workoutToStartFollowUp, currentWorkout: protectedResumableWorkout()), role: .destructive) {
                         workoutToDiscardAndStartFollowUp = workoutToStartFollowUp
                         showingDiscardAndStartFollowUpConfirmation = true
                     }
@@ -730,7 +730,7 @@ struct HomeView: View {
                 isPresented: $showingDiscardAndStartFollowUpConfirmation,
                 presenting: workoutToDiscardAndStartFollowUp
             ) { workout in
-                Button(viewModel.discardAndStartFollowUpButtonTitle(for: workout), role: .destructive) {
+                Button(viewModel.discardAndStartFollowUpButtonTitle(for: workout, currentWorkout: protectedResumableWorkout()), role: .destructive) {
                     discardActiveWorkoutAndStartFollowUp(from: workout)
                     workoutToDiscardAndStartFollowUp = nil
                     workoutToStartFollowUp = nil

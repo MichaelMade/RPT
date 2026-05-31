@@ -1417,11 +1417,12 @@ final class HomeViewModelTests: XCTestCase {
 
     func testSaveAndStartFollowUpButtonTitle_usesNormalizedWorkoutName() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+        let currentWorkout = Workout(name: "  Push   Day  ")
 
         XCTAssertEqual(
-            viewModel.saveAndStartFollowUpButtonTitle(for: workout),
-            "Save & Start Follow-Up from “Upper A”",
-            "Follow-up recovery CTA copy should name the saved workout so blocked restart choices stay unmistakable"
+            viewModel.saveAndStartFollowUpButtonTitle(for: workout, currentWorkout: currentWorkout),
+            "Save “Push Day” & Start Follow-Up from “Upper A”",
+            "Follow-up recovery CTA copy should name both the in-progress draft and saved workout so blocked restart choices stay unmistakable"
         )
     }
 
@@ -1430,18 +1431,19 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.saveAndStartFollowUpButtonTitle(for: workout),
-            "Save & Start This Follow-Up",
-            "Blank legacy workout names should keep save-and-start follow-up CTAs generic instead of quoting a placeholder workout name"
+            "Save This Workout & Start This Follow-Up",
+            "Blank legacy workout names should keep save-and-start follow-up CTAs generic without dropping the draft-saving context"
         )
     }
 
     func testDiscardAndStartFollowUpButtonTitle_usesNormalizedWorkoutName() {
         let workout = Workout(name: "  Upper   A  ", isCompleted: true)
+        let currentWorkout = Workout(name: "  Push   Day  ")
 
         XCTAssertEqual(
-            viewModel.discardAndStartFollowUpButtonTitle(for: workout),
-            "Discard & Start Follow-Up from “Upper A”",
-            "Destructive follow-up recovery CTA copy should name the saved workout so conflict-resolution choices stay unmistakable"
+            viewModel.discardAndStartFollowUpButtonTitle(for: workout, currentWorkout: currentWorkout),
+            "Discard “Push Day” & Start Follow-Up from “Upper A”",
+            "Destructive follow-up recovery CTA copy should name both the in-progress draft and saved workout so conflict-resolution choices stay unmistakable"
         )
     }
 
@@ -1450,8 +1452,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.discardAndStartFollowUpButtonTitle(for: workout),
-            "Discard & Start This Follow-Up",
-            "Blank legacy workout names should keep destructive follow-up CTAs generic instead of quoting a placeholder workout name"
+            "Discard This Workout & Start This Follow-Up",
+            "Blank legacy workout names should keep destructive follow-up CTAs generic without dropping the draft-discard context"
         )
     }
 

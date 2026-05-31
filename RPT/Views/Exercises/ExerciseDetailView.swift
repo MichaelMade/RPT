@@ -388,7 +388,7 @@ struct ExerciseDetailView: View {
                                             Button {
                                                 saveActiveWorkoutAndStartFollowUp(from: entry.workout)
                                             } label: {
-                                                Label(homeViewModel.saveAndStartFollowUpButtonTitle(for: entry.workout), systemImage: "square.and.arrow.down")
+                                                Label(homeViewModel.saveAndStartFollowUpButtonTitle(for: entry.workout, currentWorkout: resumableWorkout), systemImage: "square.and.arrow.down")
                                                     .font(.caption.weight(.semibold))
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                             }
@@ -398,7 +398,7 @@ struct ExerciseDetailView: View {
                                                 workoutToDiscardAndStartFollowUp = entry.workout
                                                 showingDiscardAndStartFollowUpConfirmation = true
                                             } label: {
-                                                Label(homeViewModel.discardAndStartFollowUpButtonTitle(for: entry.workout), systemImage: "trash")
+                                                Label(homeViewModel.discardAndStartFollowUpButtonTitle(for: entry.workout, currentWorkout: resumableWorkout), systemImage: "trash")
                                                     .font(.caption.weight(.semibold))
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                             }
@@ -539,7 +539,7 @@ struct ExerciseDetailView: View {
             isPresented: $showingDiscardAndStartFollowUpConfirmation,
             presenting: workoutToDiscardAndStartFollowUp
         ) { workout in
-            Button(homeViewModel.discardAndStartFollowUpButtonTitle(for: workout), role: .destructive) {
+            Button(homeViewModel.discardAndStartFollowUpButtonTitle(for: workout, currentWorkout: protectedResumableWorkout()), role: .destructive) {
                 discardActiveWorkoutAndStartFollowUp(from: workout)
                 workoutToDiscardAndStartFollowUp = nil
             }

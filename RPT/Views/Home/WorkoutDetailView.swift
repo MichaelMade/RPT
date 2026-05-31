@@ -612,7 +612,7 @@ struct WorkoutDetailView: View {
                                 Button {
                                     saveActiveWorkoutAndStartFollowUp(from: workout)
                                 } label: {
-                                    Label(homeViewModel.saveAndStartFollowUpButtonTitle(for: workout), systemImage: "square.and.arrow.down")
+                                    Label(homeViewModel.saveAndStartFollowUpButtonTitle(for: workout, currentWorkout: resumableWorkout), systemImage: "square.and.arrow.down")
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .buttonStyle(.bordered)
@@ -621,7 +621,7 @@ struct WorkoutDetailView: View {
                                     workoutToDiscardAndStartFollowUp = workout
                                     showingDiscardAndStartFollowUpConfirmation = true
                                 } label: {
-                                    Label(homeViewModel.discardAndStartFollowUpButtonTitle(for: workout), systemImage: "trash")
+                                    Label(homeViewModel.discardAndStartFollowUpButtonTitle(for: workout, currentWorkout: resumableWorkout), systemImage: "trash")
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .buttonStyle(.bordered)
@@ -724,7 +724,7 @@ struct WorkoutDetailView: View {
             isPresented: $showingDiscardAndStartFollowUpConfirmation,
             presenting: workoutToDiscardAndStartFollowUp
         ) { workout in
-            Button(homeViewModel.discardAndStartFollowUpButtonTitle(for: workout), role: .destructive) {
+            Button(homeViewModel.discardAndStartFollowUpButtonTitle(for: workout, currentWorkout: protectedResumableWorkout()), role: .destructive) {
                 discardActiveWorkoutAndStartFollowUp(from: workout)
                 workoutToDiscardAndStartFollowUp = nil
             }

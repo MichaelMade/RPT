@@ -590,20 +590,12 @@ class HomeViewModel: ObservableObject {
         return "Start Follow-Up from “\(displayName)”"
     }
 
-    func saveAndStartFollowUpButtonTitle(for workout: Workout) -> String {
-        guard let displayName = specificSavedWorkoutName(for: workout) else {
-            return "Save & Start This Follow-Up"
-        }
-
-        return "Save & Start Follow-Up from “\(displayName)”"
+    func saveAndStartFollowUpButtonTitle(for workout: Workout, currentWorkout: Workout? = nil) -> String {
+        "\(saveCurrentWorkoutTitlePrefix(for: currentWorkout)) & Start \(followUpActionTarget(for: workout))"
     }
 
-    func discardAndStartFollowUpButtonTitle(for workout: Workout) -> String {
-        guard let displayName = specificSavedWorkoutName(for: workout) else {
-            return "Discard & Start This Follow-Up"
-        }
-
-        return "Discard & Start Follow-Up from “\(displayName)”"
+    func discardAndStartFollowUpButtonTitle(for workout: Workout, currentWorkout: Workout? = nil) -> String {
+        "\(discardCurrentWorkoutTitlePrefix(for: currentWorkout)) & Start \(followUpActionTarget(for: workout))"
     }
 
     func discardCurrentWorkoutAndStartFollowUpAlertTitle(for workout: Workout, currentWorkout: Workout? = nil) -> String {
@@ -632,12 +624,28 @@ class HomeViewModel: ObservableObject {
         return "Discard “\(displayName)”"
     }
 
+    private func saveCurrentWorkoutTitlePrefix(for workout: Workout?) -> String {
+        guard let workout, let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Save This Workout"
+        }
+
+        return "Save “\(displayName)”"
+    }
+
     private func discardCurrentWorkoutMessageSubject(for workout: Workout?) -> String {
         guard let workout, let displayName = WorkoutRow.specificDisplayName(for: workout) else {
             return "Your in-progress workout"
         }
 
         return "“\(displayName)”"
+    }
+
+    private func followUpActionTarget(for workout: Workout) -> String {
+        guard let displayName = specificSavedWorkoutName(for: workout) else {
+            return "This Follow-Up"
+        }
+
+        return "Follow-Up from “\(displayName)”"
     }
 
     func startTemplateFailureAlertTitle(for template: WorkoutTemplate) -> String {
