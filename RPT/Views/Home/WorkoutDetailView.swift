@@ -156,7 +156,7 @@ struct WorkoutDetailView: View {
 
         return (
             title: "No exercises added yet",
-            subtitle: "Add an exercise to start logging sets and see your workout details here."
+            subtitle: ActiveWorkoutView.emptyStateHelperMessage
         )
     }
 

@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Details’ zero-exercise draft empty state now reuses the same finish/save-for-later guidance as the live workout screen, so users reviewing a brand-new draft get one consistent recovery message instead of a weaker detail-only hint.
 - Legacy placeholder draft names like `Current Draft` now normalize to the same generic `Workout` label as `Current Workout`, so blocked-start guidance, navigation titles, and copied/exported summaries stop treating that stale internal-style name like a real routine title.
 - Blocked follow-up/template recovery now tells users with a brand-new zero-exercise draft to add an exercise before switching away, instead of vaguely saying to `Continue` a draft that cannot be completed yet.
 - Template Details now avoids repeating the same empty-template start guidance in both the exercise section and the footer helpers, so blank templates stay clearer without duplicating the exact same recovery text twice on one screen.

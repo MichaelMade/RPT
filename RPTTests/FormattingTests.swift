@@ -932,7 +932,8 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(draftState?.title, "No exercises added yet")
         XCTAssertEqual(
             draftState?.subtitle,
-            "Add an exercise to start logging sets and see your workout details here."
+            ActiveWorkoutView.emptyStateHelperMessage,
+            "Draft workout details should mirror the live workout empty-state recovery guidance."
         )
         XCTAssertNil(loggedState)
     }
