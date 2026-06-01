@@ -303,6 +303,37 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesNamedBlockedStartFallbackGuidanceWhenActiveWorkoutExists() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "continue, save, or discard this workout before starting template upper a"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Upper A"]
+        )
+    }
+
+    func testFetchTemplates_matchesPartialBlockedStartFallbackGuidanceWhenActiveWorkoutExists() {
+        let viewModel = TemplateViewModel()
+        viewModel.availableExercises = [Exercise(name: "Bench Press")]
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press", "Missing Lift"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "continue, save, or discard this workout before starting the available part of template push day"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
+    }
+
     func testFetchTemplates_matchesGenericContinueWorkoutBlockedStartCTA() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

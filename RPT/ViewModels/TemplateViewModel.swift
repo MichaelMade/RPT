@@ -921,6 +921,7 @@ class TemplateViewModel: ObservableObject {
             let genericDiscardAndStartFailureTitle = activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template)
             let genericSaveAndStartFailureMessage = activeWorkoutPersistenceFailureMessage(for: .saveForLater, opening: template)
             let genericDiscardAndStartFailureMessage = activeWorkoutPersistenceFailureMessage(for: .discard, opening: template)
+            let genericBlockedStartMessage = templateManager.genericTemplateStartBlockMessage(for: template)
 
             terms.append(contentsOf: [
                 "current workout",
@@ -937,6 +938,7 @@ class TemplateViewModel: ObservableObject {
                 "open workout",
                 "open it",
                 "continue, save, or discard this workout before starting this template",
+                genericBlockedStartMessage,
                 "add an exercise",
                 "add an exercise to keep going",
                 "save for later",
