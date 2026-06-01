@@ -1185,7 +1185,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. Add an exercise to “Upper A” to keep going, save it for later, or discard it before starting this template."
+            "Ready to start with 1 exercise. “Upper A” is in progress: Started just now • No exercises added yet. Add an exercise to “Upper A” to keep going, save it for later, or discard it before starting this template."
         )
     }
 
@@ -1212,7 +1212,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. Add an exercise to keep going, save it for later, or discard this workout before starting this template."
+            "Ready to start with 1 exercise. Your current workout is in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting this template."
         )
     }
 
@@ -1240,7 +1240,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. Continue “Upper A”, save it for later, or discard it before starting this template."
+            "Ready to start with 1 exercise. “Upper A” is in progress: Started just now • 1 exercise • 1 set • Exercise started. Continue “Upper A”, save it for later, or discard it before starting this template."
         )
     }
 
@@ -1260,7 +1260,7 @@ final class TemplateManagerTests: XCTestCase {
             notes: ""
         )
         let activeWorkout = Workout(name: "Upper A")
-        _ = activeWorkout.addSet(exercise: availableExercise, weight: 185, reps: 8)
+        _ = activeWorkout.addSet(exercise: availableExercise, weight: 0, reps: 0)
 
         XCTAssertEqual(
             TemplateManager.shared.templateDetailStatusSummary(
@@ -1268,7 +1268,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. Open “Upper A”, save it for later, or discard it before starting this template."
+            "Ready to start with 1 exercise. “Upper A” is in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open “Upper A”, save it for later, or discard it before starting this template."
         )
     }
 

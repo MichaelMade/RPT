@@ -588,21 +588,33 @@ class TemplateManager {
             return "Continue this workout, save it for later, or discard it before starting this template"
         }
 
+        let workoutSummary = HomeViewModel().resumableWorkoutSummary(for: workout)
+        let statusLead: String
+
+        if let displayName = WorkoutRow.specificDisplayName(for: workout) {
+            statusLead = "“\(displayName)” is in progress: \(workoutSummary)."
+        } else {
+            statusLead = "Your current workout is in progress: \(workoutSummary)."
+        }
+
+        let actionInstruction: String
         if workout.sets.isEmpty {
-            guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-                return "Add an exercise to keep going, save it for later, or discard this workout before starting this template"
+            if let displayName = WorkoutRow.specificDisplayName(for: workout) {
+                actionInstruction = "Add an exercise to “\(displayName)” to keep going, save it for later, or discard it before starting this template"
+            } else {
+                actionInstruction = "Add an exercise to keep going, save it for later, or discard it before starting this template"
             }
+        } else {
+            let actionPrefix = HomeViewModel.resumableWorkoutActionPrefix(for: workout)
 
-            return "Add an exercise to “\(displayName)” to keep going, save it for later, or discard it before starting this template"
+            if let displayName = WorkoutRow.specificDisplayName(for: workout) {
+                actionInstruction = "\(actionPrefix) “\(displayName)”, save it for later, or discard it before starting this template"
+            } else {
+                actionInstruction = "\(actionPrefix) this workout, save it for later, or discard it before starting this template"
+            }
         }
 
-        let actionPrefix = HomeViewModel.resumableWorkoutActionPrefix(for: workout)
-
-        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "\(actionPrefix) this workout, save it for later, or discard it before starting this template"
-        }
-
-        return "\(actionPrefix) “\(displayName)”, save it for later, or discard it before starting this template"
+        return "\(statusLead) \(actionInstruction)"
     }
 
     func startWorkoutDisabledMessage(for template: WorkoutTemplate) -> String? {
