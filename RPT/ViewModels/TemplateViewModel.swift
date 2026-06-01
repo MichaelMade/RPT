@@ -880,7 +880,9 @@ class TemplateViewModel: ObservableObject {
             "duplicate \(templateName)",
             "copy template",
             "copy \(templateName)",
-            "\(templateName) copy"
+            "\(templateName) copy",
+            startTemplateFailureAlertTitle(for: template),
+            startTemplateFailureMessage(for: template)
         ]
 
         if canStartWorkout {
@@ -915,6 +917,10 @@ class TemplateViewModel: ObservableObject {
             let genericSaveAndStartTitle = saveAndStartTemplateButtonTitle(for: template)
             let genericDiscardAndStartTitle = discardAndStartTemplateButtonTitle(for: template, currentWorkout: nil)
             let genericDiscardAndStartAlertTitle = discardCurrentWorkoutAndStartTemplateAlertTitle(for: template, currentWorkout: nil)
+            let genericSaveAndStartFailureTitle = activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template)
+            let genericDiscardAndStartFailureTitle = activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template)
+            let genericSaveAndStartFailureMessage = activeWorkoutPersistenceFailureMessage(for: .saveForLater, opening: template)
+            let genericDiscardAndStartFailureMessage = activeWorkoutPersistenceFailureMessage(for: .discard, opening: template)
 
             terms.append(contentsOf: [
                 "current workout",
@@ -956,6 +962,8 @@ class TemplateViewModel: ObservableObject {
                 "save & start template",
                 "save and start template",
                 genericSaveAndStartTitle,
+                genericSaveAndStartFailureTitle,
+                genericSaveAndStartFailureMessage,
                 "discard open template",
                 "discard & open template",
                 "discard and open template",
@@ -963,7 +971,9 @@ class TemplateViewModel: ObservableObject {
                 "discard & start template",
                 "discard and start template",
                 genericDiscardAndStartTitle,
-                genericDiscardAndStartAlertTitle
+                genericDiscardAndStartAlertTitle,
+                genericDiscardAndStartFailureTitle,
+                genericDiscardAndStartFailureMessage
             ])
 
             if isPartialStart {

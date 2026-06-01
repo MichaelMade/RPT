@@ -1802,6 +1802,38 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesTemplateStartFailureRetryGuidance() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "refresh the template and try again"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper A", "Lower Day"],
+            "Template search should match the visible retry guidance users see in template-start failure alerts"
+        )
+    }
+
+    func testFetchTemplates_matchesSaveAndStartTemplateFailureAlertTitle() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "couldn't save & start template upper a"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Upper A"],
+            "Template search should also recognize the blocked-start failure titles from save-and-start recovery flows"
+        )
+    }
+
     func testContinueCurrentWorkoutButtonTitle_namesSpecificDraftWhenWorkoutHasLoggedOrPlannedWork() {
         let viewModel = TemplateViewModel()
         let workout = Workout(name: "  Upper   A  ")
