@@ -131,6 +131,13 @@ final class HomeViewTests: XCTestCase {
         )
     }
 
+    func testSourceTemplateBlockAlertMessage_usesDisplaySafeFallbackWhenWorkoutDetailsAreUnavailable() {
+        XCTAssertEqual(
+            HomeView.sourceTemplateBlockAlertMessage(for: WorkoutTemplate(name: "Upper A"), activeWorkout: nil),
+            "You already have a workout in progress. Continue, save, or discard this workout before starting this template."
+        )
+    }
+
     func testDiscardCurrentWorkoutAndStartTemplateAlertCopy_namesSpecificTemplate() {
         let template = WorkoutTemplate(name: "  Upper   A  ")
 

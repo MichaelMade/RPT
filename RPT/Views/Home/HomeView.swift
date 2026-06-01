@@ -163,6 +163,11 @@ struct HomeView: View {
 
         return TemplateViewModel().activeWorkoutBlocksTemplateStartMessage(for: activeWorkout, opening: template)
     }
+
+    static func sourceTemplateBlockAlertMessage(for template: WorkoutTemplate?, activeWorkout: Workout?) -> String {
+        sourceTemplateBlockMessage(for: template, activeWorkout: activeWorkout)
+            ?? "You already have a workout in progress. Continue, save, or discard this workout before starting this template."
+    }
     
     var body: some View {
         NavigationStack {
@@ -794,11 +799,10 @@ struct HomeView: View {
                 }
             } message: {
                 Text(
-                    Self.sourceTemplateBlockMessage(
+                    Self.sourceTemplateBlockAlertMessage(
                         for: templateToStartFromHistory,
                         activeWorkout: protectedResumableWorkout()
                     )
-                    ?? "You already have a workout in progress. Continue it, save it for later, or discard it before starting this template."
                 )
             }
             .alert("Workout Summary Copied", isPresented: $showingCopySummaryAlert) {
