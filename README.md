@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details’ generic blocked-start helper copy now stays on the same display-safe fallback wording as the rest of RPT (`You already have a workout in progress...`, `Continue, save, or discard this workout before starting this template`) instead of resurfacing the older `current workout` phrasing when an unnamed or legacy draft blocks a template.
 - Template-start failure alerts now name the exact template (including partial-template cases) and reuse the same disabled-state guidance when a routine has lost all available exercises, so retry messages tell users whether to refresh or restore missing movements instead of falling back to a vague generic failure.
 - Blocked draft-recovery CTAs now stay on `Open ...` until an in-progress workout has actual logged work, so template-seeded or manually planned drafts with untouched placeholder sets no longer overstate progress with `Continue ...` before the user has really started the session.
 - Template Details’ blocked-start status summary now tells users with a zero-exercise draft to add an exercise first (`Add an exercise to “Upper A” to keep going...`) instead of generically saying `Continue`, so the warning matches the real state of an empty in-progress workout before they switch into a template.

@@ -585,7 +585,7 @@ class TemplateManager {
 
     private func activeWorkoutStatusPrompt(for workout: Workout?) -> String {
         guard let workout else {
-            return "Continue this workout, save it for later, or discard it before starting this template"
+            return "You already have a workout in progress. Continue, save, or discard this workout before starting this template"
         }
 
         let workoutSummary = HomeViewModel().resumableWorkoutSummary(for: workout)
@@ -594,7 +594,7 @@ class TemplateManager {
         if let displayName = WorkoutRow.specificDisplayName(for: workout) {
             statusLead = "“\(displayName)” is in progress: \(workoutSummary)."
         } else {
-            statusLead = "Your current workout is in progress: \(workoutSummary)."
+            statusLead = "You already have a workout in progress: \(workoutSummary)."
         }
 
         let actionInstruction: String

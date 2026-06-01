@@ -1140,7 +1140,7 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
-    func testTemplateDetailStatusSummary_mentionsCurrentWorkoutBlockForOtherwiseReadyTemplate() throws {
+    func testTemplateDetailStatusSummary_usesDisplaySafeGenericBlockCopyWhenWorkoutDetailsAreUnavailable() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         context.insert(availableExercise)
@@ -1158,7 +1158,7 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(
             TemplateManager.shared.templateDetailStatusSummary(for: template, blockedByActiveWorkout: true),
-            "Ready to start with 1 exercise. Continue this workout, save it for later, or discard it before starting this template."
+            "Ready to start with 1 exercise. You already have a workout in progress. Continue, save, or discard this workout before starting this template."
         )
     }
 
@@ -1212,7 +1212,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. Your current workout is in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting this template."
+            "Ready to start with 1 exercise. You already have a workout in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting this template."
         )
     }
 
