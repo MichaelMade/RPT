@@ -594,6 +594,14 @@ class TemplateViewModel: ObservableObject {
         "Couldn’t Start \(startTemplateActionTarget(for: template, partial: isPartialTemplateStart(template)))"
     }
 
+    func startTemplateFailureMessage(for template: WorkoutTemplate) -> String {
+        if let disabledMessage = templateManager.startWorkoutDisabledMessage(for: template) {
+            return disabledMessage
+        }
+
+        return "RPT couldn’t start \(startTemplateSentenceTarget(for: template, partial: isPartialTemplateStart(template))) right now. Refresh the template and try again."
+    }
+
     func activeWorkoutPersistenceFailureAlertTitle(
         for action: ActiveWorkoutPersistenceAction,
         opening template: WorkoutTemplate
@@ -650,7 +658,7 @@ class TemplateViewModel: ObservableObject {
         }
 
         guard let startedWorkout = createWorkoutFromTemplate(template) else {
-            return .failure("Your template workout could not be started right now. Please try again.")
+            return .failure(startTemplateFailureMessage(for: template))
         }
 
         return .success(startedWorkout)

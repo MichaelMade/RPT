@@ -1580,6 +1580,10 @@ final class TemplateViewModelTests: XCTestCase {
             "Couldn’t Start This Template"
         )
         XCTAssertEqual(
+            viewModel.startTemplateFailureMessage(for: template),
+            "RPT couldn’t start this template right now. Refresh the template and try again."
+        )
+        XCTAssertEqual(
             viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template),
             "Couldn’t Save & Start This Template"
         )
@@ -1665,6 +1669,10 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.discardAndStartTemplateButtonTitle(for: template), "Discard & Start Partial Template “Upper A”")
         XCTAssertEqual(viewModel.discardCurrentWorkoutAndStartTemplateAlertTitle(for: template), "Discard This Workout & Start Partial Template “Upper A”?")
         XCTAssertEqual(viewModel.startTemplateFailureAlertTitle(for: template), "Couldn’t Start Partial Template “Upper A”")
+        XCTAssertEqual(
+            viewModel.startTemplateFailureMessage(for: template),
+            "RPT couldn’t start the available part of Template “Upper A” right now. Refresh the template and try again."
+        )
         XCTAssertEqual(viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template), "Couldn’t Save & Start Partial Template “Upper A”")
         XCTAssertEqual(viewModel.activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template), "Couldn’t Discard & Start Partial Template “Upper A”")
         XCTAssertEqual(
@@ -1706,6 +1714,16 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
             "Your in-progress workout will be lost and RPT will immediately start the available part of this template. Source template: 2 exercises and 6 planned sets. This action cannot be undone.",
             "Blank legacy template names should keep partial-start recovery copy generic while still warning that unavailable exercises will be skipped"
+        )
+    }
+
+    func testStartTemplateFailureMessage_reusesDisabledGuidanceWhenTemplateHasNoAvailableExercises() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "Upper A", exerciseNames: ["Missing Exercise"])
+
+        XCTAssertEqual(
+            viewModel.startTemplateFailureMessage(for: template),
+            "This template can’t start right now because its only exercise is missing from your library. Restore or replace it before starting."
         )
     }
 
@@ -2001,7 +2019,7 @@ final class TemplateViewModelTests: XCTestCase {
         case .failure(let message):
             XCTAssertEqual(
                 message,
-                "Your template workout could not be started right now. Please try again."
+                "RPT couldn’t start Template “Push Day” right now. Refresh the template and try again."
             )
         }
     }

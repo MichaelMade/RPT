@@ -1,5 +1,6 @@
 # RPT
 
+- Template-start failure alerts now name the exact template (including partial-template cases) and reuse the same disabled-state guidance when a routine has lost all available exercises, so retry messages tell users whether to refresh or restore missing movements instead of falling back to a vague generic failure.
 - Blocked draft-recovery CTAs now stay on `Open ...` until an in-progress workout has actual logged work, so template-seeded or manually planned drafts with untouched placeholder sets no longer overstate progress with `Continue ...` before the user has really started the session.
 - Template Details’ blocked-start status summary now tells users with a zero-exercise draft to add an exercise first (`Add an exercise to “Upper A” to keep going...`) instead of generically saying `Continue`, so the warning matches the real state of an empty in-progress workout before they switch into a template.
 - Blocked draft-conflict alerts now switch their safe recovery button to `Open …` for zero-exercise drafts (`Open “Push Day”`, `Open Workout`) instead of implying users can simply `Continue`, so restart/template/follow-up conflicts better match the actual next step of reopening the draft and adding an exercise first.

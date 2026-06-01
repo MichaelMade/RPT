@@ -672,7 +672,7 @@ struct ExerciseDetailView: View {
     private func startWorkout(from template: WorkoutTemplate) {
         guard let startedWorkout = templateViewModel.createWorkoutFromTemplate(template) else {
             presentTemplateStartFailure(
-                "Your template workout could not be started right now. Please try again.",
+                templateViewModel.startTemplateFailureMessage(for: template),
                 title: Self.templateStartFailureAlertTitle(for: template)
             )
             return

@@ -544,7 +544,7 @@ struct TemplatesListView: View {
     private func performQuickStart(_ template: WorkoutTemplate) {
         guard let startedWorkout = viewModel.createWorkoutFromTemplate(template) else {
             presentTemplateStartFailure(
-                "Your template workout could not be started right now. Please try again.",
+                viewModel.startTemplateFailureMessage(for: template),
                 title: viewModel.startTemplateFailureAlertTitle(for: template)
             )
             return

@@ -684,6 +684,10 @@ class HomeViewModel: ObservableObject {
         TemplateViewModel().startTemplateFailureAlertTitle(for: template)
     }
 
+    func startTemplateFailureMessage(for template: WorkoutTemplate) -> String {
+        TemplateViewModel().startTemplateFailureMessage(for: template)
+    }
+
     func sourceTemplateQuickActionTitle(
         for workout: Workout,
         resolvedTemplateName: String? = nil,
