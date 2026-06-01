@@ -530,7 +530,7 @@ class TemplateManager {
         }
 
         if blockedByActiveWorkout {
-            issueParts.append(activeWorkoutStatusPrompt(for: blockingWorkout))
+            issueParts.append(activeWorkoutStatusPrompt(for: blockingWorkout, starting: template))
         }
 
         guard !issueParts.isEmpty else {
@@ -571,6 +571,22 @@ class TemplateManager {
         return "Start Partial Template"
     }
 
+    func genericTemplateStartBlockMessage(for template: WorkoutTemplate?) -> String {
+        guard let template else {
+            return "You already have a workout in progress. Continue, save, or discard this workout before starting this template"
+        }
+
+        let templateName = WorkoutTemplate.normalizedDisplayName(template.name)
+        let templateReference = templateName == "Template"
+            ? "this template"
+            : "Template “\(templateName)”"
+        let startTarget = isPartialTemplateStart(template)
+            ? "the available part of \(templateReference)"
+            : templateReference
+
+        return "You already have a workout in progress. Continue, save, or discard this workout before starting \(startTarget)"
+    }
+
     private func activeWorkoutSummarySuffix(for workout: Workout?) -> String {
         guard let workout else {
             return "workout in progress"
@@ -583,9 +599,9 @@ class TemplateManager {
         return "“\(displayName)” in progress"
     }
 
-    private func activeWorkoutStatusPrompt(for workout: Workout?) -> String {
+    private func activeWorkoutStatusPrompt(for workout: Workout?, starting template: WorkoutTemplate) -> String {
         guard let workout else {
-            return "You already have a workout in progress. Continue, save, or discard this workout before starting this template"
+            return genericTemplateStartBlockMessage(for: template)
         }
 
         let workoutSummary = HomeViewModel().resumableWorkoutSummary(for: workout)

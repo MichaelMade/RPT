@@ -165,8 +165,11 @@ struct HomeView: View {
     }
 
     static func sourceTemplateBlockAlertMessage(for template: WorkoutTemplate?, activeWorkout: Workout?) -> String {
-        sourceTemplateBlockMessage(for: template, activeWorkout: activeWorkout)
-            ?? "You already have a workout in progress. Continue, save, or discard this workout before starting this template."
+        if let message = sourceTemplateBlockMessage(for: template, activeWorkout: activeWorkout) {
+            return message
+        }
+
+        return TemplateManager.shared.genericTemplateStartBlockMessage(for: template) + "."
     }
     
     var body: some View {

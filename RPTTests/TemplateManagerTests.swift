@@ -1140,7 +1140,7 @@ final class TemplateManagerTests: XCTestCase {
         )
     }
 
-    func testTemplateDetailStatusSummary_usesDisplaySafeGenericBlockCopyWhenWorkoutDetailsAreUnavailable() throws {
+    func testTemplateDetailStatusSummary_namesTemplateWhenWorkoutDetailsAreUnavailable() throws {
         let context = DataManager.shared.getModelContext()
         let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         context.insert(availableExercise)
@@ -1158,7 +1158,32 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(
             TemplateManager.shared.templateDetailStatusSummary(for: template, blockedByActiveWorkout: true),
-            "Ready to start with 1 exercise. You already have a workout in progress. Continue, save, or discard this workout before starting this template."
+            "Ready to start with 1 exercise. You already have a workout in progress. Continue, save, or discard this workout before starting Template “Push Day”."
+        )
+    }
+
+    func testTemplateDetailStatusSummary_mentionsPartialTemplateWhenWorkoutDetailsAreUnavailable() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "Ghost Lift")
+            ],
+            notes: ""
+        )
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateDetailStatusSummary(for: template, blockedByActiveWorkout: true),
+            "Starts with 1 of 2 exercises right now. 1 missing from your library. You already have a workout in progress. Continue, save, or discard this workout before starting the available part of Template “Push Day”."
         )
     }
 
