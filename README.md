@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also indexes the full active-workout open-template prompt (`You already have “Upper A” in progress... before opening Template “Lower Day”.`), so users can paste or search the exact conflict alert they just saw and still jump back to the intended template.
 - Workout Templates search now also indexes the exact named blocked-start fallback users see when a draft snapshot is unavailable (`Continue, save, or discard this workout before starting Template “Upper A”`, including partial-template variants), so searching the visible recovery sentence still finds the right template instead of only the generic `this template` form.
 - Workout Templates search now also indexes the untouched-planned-draft `Open it, save it for later, or discard it...` recovery wording, so blocked template starts remain findable by the exact alert copy users see before a template handoff when a draft has placeholder sets but no logged work yet.
 - Workout Templates search now also indexes the exact template-start failure and blocked save/discard retry copy users see (`Refresh the template and try again`, `Couldn’t Save & Start Template “Upper A”`), so troubleshooting searches stay aligned with the real alerts instead of only the happy-path start CTAs.

@@ -923,6 +923,10 @@ class TemplateViewModel: ObservableObject {
             let genericDiscardAndStartFailureMessage = activeWorkoutPersistenceFailureMessage(for: .discard, opening: template)
             let genericBlockedStartMessage = templateManager.genericTemplateStartBlockMessage(for: template)
 
+            if let activeWorkout {
+                terms.append(activeWorkoutPromptMessage(for: activeWorkout, opening: template))
+            }
+
             terms.append(contentsOf: [
                 "current workout",
                 "current workout in progress",

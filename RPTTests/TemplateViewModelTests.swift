@@ -288,6 +288,23 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesExactOpenTemplatePromptWhenActiveWorkoutExists() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Upper A")
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "you already have upper a in progress started just now no exercises added yet add an exercise to keep going save it for later or discard it before opening template lower day"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true, activeWorkout: activeWorkout).map(\.name),
+            ["Lower Day"],
+            "Template search should match the exact open-template prompt users see when another workout is already in progress"
+        )
+    }
+
     func testFetchTemplates_matchesThisWorkoutBlockedStartGuidanceWhenActiveWorkoutExists() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
