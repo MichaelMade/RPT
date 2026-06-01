@@ -333,6 +333,21 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesGenericOpenItBlockedStartGuidance() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Ghost Day", exerciseNames: ["Ghost Lift"]),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "open it, save it for later, or discard it before starting this template"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Ghost Day", "Push Day"]
+        )
+    }
+
     func testFetchTemplates_matchesGenericDiscardAndStartTemplateAlertTitle() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -358,6 +373,26 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "start template upper a"
 
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper A"])
+    }
+
+    func testFetchTemplates_matchesNamedOpenItBlockedStartGuidanceForTemplateTarget() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        let activeWorkout = Workout(name: "Upper A")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let set = activeWorkout.addSet(exercise: exercise, weight: 185, reps: 8)
+        set.completedAt = .distantPast
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            template
+        ]
+
+        viewModel.searchText = "open it, save it for later, or discard it before starting template lower day"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true, activeWorkout: activeWorkout).map(\.name),
+            ["Lower Day"]
+        )
     }
 
     func testFetchTemplates_matchesCurrentPartialStartTemplateCTA() throws {
