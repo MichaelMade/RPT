@@ -219,7 +219,7 @@ class TemplateViewModel: ObservableObject {
             ? " You can also create a new template from this search."
             : ""
 
-        return "No templates matched “\(normalizedQuery)”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, and issue labels like missing or repeated.\(createSuggestion)"
+        return "No templates matched “\(normalizedQuery)”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, recovery actions, and issue labels like missing, repeated, open, or discard.\(createSuggestion)"
     }
 
     func shouldShowResultsRecoveryActions(filteredCount: Int) -> Bool {
