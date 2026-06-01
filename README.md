@@ -1,5 +1,6 @@
 # RPT
 
+- Template Details’ blocked-start status summary now names the exact target template (including partial-template starts) inside its recovery instruction, so list/detail helper copy stays as specific as the newer alerts instead of slipping back to the vaguer `before starting this template` wording when another workout is already open.
 - Workout Templates search now indexes the newer blocked-draft `Open Workout` / `Open “Upper A”` recovery wording alongside the older continue/save/discard phrases, so templates stay findable by the exact CTA users see when a zero-exercise or untouched draft is already blocking a template start.
 - Blocked template-start fallbacks now keep the selected plan name even when the active workout snapshot is unavailable, so Home alerts and Template Details still say `before starting Template “Upper A”` (or `the available part of Template “Upper A”`) instead of dropping back to the vaguer `this template` wording.
 - Home’s template-start recovery alert now routes its defensive fallback through one shared helper and the same display-safe wording as the rest of RPT (`Continue, save, or discard this workout before starting this template`), so a missing draft snapshot can’t regress that alert back to the older `Continue it, save it for later...` phrasing.

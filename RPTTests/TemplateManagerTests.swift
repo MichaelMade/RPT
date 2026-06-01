@@ -1210,7 +1210,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. “Upper A” is in progress: Started just now • No exercises added yet. Add an exercise to “Upper A” to keep going, save it for later, or discard it before starting this template."
+            "Ready to start with 1 exercise. “Upper A” is in progress: Started just now • No exercises added yet. Add an exercise to “Upper A” to keep going, save it for later, or discard it before starting Template “Push Day”."
         )
     }
 
@@ -1237,7 +1237,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. You already have a workout in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting this template."
+            "Ready to start with 1 exercise. You already have a workout in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting Template “Push Day”."
         )
     }
 
@@ -1265,7 +1265,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. “Upper A” is in progress: Started just now • 1 exercise • 1 set • Exercise started. Continue “Upper A”, save it for later, or discard it before starting this template."
+            "Ready to start with 1 exercise. “Upper A” is in progress: Started just now • 1 exercise • 1 set • Exercise started. Continue “Upper A”, save it for later, or discard it before starting Template “Push Day”."
         )
     }
 
@@ -1293,7 +1293,38 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. “Upper A” is in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open “Upper A”, save it for later, or discard it before starting this template."
+            "Ready to start with 1 exercise. “Upper A” is in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open “Upper A”, save it for later, or discard it before starting Template “Push Day”."
+        )
+    }
+
+    func testTemplateDetailStatusSummary_namesPartialTemplateInBlockingWorkoutGuidance() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let template = WorkoutTemplate(
+            name: "Push Day",
+            exercises: [
+                sampleTemplateExercise(named: "Bench Press"),
+                sampleTemplateExercise(named: "Ghost Lift")
+            ],
+            notes: ""
+        )
+        let activeWorkout = Workout(name: "Upper A")
+        _ = activeWorkout.addSet(exercise: availableExercise, weight: 0, reps: 0)
+
+        XCTAssertEqual(
+            TemplateManager.shared.templateDetailStatusSummary(
+                for: template,
+                blockedByActiveWorkout: true,
+                blockingWorkout: activeWorkout
+            ),
+            "Starts with 1 of 2 exercises right now. 1 missing from your library • “Upper A” is in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open “Upper A”, save it for later, or discard it before starting the available part of Template “Push Day”."
         )
     }
 
