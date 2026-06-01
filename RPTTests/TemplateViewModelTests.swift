@@ -318,6 +318,21 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesGenericOpenWorkoutBlockedStartCTA() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Ghost Day", exerciseNames: ["Ghost Lift"]),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "open workout"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Ghost Day", "Push Day"]
+        )
+    }
+
     func testFetchTemplates_matchesGenericDiscardAndStartTemplateAlertTitle() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -1768,6 +1783,22 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.discardCurrentWorkoutAndStartTemplateAlertMessage(for: template),
             "Your in-progress workout will be lost and RPT will immediately start this template. Source template: 1 exercise and 3 planned sets. This action cannot be undone.",
             "Blank legacy template names should keep honest generic discard-and-start impact copy while still summarizing the template payload"
+        )
+    }
+
+    func testFetchTemplates_matchesNamedOpenWorkoutBlockedStartCTA() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+        let activeWorkout = Workout(name: "  Upper   A  ")
+
+        viewModel.searchText = "open upper a"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true, activeWorkout: activeWorkout).map(\.name),
+            ["Push Day", "Lower Day"]
         )
     }
 
