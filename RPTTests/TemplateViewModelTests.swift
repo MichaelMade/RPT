@@ -891,11 +891,25 @@ final class TemplateViewModelTests: XCTestCase {
             makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
             WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
         ]
-        viewModel.searchText = "finish the current workout"
 
+        viewModel.searchText = "finish the current workout"
         XCTAssertEqual(
             viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
             ["Push Day"]
+        )
+
+        viewModel.searchText = "finish this workout"
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"],
+            "Template search should also understand the exact Finish This Workout wording users see inside the active workout screen"
+        )
+
+        viewModel.searchText = "finish workout"
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"],
+            "Template search should stay resilient to the shorter finish-workout wording users may type from memory"
         )
     }
 
