@@ -220,35 +220,51 @@ struct TemplatesListView: View {
                     if viewModel.shouldShowSingleTemplateQuickActions(filteredCount: filteredTemplates.count),
                        let matchedTemplate = filteredTemplates.first {
                         Section("Quick Actions") {
-                            let matchedTemplateCanStart = templateManager.canStartWorkout(for: matchedTemplate)
+                            let quickActionMode = viewModel.quickActionMode(
+                                for: matchedTemplate,
+                                activeWorkoutBlocksStart: activeWorkoutBlocksTemplateStart,
+                                resumableWorkout: resumableWorkout
+                            )
 
-                            if !activeWorkoutBlocksTemplateStart,
-                               matchedTemplateCanStart {
+                            switch quickActionMode {
+                            case .startTemplate:
                                 Button(viewModel.quickStartTemplateButtonTitle(for: matchedTemplate)) {
                                     beginQuickStart(for: matchedTemplate)
                                 }
-                            } else if let resumableWorkout,
-                                      matchedTemplateCanStart {
-                                Button(viewModel.continueCurrentWorkoutButtonTitle(for: resumableWorkout)) {
-                                    showActiveWorkoutSheet = true
+
+                            case .activeWorkoutHandoff:
+                                if let resumableWorkout {
+                                    Button(viewModel.continueCurrentWorkoutButtonTitle(for: resumableWorkout)) {
+                                        showActiveWorkoutSheet = true
+                                    }
+
+                                    Button(viewModel.saveAndStartTemplateButtonTitle(for: matchedTemplate, currentWorkout: resumableWorkout)) {
+                                        saveActiveWorkoutAndOpenTemplate(matchedTemplate)
+                                    }
+
+                                    Button(role: .destructive) {
+                                        templateToDiscardAndStart = matchedTemplate
+                                        showingDiscardAndStartConfirmation = true
+                                    } label: {
+                                        Label(
+                                            viewModel.discardAndStartTemplateButtonTitle(
+                                                for: matchedTemplate,
+                                                currentWorkout: resumableWorkout
+                                            ),
+                                            systemImage: "trash"
+                                        )
+                                    }
                                 }
 
-                                Button(viewModel.saveAndStartTemplateButtonTitle(for: matchedTemplate, currentWorkout: resumableWorkout)) {
-                                    saveActiveWorkoutAndOpenTemplate(matchedTemplate)
+                            case .continueOnly:
+                                if let resumableWorkout {
+                                    Button(viewModel.continueCurrentWorkoutButtonTitle(for: resumableWorkout)) {
+                                        showActiveWorkoutSheet = true
+                                    }
                                 }
 
-                                Button(role: .destructive) {
-                                    templateToDiscardAndStart = matchedTemplate
-                                    showingDiscardAndStartConfirmation = true
-                                } label: {
-                                    Label(
-                                        viewModel.discardAndStartTemplateButtonTitle(
-                                            for: matchedTemplate,
-                                            currentWorkout: resumableWorkout
-                                        ),
-                                        systemImage: "trash"
-                                    )
-                                }
+                            case .none:
+                                EmptyView()
                             }
 
                             Button(viewModel.reviewTemplateButtonTitle(for: matchedTemplate)) {

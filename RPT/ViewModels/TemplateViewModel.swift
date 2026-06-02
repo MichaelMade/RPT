@@ -360,6 +360,31 @@ class TemplateViewModel: ObservableObject {
             : "Template “\(templateName)”"
     }
 
+    enum TemplateQuickActionMode: Equatable {
+        case none
+        case startTemplate
+        case activeWorkoutHandoff
+        case continueOnly
+    }
+
+    func quickActionMode(
+        for template: WorkoutTemplate,
+        activeWorkoutBlocksStart: Bool,
+        resumableWorkout: Workout?
+    ) -> TemplateQuickActionMode {
+        let canStartTemplate = templateManager.canStartWorkout(for: template)
+
+        if activeWorkoutBlocksStart {
+            guard resumableWorkout != nil else {
+                return .none
+            }
+
+            return canStartTemplate ? .activeWorkoutHandoff : .continueOnly
+        }
+
+        return canStartTemplate ? .startTemplate : .none
+    }
+
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
         let actionPrefix = HomeViewModel.resumableWorkoutActionPrefix(for: workout)
 

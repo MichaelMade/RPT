@@ -1270,6 +1270,68 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testQuickActionMode_returnsContinueOnlyWhenCurrentWorkoutBlocksTemplateThatCannotStart() {
+        let viewModel = TemplateViewModel()
+        let blockedTemplate = makeTemplate(name: "Push Day", exerciseNames: [])
+        let activeWorkout = Workout(name: "Upper Body")
+
+        XCTAssertEqual(
+            viewModel.quickActionMode(
+                for: blockedTemplate,
+                activeWorkoutBlocksStart: true,
+                resumableWorkout: activeWorkout
+            ),
+            .continueOnly
+        )
+    }
+
+    func testQuickActionMode_returnsActiveWorkoutHandoffWhenCurrentWorkoutBlocksStartableTemplate() {
+        let context = DataManager.shared.getModelContext()
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(bench)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(bench)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        let activeWorkout = Workout(name: "Upper Body")
+
+        XCTAssertEqual(
+            viewModel.quickActionMode(
+                for: template,
+                activeWorkoutBlocksStart: true,
+                resumableWorkout: activeWorkout
+            ),
+            .activeWorkoutHandoff
+        )
+    }
+
+    func testQuickActionMode_returnsStartTemplateWhenTemplateCanStartAndNoWorkoutBlocksIt() {
+        let context = DataManager.shared.getModelContext()
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(bench)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(bench)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+
+        XCTAssertEqual(
+            viewModel.quickActionMode(
+                for: template,
+                activeWorkoutBlocksStart: false,
+                resumableWorkout: nil
+            ),
+            .startTemplate
+        )
+    }
+
     func testSuggestedTemplateNameForEmptySearch_usesNormalizedActiveSearchTextOnlyWhenNoResultsRemain() {
         let viewModel = TemplateViewModel()
         viewModel.searchText = "  Upper\n Body  "
