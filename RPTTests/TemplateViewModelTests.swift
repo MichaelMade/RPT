@@ -1226,6 +1226,44 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesTemplateStructurePlannedSetSummary() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press", "Incline Press"], suggestedSets: 2),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"], suggestedSets: 3)
+        ]
+
+        viewModel.searchText = "4 planned sets"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper A"],
+            "Template search should match the planned-set summary users see in template impact and recovery copy"
+        )
+    }
+
+    func testFetchTemplates_matchesTemplateStructureNotesSummary() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(
+                name: "Upper A",
+                exerciseNames: ["Bench Press", "Incline Press"],
+                suggestedSets: 2,
+                exerciseNotes: ["Pause the last rep", ""],
+                notes: "Deload week"
+            ),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"], suggestedSets: 3)
+        ]
+
+        viewModel.searchText = "exercise notes and template notes"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper A"],
+            "Template search should also match the note-summary phrasing users see in template delete and restart confirmations"
+        )
+    }
+
     func testFilteredResultsSummary_onlyAppearsForActiveSearch() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

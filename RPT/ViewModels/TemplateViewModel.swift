@@ -1012,6 +1012,40 @@ class TemplateViewModel: ObservableObject {
         return terms
     }
 
+    private func templateStructureSearchTerms(for template: WorkoutTemplate) -> [String] {
+        let exerciseCount = template.exercises.count
+        let exerciseSummary = exerciseCount == 1 ? "1 exercise" : "\(exerciseCount) exercises"
+        let plannedSetCount = template.exercises.reduce(0) { $0 + max($1.suggestedSets, 0) }
+        let plannedSetSummary = plannedSetCount == 1 ? "1 planned set" : "\(plannedSetCount) planned sets"
+        let hasExerciseNotes = template.exercises.contains { !($0.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) }
+        let hasTemplateNotes = !template.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+        var terms = [
+            exerciseSummary,
+            plannedSetSummary,
+            Self.humanReadableList([exerciseSummary, plannedSetSummary]),
+            startTemplateSourceSummary(for: template)
+        ]
+
+        if hasExerciseNotes {
+            terms.append("exercise notes")
+        }
+
+        if hasTemplateNotes {
+            terms.append("template notes")
+        }
+
+        if hasExerciseNotes || hasTemplateNotes {
+            terms.append("notes")
+        }
+
+        if hasExerciseNotes && hasTemplateNotes {
+            terms.append("exercise notes and template notes")
+        }
+
+        return terms
+    }
+
     private func issueSearchTerms(
         for template: WorkoutTemplate,
         activeWorkoutAvailable: Bool,
@@ -1370,6 +1404,16 @@ class TemplateViewModel: ObservableObject {
             in: issueSearchTerms
         ) {
             return 26 + issuePriority
+        }
+
+        if let structurePriority = Self.searchTermMatchPriority(
+            query: normalizedQuery,
+            queryTokens: queryTokens,
+            compactedQuery: compactedQuery,
+            initialismQuery: initialismQuery,
+            in: templateStructureSearchTerms(for: template)
+        ) {
+            return 32 + structurePriority
         }
 
         return nil
