@@ -226,6 +226,18 @@ class TemplateViewModel: ObservableObject {
         hasActiveSearch && filteredCount > 0 && !templates.isEmpty
     }
 
+    func shouldShowEmptyStateContinueWorkoutAction(workout: Workout?) -> Bool {
+        workout != nil
+    }
+
+    func emptyStateContinueWorkoutButtonTitle(for workout: Workout?) -> String {
+        guard let workout else {
+            return "Open Workout"
+        }
+
+        return continueCurrentWorkoutButtonTitle(for: workout)
+    }
+
     func shouldShowSingleTemplateQuickActions(filteredCount: Int) -> Bool {
         filteredCount == 1 && (!templates.isEmpty && (hasActiveSearch || templates.count == 1))
     }

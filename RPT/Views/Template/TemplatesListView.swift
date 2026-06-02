@@ -112,6 +112,12 @@ struct TemplatesListView: View {
                     } description: {
                         Text(viewModel.emptyStateDescription(filteredCount: filteredTemplates.count))
                     } actions: {
+                        if viewModel.shouldShowEmptyStateContinueWorkoutAction(workout: resumableWorkout) {
+                            Button(viewModel.emptyStateContinueWorkoutButtonTitle(for: resumableWorkout)) {
+                                showActiveWorkoutSheet = true
+                            }
+                        }
+
                         if let createRecoveryTitle {
                             Button(createRecoveryTitle) {
                                 prepareNewTemplateDraft(

@@ -1294,6 +1294,28 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.shouldShowResultsRecoveryActions(filteredCount: 0))
     }
 
+    func testEmptyStateContinueWorkoutAction_onlyAppearsWhenWorkoutExists() {
+        let viewModel = TemplateViewModel()
+
+        XCTAssertFalse(viewModel.shouldShowEmptyStateContinueWorkoutAction(workout: nil))
+        XCTAssertEqual(viewModel.emptyStateContinueWorkoutButtonTitle(for: nil), "Open Workout")
+
+        let activeWorkout = Workout(name: "Upper A")
+        XCTAssertTrue(viewModel.shouldShowEmptyStateContinueWorkoutAction(workout: activeWorkout))
+        XCTAssertEqual(
+            viewModel.emptyStateContinueWorkoutButtonTitle(for: activeWorkout),
+            "Open “Upper A”"
+        )
+
+        let startedWorkout = Workout(name: "Push Day")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = startedWorkout.addSet(exercise: exercise, weight: 185, reps: 8)
+        XCTAssertEqual(
+            viewModel.emptyStateContinueWorkoutButtonTitle(for: startedWorkout),
+            "Continue “Push Day”"
+        )
+    }
+
     func testShouldShowSingleTemplateQuickActions_whenSearchNarrowsToOneTemplate() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

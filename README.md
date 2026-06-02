@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates’ empty and no-match states now keep the same `Open Workout` / `Continue “…”` recovery action visible whenever another workout is already in progress, so users can jump back into the live draft without backing out of a dead-end template search first.
 - Workout Templates search now also understands `Finish This Workout` / `finish workout` phrasing for blocked active-workout handoffs, so users can refind the right template from the exact active-workout CTA or their own shorthand before they switch back to finish, save, or discard the draft.
 - Workout Templates search now also understands legacy `Resume Workout` / `Resume “…”` phrasing for blocked active-workout handoffs, so users coming from older copy or their own mental model can still refind the right template even though the visible CTA now says `Continue` or `Open` depending on draft progress.
 - Workout Templates search now also understands `Rename Template` / `Rename “…”` wording as an edit intent, so users who think in terms of renaming a routine can still jump straight to the right plan instead of needing to guess the app’s `Edit` phrasing.
