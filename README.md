@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates now sanitize create-from-search prefills by stripping action-intent phrasing like `Rename Template ...`, `Save & Start Template ...`, or pasted recovery copy down to the underlying routine name, so search-driven `Create “…”` recovery no longer suggests accidental template names built from button or alert text.
 - Workout Templates’ empty and no-match states now keep the same `Open Workout` / `Continue “…”` recovery action visible whenever another workout is already in progress, so users can jump back into the live draft without backing out of a dead-end template search first.
 - Workout Templates search now also understands `Finish This Workout` / `finish workout` phrasing for blocked active-workout handoffs, so users can refind the right template from the exact active-workout CTA or their own shorthand before they switch back to finish, save, or discard the draft.
 - Workout Templates search now also understands legacy `Resume Workout` / `Resume “…”` phrasing for blocked active-workout handoffs, so users coming from older copy or their own mental model can still refind the right template even though the visible CTA now says `Continue` or `Open` depending on draft progress.

@@ -42,6 +42,61 @@ class TemplateViewModel: ObservableObject {
             .map(String.init)
     }
 
+    private static let searchIntentPrefillPrefixes = [
+        "save and start partial template ",
+        "save & start partial template ",
+        "discard and start partial template ",
+        "discard & start partial template ",
+        "save and start template ",
+        "save & start template ",
+        "discard and start template ",
+        "discard & start template ",
+        "start partial template ",
+        "start template ",
+        "start workout ",
+        "review template ",
+        "edit template ",
+        "rename template ",
+        "delete template ",
+        "duplicate template ",
+        "copy template ",
+        "clone template ",
+        "remove template ",
+        "open workout ",
+        "continue workout ",
+        "resume workout ",
+        "finish workout ",
+        "start ",
+        "review ",
+        "edit ",
+        "rename ",
+        "delete ",
+        "duplicate ",
+        "copy ",
+        "clone ",
+        "remove ",
+        "open ",
+        "continue ",
+        "resume ",
+        "finish ",
+        "save ",
+        "discard "
+    ]
+
+    private static let genericTemplatePrefillLookupKeys: Set<String> = [
+        "template",
+        "this template",
+        "partial template",
+        "workout",
+        "this workout",
+        "open workout",
+        "continue workout",
+        "resume workout",
+        "finish workout",
+        "current workout",
+        "workout in progress"
+    ]
+
     private static func normalizedSearchWords(_ rawValue: String) -> [String] {
         normalizedSearchLookupKey(rawValue)
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
@@ -242,13 +297,74 @@ class TemplateViewModel: ObservableObject {
         filteredCount == 1 && (!templates.isEmpty && (hasActiveSearch || templates.count == 1))
     }
 
-    func suggestedTemplateNameFromSearch() -> String? {
-        guard hasActiveSearch else {
+    private static func lastQuotedSearchName(in rawQuery: String) -> String? {
+        let patterns = [#"“([^“”]+)”"#, #"\"([^\"]+)\""#]
+
+        for pattern in patterns {
+            guard let regex = try? NSRegularExpression(pattern: pattern) else {
+                continue
+            }
+
+            let range = NSRange(rawQuery.startIndex..., in: rawQuery)
+            let matches = regex.matches(in: rawQuery, range: range)
+
+            for match in matches.reversed() {
+                guard match.numberOfRanges > 1,
+                      let matchRange = Range(match.range(at: 1), in: rawQuery) else {
+                    continue
+                }
+
+                let candidate = normalizedSearchQuery(String(rawQuery[matchRange]))
+                if !candidate.isEmpty {
+                    return candidate
+                }
+            }
+        }
+
+        return nil
+    }
+
+    private static func strippedSearchIntentPrefix(from rawQuery: String) -> String {
+        var candidate = normalizedSearchQuery(rawQuery)
+        var didStrip = true
+
+        while didStrip {
+            didStrip = false
+            let lowercasedCandidate = candidate.lowercased()
+
+            for prefix in searchIntentPrefillPrefixes where lowercasedCandidate.hasPrefix(prefix) {
+                candidate = normalizedSearchQuery(String(candidate.dropFirst(prefix.count)))
+                didStrip = true
+                break
+            }
+        }
+
+        return candidate
+    }
+
+    private static func suggestedTemplateNameCandidate(from rawQuery: String) -> String? {
+        let normalizedQuery = normalizedSearchQuery(rawQuery)
+        guard !normalizedQuery.isEmpty else {
             return nil
         }
 
-        let normalizedName = normalizedSearchText
-        guard !normalizedName.isEmpty else {
+        let candidate = lastQuotedSearchName(in: normalizedQuery) ?? strippedSearchIntentPrefix(from: normalizedQuery)
+        let normalizedCandidate = normalizedSearchQuery(candidate)
+        guard !normalizedCandidate.isEmpty else {
+            return nil
+        }
+
+        let normalizedLookup = normalizedSearchLookupKey(normalizedCandidate)
+        guard !genericTemplatePrefillLookupKeys.contains(normalizedLookup) else {
+            return nil
+        }
+
+        return normalizedCandidate
+    }
+
+    func suggestedTemplateNameFromSearch() -> String? {
+        guard hasActiveSearch,
+              let normalizedName = Self.suggestedTemplateNameCandidate(from: normalizedSearchText) else {
             return nil
         }
 

@@ -1441,6 +1441,33 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.shouldShowCreateTemplateFromSearchAction(filteredCount: 2))
     }
 
+    func testSuggestedTemplateNameFromSearch_stripsLeadingActionIntent() {
+        let viewModel = TemplateViewModel()
+
+        viewModel.searchText = "  rename   template\n Lower Day  "
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "save & start template Push Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Push Day")
+    }
+
+    func testSuggestedTemplateNameFromSearch_prefersQuotedTemplateNameFromRecoveryCopy() {
+        let viewModel = TemplateViewModel()
+        viewModel.searchText = "Continue “Push Day” before starting Template “Lower Day”."
+
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+    }
+
+    func testSuggestedTemplateNameFromSearch_avoidsGenericWorkoutOnlyPrefills() {
+        let viewModel = TemplateViewModel()
+
+        viewModel.searchText = "continue workout"
+        XCTAssertNil(viewModel.suggestedTemplateNameFromSearch())
+
+        viewModel.searchText = "start template"
+        XCTAssertNil(viewModel.suggestedTemplateNameFromSearch())
+    }
+
     func testCreateTemplateRecoveryTitle_formatsNormalizedSearchText() {
         let viewModel = TemplateViewModel()
         viewModel.searchText = "  Lower\n Day  "
