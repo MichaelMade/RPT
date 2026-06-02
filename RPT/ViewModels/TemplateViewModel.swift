@@ -949,7 +949,10 @@ class TemplateViewModel: ObservableObject {
             let genericBlockedStartMessage = templateManager.genericTemplateStartBlockMessage(for: template)
 
             if let activeWorkout {
-                terms.append(activeWorkoutPromptMessage(for: activeWorkout, opening: template))
+                terms.append(contentsOf: [
+                    activeWorkoutPromptMessage(for: activeWorkout, opening: template),
+                    continueCurrentWorkoutButtonTitle(for: activeWorkout)
+                ])
             }
 
             terms.append(contentsOf: [

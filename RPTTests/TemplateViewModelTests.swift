@@ -1979,6 +1979,42 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesNamedContinueWorkoutActionForBlockedTemplateThatCannotStart() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: []),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+        let activeWorkout = Workout(name: "Upper A")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = activeWorkout.addSet(exercise: exercise, weight: 185, reps: 8)
+
+        viewModel.searchText = "continue upper a"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true, activeWorkout: activeWorkout).map(\.name),
+            ["Push Day"],
+            "Template search should recognize the visible continue-workout CTA even when the matched template itself still needs repair"
+        )
+    }
+
+    func testFetchTemplates_matchesNamedOpenWorkoutActionForBlockedTemplateThatCannotStart() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: []),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+        let activeWorkout = Workout(name: "Upper A")
+
+        viewModel.searchText = "open upper a"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true, activeWorkout: activeWorkout).map(\.name),
+            ["Push Day"],
+            "Template search should also recognize the visible open-workout CTA for untouched drafts when the matched template cannot start yet"
+        )
+    }
+
     func testContinueCurrentWorkoutButtonTitle_namesSpecificDraftWhenWorkoutHasLoggedOrPlannedWork() {
         let viewModel = TemplateViewModel()
         let workout = Workout(name: "  Upper   A  ")

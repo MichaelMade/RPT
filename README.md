@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also recognizes the exact named `Continue “…”` / `Open “…”` recovery CTA from single-result Quick Actions even when the matched template itself still can’t start, so users can refind blocked routines by the visible active-workout handoff button instead of only broader generic conflict phrases.
 - Workout Templates’ no-match helper now explicitly teaches that search understands recovery-action and conflict wording too (`open`, `continue`, `save`, `discard`), so users are more likely to retry with the exact CTA or alert copy they just saw instead of assuming search only covers names and notes.
 - Workout Templates search now also indexes the full active-workout open-template prompt (`You already have “Upper A” in progress... before opening Template “Lower Day”.`), so users can paste or search the exact conflict alert they just saw and still jump back to the intended template.
 - Workout Templates search now also indexes the exact named blocked-start fallback users see when a draft snapshot is unavailable (`Continue, save, or discard this workout before starting Template “Upper A”`, including partial-template variants), so searching the visible recovery sentence still finds the right template instead of only the generic `this template` form.
@@ -763,6 +764,7 @@ RPT/
 - Improved Stats PR data quality by normalizing exercise names before PR aggregation in `StatsViewModel.computePRs` (trim/collapse whitespace plus case/diacritic-insensitive keys), so name variants like `Bench   Press` and `bench press` now resolve to one canonical PR card instead of splitting progress history; added regression coverage in `StatsViewModelTests`.
 
 - Fixed Settings state drift when invalid edits are rejected: `SettingsViewModel` now re-syncs from persisted `SettingsManager` values whenever a safe update fails (instead of leaving stale in-memory/UI values that were never saved). This hardens RPT drop editing and programmatic timer updates against invalid input mismatch; added regression coverage in new `SettingsViewModelTests`.
+- Workout Templates search now also matches the exact named `Continue “Upper A”` / `Open “Upper A”` recovery CTA from the single-result Quick Actions card even when the matched template itself still can’t start, so blocked-template searches stay aligned with the visible active-workout handoff button instead of only broader generic conflict copy; added regression coverage in `TemplateViewModelTests`.
 
 ## Contributing
 
