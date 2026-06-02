@@ -1251,13 +1251,13 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "  Lower\n Day  "
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
-            "No templates matched “Lower Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, recovery actions, and issue labels like missing, repeated, open, or discard. You can also create a new template from this search."
+            "No templates matched “Lower Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, recovery actions like open, continue, save, or discard, and issue labels like missing or repeated. You can also create a new template from this search."
         )
 
         viewModel.searchText = "  Push\n Day  "
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
-            "No templates matched “Push Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, recovery actions, and issue labels like missing, repeated, open, or discard."
+            "No templates matched “Push Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, recovery actions like open, continue, save, or discard, and issue labels like missing or repeated."
         )
     }
 
