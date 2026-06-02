@@ -256,6 +256,10 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "edit template"
 
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Empty Draft"])
+
+        viewModel.searchText = "rename template"
+
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Empty Draft"])
     }
 
     func testFetchTemplates_matchesResumeCurrentWorkoutWhenActiveWorkoutExistsEvenIfTemplateNeedsRepair() {
@@ -705,6 +709,12 @@ final class TemplateViewModelTests: XCTestCase {
         )
 
         viewModel.searchText = "edit upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
+        viewModel.searchText = "rename upper body push"
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
             ["Upper Body Push"]
