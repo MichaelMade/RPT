@@ -1067,6 +1067,11 @@ class TemplateViewModel: ObservableObject {
         var terms: [String] = [
             "review template",
             "review \(templateName)",
+            "open template",
+            "open \(templateName)",
+            "open this template",
+            "template details",
+            "template details \(templateName)",
             "edit template",
             "edit \(templateName)",
             "rename template",

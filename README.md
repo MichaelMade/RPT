@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also recognizes `open template`, `open “…”`, and `template details` intent wording, so users can jump back to the right routine even when they think in terms of opening or reviewing a plan instead of starting or editing it.
 - Workout Templates search now also matches template structure summaries like `4 planned sets`, `2 exercises`, and `exercise notes and template notes`, so users can refind a routine by the exact impact/recovery copy they remember from template delete and restart confirmations.
 - Workout Templates now sanitize create-from-search prefills by stripping action-intent phrasing like `Rename Template ...`, `Save & Start Template ...`, or pasted recovery copy down to the underlying routine name, so search-driven `Create “…”` recovery no longer suggests accidental template names built from button or alert text.
 - Workout Templates’ empty and no-match states now keep the same `Open Workout` / `Continue “…”` recovery action visible whenever another workout is already in progress, so users can jump back into the live draft without backing out of a dead-end template search first.
