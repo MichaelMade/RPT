@@ -913,6 +913,20 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesResumeWorkoutSynonymWhenAnotherWorkoutIsActive() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "resume workout"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Push Day"]
+        )
+    }
+
     func testFetchTemplates_matchesActiveWorkoutRecoveryCopyWhenAnotherWorkoutIsActive() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -984,6 +998,25 @@ final class TemplateViewModelTests: XCTestCase {
         ]
 
         viewModel.searchText = "Continue “Push Day”"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Upper A"]
+        )
+    }
+
+    func testFetchTemplates_matchesLegacyResumeCTAForBlockingWorkoutName() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Push Day")
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+
+        viewModel.searchText = "Resume “Push Day”"
 
         XCTAssertEqual(
             viewModel.fetchTemplates(

@@ -395,6 +395,14 @@ class TemplateViewModel: ObservableObject {
         return "\(actionPrefix) “\(displayName)”"
     }
 
+    private func resumeCurrentWorkoutSearchTitle(for workout: Workout) -> String {
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "Resume Workout"
+        }
+
+        return "Resume “\(displayName)”"
+    }
+
     func activeWorkoutInProgressTitle(for workout: Workout?) -> String {
         guard let workout else {
             return "Workout In Progress"
@@ -954,7 +962,8 @@ class TemplateViewModel: ObservableObject {
             if let activeWorkout {
                 terms.append(contentsOf: [
                     activeWorkoutPromptMessage(for: activeWorkout, opening: template),
-                    continueCurrentWorkoutButtonTitle(for: activeWorkout)
+                    continueCurrentWorkoutButtonTitle(for: activeWorkout),
+                    resumeCurrentWorkoutSearchTitle(for: activeWorkout)
                 ])
             }
 
@@ -966,6 +975,9 @@ class TemplateViewModel: ObservableObject {
                 "workout in progress",
                 "in progress",
                 "resume current workout",
+                "resume workout",
+                "resume this workout",
+                "resume it",
                 "continue current workout",
                 "continue workout",
                 "open current workout",

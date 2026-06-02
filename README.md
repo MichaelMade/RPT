@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also understands legacy `Resume Workout` / `Resume “…”` phrasing for blocked active-workout handoffs, so users coming from older copy or their own mental model can still refind the right template even though the visible CTA now says `Continue` or `Open` depending on draft progress.
 - Workout Templates search now also understands `Rename Template` / `Rename “…”` wording as an edit intent, so users who think in terms of renaming a routine can still jump straight to the right plan instead of needing to guess the app’s `Edit` phrasing.
 - Workout Templates search now also recognizes the exact named `Continue “…”` / `Open “…”` recovery CTA from single-result Quick Actions even when the matched template itself still can’t start, so users can refind blocked routines by the visible active-workout handoff button instead of only broader generic conflict phrases.
 - Workout Templates’ no-match helper now explicitly teaches that search understands recovery-action and conflict wording too (`open`, `continue`, `save`, `discard`), so users are more likely to retry with the exact CTA or alert copy they just saw instead of assuming search only covers names and notes.
