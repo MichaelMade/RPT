@@ -1533,6 +1533,12 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "view template Pull Day"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Pull Day")
 
+        viewModel.searchText = "preview template Upper B"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper B")
+
+        viewModel.searchText = "inspect Lower Body"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Body")
+
         viewModel.searchText = "show Upper A"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper A")
 
@@ -2217,6 +2223,28 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.fetchTemplates(blockedByActiveWorkout: true, activeWorkout: activeWorkout).map(\.name),
             ["Push Day"],
             "Template search should also recognize the visible open-workout CTA for untouched drafts when the matched template cannot start yet"
+        )
+    }
+
+    func testFetchTemplates_matchesPreviewAndInspectTemplateIntentSynonyms() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "preview lower day"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Lower Day"],
+            "Template search should recognize preview phrasing as a browse/review intent"
+        )
+
+        viewModel.searchText = "inspect push day"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Push Day"],
+            "Template search should also recognize inspect phrasing as a browse/review intent"
         )
     }
 
