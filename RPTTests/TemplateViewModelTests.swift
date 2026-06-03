@@ -339,9 +339,17 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
-    func testFetchTemplates_matchesPartialBlockedStartFallbackGuidanceWhenActiveWorkoutExists() {
+    func testFetchTemplates_matchesPartialBlockedStartFallbackGuidanceWhenActiveWorkoutExists() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        try context.save()
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
         let viewModel = TemplateViewModel()
-        viewModel.availableExercises = [Exercise(name: "Bench Press")]
         viewModel.templates = [
             makeTemplate(name: "Push Day", exerciseNames: ["Bench Press", "Missing Lift"]),
             makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
