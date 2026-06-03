@@ -791,6 +791,12 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.fetchTemplates().map(\.name),
             ["Upper Body Push"]
         )
+
+        viewModel.searchText = "looking for upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
     }
 
     func testFetchTemplates_matchesReadyKeywordForPartialAndReadyTemplates() throws {
@@ -1610,6 +1616,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "please find me Lower Day"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "looking for template Lower Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "looking for Upper Body Push"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
     }
 
     func testSuggestedTemplateNameFromSearch_prefersQuotedTemplateNameFromRecoveryCopy() {
