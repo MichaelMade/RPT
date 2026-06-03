@@ -1541,6 +1541,16 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
     }
 
+    func testSuggestedTemplateNameFromSearch_trimsTrailingQuestionAndQuotePunctuation() {
+        let viewModel = TemplateViewModel()
+
+        viewModel.searchText = "open template Lower Day?"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "review template 'Push Day'..."
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Push Day")
+    }
+
     func testSuggestedTemplateNameFromSearch_avoidsGenericWorkoutOnlyPrefills() {
         let viewModel = TemplateViewModel()
 

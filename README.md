@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates’ create-from-search draft naming now also trims stray wrapping punctuation from natural-language searches like `open template Lower Day?` or `review template 'Push Day'...`, so search-driven `Create “...”` recovery suggests a clean routine name instead of carrying question marks or leftover quotes into the new template.
 - Workout Templates’ create-from-search draft naming now also strips browse-intent phrasing like `Open Template ...`, `View Template ...`, `Show ...`, and `Template Details ...`, so a failed browse/review search can turn into a clean new-template draft name instead of accidentally prefilling action words like `View`, `Show`, or `Details`.
 - Workout Templates search now also recognizes browse-intent wording like `view template`, `show “…”`, `open “…”`, and `details lower body`, so users can jump back to the right routine even when they think in terms of viewing a plan instead of the app’s `Review` label.
 - Workout Templates search now also matches template structure summaries like `4 planned sets`, `2 exercises`, and `exercise notes and template notes`, so users can refind a routine by the exact impact/recovery copy they remember from template delete and restart confirmations.

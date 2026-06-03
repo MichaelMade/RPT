@@ -104,6 +104,13 @@ class TemplateViewModel: ObservableObject {
         "workout in progress"
     ]
 
+    private static let suggestedTemplateNameTrimCharacterSet: CharacterSet = {
+        var characterSet = CharacterSet.whitespacesAndNewlines
+        characterSet.formUnion(.punctuationCharacters)
+        characterSet.formUnion(.symbols)
+        return characterSet
+    }()
+
     private static func normalizedSearchWords(_ rawValue: String) -> [String] {
         normalizedSearchLookupKey(rawValue)
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
@@ -349,6 +356,10 @@ class TemplateViewModel: ObservableObject {
         return candidate
     }
 
+    private static func sanitizedSuggestedTemplateName(_ rawCandidate: String) -> String {
+        normalizedSearchQuery(rawCandidate.trimmingCharacters(in: suggestedTemplateNameTrimCharacterSet))
+    }
+
     private static func suggestedTemplateNameCandidate(from rawQuery: String) -> String? {
         let normalizedQuery = normalizedSearchQuery(rawQuery)
         guard !normalizedQuery.isEmpty else {
@@ -356,7 +367,7 @@ class TemplateViewModel: ObservableObject {
         }
 
         let candidate = lastQuotedSearchName(in: normalizedQuery) ?? strippedSearchIntentPrefix(from: normalizedQuery)
-        let normalizedCandidate = normalizedSearchQuery(candidate)
+        let normalizedCandidate = sanitizedSuggestedTemplateName(candidate)
         guard !normalizedCandidate.isEmpty else {
             return nil
         }
