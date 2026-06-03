@@ -708,6 +708,18 @@ final class TemplateViewModelTests: XCTestCase {
             ["Upper Body Push"]
         )
 
+        viewModel.searchText = "review routine upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
+        viewModel.searchText = "open workout plan upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
         viewModel.searchText = "review upper body push"
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
@@ -1527,7 +1539,13 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "open template Upper Body Push"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
 
+        viewModel.searchText = "open routine Upper Body Push"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
+
         viewModel.searchText = "template details Lower Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "workout plan details Lower Day"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
 
         viewModel.searchText = "view template Pull Day"
