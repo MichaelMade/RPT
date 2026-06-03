@@ -1108,6 +1108,9 @@ class TemplateViewModel: ObservableObject {
             "duplicate \(templateName)",
             "copy template",
             "copy \(templateName)",
+            "clone template",
+            "clone \(templateName)",
+            "clone this template",
             "\(templateName) copy",
             startTemplateFailureAlertTitle(for: template),
             startTemplateFailureMessage(for: template)

@@ -696,6 +696,12 @@ final class TemplateViewModelTests: XCTestCase {
             ["Upper Body Push"]
         )
 
+        viewModel.searchText = "clone upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
         viewModel.searchText = "duplicate upper body push"
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
