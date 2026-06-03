@@ -744,6 +744,18 @@ final class TemplateViewModelTests: XCTestCase {
             ["Upper Body Push"]
         )
 
+        viewModel.searchText = "restart template upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
+        viewModel.searchText = "rerun upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
         viewModel.searchText = "template details upper body push"
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
@@ -1557,6 +1569,12 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "inspect Lower Body"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Body")
 
+        viewModel.searchText = "restart template Upper Body Push"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
+
+        viewModel.searchText = "rerun routine Lower Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
         viewModel.searchText = "show Upper A"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper A")
 
@@ -2305,6 +2323,28 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.fetchTemplates().map(\.name),
             ["Push Day"],
             "Template search should also recognize inspect phrasing as a browse/review intent"
+        )
+    }
+
+    func testFetchTemplates_matchesRestartIntentSynonyms() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "restart template lower day"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Lower Day"],
+            "Template search should recognize restart phrasing when users want to rerun a saved routine"
+        )
+
+        viewModel.searchText = "rerun push day"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Push Day"],
+            "Template search should also recognize rerun shorthand for repeating a saved plan"
         )
     }
 
