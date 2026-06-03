@@ -1545,6 +1545,18 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "  rename   template\n Lower Day  "
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
 
+        viewModel.searchText = "template Lower Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "routine Upper Body Push"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
+
+        viewModel.searchText = "workout plan Pull Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Pull Day")
+
+        viewModel.searchText = "workout Lower Body"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Body")
+
         viewModel.searchText = "save & start template Push Day"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Push Day")
 
@@ -1663,6 +1675,24 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "look up upper body push"
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
+    }
+
+    func testFetchTemplates_matchesBareTemplateEntityPrefixes() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            makeTemplate(name: "Upper Body Push", exerciseNames: ["Overhead Press"])
+        ]
+
+        viewModel.searchText = "template lower day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Lower Day"])
+
+        viewModel.searchText = "routine upper body push"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
+
+        viewModel.searchText = "workout plan push day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
     }
 
     func testPreferredNewTemplatePrefillName_reusesSearchWhenSafe() {

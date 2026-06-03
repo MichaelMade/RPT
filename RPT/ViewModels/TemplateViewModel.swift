@@ -172,6 +172,13 @@ class TemplateViewModel: ObservableObject {
         "discard "
     ]
 
+    private static let genericTemplateEntityPrefixes = [
+        "template ",
+        "routine ",
+        "workout plan ",
+        "workout "
+    ]
+
     private static let genericTemplatePrefillLookupKeys: Set<String> = [
         "template",
         "this template",
@@ -438,6 +445,24 @@ class TemplateViewModel: ObservableObject {
         return candidate
     }
 
+    private static func strippedGenericTemplateEntityPrefix(from rawQuery: String) -> String {
+        var candidate = normalizedSearchQuery(rawQuery)
+        var didStrip = true
+
+        while didStrip {
+            didStrip = false
+            let lowercasedCandidate = candidate.lowercased()
+
+            for prefix in genericTemplateEntityPrefixes where lowercasedCandidate.hasPrefix(prefix) {
+                candidate = normalizedSearchQuery(String(candidate.dropFirst(prefix.count)))
+                didStrip = true
+                break
+            }
+        }
+
+        return candidate
+    }
+
     private static func strippedSearchIntentPrefix(from rawQuery: String) -> String {
         var candidate = strippedConversationalSearchLeadIn(from: rawQuery)
         var didStrip = true
@@ -453,7 +478,7 @@ class TemplateViewModel: ObservableObject {
             }
         }
 
-        return candidate
+        return strippedGenericTemplateEntityPrefix(from: candidate)
     }
 
     private static func sanitizedSuggestedTemplateName(_ rawCandidate: String) -> String {
@@ -467,7 +492,8 @@ class TemplateViewModel: ObservableObject {
         }
 
         let queryWithoutLeadIn = strippedConversationalSearchLeadIn(from: normalizedQuery)
-        let candidate = lastQuotedSearchName(in: normalizedQuery) ?? strippedSearchIntentPrefix(from: queryWithoutLeadIn)
+        let candidate = lastQuotedSearchName(in: normalizedQuery)
+            ?? strippedSearchIntentPrefix(from: queryWithoutLeadIn)
         let normalizedCandidate = sanitizedSuggestedTemplateName(candidate)
         guard !normalizedCandidate.isEmpty else {
             return nil
@@ -1628,8 +1654,19 @@ class TemplateViewModel: ObservableObject {
         let strippedLeadInSearchLookup = Self.normalizedSearchLookupKey(
             Self.strippedConversationalSearchLeadIn(from: normalizedSearchText)
         )
+        let strippedGenericEntityLookup = Self.normalizedSearchLookupKey(
+            Self.strippedGenericTemplateEntityPrefix(from: normalizedSearchText)
+        )
+        let strippedIntentLookup = Self.normalizedSearchLookupKey(
+            Self.strippedSearchIntentPrefix(from: normalizedSearchText)
+        )
         let normalizedSearchLookups = Array(
-            Set([normalizedSearchLookup, strippedLeadInSearchLookup].filter { !$0.isEmpty })
+            Set([
+                normalizedSearchLookup,
+                strippedLeadInSearchLookup,
+                strippedGenericEntityLookup,
+                strippedIntentLookup
+            ].filter { !$0.isEmpty })
         )
         let exerciseMetadataLookup = exerciseSearchMetadataLookup()
 
