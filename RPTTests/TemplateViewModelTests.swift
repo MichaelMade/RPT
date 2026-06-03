@@ -1562,6 +1562,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "details Lower Body"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Body")
+
+        viewModel.searchText = "please show me template Pull Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Pull Day")
+
+        viewModel.searchText = "can you open template Lower Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
     }
 
     func testSuggestedTemplateNameFromSearch_prefersQuotedTemplateNameFromRecoveryCopy() {
@@ -1603,6 +1609,20 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.createTemplateRecoveryTitle(filteredCount: 2),
             "Create “Lower Day”"
         )
+    }
+
+    func testFetchTemplates_stripsConversationalLeadInsFromNaturalLanguageSearches() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "please show me push day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+
+        viewModel.searchText = "can you open template lower day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Lower Day"])
     }
 
     func testPreferredNewTemplatePrefillName_reusesSearchWhenSafe() {

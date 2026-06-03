@@ -42,6 +42,19 @@ class TemplateViewModel: ObservableObject {
             .map(String.init)
     }
 
+    private static let conversationalSearchLeadInPrefixes = [
+        "please ",
+        "can you ",
+        "could you ",
+        "would you ",
+        "will you ",
+        "help me ",
+        "let me ",
+        "show me ",
+        "take me to ",
+        "bring me to "
+    ]
+
     private static let searchIntentPrefillPrefixes = [
         "save and start partial template ",
         "save & start partial template ",
@@ -370,8 +383,26 @@ class TemplateViewModel: ObservableObject {
         return nil
     }
 
-    private static func strippedSearchIntentPrefix(from rawQuery: String) -> String {
+    private static func strippedConversationalSearchLeadIn(from rawQuery: String) -> String {
         var candidate = normalizedSearchQuery(rawQuery)
+        var didStrip = true
+
+        while didStrip {
+            didStrip = false
+            let lowercasedCandidate = candidate.lowercased()
+
+            for prefix in conversationalSearchLeadInPrefixes where lowercasedCandidate.hasPrefix(prefix) {
+                candidate = normalizedSearchQuery(String(candidate.dropFirst(prefix.count)))
+                didStrip = true
+                break
+            }
+        }
+
+        return candidate
+    }
+
+    private static func strippedSearchIntentPrefix(from rawQuery: String) -> String {
+        var candidate = strippedConversationalSearchLeadIn(from: rawQuery)
         var didStrip = true
 
         while didStrip {
@@ -398,7 +429,8 @@ class TemplateViewModel: ObservableObject {
             return nil
         }
 
-        let candidate = lastQuotedSearchName(in: normalizedQuery) ?? strippedSearchIntentPrefix(from: normalizedQuery)
+        let queryWithoutLeadIn = strippedConversationalSearchLeadIn(from: normalizedQuery)
+        let candidate = lastQuotedSearchName(in: normalizedQuery) ?? strippedSearchIntentPrefix(from: queryWithoutLeadIn)
         let normalizedCandidate = sanitizedSuggestedTemplateName(candidate)
         guard !normalizedCandidate.isEmpty else {
             return nil
@@ -1520,6 +1552,12 @@ class TemplateViewModel: ObservableObject {
 
     func fetchTemplates(blockedByActiveWorkout: Bool = false, activeWorkout: Workout? = nil) -> [WorkoutTemplate] {
         let normalizedSearchLookup = Self.normalizedSearchLookupKey(normalizedSearchText)
+        let strippedLeadInSearchLookup = Self.normalizedSearchLookupKey(
+            Self.strippedConversationalSearchLeadIn(from: normalizedSearchText)
+        )
+        let normalizedSearchLookups = Array(
+            Set([normalizedSearchLookup, strippedLeadInSearchLookup].filter { !$0.isEmpty })
+        )
         let exerciseMetadataLookup = exerciseSearchMetadataLookup()
 
         return templates
@@ -1527,16 +1565,20 @@ class TemplateViewModel: ObservableObject {
             .compactMap { index, template in
                 let templateCannotStartOnItsOwn = templateManager.startWorkoutDisabledMessage(for: template) != nil
                 let isBlockedByActiveWorkout = blockedByActiveWorkout && !templateCannotStartOnItsOwn
-                let searchPriority = searchMatchPriority(
-                    template: template,
-                    normalizedQuery: normalizedSearchLookup,
-                    activeWorkoutAvailable: blockedByActiveWorkout,
-                    blockedByActiveWorkout: isBlockedByActiveWorkout,
-                    activeWorkout: activeWorkout,
-                    exerciseMetadataLookup: exerciseMetadataLookup
-                )
+                let searchPriority = normalizedSearchLookups.isEmpty
+                    ? 0
+                    : normalizedSearchLookups.compactMap { normalizedQuery in
+                        searchMatchPriority(
+                            template: template,
+                            normalizedQuery: normalizedQuery,
+                            activeWorkoutAvailable: blockedByActiveWorkout,
+                            blockedByActiveWorkout: isBlockedByActiveWorkout,
+                            activeWorkout: activeWorkout,
+                            exerciseMetadataLookup: exerciseMetadataLookup
+                        )
+                    }.min()
 
-                guard normalizedSearchLookup.isEmpty || searchPriority != nil else {
+                guard normalizedSearchLookups.isEmpty || searchPriority != nil else {
                     return nil
                 }
 
