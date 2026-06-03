@@ -62,6 +62,8 @@ class TemplateViewModel: ObservableObject {
         "copy template ",
         "clone template ",
         "remove template ",
+        "open template ",
+        "template details ",
         "open workout ",
         "continue workout ",
         "resume workout ",
