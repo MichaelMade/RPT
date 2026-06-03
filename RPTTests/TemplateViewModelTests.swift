@@ -708,6 +708,18 @@ final class TemplateViewModelTests: XCTestCase {
             ["Upper Body Push"]
         )
 
+        viewModel.searchText = "view upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
+        viewModel.searchText = "show upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
         viewModel.searchText = "open upper body push"
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
@@ -715,6 +727,12 @@ final class TemplateViewModelTests: XCTestCase {
         )
 
         viewModel.searchText = "template details upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
+        viewModel.searchText = "details upper body push"
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
             ["Upper Body Push"]
@@ -1301,13 +1319,13 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "  Lower\n Day  "
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
-            "No templates matched “Lower Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, action wording like start, review, edit, open, continue, save, or discard, and issue labels like missing or repeated. You can also create a new template from this search."
+            "No templates matched “Lower Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, action wording like start, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated. You can also create a new template from this search."
         )
 
         viewModel.searchText = "  Push\n Day  "
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
-            "No templates matched “Push Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, action wording like start, review, edit, open, continue, save, or discard, and issue labels like missing or repeated."
+            "No templates matched “Push Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, action wording like start, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated."
         )
     }
 
@@ -1505,6 +1523,15 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "template details Lower Day"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "view template Pull Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Pull Day")
+
+        viewModel.searchText = "show Upper A"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper A")
+
+        viewModel.searchText = "details Lower Body"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Body")
     }
 
     func testSuggestedTemplateNameFromSearch_prefersQuotedTemplateNameFromRecoveryCopy() {

@@ -320,7 +320,7 @@ struct TemplatesListView: View {
                     }
                 }
             }
-            .searchable(text: $searchText, prompt: "Search templates, exercises, or actions")
+            .searchable(text: $searchText, prompt: "Search templates, exercises, actions, or issues")
             .onChange(of: searchText) { _, newValue in
                 viewModel.searchText = newValue
             }
