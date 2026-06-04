@@ -203,6 +203,10 @@ class TemplateViewModel: ObservableObject {
         "named "
     ]
 
+    private static let searchBridgeLeadInPrefixes = [
+        "for "
+    ]
+
     private static let genericTemplatePrefillLookupKeys: Set<String> = [
         "template",
         "this template",
@@ -505,8 +509,28 @@ class TemplateViewModel: ObservableObject {
         return candidate
     }
 
+    private static func strippedSearchBridgeLeadIns(from rawQuery: String) -> String {
+        var candidate = normalizedSearchQuery(rawQuery)
+        var didStrip = true
+
+        while didStrip {
+            didStrip = false
+            let lowercasedCandidate = candidate.lowercased()
+
+            for prefix in searchBridgeLeadInPrefixes where lowercasedCandidate.hasPrefix(prefix) {
+                candidate = normalizedSearchQuery(String(candidate.dropFirst(prefix.count)))
+                didStrip = true
+                break
+            }
+        }
+
+        return candidate
+    }
+
     private static func strippedSearchIntentPrefix(from rawQuery: String) -> String {
-        var candidate = strippedConversationalSearchLeadIn(from: rawQuery)
+        let normalizedQuery = normalizedSearchQuery(rawQuery)
+        var candidate = strippedConversationalSearchLeadIn(from: normalizedQuery)
+        var strippedIntentfulPrefix = candidate != normalizedQuery
         var didStrip = true
 
         while didStrip {
@@ -516,13 +540,24 @@ class TemplateViewModel: ObservableObject {
             for prefix in searchIntentPrefillPrefixes where lowercasedCandidate.hasPrefix(prefix) {
                 candidate = normalizedSearchQuery(String(candidate.dropFirst(prefix.count)))
                 candidate = strippedSearchObjectLeadIns(from: candidate)
+                candidate = strippedSearchBridgeLeadIns(from: candidate)
+                strippedIntentfulPrefix = true
                 didStrip = true
                 break
             }
         }
 
         candidate = strippedSearchObjectLeadIns(from: candidate)
+        let candidateBeforeGenericEntityStrip = candidate
         candidate = strippedGenericTemplateEntityPrefix(from: candidate)
+        if candidate != candidateBeforeGenericEntityStrip {
+            strippedIntentfulPrefix = true
+        }
+
+        if strippedIntentfulPrefix {
+            candidate = strippedSearchBridgeLeadIns(from: candidate)
+        }
+
         candidate = strippedSearchObjectLeadIns(from: candidate)
         return strippedGenericTemplateEntityPrefix(from: candidate)
     }
