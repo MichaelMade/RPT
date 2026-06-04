@@ -1810,6 +1810,24 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesPluralTemplateEntityPhrasing() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            makeTemplate(name: "Upper Body Push", exerciseNames: ["Overhead Press"])
+        ]
+
+        viewModel.searchText = "open templates lower day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Lower Day"])
+
+        viewModel.searchText = "find workout plans push day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+
+        viewModel.searchText = "browse routines upper body push"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
+    }
+
     func testPreferredNewTemplatePrefillName_reusesSearchWhenSafe() {
         let viewModel = TemplateViewModel()
         viewModel.searchText = "  Lower\n Day  "
@@ -1824,6 +1842,19 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.clearSearch()
         XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "")
+    }
+
+    func testPreferredNewTemplatePrefillName_stripsPluralTemplateEntityPhrasing() {
+        let viewModel = TemplateViewModel()
+
+        viewModel.searchText = "open templates lower day"
+        XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "Lower Day")
+
+        viewModel.searchText = "find workout plans push day"
+        XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "Push Day")
+
+        viewModel.searchText = "browse routines upper body push"
+        XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "Upper Body Push")
     }
 
     func testPreferredDuplicateTemplateName_defaultsToCopySuffix() {

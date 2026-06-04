@@ -188,9 +188,13 @@ class TemplateViewModel: ObservableObject {
 
     private static let genericTemplateEntityPrefixes = [
         "template ",
+        "templates ",
         "routine ",
+        "routines ",
         "workout plan ",
-        "workout "
+        "workout plans ",
+        "workout ",
+        "workouts "
     ]
 
     private static let searchObjectLeadInPrefixes = [
@@ -212,9 +216,15 @@ class TemplateViewModel: ObservableObject {
 
     private static let genericTemplatePrefillLookupKeys: Set<String> = [
         "template",
+        "templates",
         "this template",
         "partial template",
+        "routine",
+        "routines",
+        "workout plan",
+        "workout plans",
         "workout",
+        "workouts",
         "this workout",
         "open workout",
         "continue workout",
