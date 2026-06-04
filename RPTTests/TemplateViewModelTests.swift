@@ -1595,6 +1595,15 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "inspect Lower Body"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Body")
 
+        viewModel.searchText = "browse template Lower Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "check out routine Upper Body Push"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
+
+        viewModel.searchText = "check Pull Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Pull Day")
+
         viewModel.searchText = "restart template Upper Body Push"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
 
@@ -2418,6 +2427,20 @@ final class TemplateViewModelTests: XCTestCase {
             viewModel.fetchTemplates().map(\.name),
             ["Push Day"],
             "Template search should also recognize inspect phrasing as a browse/review intent"
+        )
+
+        viewModel.searchText = "browse lower day"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Lower Day"],
+            "Template search should recognize browse phrasing as another review-style intent"
+        )
+
+        viewModel.searchText = "check out template push day"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Push Day"],
+            "Template search should also recognize check-out phrasing as a browse/review intent"
         )
     }
 
