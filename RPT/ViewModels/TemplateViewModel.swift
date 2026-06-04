@@ -58,6 +58,13 @@ class TemplateViewModel: ObservableObject {
         "head to "
     ]
 
+    private static let conversationalSearchTrailingPhrases = [
+        " thank you",
+        " thanks",
+        " please",
+        " for me"
+    ]
+
     private static let searchIntentPrefillPrefixes = [
         "save and start partial template ",
         "save & start partial template ",
@@ -604,6 +611,30 @@ class TemplateViewModel: ObservableObject {
         return candidate
     }
 
+    private static func strippedConversationalSearchTail(from rawQuery: String) -> String {
+        var candidate = normalizedSearchQuery(
+            rawQuery.trimmingCharacters(in: suggestedTemplateNameTrimCharacterSet)
+        )
+        var didStrip = true
+
+        while didStrip {
+            didStrip = false
+            let lowercasedCandidate = candidate.lowercased()
+
+            for suffix in conversationalSearchTrailingPhrases where lowercasedCandidate.hasSuffix(suffix) {
+                let suffixStartIndex = candidate.index(candidate.endIndex, offsetBy: -suffix.count)
+                candidate = normalizedSearchQuery(
+                    String(candidate[..<suffixStartIndex])
+                        .trimmingCharacters(in: suggestedTemplateNameTrimCharacterSet)
+                )
+                didStrip = true
+                break
+            }
+        }
+
+        return candidate
+    }
+
     private static func strippedSearchObjectLeadIns(from rawQuery: String) -> String {
         var candidate = normalizedSearchQuery(rawQuery)
         var didStrip = true
@@ -672,6 +703,7 @@ class TemplateViewModel: ObservableObject {
         }
 
         candidate = strippedSearchObjectLeadIns(from: candidate)
+        candidate = strippedConversationalSearchTail(from: candidate)
         return strippedGenericTemplateEntityPrefix(from: candidate)
     }
 
@@ -708,6 +740,7 @@ class TemplateViewModel: ObservableObject {
         }
 
         let strippedConversationalLeadIn = strippedConversationalSearchLeadIn(from: normalizedQuery)
+        let strippedConversationalTail = strippedConversationalSearchTail(from: normalizedQuery)
         let strippedObjectLeadIns = strippedSearchObjectLeadIns(from: strippedConversationalLeadIn)
         let strippedIntent = strippedSearchIntentPrefix(from: normalizedQuery)
 
@@ -715,8 +748,10 @@ class TemplateViewModel: ObservableObject {
             Set([
                 normalizedQuery,
                 strippedConversationalLeadIn,
+                strippedConversationalTail,
                 strippedGenericTemplateEntityPrefix(from: normalizedQuery),
                 strippedGenericTemplateEntityAffixes(from: normalizedQuery),
+                strippedGenericTemplateEntityAffixes(from: strippedConversationalTail),
                 strippedObjectLeadIns,
                 strippedGenericTemplateEntityAffixes(from: strippedObjectLeadIns),
                 strippedIntent,
