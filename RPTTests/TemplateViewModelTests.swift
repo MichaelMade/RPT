@@ -210,6 +210,9 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "5x5"
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Five By Five"])
+
+        viewModel.searchText = "5 sets of 5"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Five By Five"])
     }
 
     func testFetchTemplates_matchesCompactSetByRepRangeNotation() {
@@ -229,6 +232,9 @@ final class TemplateViewModelTests: XCTestCase {
         ]
 
         viewModel.searchText = "3x8-10"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Hypertrophy Day"])
+
+        viewModel.searchText = "3 sets of 8 to 10 reps"
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Hypertrophy Day"])
     }
 

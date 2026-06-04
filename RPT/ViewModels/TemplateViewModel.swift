@@ -268,19 +268,28 @@ class TemplateViewModel: ObservableObject {
             terms.append("Set \(repRange.setNumber)")
 
             let repRangeLabel: String
+            let spokenRepRangeLabel: String
             if repRange.minReps == repRange.maxReps {
                 repRangeLabel = "\(repRange.minReps)"
+                spokenRepRangeLabel = repRangeLabel
                 terms.append("\(repRange.minReps) reps")
                 terms.append("Set \(repRange.setNumber): \(repRange.minReps) reps")
             } else {
                 repRangeLabel = "\(repRange.minReps)-\(repRange.maxReps)"
+                spokenRepRangeLabel = "\(repRange.minReps) to \(repRange.maxReps)"
                 terms.append("\(repRange.minReps)-\(repRange.maxReps) reps")
+                terms.append("\(repRange.minReps) to \(repRange.maxReps) reps")
                 terms.append("Set \(repRange.setNumber): \(repRange.minReps)-\(repRange.maxReps) reps")
             }
 
             terms.append("\(exercise.suggestedSets)x\(repRangeLabel)")
             terms.append("\(exercise.suggestedSets) x \(repRangeLabel)")
             terms.append("\(exercise.suggestedSets)×\(repRangeLabel)")
+            terms.append("\(exercise.suggestedSets) \(setLabel) of \(repRangeLabel)")
+            terms.append("\(exercise.suggestedSets) \(setLabel) of \(spokenRepRangeLabel)")
+            terms.append("\(exercise.suggestedSets) \(setLabel) of \(spokenRepRangeLabel) reps")
+            terms.append("\(exercise.suggestedSets) by \(repRangeLabel)")
+            terms.append("\(exercise.suggestedSets) by \(spokenRepRangeLabel)")
 
             if let percentageOfFirstSet = repRange.percentageOfFirstSet, repRange.setNumber > 1 {
                 let percentage = Int(percentageOfFirstSet * 100)
