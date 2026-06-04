@@ -745,18 +745,52 @@ class TemplateViewModel: ObservableObject {
         suggestedTemplateNameFromSearch() ?? ""
     }
 
+    private func duplicateTemplateNameSeed(for templateName: String) -> (baseName: String, nextCopyNumber: Int?) {
+        let displayName = WorkoutTemplate.normalizedDisplayName(templateName)
+        let pattern = #"^(.*?)(?: Copy(?: ([0-9]+))?)?$"#
+
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
+              let match = regex.firstMatch(
+                in: displayName,
+                options: [],
+                range: NSRange(displayName.startIndex..., in: displayName)
+              ),
+              let baseRange = Range(match.range(at: 1), in: displayName) else {
+            return (displayName, nil)
+        }
+
+        let baseName = String(displayName[baseRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !baseName.isEmpty else {
+            return (displayName, nil)
+        }
+
+        let hasCopySuffix = match.range(at: 0).length != match.range(at: 1).length
+        guard hasCopySuffix else {
+            return (baseName, nil)
+        }
+
+        if let numberRange = Range(match.range(at: 2), in: displayName),
+           let copyNumber = Int(displayName[numberRange]) {
+            return (baseName, max(copyNumber + 1, 2))
+        }
+
+        return (baseName, 2)
+    }
+
     func preferredDuplicateTemplateName(for template: WorkoutTemplate) -> String {
-        let baseName = WorkoutTemplate.normalizedDisplayName(template.name)
         let existingLookupKeys = Set(templates.map {
             TemplateManager.normalizedNameLookupKey($0.name)
         })
+        let seed = duplicateTemplateNameSeed(for: template.name)
 
-        var candidateName = "\(baseName) Copy"
-        var suffix = 2
+        var nextCopyNumber = seed.nextCopyNumber
+        var candidateName = nextCopyNumber.map {
+            "\(seed.baseName) Copy \($0)"
+        } ?? "\(seed.baseName) Copy"
 
         while existingLookupKeys.contains(TemplateManager.normalizedNameLookupKey(candidateName)) {
-            candidateName = "\(baseName) Copy \(suffix)"
-            suffix += 1
+            nextCopyNumber = max((nextCopyNumber ?? 1) + 1, 2)
+            candidateName = "\(seed.baseName) Copy \(nextCopyNumber!)"
         }
 
         return candidateName

@@ -1993,6 +1993,31 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testPreferredDuplicateTemplateName_advancesExistingCopyName() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "Upper Body Copy", exerciseNames: ["Bench Press"])
+        viewModel.templates = [template]
+
+        XCTAssertEqual(
+            viewModel.preferredDuplicateTemplateName(for: template),
+            "Upper Body Copy 2"
+        )
+    }
+
+    func testPreferredDuplicateTemplateName_advancesExistingNumberedCopyName() {
+        let viewModel = TemplateViewModel()
+        let template = makeTemplate(name: "Upper Body Copy 2", exerciseNames: ["Bench Press"])
+        viewModel.templates = [
+            template,
+            makeTemplate(name: "Upper Body Copy 3", exerciseNames: ["Incline Press"])
+        ]
+
+        XCTAssertEqual(
+            viewModel.preferredDuplicateTemplateName(for: template),
+            "Upper Body Copy 4"
+        )
+    }
+
     func testPersistActiveWorkoutBeforeTemplateStart_saveForLaterMarksWorkoutSavedOnlyAfterSuccess() {
         let viewModel = TemplateViewModel()
         let workoutStateManager = WorkoutStateManager.shared
