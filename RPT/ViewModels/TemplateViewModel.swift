@@ -494,6 +494,49 @@ class TemplateViewModel: ObservableObject {
         return candidate
     }
 
+    private static func strippedGenericTemplateEntitySuffix(from rawQuery: String) -> String {
+        var candidate = normalizedSearchQuery(rawQuery)
+        var didStrip = true
+
+        while didStrip {
+            didStrip = false
+            let lowercasedCandidate = candidate.lowercased()
+
+            for suffix in genericTemplateEntityPrefixes {
+                let trimmedSuffix = suffix.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmedSuffix.isEmpty,
+                      lowercasedCandidate.hasSuffix(trimmedSuffix) else {
+                    continue
+                }
+
+                let prefixEndIndex = candidate.index(candidate.endIndex, offsetBy: -trimmedSuffix.count)
+                let prefix = normalizedSearchQuery(String(candidate[..<prefixEndIndex]))
+                guard !prefix.isEmpty else {
+                    continue
+                }
+
+                candidate = prefix
+                didStrip = true
+                break
+            }
+        }
+
+        return candidate
+    }
+
+    private static func strippedGenericTemplateEntityAffixes(from rawQuery: String) -> String {
+        var candidate = normalizedSearchQuery(rawQuery)
+        var previousCandidate: String
+
+        repeat {
+            previousCandidate = candidate
+            candidate = strippedGenericTemplateEntityPrefix(from: candidate)
+            candidate = strippedGenericTemplateEntitySuffix(from: candidate)
+        } while candidate != previousCandidate
+
+        return candidate
+    }
+
     private static func strippedSearchObjectLeadIns(from rawQuery: String) -> String {
         var candidate = normalizedSearchQuery(rawQuery)
         var didStrip = true
@@ -577,7 +620,7 @@ class TemplateViewModel: ObservableObject {
 
         let queryWithoutLeadIn = strippedConversationalSearchLeadIn(from: normalizedQuery)
         let candidate = lastQuotedSearchName(in: normalizedQuery)
-            ?? strippedSearchIntentPrefix(from: queryWithoutLeadIn)
+            ?? strippedGenericTemplateEntitySuffix(from: strippedSearchIntentPrefix(from: queryWithoutLeadIn))
         let normalizedCandidate = sanitizedSuggestedTemplateName(candidate)
         guard !normalizedCandidate.isEmpty else {
             return nil
@@ -1756,6 +1799,9 @@ class TemplateViewModel: ObservableObject {
         let strippedGenericEntityLookup = Self.normalizedSearchLookupKey(
             Self.strippedGenericTemplateEntityPrefix(from: normalizedSearchText)
         )
+        let strippedGenericEntityAffixesLookup = Self.normalizedSearchLookupKey(
+            Self.strippedGenericTemplateEntityAffixes(from: normalizedSearchText)
+        )
         let strippedIntentLookup = Self.normalizedSearchLookupKey(
             Self.strippedSearchIntentPrefix(from: normalizedSearchText)
         )
@@ -1764,6 +1810,7 @@ class TemplateViewModel: ObservableObject {
                 normalizedSearchLookup,
                 strippedLeadInSearchLookup,
                 strippedGenericEntityLookup,
+                strippedGenericEntityAffixesLookup,
                 strippedIntentLookup
             ].filter { !$0.isEmpty })
         )

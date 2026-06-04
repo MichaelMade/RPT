@@ -1660,6 +1660,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "head to routine Upper Body Push"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
+
+        viewModel.searchText = "open Lower Day template"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "find Push Day routine"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Push Day")
     }
 
     func testSuggestedTemplateNameFromSearch_prefersQuotedTemplateNameFromRecoveryCopy() {
@@ -1767,6 +1773,29 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "workout plan push day"
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+    }
+
+    func testFetchTemplates_stripsTrailingTemplateEntityWordsFromNaturalLanguageSearches() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            makeTemplate(name: "Upper Body Push", exerciseNames: ["Overhead Press"])
+        ]
+
+        viewModel.searchText = "lower day template"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Lower Day"],
+            "Template search should still match when people append the generic entity word after the routine name"
+        )
+
+        viewModel.searchText = "find push day routine"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Push Day"],
+            "Natural-language searches should also match when the routine name is followed by a generic suffix like routine"
+        )
     }
 
     func testPreferredNewTemplatePrefillName_reusesSearchWhenSafe() {
