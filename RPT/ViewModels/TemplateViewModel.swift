@@ -52,7 +52,10 @@ class TemplateViewModel: ObservableObject {
         "let me ",
         "show me ",
         "take me to ",
-        "bring me to "
+        "bring me to ",
+        "go to ",
+        "jump to ",
+        "head to "
     ]
 
     private static let searchIntentPrefillPrefixes = [
@@ -153,6 +156,9 @@ class TemplateViewModel: ObservableObject {
         "find ",
         "look up ",
         "lookup ",
+        "go to ",
+        "jump to ",
+        "head to ",
         "start ",
         "review ",
         "view ",
