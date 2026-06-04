@@ -634,6 +634,32 @@ class TemplateViewModel: ObservableObject {
         return normalizedCandidate
     }
 
+    private static func normalizedSearchLookupVariants(for rawQuery: String) -> [String] {
+        let normalizedQuery = normalizedSearchQuery(rawQuery)
+        guard !normalizedQuery.isEmpty else {
+            return []
+        }
+
+        let strippedConversationalLeadIn = strippedConversationalSearchLeadIn(from: normalizedQuery)
+        let strippedObjectLeadIns = strippedSearchObjectLeadIns(from: strippedConversationalLeadIn)
+        let strippedIntent = strippedSearchIntentPrefix(from: normalizedQuery)
+
+        return Array(
+            Set([
+                normalizedQuery,
+                strippedConversationalLeadIn,
+                strippedGenericTemplateEntityPrefix(from: normalizedQuery),
+                strippedGenericTemplateEntityAffixes(from: normalizedQuery),
+                strippedObjectLeadIns,
+                strippedGenericTemplateEntityAffixes(from: strippedObjectLeadIns),
+                strippedIntent,
+                strippedGenericTemplateEntityAffixes(from: strippedIntent)
+            ]
+            .map(normalizedSearchLookupKey)
+            .filter { !$0.isEmpty })
+        )
+    }
+
     func suggestedTemplateNameFromSearch() -> String? {
         guard hasActiveSearch,
               let normalizedName = Self.suggestedTemplateNameCandidate(from: normalizedSearchText) else {
@@ -1792,28 +1818,7 @@ class TemplateViewModel: ObservableObject {
     }
 
     func fetchTemplates(blockedByActiveWorkout: Bool = false, activeWorkout: Workout? = nil) -> [WorkoutTemplate] {
-        let normalizedSearchLookup = Self.normalizedSearchLookupKey(normalizedSearchText)
-        let strippedLeadInSearchLookup = Self.normalizedSearchLookupKey(
-            Self.strippedConversationalSearchLeadIn(from: normalizedSearchText)
-        )
-        let strippedGenericEntityLookup = Self.normalizedSearchLookupKey(
-            Self.strippedGenericTemplateEntityPrefix(from: normalizedSearchText)
-        )
-        let strippedGenericEntityAffixesLookup = Self.normalizedSearchLookupKey(
-            Self.strippedGenericTemplateEntityAffixes(from: normalizedSearchText)
-        )
-        let strippedIntentLookup = Self.normalizedSearchLookupKey(
-            Self.strippedSearchIntentPrefix(from: normalizedSearchText)
-        )
-        let normalizedSearchLookups = Array(
-            Set([
-                normalizedSearchLookup,
-                strippedLeadInSearchLookup,
-                strippedGenericEntityLookup,
-                strippedGenericEntityAffixesLookup,
-                strippedIntentLookup
-            ].filter { !$0.isEmpty })
-        )
+        let normalizedSearchLookups = Self.normalizedSearchLookupVariants(for: normalizedSearchText)
         let exerciseMetadataLookup = exerciseSearchMetadataLookup()
 
         return templates

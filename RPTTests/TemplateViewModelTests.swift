@@ -1666,6 +1666,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "find Push Day routine"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Push Day")
+
+        viewModel.searchText = "the Lower Day template"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "my Push Day routine"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Push Day")
     }
 
     func testSuggestedTemplateNameFromSearch_prefersQuotedTemplateNameFromRecoveryCopy() {
@@ -1755,6 +1761,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "head to routine upper body push"
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
+
+        viewModel.searchText = "the lower day template"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Lower Day"])
+
+        viewModel.searchText = "my push day routine"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
     }
 
     func testFetchTemplates_matchesBareTemplateEntityPrefixes() {
