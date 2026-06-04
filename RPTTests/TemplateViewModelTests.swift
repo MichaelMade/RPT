@@ -1630,6 +1630,15 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "looking for Upper Body Push"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
+
+        viewModel.searchText = "open the template Lower Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "find my workout plan Upper Body Push"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
+
+        viewModel.searchText = "open template called Push Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Push Day")
     }
 
     func testSuggestedTemplateNameFromSearch_prefersQuotedTemplateNameFromRecoveryCopy() {
@@ -1695,6 +1704,15 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "look up upper body push"
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
+
+        viewModel.searchText = "open the template lower day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Lower Day"])
+
+        viewModel.searchText = "find my workout plan upper body push"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
+
+        viewModel.searchText = "open template called push day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
     }
 
     func testFetchTemplates_matchesBareTemplateEntityPrefixes() {

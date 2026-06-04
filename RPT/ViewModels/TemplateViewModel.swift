@@ -184,6 +184,19 @@ class TemplateViewModel: ObservableObject {
         "workout "
     ]
 
+    private static let searchObjectLeadInPrefixes = [
+        "the ",
+        "my ",
+        "this ",
+        "that ",
+        "these ",
+        "those ",
+        "a ",
+        "an ",
+        "called ",
+        "named "
+    ]
+
     private static let genericTemplatePrefillLookupKeys: Set<String> = [
         "template",
         "this template",
@@ -468,6 +481,24 @@ class TemplateViewModel: ObservableObject {
         return candidate
     }
 
+    private static func strippedSearchObjectLeadIns(from rawQuery: String) -> String {
+        var candidate = normalizedSearchQuery(rawQuery)
+        var didStrip = true
+
+        while didStrip {
+            didStrip = false
+            let lowercasedCandidate = candidate.lowercased()
+
+            for prefix in searchObjectLeadInPrefixes where lowercasedCandidate.hasPrefix(prefix) {
+                candidate = normalizedSearchQuery(String(candidate.dropFirst(prefix.count)))
+                didStrip = true
+                break
+            }
+        }
+
+        return candidate
+    }
+
     private static func strippedSearchIntentPrefix(from rawQuery: String) -> String {
         var candidate = strippedConversationalSearchLeadIn(from: rawQuery)
         var didStrip = true
@@ -478,11 +509,15 @@ class TemplateViewModel: ObservableObject {
 
             for prefix in searchIntentPrefillPrefixes where lowercasedCandidate.hasPrefix(prefix) {
                 candidate = normalizedSearchQuery(String(candidate.dropFirst(prefix.count)))
+                candidate = strippedSearchObjectLeadIns(from: candidate)
                 didStrip = true
                 break
             }
         }
 
+        candidate = strippedSearchObjectLeadIns(from: candidate)
+        candidate = strippedGenericTemplateEntityPrefix(from: candidate)
+        candidate = strippedSearchObjectLeadIns(from: candidate)
         return strippedGenericTemplateEntityPrefix(from: candidate)
     }
 
