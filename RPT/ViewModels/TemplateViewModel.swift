@@ -197,6 +197,36 @@ class TemplateViewModel: ObservableObject {
         "workouts "
     ]
 
+    private static func bodyRegionSearchTerms(
+        primaryMuscleGroups: [MuscleGroup],
+        secondaryMuscleGroups: [MuscleGroup]
+    ) -> [String] {
+        let muscleGroups = Set(primaryMuscleGroups + secondaryMuscleGroups)
+        var terms = Set<String>()
+
+        let lowerBodyGroups: Set<MuscleGroup> = [.quadriceps, .hamstrings, .glutes, .calves]
+        if !muscleGroups.isDisjoint(with: lowerBodyGroups) {
+            terms.formUnion(["lower body", "leg", "legs"])
+        }
+
+        let upperBodyGroups: Set<MuscleGroup> = [.chest, .back, .shoulders, .biceps, .triceps, .forearms, .traps]
+        if !muscleGroups.isDisjoint(with: upperBodyGroups) {
+            terms.insert("upper body")
+        }
+
+        let armGroups: Set<MuscleGroup> = [.biceps, .triceps, .forearms]
+        if !muscleGroups.isDisjoint(with: armGroups) {
+            terms.formUnion(["arm", "arms"])
+        }
+
+        let coreGroups: Set<MuscleGroup> = [.abs, .obliques, .lowerBack]
+        if !muscleGroups.isDisjoint(with: coreGroups) {
+            terms.insert("core")
+        }
+
+        return terms.sorted()
+    }
+
     private static let searchObjectLeadInPrefixes = [
         "the ",
         "my ",
@@ -1319,6 +1349,10 @@ class TemplateViewModel: ObservableObject {
             ]
             + exercise.primaryMuscleGroups.map(\.displayName)
             + exercise.secondaryMuscleGroups.map(\.displayName)
+            + Self.bodyRegionSearchTerms(
+                primaryMuscleGroups: exercise.primaryMuscleGroups,
+                secondaryMuscleGroups: exercise.secondaryMuscleGroups
+            )
 
             lookup[key] = ExerciseSearchMetadata(searchTerms: terms)
         }

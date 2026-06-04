@@ -129,6 +129,54 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Pull Day"])
     }
 
+    func testFetchTemplates_matchesBodyRegionAliasesFromExerciseMetadata() throws {
+        let context = DataManager.shared.getModelContext()
+        let bench = Exercise(
+            name: "Upper Region Alias \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [.triceps, .shoulders]
+        )
+        let squat = Exercise(
+            name: "Lower Region Alias \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.quadriceps],
+            secondaryMuscleGroups: [.glutes]
+        )
+        let plank = Exercise(
+            name: "Core Region Alias \(UUID().uuidString)",
+            category: .bodyweight,
+            primaryMuscleGroups: [.abs],
+            secondaryMuscleGroups: [.obliques]
+        )
+        context.insert(bench)
+        context.insert(squat)
+        context.insert(plank)
+        try context.save()
+        defer {
+            context.delete(bench)
+            context.delete(squat)
+            context.delete(plank)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Bench Focus", exerciseNames: [bench.name]),
+            makeTemplate(name: "Squat Strength", exerciseNames: [squat.name]),
+            makeTemplate(name: "Plank Builder", exerciseNames: [plank.name])
+        ]
+
+        viewModel.searchText = "upper body"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Bench Focus"])
+
+        viewModel.searchText = "legs"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Squat Strength"])
+
+        viewModel.searchText = "core"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Plank Builder"])
+    }
+
     func testFetchTemplates_matchesExerciseCategoryAliases() throws {
         let context = DataManager.shared.getModelContext()
         let pullUp = Exercise(

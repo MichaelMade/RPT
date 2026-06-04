@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also understands body-region wording like `upper body`, `legs`, and `core` by indexing each template’s exercise muscle groups, so users can refind a routine by the area they want to train instead of needing the exact template or exercise name.
 - Workout Templates search now also matches prescription phrasing like `5x5`, `5 sets of 5`, `3x8-10`, `3 sets of 8 to 10 reps`, and `4 × 6`, so users can refind a routine by the set/rep format they remember instead of needing to search only by template name or long-form rep text.
 - Workout Templates search and search-driven `Create “...”` recovery now also understand plural natural-language entity wording like `open templates lower day`, `find workout plans push day`, and `browse routines upper body push`, so searches and search-seeded draft names still collapse to the real routine instead of getting stuck on plural wrapper words.
 - Workout Templates search and search-driven `Create “...”` recovery now also handle article/pronoun-led queries like `the lower day template` and `my push day routine`, so natural-language searches still find the right saved plan—and failed lookups suggest a clean draft name—instead of getting stuck on filler lead-ins wrapped around the real routine name.
