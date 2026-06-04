@@ -266,14 +266,32 @@ class TemplateViewModel: ObservableObject {
 
         for repRange in exercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber }) {
             terms.append("Set \(repRange.setNumber)")
-            terms.append("\(repRange.minReps)-\(repRange.maxReps) reps")
-            terms.append("Set \(repRange.setNumber): \(repRange.minReps)-\(repRange.maxReps) reps")
+
+            let repRangeLabel: String
+            if repRange.minReps == repRange.maxReps {
+                repRangeLabel = "\(repRange.minReps)"
+                terms.append("\(repRange.minReps) reps")
+                terms.append("Set \(repRange.setNumber): \(repRange.minReps) reps")
+            } else {
+                repRangeLabel = "\(repRange.minReps)-\(repRange.maxReps)"
+                terms.append("\(repRange.minReps)-\(repRange.maxReps) reps")
+                terms.append("Set \(repRange.setNumber): \(repRange.minReps)-\(repRange.maxReps) reps")
+            }
+
+            terms.append("\(exercise.suggestedSets)x\(repRangeLabel)")
+            terms.append("\(exercise.suggestedSets) x \(repRangeLabel)")
+            terms.append("\(exercise.suggestedSets)×\(repRangeLabel)")
 
             if let percentageOfFirstSet = repRange.percentageOfFirstSet, repRange.setNumber > 1 {
                 let percentage = Int(percentageOfFirstSet * 100)
                 terms.append("\(percentage)% of first set")
                 terms.append("\(percentage) percent of first set")
-                terms.append("Set \(repRange.setNumber): \(repRange.minReps)-\(repRange.maxReps) reps (\(percentage)% of first set)")
+
+                if repRange.minReps == repRange.maxReps {
+                    terms.append("Set \(repRange.setNumber): \(repRange.minReps) reps (\(percentage)% of first set)")
+                } else {
+                    terms.append("Set \(repRange.setNumber): \(repRange.minReps)-\(repRange.maxReps) reps (\(percentage)% of first set)")
+                }
             }
         }
 

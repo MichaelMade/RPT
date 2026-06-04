@@ -190,6 +190,48 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Strength Day"])
     }
 
+    func testFetchTemplates_matchesCompactSetByRepNotation() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(
+                name: "Five By Five",
+                exerciseNames: ["Bench Press"],
+                suggestedSets: 5,
+                repRangesByExercise: [[
+                    TemplateRepRange(setNumber: 1, minReps: 5, maxReps: 5, percentageOfFirstSet: 1.0),
+                    TemplateRepRange(setNumber: 2, minReps: 5, maxReps: 5, percentageOfFirstSet: 0.95),
+                    TemplateRepRange(setNumber: 3, minReps: 5, maxReps: 5, percentageOfFirstSet: 0.9),
+                    TemplateRepRange(setNumber: 4, minReps: 5, maxReps: 5, percentageOfFirstSet: 0.85),
+                    TemplateRepRange(setNumber: 5, minReps: 5, maxReps: 5, percentageOfFirstSet: 0.8)
+                ]]
+            ),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"])
+        ]
+
+        viewModel.searchText = "5x5"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Five By Five"])
+    }
+
+    func testFetchTemplates_matchesCompactSetByRepRangeNotation() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(
+                name: "Hypertrophy Day",
+                exerciseNames: ["Incline Press"],
+                suggestedSets: 3,
+                repRangesByExercise: [[
+                    TemplateRepRange(setNumber: 1, minReps: 8, maxReps: 10, percentageOfFirstSet: 1.0),
+                    TemplateRepRange(setNumber: 2, minReps: 8, maxReps: 10, percentageOfFirstSet: 0.9),
+                    TemplateRepRange(setNumber: 3, minReps: 8, maxReps: 10, percentageOfFirstSet: 0.8)
+                ]]
+            ),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"])
+        ]
+
+        viewModel.searchText = "3x8-10"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Hypertrophy Day"])
+    }
+
     func testTemplateEditorNavigationTitle_namesExistingTemplate() {
         XCTAssertEqual(
             TemplateViewModel.templateEditorNavigationTitle(isNewTemplate: false, templateName: "  Upper   A  "),
