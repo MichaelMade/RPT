@@ -258,6 +258,24 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_matchesBodyRegionAliases() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Back Squat", category: .compound, primaryMuscleGroups: [.quadriceps], secondaryMuscleGroups: [.glutes], instructions: ""),
+            Exercise(name: "Plank", category: .bodyweight, primaryMuscleGroups: [.abs], secondaryMuscleGroups: [.obliques], instructions: "")
+        ]
+
+        viewModel.searchText = "upper body"
+        XCTAssertEqual(viewModel.fetchExercises().map(\.name), ["Bench Press"])
+
+        viewModel.searchText = "legs"
+        XCTAssertEqual(viewModel.fetchExercises().map(\.name), ["Back Squat"])
+
+        viewModel.searchText = "core"
+        XCTAssertEqual(viewModel.fetchExercises().map(\.name), ["Plank"])
+    }
+
     func testFetchExercises_matchesCategoryAliasesAfterNameMatches() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
