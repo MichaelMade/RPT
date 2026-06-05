@@ -177,6 +177,58 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Plank Builder"])
     }
 
+    func testFetchTemplates_matchesCrossFieldNameAndMetadataTokens() throws {
+        let context = DataManager.shared.getModelContext()
+        let bench = Exercise(
+            name: "Cross Field Chest Alias \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [.triceps, .shoulders]
+        )
+        let squat = Exercise(
+            name: "Cross Field Leg Alias \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.quadriceps],
+            secondaryMuscleGroups: [.glutes]
+        )
+        context.insert(bench)
+        context.insert(squat)
+        try context.save()
+        defer {
+            context.delete(bench)
+            context.delete(squat)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: [bench.name]),
+            makeTemplate(name: "Leg Day", exerciseNames: [squat.name])
+        ]
+
+        viewModel.searchText = "push chest"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+    }
+
+    func testFetchTemplates_matchesCrossFieldNameAndExerciseNoteTokens() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(
+                name: "Push Day",
+                exerciseNames: ["Bench Press"],
+                exerciseNotes: ["Pause on the chest"]
+            ),
+            makeTemplate(
+                name: "Pull Day",
+                exerciseNames: ["Barbell Row"],
+                exerciseNotes: ["Drive elbows back"]
+            )
+        ]
+
+        viewModel.searchText = "push pause"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+    }
+
     func testFetchTemplates_matchesExerciseCategoryAliases() throws {
         let context = DataManager.shared.getModelContext()
         let pullUp = Exercise(

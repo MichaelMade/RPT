@@ -1509,6 +1509,37 @@ class TemplateViewModel: ObservableObject {
         return terms
     }
 
+    private func crossFieldSearchCorpus(
+        for template: WorkoutTemplate,
+        activeWorkoutAvailable: Bool,
+        blockedByActiveWorkout: Bool,
+        activeWorkout: Workout?,
+        exerciseMetadataLookup: [String: ExerciseSearchMetadata]
+    ) -> String {
+        let exerciseNames = template.exercises.map(\.exerciseName)
+        let exerciseNotes = template.exercises.map(\.notes).filter {
+            !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        let exercisePrescriptionTerms = template.exercises.flatMap { exercisePrescriptionSearchTerms(for: $0) }
+        let exerciseMetadataTerms = exerciseMetadataSearchTerms(for: template, lookup: exerciseMetadataLookup)
+        let issueTerms = issueSearchTerms(
+            for: template,
+            activeWorkoutAvailable: activeWorkoutAvailable,
+            blockedByActiveWorkout: blockedByActiveWorkout,
+            activeWorkout: activeWorkout
+        )
+        let structureTerms = templateStructureSearchTerms(for: template)
+
+        return ([template.name, template.notes]
+            + exerciseNames
+            + exerciseNotes
+            + exercisePrescriptionTerms
+            + exerciseMetadataTerms
+            + issueTerms
+            + structureTerms)
+            .joined(separator: " ")
+    }
+
     private func issueSearchTerms(
         for template: WorkoutTemplate,
         activeWorkoutAvailable: Bool,
@@ -1977,6 +2008,17 @@ class TemplateViewModel: ObservableObject {
             in: templateStructureSearchTerms(for: template)
         ) {
             return 32 + structurePriority
+        }
+
+        let crossFieldCorpus = crossFieldSearchCorpus(
+            for: template,
+            activeWorkoutAvailable: activeWorkoutAvailable,
+            blockedByActiveWorkout: blockedByActiveWorkout,
+            activeWorkout: activeWorkout,
+            exerciseMetadataLookup: exerciseMetadataLookup
+        )
+        if Self.matchesQueryTokens(queryTokens, in: crossFieldCorpus) {
+            return 38
         }
 
         return nil

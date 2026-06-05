@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also matches cross-field natural-language queries like `push chest` and `push pause` when the words are split across the template name, exercise metadata, or exercise notes, so users can refind a routine by the mixed cues they remember instead of needing every search term to live in one field.
 - Exercise-library and workout/template exercise-picker search now also combines category, muscle-group, and body-region aliases across one query, so browse-style searches like `compound chest` and `triceps upper body` still find the right movement without forcing users into manual filter chips first.
 - Exercise-library and workout/template exercise-picker search now also strip filler object wording like `the bench press exercise`, `exercise called incline dumbbell press`, and `open exercise for bench press`, and search-driven custom-exercise recovery drops those wrappers too, so natural-language lookups and no-match prefills stay anchored on the real movement name instead of preserving `the`, `called`, or `for`.
 - Exercise-library and workout/template exercise-picker search now also understand body-region wording like `upper body`, `legs`, `arms`, and `core`, so users can find movements by the area they want to train instead of needing the exact exercise name or a manual muscle filter first.
