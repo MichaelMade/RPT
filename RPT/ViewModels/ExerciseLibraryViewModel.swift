@@ -81,6 +81,25 @@ class ExerciseLibraryViewModel: ObservableObject {
         normalizedSearchWords(rawValue).joined()
     }
 
+    private static let conversationalSearchLeadInPrefixes = [
+        "please ",
+        "can you ",
+        "could you ",
+        "would you ",
+        "will you ",
+        "help me ",
+        "show me ",
+        "take me to ",
+        "bring me to "
+    ]
+
+    private static let conversationalSearchTrailingPhrases = [
+        " thank you",
+        " thanks",
+        " please",
+        " for me"
+    ]
+
     private static let genericTrailingSearchSuffixes = [
         " exercise",
         " exercises",
@@ -90,7 +109,85 @@ class ExerciseLibraryViewModel: ObservableObject {
         " lifts"
     ]
 
-    private static let selectionSearchPrefillPrefixes = [
+    private static let searchIntentPrefillPrefixes = [
+        "search for exercise ",
+        "search for exercises ",
+        "search for movement ",
+        "search for movements ",
+        "search for lift ",
+        "search for lifts ",
+        "find exercise ",
+        "find exercises ",
+        "find movement ",
+        "find movements ",
+        "find lift ",
+        "find lifts ",
+        "find me exercise ",
+        "find me exercises ",
+        "find me movement ",
+        "find me movements ",
+        "find me lift ",
+        "find me lifts ",
+        "looking for exercise ",
+        "looking for exercises ",
+        "looking for movement ",
+        "looking for movements ",
+        "looking for lift ",
+        "looking for lifts ",
+        "look up exercise ",
+        "look up exercises ",
+        "look up movement ",
+        "look up movements ",
+        "look up lift ",
+        "look up lifts ",
+        "lookup exercise ",
+        "lookup exercises ",
+        "lookup movement ",
+        "lookup movements ",
+        "lookup lift ",
+        "lookup lifts ",
+        "open exercise ",
+        "open exercises ",
+        "open movement ",
+        "open movements ",
+        "open lift ",
+        "open lifts ",
+        "review exercise ",
+        "review exercises ",
+        "review movement ",
+        "review movements ",
+        "review lift ",
+        "review lifts ",
+        "show exercise ",
+        "show exercises ",
+        "show movement ",
+        "show movements ",
+        "show lift ",
+        "show lifts ",
+        "browse exercise ",
+        "browse exercises ",
+        "browse movement ",
+        "browse movements ",
+        "browse lift ",
+        "browse lifts ",
+        "check out exercise ",
+        "check out exercises ",
+        "check out movement ",
+        "check out movements ",
+        "check out lift ",
+        "check out lifts ",
+        "check exercise ",
+        "check exercises ",
+        "check movement ",
+        "check movements ",
+        "check lift ",
+        "check lifts ",
+        "edit exercise ",
+        "edit movement ",
+        "edit lift ",
+        "delete exercise ",
+        "delete movement ",
+        "delete lift ",
         "add exercise ",
         "add exercises ",
         "add movement ",
@@ -109,6 +206,20 @@ class ExerciseLibraryViewModel: ObservableObject {
         "use exercise ",
         "use movement ",
         "use lift ",
+        "search for ",
+        "find me ",
+        "find ",
+        "looking for ",
+        "look up ",
+        "lookup ",
+        "open ",
+        "review ",
+        "show ",
+        "browse ",
+        "check out ",
+        "check ",
+        "edit ",
+        "delete ",
         "add ",
         "select ",
         "choose ",
@@ -116,9 +227,30 @@ class ExerciseLibraryViewModel: ObservableObject {
         "use "
     ]
 
-    private static func strippedGenericTrailingSearchSuffix(_ normalizedQuery: String) -> String? {
-        for suffix in genericTrailingSearchSuffixes {
-            guard normalizedQuery.hasSuffix(suffix) else {
+    private static func strippedPrefix(_ normalizedQuery: String, prefixes: [String]) -> String? {
+        let lowercasedQuery = normalizedQuery.lowercased()
+
+        for prefix in prefixes {
+            guard lowercasedQuery.hasPrefix(prefix) else {
+                continue
+            }
+
+            let strippedQuery = String(normalizedQuery.dropFirst(prefix.count))
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            if !strippedQuery.isEmpty {
+                return strippedQuery
+            }
+        }
+
+        return nil
+    }
+
+    private static func strippedSuffix(_ normalizedQuery: String, suffixes: [String]) -> String? {
+        let lowercasedQuery = normalizedQuery.lowercased()
+
+        for suffix in suffixes {
+            guard lowercasedQuery.hasSuffix(suffix) else {
                 continue
             }
 
@@ -133,47 +265,55 @@ class ExerciseLibraryViewModel: ObservableObject {
         return nil
     }
 
-    private static func sanitizedSuggestedExerciseName(_ normalizedName: String) -> String {
-        var candidate = normalizedName
-
-        while let strippedCandidate = genericTrailingSearchSuffixes
-            .first(where: { candidate.lowercased().hasSuffix($0) })
-            .map({ suffix in
-                String(candidate.dropLast(suffix.count)).trimmingCharacters(in: .whitespacesAndNewlines)
-            }),
-            !strippedCandidate.isEmpty,
-            strippedCandidate != candidate {
-            candidate = strippedCandidate
-        }
-
-        while let strippedCandidate = selectionSearchPrefillPrefixes
-            .first(where: { candidate.lowercased().hasPrefix($0) })
-            .map({ prefix in
-                String(candidate.dropFirst(prefix.count)).trimmingCharacters(in: .whitespacesAndNewlines)
-            }),
-            !strippedCandidate.isEmpty,
-            strippedCandidate != candidate {
-            candidate = strippedCandidate
-        }
-
-        return candidate
+    private static func strippedGenericTrailingSearchSuffix(_ normalizedQuery: String) -> String? {
+        strippedSuffix(normalizedQuery, suffixes: genericTrailingSearchSuffixes)
     }
 
-    private static func searchQueryVariants(for normalizedQuery: String) -> [String] {
+    private static func sanitizedSearchVariants(for normalizedQuery: String) -> [String] {
         guard !normalizedQuery.isEmpty else {
             return []
         }
 
-        var variants = [normalizedQuery]
-        var candidate = normalizedQuery
+        var variants: [String] = []
+        var seen = Set<String>()
+        var queue = [normalizedQuery]
 
-        while let strippedCandidate = strippedGenericTrailingSearchSuffix(candidate),
-              strippedCandidate != candidate {
-            variants.append(strippedCandidate)
-            candidate = strippedCandidate
+        while !queue.isEmpty {
+            let candidate = queue.removeFirst()
+            guard seen.insert(candidate).inserted else {
+                continue
+            }
+
+            variants.append(candidate)
+
+            let strippedCandidates = [
+                strippedPrefix(candidate, prefixes: conversationalSearchLeadInPrefixes),
+                strippedPrefix(candidate, prefixes: searchIntentPrefillPrefixes),
+                strippedSuffix(candidate, suffixes: conversationalSearchTrailingPhrases),
+                strippedGenericTrailingSearchSuffix(candidate)
+            ]
+
+            for strippedCandidate in strippedCandidates.compactMap({ $0 }) where !seen.contains(strippedCandidate) {
+                queue.append(strippedCandidate)
+            }
         }
 
         return variants
+    }
+
+    private static func sanitizedSuggestedExerciseName(_ normalizedName: String) -> String {
+        sanitizedSearchVariants(for: normalizedName)
+            .min(by: {
+                if $0.count != $1.count {
+                    return $0.count < $1.count
+                }
+
+                return $0 < $1
+            }) ?? normalizedName
+    }
+
+    private static func searchQueryVariants(for normalizedQuery: String) -> [String] {
+        sanitizedSearchVariants(for: normalizedQuery)
     }
 
     private static func initialismLookupKey(_ rawValue: String) -> String {

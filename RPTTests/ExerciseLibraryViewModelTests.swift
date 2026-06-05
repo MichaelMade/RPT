@@ -100,6 +100,28 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_handlesNaturalLanguageLookupPhrasing() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+        viewModel.searchText = "show me bench press exercise please"
+
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press"],
+            "Exercise search should understand conversational find/open/show phrasing instead of requiring users to type only the saved movement name"
+        )
+
+        viewModel.searchText = "find movement barbell row"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Barbell Row"],
+            "Exercise search should also strip generic object words after natural-language lookup prefixes"
+        )
+    }
+
     func testFetchExercises_matchesExerciseInitialisms() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
@@ -570,6 +592,24 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             viewModel.suggestedExerciseNameFromSearch(),
             "Incline Bench Press",
             "Create-from-search should strip picker-style selection wording and generic trailing exercise words so new custom names stay clean"
+        )
+        XCTAssertEqual(
+            viewModel.createExerciseRecoveryTitle(filteredCount: 0),
+            "Add Custom Exercise “Incline Bench Press”"
+        )
+    }
+
+    func testSuggestedExerciseNameFromSearch_stripsConversationalLookupPhrasing() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.searchText = "  can you find exercise Incline Bench Press for me  "
+
+        XCTAssertEqual(
+            viewModel.suggestedExerciseNameFromSearch(),
+            "Incline Bench Press",
+            "Create-from-search should strip conversational lookup phrasing so search-seeded custom exercise names stay clean"
         )
         XCTAssertEqual(
             viewModel.createExerciseRecoveryTitle(filteredCount: 0),
