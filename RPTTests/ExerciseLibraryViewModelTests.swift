@@ -399,6 +399,29 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_matchesCrossFieldQueriesAcrossNameAliasAndInstructions() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "Lower the bar to your mid chest with elbows stacked under wrists."),
+            Exercise(name: "Cable Fly", category: .isolation, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.shoulders], instructions: "Keep a soft bend in your elbows."),
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "Drive elbows back at the top.")
+        ]
+
+        viewModel.searchText = "bench elbows"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press"],
+            "Exercise search should match mixed-cue queries when users remember part of the exercise name and part of the coaching note"
+        )
+
+        viewModel.searchText = "compound elbows"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press", "Barbell Row"],
+            "Exercise search should also combine category aliases with instruction cues instead of requiring every remembered word to live in one field"
+        )
+    }
+
     func testFetchExercises_matchesEditAndDeleteActionPhrasesOnlyForCustomExercises() {
         let viewModel = ExerciseLibraryViewModel()
         let customExercise = Exercise(name: "Garage Dip", category: .bodyweight, primaryMuscleGroups: [.triceps], secondaryMuscleGroups: [.chest], instructions: "")

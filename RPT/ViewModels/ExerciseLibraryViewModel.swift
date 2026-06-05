@@ -432,6 +432,29 @@ class ExerciseLibraryViewModel: ObservableObject {
         return aliases
     }
 
+    private static func crossFieldSearchCorpus(
+        for exercise: Exercise,
+        includeSelectionActionAliases: Bool
+    ) -> String {
+        let aliasValues = [
+            exercise.category.rawValue,
+            exercise.category.rawValue.capitalized
+        ]
+        + exercise.primaryMuscleGroups.map(\.displayName)
+        + exercise.secondaryMuscleGroups.map(\.displayName)
+        + bodyRegionSearchTerms(
+            primaryMuscleGroups: exercise.primaryMuscleGroups,
+            secondaryMuscleGroups: exercise.secondaryMuscleGroups
+        )
+        + actionSearchAliases(
+            for: exercise,
+            includeSelectionAliases: includeSelectionActionAliases
+        )
+
+        return ([exercise.name, exercise.instructions] + aliasValues)
+            .joined(separator: " ")
+    }
+
     var includeSelectionActionSearchAliases = false
 
     var normalizedSearchText: String {
@@ -889,6 +912,14 @@ class ExerciseLibraryViewModel: ObservableObject {
 
             if !normalizedInstructions.isEmpty, normalizedInstructions.contains(query) {
                 return 20
+            }
+
+            let crossFieldCorpus = crossFieldSearchCorpus(
+                for: exercise,
+                includeSelectionActionAliases: includeSelectionActionAliases
+            )
+            if matchesQueryTokens(queryTokens, in: crossFieldCorpus) {
+                return 21
             }
 
             return nil
