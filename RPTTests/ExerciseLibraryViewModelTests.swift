@@ -287,6 +287,29 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_matchesCombinedAliasQueriesAcrossCategoryAndMuscles() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Cable Fly", category: .isolation, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.shoulders], instructions: ""),
+            Exercise(name: "Pull-Up", category: .bodyweight, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+
+        viewModel.searchText = "compound chest"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press"],
+            "Exercise search should match combined browse queries that span separate aliases like category plus muscle group"
+        )
+
+        viewModel.searchText = "triceps upper body"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press"],
+            "Exercise search should also combine muscle and body-region aliases so natural browse phrasing still finds the right movement"
+        )
+    }
+
     func testFetchExercises_matchesBodyRegionAliases() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [

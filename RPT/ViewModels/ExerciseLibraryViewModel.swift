@@ -766,6 +766,7 @@ class ExerciseLibraryViewModel: ObservableObject {
             includeSelectionAliases: includeSelectionActionAliases
         )
         let aliasLookups = aliasValues.map(normalizedSearchLookupKey)
+        let aliasWords = aliasLookups.flatMap { $0.split(separator: " ") }
         let normalizedInstructions = normalizedSearchLookupKey(exercise.instructions)
         let instructionWords = normalizedInstructions.split(separator: " ")
 
@@ -822,11 +823,8 @@ class ExerciseLibraryViewModel: ObservableObject {
             }
 
             if !queryTokens.isEmpty,
-               aliasLookups.contains(where: { alias in
-                   let aliasWords = alias.split(separator: " ")
-                   return queryTokens.allSatisfy { token in
-                       aliasWords.contains(where: { $0.hasPrefix(token) })
-                   }
+               queryTokens.allSatisfy({ token in
+                   aliasWords.contains(where: { $0.hasPrefix(token) })
                }) {
                 return 9
             }
