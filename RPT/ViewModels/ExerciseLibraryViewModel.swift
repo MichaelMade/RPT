@@ -109,6 +109,44 @@ class ExerciseLibraryViewModel: ObservableObject {
         " lifts"
     ]
 
+    private static let genericSearchEntityPrefixes = [
+        "exercise ",
+        "exercises ",
+        "movement ",
+        "movements ",
+        "lift ",
+        "lifts "
+    ]
+
+    private static let searchObjectLeadInPrefixes = [
+        "the ",
+        "my ",
+        "this ",
+        "that ",
+        "these ",
+        "those ",
+        "a ",
+        "an ",
+        "called ",
+        "named "
+    ]
+
+    private static let searchBridgeLeadInPrefixes = [
+        "for "
+    ]
+
+    private static let genericExercisePrefillLookupKeys: Set<String> = [
+        "exercise",
+        "exercises",
+        "movement",
+        "movements",
+        "lift",
+        "lifts",
+        "custom exercise",
+        "custom movement",
+        "custom lift"
+    ]
+
     private static let searchIntentPrefillPrefixes = [
         "search for exercise ",
         "search for exercises ",
@@ -269,6 +307,18 @@ class ExerciseLibraryViewModel: ObservableObject {
         strippedSuffix(normalizedQuery, suffixes: genericTrailingSearchSuffixes)
     }
 
+    private static func strippedGenericSearchEntityPrefix(_ normalizedQuery: String) -> String? {
+        strippedPrefix(normalizedQuery, prefixes: genericSearchEntityPrefixes)
+    }
+
+    private static func strippedSearchObjectLeadIn(_ normalizedQuery: String) -> String? {
+        strippedPrefix(normalizedQuery, prefixes: searchObjectLeadInPrefixes)
+    }
+
+    private static func strippedSearchBridgeLeadIn(_ normalizedQuery: String) -> String? {
+        strippedPrefix(normalizedQuery, prefixes: searchBridgeLeadInPrefixes)
+    }
+
     private static func sanitizedSearchVariants(for normalizedQuery: String) -> [String] {
         guard !normalizedQuery.isEmpty else {
             return []
@@ -290,7 +340,10 @@ class ExerciseLibraryViewModel: ObservableObject {
                 strippedPrefix(candidate, prefixes: conversationalSearchLeadInPrefixes),
                 strippedPrefix(candidate, prefixes: searchIntentPrefillPrefixes),
                 strippedSuffix(candidate, suffixes: conversationalSearchTrailingPhrases),
-                strippedGenericTrailingSearchSuffix(candidate)
+                strippedGenericTrailingSearchSuffix(candidate),
+                strippedGenericSearchEntityPrefix(candidate),
+                strippedSearchObjectLeadIn(candidate),
+                strippedSearchBridgeLeadIn(candidate)
             ]
 
             for strippedCandidate in strippedCandidates.compactMap({ $0 }) where !seen.contains(strippedCandidate) {
@@ -522,7 +575,8 @@ class ExerciseLibraryViewModel: ObservableObject {
 
         let preferredName = Self.sanitizedSuggestedExerciseName(normalizedSearchText)
         let preferredLookup = Self.normalizedSearchLookupKey(preferredName)
-        guard !preferredLookup.isEmpty else {
+        guard !preferredLookup.isEmpty,
+              !Self.genericExercisePrefillLookupKeys.contains(preferredLookup) else {
             return nil
         }
 

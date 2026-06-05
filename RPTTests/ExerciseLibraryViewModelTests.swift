@@ -122,6 +122,35 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_stripsObjectLeadInsAndEntityPrefixes() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Incline Dumbbell Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.shoulders], instructions: "")
+        ]
+
+        viewModel.searchText = "the bench press exercise"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press"],
+            "Exercise search should ignore filler lead-ins like the/my when they wrap a remembered movement name"
+        )
+
+        viewModel.searchText = "exercise called incline dumbbell press"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Incline Dumbbell Press"],
+            "Exercise search should also strip leading exercise/movement wrappers plus called/named wording"
+        )
+
+        viewModel.searchText = "open exercise for bench press"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press"],
+            "Exercise search should ignore bridge words like for after natural-language lookup prefixes"
+        )
+    }
+
     func testFetchExercises_matchesExerciseInitialisms() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
@@ -635,6 +664,24 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testSuggestedExerciseNameFromSearch_stripsObjectLeadInsAndEntityPrefixes() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.searchText = "  find my exercise called Incline Bench Press please  "
+
+        XCTAssertEqual(
+            viewModel.suggestedExerciseNameFromSearch(),
+            "Incline Bench Press",
+            "Create-from-search should strip filler object words plus leading exercise wrappers so new custom exercise names stay clean"
+        )
+        XCTAssertEqual(
+            viewModel.createExerciseRecoveryTitle(filteredCount: 0),
+            "Add Custom Exercise “Incline Bench Press”"
+        )
+    }
+
     func testSuggestedExerciseNameFromSearch_hidesCreateRecoveryForDuplicateNormalizedNames() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
@@ -659,6 +706,17 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertNil(
             viewModel.suggestedExerciseNameFromSearch(),
             "Create recovery should stay hidden when suffix stripping reveals an exercise that already exists"
+        )
+        XCTAssertNil(viewModel.createExerciseRecoveryTitle(filteredCount: 0))
+    }
+
+    func testSuggestedExerciseNameFromSearch_hidesGenericEntityOnlyPrefills() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.searchText = "exercise"
+
+        XCTAssertNil(
+            viewModel.suggestedExerciseNameFromSearch(),
+            "Create recovery should stay hidden for generic exercise-only searches instead of suggesting unusably vague custom names"
         )
         XCTAssertNil(viewModel.createExerciseRecoveryTitle(filteredCount: 0))
     }
