@@ -331,11 +331,12 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
-    func testFetchExercises_matchesAddAndSelectActionPhrasesOnlyWhenPickerAliasesAreEnabled() {
+    func testFetchExercises_matchesSelectionActionPhrasesOnlyWhenPickerAliasesAreEnabled() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
             Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
-            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: ""),
+            Exercise(name: "Incline Dumbbell Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.shoulders], instructions: "")
         ]
         viewModel.searchText = "add bench press"
 
@@ -356,6 +357,20 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
             viewModel.fetchExercises().map(\.name),
             ["Barbell Row"],
             "Picker search should also understand select wording so remembered action copy still finds the intended exercise"
+        )
+
+        viewModel.searchText = "choose incline dumbbell press"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Incline Dumbbell Press"],
+            "Picker search should understand choose wording so natural selection phrasing still finds the intended exercise"
+        )
+
+        viewModel.searchText = "use bench press exercise"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press"],
+            "Picker search should also understand use wording while still ignoring trailing generic exercise filler"
         )
     }
 
@@ -544,17 +559,17 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
-    func testSuggestedExerciseNameFromSearch_stripsGenericTrailingExerciseSuffixes() {
+    func testSuggestedExerciseNameFromSearch_stripsSelectionPrefixesAndGenericTrailingExerciseSuffixes() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
             Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
         ]
-        viewModel.searchText = "  Incline Bench Press exercise  "
+        viewModel.searchText = "  use exercise Incline Bench Press exercise  "
 
         XCTAssertEqual(
             viewModel.suggestedExerciseNameFromSearch(),
             "Incline Bench Press",
-            "Create-from-search should strip generic trailing exercise words so new custom names stay clean"
+            "Create-from-search should strip picker-style selection wording and generic trailing exercise words so new custom names stay clean"
         )
         XCTAssertEqual(
             viewModel.createExerciseRecoveryTitle(filteredCount: 0),

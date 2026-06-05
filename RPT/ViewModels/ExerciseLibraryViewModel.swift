@@ -90,6 +90,32 @@ class ExerciseLibraryViewModel: ObservableObject {
         " lifts"
     ]
 
+    private static let selectionSearchPrefillPrefixes = [
+        "add exercise ",
+        "add exercises ",
+        "add movement ",
+        "add movements ",
+        "add lift ",
+        "add lifts ",
+        "select exercise ",
+        "select movement ",
+        "select lift ",
+        "choose exercise ",
+        "choose movement ",
+        "choose lift ",
+        "pick exercise ",
+        "pick movement ",
+        "pick lift ",
+        "use exercise ",
+        "use movement ",
+        "use lift ",
+        "add ",
+        "select ",
+        "choose ",
+        "pick ",
+        "use "
+    ]
+
     private static func strippedGenericTrailingSearchSuffix(_ normalizedQuery: String) -> String? {
         for suffix in genericTrailingSearchSuffixes {
             guard normalizedQuery.hasSuffix(suffix) else {
@@ -114,6 +140,16 @@ class ExerciseLibraryViewModel: ObservableObject {
             .first(where: { candidate.lowercased().hasSuffix($0) })
             .map({ suffix in
                 String(candidate.dropLast(suffix.count)).trimmingCharacters(in: .whitespacesAndNewlines)
+            }),
+            !strippedCandidate.isEmpty,
+            strippedCandidate != candidate {
+            candidate = strippedCandidate
+        }
+
+        while let strippedCandidate = selectionSearchPrefillPrefixes
+            .first(where: { candidate.lowercased().hasPrefix($0) })
+            .map({ prefix in
+                String(candidate.dropFirst(prefix.count)).trimmingCharacters(in: .whitespacesAndNewlines)
             }),
             !strippedCandidate.isEmpty,
             strippedCandidate != candidate {
@@ -156,7 +192,10 @@ class ExerciseLibraryViewModel: ObservableObject {
         if includeSelectionAliases {
             aliases.append(contentsOf: [
                 "Add \(exercise.displayName)",
-                "Select \(exercise.displayName)"
+                "Select \(exercise.displayName)",
+                "Choose \(exercise.displayName)",
+                "Pick \(exercise.displayName)",
+                "Use \(exercise.displayName)"
             ])
         }
 
