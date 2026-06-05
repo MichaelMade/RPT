@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search and search-driven `Create “...”` recovery now also understand selection wording like `choose template lower day`, `pick routine push day`, and `select upper body push`, so users can find—or create from—the right saved routine with more natural selection phrasing instead of needing the app’s exact `open`/`start` verbs.
 - Exercise-library and workout/template exercise-picker search now also matches instruction cues like `drive elbows back` and `mid chest`, plus quick shorthand such as `deb`, so people can refind a movement by the coaching note they remember instead of only by its saved name.
 - Exercise library and workout/template exercise pickers now ignore generic trailing search words like `exercise`, `movement`, and `lift`, so queries such as `bench press exercise` still reopen the saved movement—and no-match create recovery strips that filler back out of custom exercise names.
 - Workout Templates search and search-driven `Create “...”` recovery now also understand direct start wording like `use upper body push` and `launch template lower day`, so people can find—or create from—the right routine with more natural start phrasing instead of needing the app’s exact `start`/`open` verbs.

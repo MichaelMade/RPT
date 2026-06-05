@@ -1793,6 +1793,15 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "use template Lower Day"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
 
+        viewModel.searchText = "choose template Lower Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "pick routine Push Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Push Day")
+
+        viewModel.searchText = "select Upper Body Push"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
+
         viewModel.searchText = "launch Upper Body Push"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
     }
@@ -1899,6 +1908,15 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "show upper body push, thanks"
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
+
+        viewModel.searchText = "choose template lower day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Lower Day"])
+
+        viewModel.searchText = "pick routine push day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+
+        viewModel.searchText = "select upper body push"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
     }
 
     func testFetchTemplates_matchesBareTemplateEntityPrefixes() {
@@ -1986,6 +2004,12 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "Push Day")
 
         viewModel.searchText = "browse routines upper body push"
+        XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "Upper Body Push")
+
+        viewModel.searchText = "choose template lower day"
+        XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "Lower Day")
+
+        viewModel.searchText = "select upper body push"
         XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "Upper Body Push")
     }
 
