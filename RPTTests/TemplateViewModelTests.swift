@@ -149,14 +149,22 @@ final class TemplateViewModelTests: XCTestCase {
             primaryMuscleGroups: [.abs],
             secondaryMuscleGroups: [.obliques]
         )
+        let burpee = Exercise(
+            name: "Full Body Region Alias \(UUID().uuidString)",
+            category: .bodyweight,
+            primaryMuscleGroups: [.quadriceps, .chest],
+            secondaryMuscleGroups: [.shoulders, .abs]
+        )
         context.insert(bench)
         context.insert(squat)
         context.insert(plank)
+        context.insert(burpee)
         try context.save()
         defer {
             context.delete(bench)
             context.delete(squat)
             context.delete(plank)
+            context.delete(burpee)
             try? context.save()
         }
 
@@ -164,17 +172,21 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.templates = [
             makeTemplate(name: "Bench Focus", exerciseNames: [bench.name]),
             makeTemplate(name: "Squat Strength", exerciseNames: [squat.name]),
-            makeTemplate(name: "Plank Builder", exerciseNames: [plank.name])
+            makeTemplate(name: "Plank Builder", exerciseNames: [plank.name]),
+            makeTemplate(name: "Burpee Blast", exerciseNames: [burpee.name])
         ]
 
         viewModel.searchText = "upper body"
-        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Bench Focus"])
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Bench Focus", "Burpee Blast"])
 
         viewModel.searchText = "legs"
-        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Squat Strength"])
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Squat Strength", "Burpee Blast"])
 
         viewModel.searchText = "core"
-        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Plank Builder"])
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Plank Builder", "Burpee Blast"])
+
+        viewModel.searchText = "full body"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Burpee Blast"])
     }
 
     func testFetchTemplates_matchesCrossFieldNameAndMetadataTokens() throws {

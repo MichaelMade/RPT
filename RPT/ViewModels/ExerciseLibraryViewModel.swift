@@ -384,12 +384,18 @@ class ExerciseLibraryViewModel: ObservableObject {
         var terms = Set<String>()
 
         let lowerBodyGroups: Set<MuscleGroup> = [.quadriceps, .hamstrings, .glutes, .calves]
-        if !muscleGroups.isDisjoint(with: lowerBodyGroups) {
+        let upperBodyGroups: Set<MuscleGroup> = [.chest, .back, .shoulders, .biceps, .triceps, .forearms, .traps]
+        let coreGroups: Set<MuscleGroup> = [.abs, .obliques, .lowerBack]
+
+        let matchesLowerBody = !muscleGroups.isDisjoint(with: lowerBodyGroups)
+        let matchesUpperBody = !muscleGroups.isDisjoint(with: upperBodyGroups)
+        let matchesCore = !muscleGroups.isDisjoint(with: coreGroups)
+
+        if matchesLowerBody {
             terms.formUnion(["lower body", "leg", "legs"])
         }
 
-        let upperBodyGroups: Set<MuscleGroup> = [.chest, .back, .shoulders, .biceps, .triceps, .forearms, .traps]
-        if !muscleGroups.isDisjoint(with: upperBodyGroups) {
+        if matchesUpperBody {
             terms.insert("upper body")
         }
 
@@ -398,9 +404,12 @@ class ExerciseLibraryViewModel: ObservableObject {
             terms.formUnion(["arm", "arms"])
         }
 
-        let coreGroups: Set<MuscleGroup> = [.abs, .obliques, .lowerBack]
-        if !muscleGroups.isDisjoint(with: coreGroups) {
+        if matchesCore {
             terms.insert("core")
+        }
+
+        if (matchesUpperBody && matchesLowerBody) || (matchesCore && (matchesUpperBody || matchesLowerBody)) {
+            terms.formUnion(["full body", "total body"])
         }
 
         return terms.sorted()

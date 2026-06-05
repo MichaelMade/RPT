@@ -315,17 +315,21 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         viewModel.exercises = [
             Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
             Exercise(name: "Back Squat", category: .compound, primaryMuscleGroups: [.quadriceps], secondaryMuscleGroups: [.glutes], instructions: ""),
-            Exercise(name: "Plank", category: .bodyweight, primaryMuscleGroups: [.abs], secondaryMuscleGroups: [.obliques], instructions: "")
+            Exercise(name: "Plank", category: .bodyweight, primaryMuscleGroups: [.abs], secondaryMuscleGroups: [.obliques], instructions: ""),
+            Exercise(name: "Burpee", category: .bodyweight, primaryMuscleGroups: [.quadriceps, .chest], secondaryMuscleGroups: [.shoulders, .abs], instructions: "")
         ]
 
         viewModel.searchText = "upper body"
-        XCTAssertEqual(viewModel.fetchExercises().map(\.name), ["Bench Press"])
+        XCTAssertEqual(viewModel.fetchExercises().map(\.name), ["Bench Press", "Burpee"])
 
         viewModel.searchText = "legs"
-        XCTAssertEqual(viewModel.fetchExercises().map(\.name), ["Back Squat"])
+        XCTAssertEqual(viewModel.fetchExercises().map(\.name), ["Back Squat", "Burpee"])
 
         viewModel.searchText = "core"
-        XCTAssertEqual(viewModel.fetchExercises().map(\.name), ["Plank"])
+        XCTAssertEqual(viewModel.fetchExercises().map(\.name), ["Plank", "Burpee"])
+
+        viewModel.searchText = "full body"
+        XCTAssertEqual(viewModel.fetchExercises().map(\.name), ["Burpee"])
     }
 
     func testFetchExercises_matchesCategoryAliasesAfterNameMatches() {
