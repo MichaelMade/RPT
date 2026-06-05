@@ -499,6 +499,8 @@ class ExerciseLibraryViewModel: ObservableObject {
             includeSelectionAliases: includeSelectionActionAliases
         )
         let aliasLookups = aliasValues.map(normalizedSearchLookupKey)
+        let normalizedInstructions = normalizedSearchLookupKey(exercise.instructions)
+        let instructionWords = normalizedInstructions.split(separator: " ")
 
         func priority(for query: String) -> Int? {
             let compactedQuery = compactedSearchLookupKey(query)
@@ -580,6 +582,48 @@ class ExerciseLibraryViewModel: ObservableObject {
 
             if aliasLookups.contains(where: { $0.contains(query) }) {
                 return 12
+            }
+
+            if !normalizedInstructions.isEmpty, normalizedInstructions == query {
+                return 13
+            }
+
+            if !normalizedInstructions.isEmpty, normalizedInstructions.hasPrefix(query) {
+                return 14
+            }
+
+            if !queryTokens.isEmpty,
+               queryTokens.allSatisfy({ token in
+                   instructionWords.contains(where: { $0.hasPrefix(token) })
+               }) {
+                return 15
+            }
+
+            let instructionInitialism = initialismLookupKey(exercise.instructions)
+            if !initialismQuery.isEmpty,
+               !instructionInitialism.isEmpty,
+               instructionInitialism.hasPrefix(initialismQuery) {
+                return 16
+            }
+
+            let compactedInstructions = compactedSearchLookupKey(exercise.instructions)
+            if !compactedQuery.isEmpty,
+               !compactedInstructions.isEmpty {
+                if compactedInstructions == compactedQuery {
+                    return 17
+                }
+
+                if compactedInstructions.hasPrefix(compactedQuery) {
+                    return 18
+                }
+
+                if compactedInstructions.contains(compactedQuery) {
+                    return 19
+                }
+            }
+
+            if !normalizedInstructions.isEmpty, normalizedInstructions.contains(query) {
+                return 20
             }
 
             return nil

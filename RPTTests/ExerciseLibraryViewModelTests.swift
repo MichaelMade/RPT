@@ -269,6 +269,44 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_matchesInstructionTextAfterNameAndAliasMatches() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "Lower the bar to your mid chest with your elbows stacked under your wrists."),
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "Drive elbows back and squeeze your shoulder blades together at the top."),
+            Exercise(name: "Chest Fly", category: .isolation, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.shoulders], instructions: "Keep a soft bend in your elbows.")
+        ]
+        viewModel.searchText = "drive elbows back"
+
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Barbell Row"],
+            "Exercise search should also match instruction cues so users can refind a movement by the coaching note they remember"
+        )
+
+        viewModel.searchText = "chest"
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press", "Chest Fly"],
+            "Name and muscle matches should still outrank instruction-only matches when a query could hit both"
+        )
+    }
+
+    func testFetchExercises_matchesInstructionInitialisms() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "Drive elbows back"),
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "Brace and press")
+        ]
+        viewModel.searchText = "deb"
+
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Barbell Row"],
+            "Instruction search should support shorthand initialisms so quick cue-based lookups still find the right movement"
+        )
+    }
+
     func testFetchExercises_matchesEditAndDeleteActionPhrasesOnlyForCustomExercises() {
         let viewModel = ExerciseLibraryViewModel()
         let customExercise = Exercise(name: "Garage Dip", category: .bodyweight, primaryMuscleGroups: [.triceps], secondaryMuscleGroups: [.chest], instructions: "")
