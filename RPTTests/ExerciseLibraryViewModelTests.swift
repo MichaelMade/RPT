@@ -85,6 +85,21 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchExercises_ignoresGenericTrailingExerciseSuffixes() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: ""),
+            Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back], secondaryMuscleGroups: [.biceps], instructions: "")
+        ]
+        viewModel.searchText = "bench press exercise"
+
+        XCTAssertEqual(
+            viewModel.fetchExercises().map(\.name),
+            ["Bench Press"],
+            "Exercise search should ignore generic trailing words like exercise so remembered movement names still find the saved lift"
+        )
+    }
+
     func testFetchExercises_matchesExerciseInitialisms() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
@@ -491,6 +506,24 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testSuggestedExerciseNameFromSearch_stripsGenericTrailingExerciseSuffixes() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.searchText = "  Incline Bench Press exercise  "
+
+        XCTAssertEqual(
+            viewModel.suggestedExerciseNameFromSearch(),
+            "Incline Bench Press",
+            "Create-from-search should strip generic trailing exercise words so new custom names stay clean"
+        )
+        XCTAssertEqual(
+            viewModel.createExerciseRecoveryTitle(filteredCount: 0),
+            "Add Custom Exercise “Incline Bench Press”"
+        )
+    }
+
     func testSuggestedExerciseNameFromSearch_hidesCreateRecoveryForDuplicateNormalizedNames() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.exercises = [
@@ -501,6 +534,20 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         XCTAssertNil(
             viewModel.suggestedExerciseNameFromSearch(),
             "Search-to-create should stay hidden when the normalized exercise name already exists in the library"
+        )
+        XCTAssertNil(viewModel.createExerciseRecoveryTitle(filteredCount: 0))
+    }
+
+    func testSuggestedExerciseNameFromSearch_hidesCreateRecoveryWhenSuffixStrippingRevealsExistingExercise() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.searchText = "bench press exercise"
+
+        XCTAssertNil(
+            viewModel.suggestedExerciseNameFromSearch(),
+            "Create recovery should stay hidden when suffix stripping reveals an exercise that already exists"
         )
         XCTAssertNil(viewModel.createExerciseRecoveryTitle(filteredCount: 0))
     }

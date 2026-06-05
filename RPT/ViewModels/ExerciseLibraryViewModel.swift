@@ -81,6 +81,65 @@ class ExerciseLibraryViewModel: ObservableObject {
         normalizedSearchWords(rawValue).joined()
     }
 
+    private static let genericTrailingSearchSuffixes = [
+        " exercise",
+        " exercises",
+        " movement",
+        " movements",
+        " lift",
+        " lifts"
+    ]
+
+    private static func strippedGenericTrailingSearchSuffix(_ normalizedQuery: String) -> String? {
+        for suffix in genericTrailingSearchSuffixes {
+            guard normalizedQuery.hasSuffix(suffix) else {
+                continue
+            }
+
+            let strippedQuery = String(normalizedQuery.dropLast(suffix.count))
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            if !strippedQuery.isEmpty {
+                return strippedQuery
+            }
+        }
+
+        return nil
+    }
+
+    private static func sanitizedSuggestedExerciseName(_ normalizedName: String) -> String {
+        var candidate = normalizedName
+
+        while let strippedCandidate = genericTrailingSearchSuffixes
+            .first(where: { candidate.lowercased().hasSuffix($0) })
+            .map({ suffix in
+                String(candidate.dropLast(suffix.count)).trimmingCharacters(in: .whitespacesAndNewlines)
+            }),
+            !strippedCandidate.isEmpty,
+            strippedCandidate != candidate {
+            candidate = strippedCandidate
+        }
+
+        return candidate
+    }
+
+    private static func searchQueryVariants(for normalizedQuery: String) -> [String] {
+        guard !normalizedQuery.isEmpty else {
+            return []
+        }
+
+        var variants = [normalizedQuery]
+        var candidate = normalizedQuery
+
+        while let strippedCandidate = strippedGenericTrailingSearchSuffix(candidate),
+              strippedCandidate != candidate {
+            variants.append(strippedCandidate)
+            candidate = strippedCandidate
+        }
+
+        return variants
+    }
+
     private static func initialismLookupKey(_ rawValue: String) -> String {
         normalizedSearchWords(rawValue)
             .compactMap(\.first)
@@ -252,17 +311,17 @@ class ExerciseLibraryViewModel: ObservableObject {
             return nil
         }
 
-        let normalizedName = normalizedSearchText
-        guard !normalizedName.isEmpty else {
+        let preferredName = Self.sanitizedSuggestedExerciseName(normalizedSearchText)
+        let preferredLookup = Self.normalizedSearchLookupKey(preferredName)
+        guard !preferredLookup.isEmpty else {
             return nil
         }
 
-        let normalizedLookup = ExerciseManager.normalizedNameLookupKey(normalizedName)
         let nameAlreadyExists = exercises.contains {
-            ExerciseManager.normalizedNameLookupKey($0.name) == normalizedLookup
+            ExerciseManager.normalizedNameLookupKey($0.name) == preferredLookup
         }
 
-        return nameAlreadyExists ? nil : normalizedName
+        return nameAlreadyExists ? nil : preferredName
     }
 
     func preferredNewExercisePrefillName() -> String {
@@ -429,49 +488,6 @@ class ExerciseLibraryViewModel: ObservableObject {
         }
 
         let normalizedName = normalizedSearchLookupKey(exercise.name)
-        let compactedQuery = compactedSearchLookupKey(normalizedQuery)
-        let initialismQuery = compactedQuery
-        let queryTokens = normalizedSearchTokens(normalizedQuery)
-        let words = normalizedName.split(separator: " ")
-
-        if normalizedName == normalizedQuery {
-            return 0
-        }
-
-        if normalizedName.hasPrefix(normalizedQuery) {
-            return 1
-        }
-
-        if !queryTokens.isEmpty,
-           queryTokens.allSatisfy({ token in
-               words.contains(where: { $0.hasPrefix(token) })
-           }) {
-            return 2
-        }
-
-        let nameInitialism = initialismLookupKey(exercise.name)
-        if !initialismQuery.isEmpty,
-           !nameInitialism.isEmpty,
-           nameInitialism.hasPrefix(initialismQuery) {
-            return 3
-        }
-
-        let compactedName = compactedSearchLookupKey(exercise.name)
-        if !compactedQuery.isEmpty,
-           !compactedName.isEmpty {
-            if compactedName == compactedQuery {
-                return 4
-            }
-
-            if compactedName.hasPrefix(compactedQuery) {
-                return 5
-            }
-        }
-
-        if normalizedName.contains(normalizedQuery) {
-            return 6
-        }
-
         let aliasValues = [
             exercise.category.rawValue,
             exercise.category.rawValue.capitalized
@@ -482,48 +498,106 @@ class ExerciseLibraryViewModel: ObservableObject {
             for: exercise,
             includeSelectionAliases: includeSelectionActionAliases
         )
-
         let aliasLookups = aliasValues.map(normalizedSearchLookupKey)
 
-        if aliasLookups.contains(normalizedQuery) {
-            return 7
+        func priority(for query: String) -> Int? {
+            let compactedQuery = compactedSearchLookupKey(query)
+            let initialismQuery = compactedQuery
+            let queryTokens = normalizedSearchTokens(query)
+            let words = normalizedName.split(separator: " ")
+
+            if normalizedName == query {
+                return 0
+            }
+
+            if normalizedName.hasPrefix(query) {
+                return 1
+            }
+
+            if !queryTokens.isEmpty,
+               queryTokens.allSatisfy({ token in
+                   words.contains(where: { $0.hasPrefix(token) })
+               }) {
+                return 2
+            }
+
+            let nameInitialism = initialismLookupKey(exercise.name)
+            if !initialismQuery.isEmpty,
+               !nameInitialism.isEmpty,
+               nameInitialism.hasPrefix(initialismQuery) {
+                return 3
+            }
+
+            let compactedName = compactedSearchLookupKey(exercise.name)
+            if !compactedQuery.isEmpty,
+               !compactedName.isEmpty {
+                if compactedName == compactedQuery {
+                    return 4
+                }
+
+                if compactedName.hasPrefix(compactedQuery) {
+                    return 5
+                }
+            }
+
+            if normalizedName.contains(query) {
+                return 6
+            }
+
+            if aliasLookups.contains(query) {
+                return 7
+            }
+
+            if aliasLookups.contains(where: { $0.hasPrefix(query) }) {
+                return 8
+            }
+
+            if !queryTokens.isEmpty,
+               aliasLookups.contains(where: { alias in
+                   let aliasWords = alias.split(separator: " ")
+                   return queryTokens.allSatisfy { token in
+                       aliasWords.contains(where: { $0.hasPrefix(token) })
+                   }
+               }) {
+                return 9
+            }
+
+            if !initialismQuery.isEmpty,
+               aliasValues.contains(where: {
+                   let aliasInitialism = initialismLookupKey($0)
+                   return !aliasInitialism.isEmpty && aliasInitialism.hasPrefix(initialismQuery)
+               }) {
+                return 10
+            }
+
+            if !compactedQuery.isEmpty,
+               aliasValues.contains(where: {
+                   let compactedAlias = compactedSearchLookupKey($0)
+                   return !compactedAlias.isEmpty && compactedAlias.contains(compactedQuery)
+               }) {
+                return 11
+            }
+
+            if aliasLookups.contains(where: { $0.contains(query) }) {
+                return 12
+            }
+
+            return nil
         }
 
-        if aliasLookups.contains(where: { $0.hasPrefix(normalizedQuery) }) {
-            return 8
-        }
+        return searchQueryVariants(for: normalizedQuery)
+            .enumerated()
+            .compactMap { index, query in
+                priority(for: query).map { ($0 + (index * 100), index) }
+            }
+            .min(by: { lhs, rhs in
+                if lhs.0 != rhs.0 {
+                    return lhs.0 < rhs.0
+                }
 
-        if !queryTokens.isEmpty,
-           aliasLookups.contains(where: { alias in
-               let aliasWords = alias.split(separator: " ")
-               return queryTokens.allSatisfy { token in
-                   aliasWords.contains(where: { $0.hasPrefix(token) })
-               }
-           }) {
-            return 9
-        }
-
-        if !initialismQuery.isEmpty,
-           aliasValues.contains(where: {
-               let aliasInitialism = initialismLookupKey($0)
-               return !aliasInitialism.isEmpty && aliasInitialism.hasPrefix(initialismQuery)
-           }) {
-            return 10
-        }
-
-        if !compactedQuery.isEmpty,
-           aliasValues.contains(where: {
-               let compactedAlias = compactedSearchLookupKey($0)
-               return !compactedAlias.isEmpty && compactedAlias.contains(compactedQuery)
-           }) {
-            return 11
-        }
-
-        if aliasLookups.contains(where: { $0.contains(normalizedQuery) }) {
-            return 12
-        }
-
-        return nil
+                return lhs.1 < rhs.1
+            })?
+            .0
     }
 
     func fetchExercises() -> [Exercise] {
