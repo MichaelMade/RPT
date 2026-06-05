@@ -147,6 +147,14 @@ class TemplateViewModel: ObservableObject {
         "remove template ",
         "remove routine ",
         "remove workout plan ",
+        "use template ",
+        "use routine ",
+        "use workout plan ",
+        "use workout ",
+        "launch template ",
+        "launch routine ",
+        "launch workout plan ",
+        "launch workout ",
         "open template ",
         "open routine ",
         "open workout plan ",
@@ -185,6 +193,8 @@ class TemplateViewModel: ObservableObject {
         "copy ",
         "clone ",
         "remove ",
+        "use ",
+        "launch ",
         "open ",
         "continue ",
         "resume ",
@@ -482,7 +492,7 @@ class TemplateViewModel: ObservableObject {
             ? " You can also create a new template from this search."
             : ""
 
-        return "No templates matched “\(normalizedQuery)”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, action wording like start, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated.\(createSuggestion)"
+        return "No templates matched “\(normalizedQuery)”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, action wording like start, use, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated.\(createSuggestion)"
     }
 
     func shouldShowResultsRecoveryActions(filteredCount: Int) -> Bool {

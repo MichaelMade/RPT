@@ -896,6 +896,18 @@ final class TemplateViewModelTests: XCTestCase {
             ["Upper Body Push"]
         )
 
+        viewModel.searchText = "use upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
+        viewModel.searchText = "launch template upper body push"
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper Body Push"]
+        )
+
         viewModel.searchText = "looking for upper body push"
         XCTAssertEqual(
             viewModel.fetchTemplates().map(\.name),
@@ -1459,13 +1471,13 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "  Lower\n Day  "
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
-            "No templates matched “Lower Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, action wording like start, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated. You can also create a new template from this search."
+            "No templates matched “Lower Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, action wording like start, use, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated. You can also create a new template from this search."
         )
 
         viewModel.searchText = "  Push\n Day  "
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
-            "No templates matched “Push Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, action wording like start, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated."
+            "No templates matched “Push Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, action wording like start, use, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated."
         )
     }
 
@@ -1776,6 +1788,12 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Push Day")
 
         viewModel.searchText = "show Upper Body Push, thanks"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
+
+        viewModel.searchText = "use template Lower Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "launch Upper Body Push"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
     }
 

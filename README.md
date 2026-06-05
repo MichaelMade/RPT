@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search and search-driven `Create “...”` recovery now also understand direct start wording like `use upper body push` and `launch template lower day`, so people can find—or create from—the right routine with more natural start phrasing instead of needing the app’s exact `start`/`open` verbs.
 - Workout Templates search and search-driven `Create “...”` recovery now also ignore trailing conversational phrases like `please`, `for me`, and `thanks`, so natural requests like `open template lower day please` still find the right routine—and failed lookups suggest a clean draft name instead of carrying that polite tail into the new template.
 - Duplicating a workout template now keeps copy names tidy when the source is already a copy, so branching `Upper Body Copy` or `Upper Body Copy 2` yields `Upper Body Copy 2` / `Upper Body Copy 3` instead of awkward nested names like `Upper Body Copy Copy`.
 - Workout Templates search now also understands body-region wording like `upper body`, `legs`, and `core` by indexing each template’s exercise muscle groups, so users can refind a routine by the area they want to train instead of needing the exact template or exercise name.
