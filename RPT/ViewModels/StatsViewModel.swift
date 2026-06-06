@@ -329,9 +329,9 @@ class StatsViewModel: ObservableObject {
             return "No workout stats yet"
         }
 
-        return resumableWorkout.sets.isEmpty
-            ? "Workout draft in progress"
-            : "Workout in progress"
+        return HomeViewModel.resumableWorkoutActionPrefix(for: resumableWorkout) == "Continue"
+            ? "Workout in progress"
+            : "Workout draft in progress"
     }
 
     func emptyStateMessage() -> String {
@@ -340,9 +340,14 @@ class StatsViewModel: ObservableObject {
         }
 
         let workoutReference = specificWorkoutReference(for: resumableWorkout)
+        let actionPrefix = HomeViewModel.resumableWorkoutActionPrefix(for: resumableWorkout)
 
-        if resumableWorkout.sets.isEmpty {
-            return "You already have \(workoutReference) in progress. Open it from Home, add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
+        if actionPrefix == "Open" {
+            if resumableWorkout.sets.isEmpty {
+                return "You already have \(workoutReference) in progress. Open it from Home, add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
+            }
+
+            return "You already have \(workoutReference) in progress. Open it from Home and log your first set to unlock weekly volume, muscle group focus, and personal records here."
         }
 
         return "You already have \(workoutReference) in progress. Finish it from Home to unlock weekly volume, muscle group focus, and personal records here."
@@ -354,13 +359,17 @@ class StatsViewModel: ObservableObject {
         }
 
         let workoutReference = specificWorkoutReference(for: resumableWorkout, fallback: "your workout")
+        let actionPrefix = HomeViewModel.resumableWorkoutActionPrefix(for: resumableWorkout)
 
-        if resumableWorkout.sets.isEmpty {
-            return "Open \(workoutReference) from Home to add an exercise, save it for later, or discard it."
+        if actionPrefix == "Open" {
+            if resumableWorkout.sets.isEmpty {
+                return "Open \(workoutReference) from Home to add an exercise, save it for later, or discard it."
+            }
+
+            return "Open \(workoutReference) from Home to start it, save it for later, or discard it."
         }
 
-        let actionText = HomeViewModel.resumableWorkoutActionPrefix(for: resumableWorkout).lowercased()
-        return "Open \(workoutReference) from Home to \(actionText) it, save it for later, or finish it."
+        return "Open \(workoutReference) from Home to continue it, save it for later, or finish it."
     }
 
     private func specificWorkoutReference(for workout: Workout, fallback: String = "a workout") -> String {

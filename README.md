@@ -1,5 +1,6 @@
 # RPT
 
+- Stats now treats untouched planned drafts as drafts instead of active progress, so the empty stats card keeps `Open` / `start your first set` guidance for template-seeded or manually planned workouts until real logged work begins.
 - Workout Detail now keeps blank draft recovery copy specific when it can, so opening an untouched draft like `Push Day` tells you to add an exercise to that exact workout before finishing it instead of falling back to a generic unnamed message.
 - Home’s `Last 7 Days` subtitle now stays draft-aware too, telling returning lifters to add an exercise, finish the exact in-progress workout, or restart their streak instead of falling back to the generic `start your weekly streak` copy after they already have workout history.
 - Stats now gives first-workout draft states clearer titles too, distinguishing `Workout draft in progress` from `Workout in progress` so the empty stats card feels consistent with the actual work already started.

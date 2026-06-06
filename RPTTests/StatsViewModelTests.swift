@@ -317,6 +317,22 @@ final class StatsViewModelTests: XCTestCase {
         )
     }
 
+    func testEmptyStateCopy_callsOutUntouchedPlannedDraftAsOpenInsteadOfInProgress() {
+        let draftWorkout = Workout(name: "Pull Day")
+        _ = draftWorkout.addSet(exercise: exercise, weight: 185, reps: 8)
+        viewModel.resumableWorkout = draftWorkout
+
+        XCTAssertEqual(viewModel.emptyStateTitle(), "Workout draft in progress")
+        XCTAssertEqual(
+            viewModel.emptyStateMessage(),
+            "You already have “Pull Day” in progress. Open it from Home and log your first set to unlock weekly volume, muscle group focus, and personal records here."
+        )
+        XCTAssertEqual(
+            viewModel.emptyStateHint(),
+            "Open “Pull Day” from Home to start it, save it for later, or discard it."
+        )
+    }
+
     func testEmptyStateCopy_callsOutNamedDraftWithLoggedProgress() {
         let draftWorkout = Workout(name: "Pull Day")
         draftWorkout.sets = [
