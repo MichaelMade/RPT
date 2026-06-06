@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Template search now teaches its richer matching right in the UI too, so the prompt and no-match helper explicitly suggest notes, body-region, action-word, and issue-based searches instead of making users guess that template search only understands names.
 - Exercise search screens now teach what the smarter search can do right where users get stuck: no-match states call out names, notes, body regions, muscle groups, and action-word searches, and the search prompts now hint that notes/body-region lookups work too, so people are more likely to recover with a better query instead of assuming exercise search only matches names.
 - Exercise-library and workout/template exercise-picker search now also understands `full body` / `total body` body-region phrasing for mixed-region movements, so users can refind exercises like burpees from the training area they remember instead of needing the exact movement name.
 - Exercise-library and workout/template exercise-picker search now also matches cross-field cue combinations like `bench elbows` and `compound elbows` when the words are split across the exercise name, category/muscle aliases, and coaching notes, so users can refind a movement by the mixed clues they remember instead of needing every search term to live in one field.

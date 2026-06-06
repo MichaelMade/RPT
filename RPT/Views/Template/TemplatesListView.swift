@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct TemplatesListView: View {
+    static let searchPrompt = "Search templates, exercises, notes, body regions, actions, or issues"
+
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = TemplateViewModel()
     @State private var showingCreateSheet = false
@@ -320,7 +322,7 @@ struct TemplatesListView: View {
                     }
                 }
             }
-            .searchable(text: $searchText, prompt: "Search templates, exercises, actions, issues, or find/open/go-to wording")
+            .searchable(text: $searchText, prompt: Self.searchPrompt)
             .onChange(of: searchText) { _, newValue in
                 viewModel.searchText = newValue
             }
