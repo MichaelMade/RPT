@@ -360,17 +360,19 @@ struct HomeView: View {
                                 }
                                 .padding(.horizontal)
                             } else {
+                                let progressEmptyState = viewModel.progressEmptyState(activeWorkout: activeWorkoutBinding)
+
                                 VStack(alignment: .leading, spacing: 10) {
                                     HStack(spacing: 10) {
                                         Image(systemName: "chart.line.uptrend.xyaxis")
                                             .font(.title3)
                                             .foregroundColor(.blue)
 
-                                        Text("No workouts logged yet")
+                                        Text(progressEmptyState.title)
                                             .font(.headline)
                                     }
 
-                                    Text("Finish your first workout to start a streak and unlock lifetime progress on Home.")
+                                    Text(progressEmptyState.subtitle)
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }

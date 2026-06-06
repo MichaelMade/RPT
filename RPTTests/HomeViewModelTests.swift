@@ -351,6 +351,51 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(emptyState.subtitle, "Complete a workout and your latest sessions will show up here for quick review.")
     }
 
+    func testProgressEmptyState_withoutDraftEncouragesFirstCompletion() {
+        let emptyState = viewModel.progressEmptyState(activeWorkout: nil)
+
+        XCTAssertEqual(emptyState.title, "No workouts logged yet")
+        XCTAssertEqual(emptyState.subtitle, "Finish your first workout to start a streak and unlock lifetime progress on Home.")
+    }
+
+    func testProgressEmptyState_withNamedResumableDraftUsesWorkoutName() {
+        let draft = Workout(name: "Push Day", isCompleted: false)
+        draft.sets = [ExerciseSet(weight: 135, reps: 8, isCompleted: true)]
+
+        let emptyState = viewModel.progressEmptyState(activeWorkout: draft)
+
+        XCTAssertEqual(emptyState.title, "No workouts logged yet")
+        XCTAssertEqual(emptyState.subtitle, "Finish “Push Day” to start a streak and unlock lifetime progress on Home.")
+    }
+
+    func testProgressEmptyState_withNamedEmptyDraftPointsToAddingExercisesOrSaving() {
+        let draft = Workout(name: "Push Day", isCompleted: false)
+
+        let emptyState = viewModel.progressEmptyState(activeWorkout: draft)
+
+        XCTAssertEqual(emptyState.title, "No workouts logged yet")
+        XCTAssertEqual(emptyState.subtitle, "Add an exercise to “Push Day” to start your streak, or save it for later until you are ready to train.")
+    }
+
+    func testProgressEmptyState_withPlaceholderDraftStaysGeneric() {
+        let draft = Workout(name: "Current Workout", isCompleted: false)
+        draft.sets = [ExerciseSet(weight: 135, reps: 8, isCompleted: true)]
+
+        let emptyState = viewModel.progressEmptyState(activeWorkout: draft)
+
+        XCTAssertEqual(emptyState.title, "No workouts logged yet")
+        XCTAssertEqual(emptyState.subtitle, "Finish this workout to start a streak and unlock lifetime progress on Home.")
+    }
+
+    func testProgressEmptyState_withPlaceholderEmptyDraftStaysGeneric() {
+        let draft = Workout(name: "Current Workout", isCompleted: false)
+
+        let emptyState = viewModel.progressEmptyState(activeWorkout: draft)
+
+        XCTAssertEqual(emptyState.title, "No workouts logged yet")
+        XCTAssertEqual(emptyState.subtitle, "Add an exercise to start your streak, or save this workout for later until you are ready to train.")
+    }
+
     func testRecentWorkoutsEmptyState_withNamedResumableDraftUsesWorkoutName() {
         let draft = Workout(name: "Push Day", isCompleted: false)
         draft.sets = [ExerciseSet(weight: 135, reps: 8, isCompleted: true)]

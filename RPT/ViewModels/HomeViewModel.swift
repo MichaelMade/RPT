@@ -474,6 +474,41 @@ class HomeViewModel: ObservableObject {
         )
     }
 
+    func progressEmptyState(activeWorkout: Workout?) -> (title: String, subtitle: String) {
+        if let activeWorkout = resumableWorkout(activeWorkout: activeWorkout) {
+            if activeWorkout.exerciseCount == 0 {
+                if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
+                    return (
+                        title: "No workouts logged yet",
+                        subtitle: "Add an exercise to “\(displayName)” to start your streak, or save it for later until you are ready to train."
+                    )
+                }
+
+                return (
+                    title: "No workouts logged yet",
+                    subtitle: "Add an exercise to start your streak, or save this workout for later until you are ready to train."
+                )
+            }
+
+            if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
+                return (
+                    title: "No workouts logged yet",
+                    subtitle: "Finish “\(displayName)” to start a streak and unlock lifetime progress on Home."
+                )
+            }
+
+            return (
+                title: "No workouts logged yet",
+                subtitle: "Finish this workout to start a streak and unlock lifetime progress on Home."
+            )
+        }
+
+        return (
+            title: "No workouts logged yet",
+            subtitle: "Finish your first workout to start a streak and unlock lifetime progress on Home."
+        )
+    }
+
     func shouldShowSingleRecentWorkoutQuickActions(recentWorkoutCount: Int) -> Bool {
         recentWorkoutCount == 1
     }

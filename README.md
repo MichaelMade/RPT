@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s empty progress card now stays aware of in-progress drafts, so first-run users with an unfinished workout see guidance to add an exercise, save the draft, or finish the exact workout they already started instead of a generic `Finish your first workout` message that ignores live progress.
 - Workout Template search now teaches its richer matching right in the UI too, so the prompt and no-match helper explicitly suggest notes, body-region, action-word, and issue-based searches instead of making users guess that template search only understands names.
 - Exercise search screens now teach what the smarter search can do right where users get stuck: no-match states call out names, notes, body regions, muscle groups, and action-word searches, and the search prompts now hint that notes/body-region lookups work too, so people are more likely to recover with a better query instead of assuming exercise search only matches names.
 - Exercise-library and workout/template exercise-picker search now also understands `full body` / `total body` body-region phrasing for mixed-region movements, so users can refind exercises like burpees from the training area they remember instead of needing the exact movement name.
