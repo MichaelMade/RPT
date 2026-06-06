@@ -244,7 +244,7 @@ struct ExercisesView: View {
                 }
                 .listStyle(.plain)
             }
-            .searchable(text: $searchText, prompt: "Search exercises")
+            .searchable(text: $searchText, prompt: "Search exercises, notes, or body regions")
             .onChange(of: searchText) { _, newValue in
                 viewModel.searchText = newValue
             }

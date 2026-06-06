@@ -1006,6 +1006,19 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
+            "No exercises matched “squat”. Try a different search, clear it to browse every exercise, or search names, notes, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review. You can also add a custom exercise from this search."
+        )
+    }
+
+    func testEmptyStateDescription_withFiltersOnlyKeepsGenericRecoveryCopy() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.selectedCategory = .isolation
+
+        XCTAssertEqual(
+            viewModel.emptyStateDescription(filteredCount: 0),
             "Try changing your search or filters, or clear them to see every exercise."
         )
     }

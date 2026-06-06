@@ -736,7 +736,15 @@ class ExerciseLibraryViewModel: ObservableObject {
         case .emptyLibrary:
             return "Add your first custom exercise to start building your library."
         case .noMatchingResults:
-            return "Try changing your search or filters, or clear them to see every exercise."
+            guard hasActiveSearch else {
+                return "Try changing your search or filters, or clear them to see every exercise."
+            }
+
+            let createSuggestion = suggestedExerciseNameFromSearch() != nil
+                ? " You can also add a custom exercise from this search."
+                : ""
+
+            return "No exercises matched “\(normalizedSearchText)”. Try a different search, clear it to browse every exercise, or search names, notes, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review.\(createSuggestion)"
         case .none:
             return nil
         }

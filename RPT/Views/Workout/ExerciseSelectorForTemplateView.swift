@@ -22,7 +22,7 @@ struct ExerciseSelectorForTemplateView: View {
     var onSelectExercise: (String) -> Void
 
     static let navigationTitle = "Add Exercise to Template"
-    static let searchPrompt = "Search template exercises"
+    static let searchPrompt = "Search template exercises, notes, or body regions"
 
     private var excludedLookupKeys: Set<String> {
         Set(excludedExerciseNames.map(ExerciseManager.normalizedNameLookupKey))
