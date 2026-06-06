@@ -262,7 +262,38 @@ final class HomeViewModelTests: XCTestCase {
     func testWeeklyProgressSubtitle_emptyWeekGuidance() {
         let subtitle = viewModel.weeklyProgressSubtitle(forWorkoutCount: 0)
 
-        XCTAssertEqual(subtitle, "Log a workout to start your weekly streak.", "Subtitle should guide users when they have no recent workouts")
+        XCTAssertEqual(subtitle, "Log a workout to start your weekly streak.", "Subtitle should guide brand-new users when they have no recent workouts")
+    }
+
+    func testWeeklyProgressSubtitle_emptyWeekForReturningUserUsesRestartCopy() {
+        let subtitle = viewModel.weeklyProgressSubtitle(forWorkoutCount: 0, hasLoggedWorkouts: true)
+
+        XCTAssertEqual(subtitle, "Log a workout to restart your weekly streak.", "Subtitle should acknowledge returning users when the last 7 days are empty")
+    }
+
+    func testWeeklyProgressSubtitle_emptyWeekWithNamedDraftUsesDraftSpecificRestartCopy() {
+        let draft = Workout(name: "Push Day", isCompleted: false)
+        draft.sets = [ExerciseSet(weight: 135, reps: 8, isCompleted: true)]
+
+        let subtitle = viewModel.weeklyProgressSubtitle(
+            forWorkoutCount: 0,
+            hasLoggedWorkouts: true,
+            activeWorkout: draft
+        )
+
+        XCTAssertEqual(subtitle, "Finish “Push Day” to restart your weekly streak.")
+    }
+
+    func testWeeklyProgressSubtitle_emptyWeekWithNamedEmptyDraftPromptsForExercise() {
+        let draft = Workout(name: "Push Day", isCompleted: false)
+
+        let subtitle = viewModel.weeklyProgressSubtitle(
+            forWorkoutCount: 0,
+            hasLoggedWorkouts: true,
+            activeWorkout: draft
+        )
+
+        XCTAssertEqual(subtitle, "Add an exercise to “Push Day” to restart your weekly streak.")
     }
 
     func testWeeklyProgressSubtitle_partialWeekCountsRemainingWorkouts() {

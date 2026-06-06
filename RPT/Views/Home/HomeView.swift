@@ -349,7 +349,13 @@ struct HomeView: View {
                                         ProgressView(value: weeklyProgress)
                                             .tint(.green)
 
-                                        Text(viewModel.weeklyProgressSubtitle(forWorkoutCount: weeklyWorkoutCount))
+                                        Text(
+                                            viewModel.weeklyProgressSubtitle(
+                                                forWorkoutCount: weeklyWorkoutCount,
+                                                hasLoggedWorkouts: stats.totalWorkouts > 0,
+                                                activeWorkout: activeWorkoutBinding
+                                            )
+                                        )
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                     }

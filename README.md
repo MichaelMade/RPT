@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s `Last 7 Days` subtitle now stays draft-aware too, telling returning lifters to add an exercise, finish the exact in-progress workout, or restart their streak instead of falling back to the generic `start your weekly streak` copy after they already have workout history.
 - Stats now gives first-workout draft states clearer titles too, distinguishing `Workout draft in progress` from `Workout in progress` so the empty stats card feels consistent with the actual work already started.
 - Stats now keeps its visible `This Week` summary aware of in-progress first-workout drafts, so users who already started a session see `Workout in progress` guidance instead of a generic `Finish a workout to start this week’s trend` prompt that ignores live progress.
 - Stats now keeps its first-workout empty state aware of in-progress drafts, so users who already started a session see guidance to reopen that exact workout, add an exercise if needed, and finish it instead of a generic dead-end `Complete your first workout` message.

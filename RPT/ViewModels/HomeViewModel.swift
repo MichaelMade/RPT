@@ -409,11 +409,29 @@ class HomeViewModel: ObservableObject {
         return "\(displayedCount) of 7 workouts"
     }
 
-    func weeklyProgressSubtitle(forWorkoutCount count: Int) -> String {
+    func weeklyProgressSubtitle(forWorkoutCount count: Int, hasLoggedWorkouts: Bool = false, activeWorkout: Workout? = nil) -> String {
         let safeCount = max(0, count)
 
         if safeCount == 0 {
-            return "Log a workout to start your weekly streak."
+            let streakVerb = hasLoggedWorkouts ? "restart" : "start"
+
+            if let activeWorkout = resumableWorkout(activeWorkout: activeWorkout) {
+                if activeWorkout.exerciseCount == 0 {
+                    if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
+                        return "Add an exercise to “\(displayName)” to \(streakVerb) your weekly streak."
+                    }
+
+                    return "Add an exercise to your workout draft to \(streakVerb) your weekly streak."
+                }
+
+                if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
+                    return "Finish “\(displayName)” to \(streakVerb) your weekly streak."
+                }
+
+                return "Finish this workout to \(streakVerb) your weekly streak."
+            }
+
+            return "Log a workout to \(streakVerb) your weekly streak."
         }
 
         if safeCount >= 7 {
