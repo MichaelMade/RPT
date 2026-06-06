@@ -306,7 +306,7 @@ final class StatsViewModelTests: XCTestCase {
         let draftWorkout = Workout(name: "Push Day")
         viewModel.resumableWorkout = draftWorkout
 
-        XCTAssertEqual(viewModel.emptyStateTitle(), "Finish your first workout")
+        XCTAssertEqual(viewModel.emptyStateTitle(), "Workout draft in progress")
         XCTAssertEqual(
             viewModel.emptyStateMessage(),
             "You already have “Push Day” in progress. Open it from Home, add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
@@ -331,7 +331,7 @@ final class StatsViewModelTests: XCTestCase {
         ]
         viewModel.resumableWorkout = draftWorkout
 
-        XCTAssertEqual(viewModel.emptyStateTitle(), "Finish your first workout")
+        XCTAssertEqual(viewModel.emptyStateTitle(), "Workout in progress")
         XCTAssertEqual(
             viewModel.emptyStateMessage(),
             "You already have “Pull Day” in progress. Finish it from Home to unlock weekly volume, muscle group focus, and personal records here."

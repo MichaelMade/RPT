@@ -325,7 +325,13 @@ class StatsViewModel: ObservableObject {
     }
 
     func emptyStateTitle() -> String {
-        resumableWorkout == nil ? "No workout stats yet" : "Finish your first workout"
+        guard let resumableWorkout else {
+            return "No workout stats yet"
+        }
+
+        return resumableWorkout.sets.isEmpty
+            ? "Workout draft in progress"
+            : "Workout in progress"
     }
 
     func emptyStateMessage() -> String {

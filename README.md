@@ -1,5 +1,6 @@
 # RPT
 
+- Stats now gives first-workout draft states clearer titles too, distinguishing `Workout draft in progress` from `Workout in progress` so the empty stats card feels consistent with the actual work already started.
 - Stats now keeps its visible `This Week` summary aware of in-progress first-workout drafts, so users who already started a session see `Workout in progress` guidance instead of a generic `Finish a workout to start this week’s trend` prompt that ignores live progress.
 - Stats now keeps its first-workout empty state aware of in-progress drafts, so users who already started a session see guidance to reopen that exact workout, add an exercise if needed, and finish it instead of a generic dead-end `Complete your first workout` message.
 - Workout Templates search and search-driven `Create “...”` recovery now also understand `program` / `training program` phrasing like `open training program lower day` and `find program push day`, so users who think in broader workout-program language still land on the right saved routine—and no-match recovery suggests a clean template name instead of preserving that wrapper wording.
