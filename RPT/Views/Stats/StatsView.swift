@@ -80,7 +80,13 @@ struct StatsView: View {
 
                 Spacer()
 
-                Text(thisWeekSummaryMessage(totalWorkouts: viewModel.totalWorkouts, weeklyWorkoutCount: viewModel.weeklyWorkoutCount))
+                Text(
+                    thisWeekSummaryMessage(
+                        totalWorkouts: viewModel.totalWorkouts,
+                        weeklyWorkoutCount: viewModel.weeklyWorkoutCount,
+                        resumableWorkout: viewModel.resumableWorkout
+                    )
+                )
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -292,13 +298,23 @@ struct StatsView: View {
 
     // MARK: - Helpers
 
-    func thisWeekSummaryMessage(totalWorkouts: Int, weeklyWorkoutCount: Int) -> String {
+    func thisWeekSummaryMessage(totalWorkouts: Int, weeklyWorkoutCount: Int, resumableWorkout: Workout? = nil) -> String {
         let safeWeeklyCount = max(0, weeklyWorkoutCount)
 
         guard safeWeeklyCount > 0 else {
-            return totalWorkouts > 0
-                ? "No completed workouts in the last 7 days"
-                : "Finish a workout to start this week’s trend"
+            guard totalWorkouts == 0 else {
+                return "No completed workouts in the last 7 days"
+            }
+
+            if let resumableWorkout {
+                if resumableWorkout.exerciseCount == 0 {
+                    return "Workout in progress — add an exercise to start this week’s trend"
+                }
+
+                return "Workout in progress — finish it to start this week’s trend"
+            }
+
+            return "Finish a workout to start this week’s trend"
         }
 
         return safeWeeklyCount == 1
