@@ -13,6 +13,20 @@ final class ActiveWorkoutViewTests: XCTestCase {
         )
     }
 
+    func testNamedEmptyStateHelperMessage_mentionsSpecificWorkout() {
+        XCTAssertEqual(
+            ActiveWorkoutView.emptyStateHelperMessage(for: "  Push   Day  "),
+            "Add at least one exercise to “Push Day” before you can finish it. Save for Later keeps it as a draft if you're not ready yet."
+        )
+    }
+
+    func testNamedEmptyStateHelperMessage_fallsBackForLegacyPlaceholderNames() {
+        XCTAssertEqual(
+            ActiveWorkoutView.emptyStateHelperMessage(for: "Current Workout"),
+            ActiveWorkoutView.emptyStateHelperMessage
+        )
+    }
+
     func testNavigationTitleNormalizesLegacyPlaceholderNames() {
         XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "Current Workout"), "Workout")
         XCTAssertEqual(ActiveWorkoutView.navigationTitle(for: "  Current   Workout  "), "Workout")

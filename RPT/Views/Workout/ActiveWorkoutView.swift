@@ -14,6 +14,16 @@ struct ActiveWorkoutView: View {
         "Add at least one exercise before you can finish this workout. \(toolbarSaveForLaterLabel) keeps it as a draft if you're not ready yet."
     }
 
+    static func emptyStateHelperMessage(for workoutName: String) -> String {
+        let normalizedWorkout = Workout(name: workoutName)
+
+        guard let displayName = WorkoutRow.specificDisplayName(for: normalizedWorkout) else {
+            return emptyStateHelperMessage
+        }
+
+        return "Add at least one exercise to “\(displayName)” before you can finish it. \(toolbarSaveForLaterLabel) keeps it as a draft if you're not ready yet."
+    }
+
     static func navigationTitle(for workoutName: String) -> String {
         WorkoutRow.displayName(forWorkoutName: workoutName)
     }
@@ -79,7 +89,7 @@ struct ActiveWorkoutView: View {
                     } else {
                         // Use the new EmptyWorkoutView component
                         EmptyWorkoutView(
-                            helperMessage: Self.emptyStateHelperMessage,
+                            helperMessage: Self.emptyStateHelperMessage(for: viewModel.workoutName),
                             onAddExercise: {
                                 showingExerciseSelector = true
                             }
