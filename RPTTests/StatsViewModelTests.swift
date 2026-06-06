@@ -287,4 +287,58 @@ final class StatsViewModelTests: XCTestCase {
             "logged"
         )
     }
+
+    func testEmptyStateCopy_defaultsToGenericGuidanceWithoutDraft() {
+        viewModel.resumableWorkout = nil
+
+        XCTAssertEqual(viewModel.emptyStateTitle(), "No workout stats yet")
+        XCTAssertEqual(
+            viewModel.emptyStateMessage(),
+            "Complete your first workout to unlock weekly volume, muscle group focus, and personal records here."
+        )
+        XCTAssertEqual(
+            viewModel.emptyStateHint(),
+            "Start a workout from Home or use Templates to begin faster."
+        )
+    }
+
+    func testEmptyStateCopy_callsOutEmptyDraftWhenWorkoutIsInProgress() {
+        let draftWorkout = Workout(name: "Push Day")
+        viewModel.resumableWorkout = draftWorkout
+
+        XCTAssertEqual(viewModel.emptyStateTitle(), "Finish your first workout")
+        XCTAssertEqual(
+            viewModel.emptyStateMessage(),
+            "You already have “Push Day” in progress. Open it from Home, add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
+        )
+        XCTAssertEqual(
+            viewModel.emptyStateHint(),
+            "Open “Push Day” from Home to add an exercise, save it for later, or discard it."
+        )
+    }
+
+    func testEmptyStateCopy_callsOutNamedDraftWithLoggedProgress() {
+        let draftWorkout = Workout(name: "Pull Day")
+        draftWorkout.sets = [
+            ExerciseSet(
+                weight: 185,
+                reps: 8,
+                exercise: exercise,
+                workout: draftWorkout,
+                completedAt: Date(),
+                isWarmup: false
+            )
+        ]
+        viewModel.resumableWorkout = draftWorkout
+
+        XCTAssertEqual(viewModel.emptyStateTitle(), "Finish your first workout")
+        XCTAssertEqual(
+            viewModel.emptyStateMessage(),
+            "You already have “Pull Day” in progress. Finish it from Home to unlock weekly volume, muscle group focus, and personal records here."
+        )
+        XCTAssertEqual(
+            viewModel.emptyStateHint(),
+            "Open “Pull Day” from Home to continue it, save it for later, or finish it."
+        )
+    }
 }

@@ -54,6 +54,7 @@ class StatsViewModel: ObservableObject {
     @Published var hasRecentCompletedWorkoutsForWeeklyVolume: Bool = false
     @Published var muscleGroupShare: [MuscleGroupShare] = []
     @Published var recentPRs: [PersonalRecord] = []
+    @Published var resumableWorkout: Workout?
 
     private let workoutManager: WorkoutManager
     private let userManager: UserManager
@@ -68,6 +69,7 @@ class StatsViewModel: ObservableObject {
         totalWorkouts = stats.totalWorkouts
         totalVolume = sanitizedVolume(stats.totalVolume)
         currentStreak = stats.workoutStreak
+        resumableWorkout = WorkoutStateManager.shared.firstResumableWorkout(in: workoutManager.getIncompleteWorkouts())
 
         let now = Date()
         let thisWeekStart = Calendar.current.date(byAdding: .day, value: -7, to: now) ?? .distantPast
@@ -320,6 +322,47 @@ class StatsViewModel: ObservableObject {
 
     func sanitizedVolume(_ volume: Double) -> Double {
         volume.isFinite ? max(0, volume) : 0
+    }
+
+    func emptyStateTitle() -> String {
+        resumableWorkout == nil ? "No workout stats yet" : "Finish your first workout"
+    }
+
+    func emptyStateMessage() -> String {
+        guard let resumableWorkout else {
+            return "Complete your first workout to unlock weekly volume, muscle group focus, and personal records here."
+        }
+
+        let workoutReference = specificWorkoutReference(for: resumableWorkout)
+
+        if resumableWorkout.sets.isEmpty {
+            return "You already have \(workoutReference) in progress. Open it from Home, add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
+        }
+
+        return "You already have \(workoutReference) in progress. Finish it from Home to unlock weekly volume, muscle group focus, and personal records here."
+    }
+
+    func emptyStateHint() -> String {
+        guard let resumableWorkout else {
+            return "Start a workout from Home or use Templates to begin faster."
+        }
+
+        let workoutReference = specificWorkoutReference(for: resumableWorkout, fallback: "your workout")
+
+        if resumableWorkout.sets.isEmpty {
+            return "Open \(workoutReference) from Home to add an exercise, save it for later, or discard it."
+        }
+
+        let actionText = HomeViewModel.resumableWorkoutActionPrefix(for: resumableWorkout).lowercased()
+        return "Open \(workoutReference) from Home to \(actionText) it, save it for later, or finish it."
+    }
+
+    private func specificWorkoutReference(for workout: Workout, fallback: String = "a workout") -> String {
+        if let displayName = WorkoutRow.specificDisplayName(for: workout) {
+            return "“\(displayName)”"
+        }
+
+        return fallback
     }
 
     private func formatVolumeForHeadline(_ volume: Double) -> String {

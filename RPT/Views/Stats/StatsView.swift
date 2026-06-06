@@ -131,15 +131,15 @@ struct StatsView: View {
                     .font(.title2)
                     .foregroundColor(.blue)
 
-                Text("No workout stats yet")
+                Text(viewModel.emptyStateTitle())
                     .font(.headline)
             }
 
-            Text("Complete your first workout to unlock weekly volume, muscle group focus, and personal records here.")
+            Text(viewModel.emptyStateMessage())
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
-            Label("Start a workout from Home or use Templates to begin faster.", systemImage: "arrow.right.circle")
+            Label(viewModel.emptyStateHint(), systemImage: "arrow.right.circle")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
