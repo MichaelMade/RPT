@@ -3,6 +3,24 @@ import SwiftData
 @testable import RPT
 
 final class WorkoutDetailViewTests: XCTestCase {
+    func testDraftExerciseDetailsEmptyStateMessage_namesSpecificWorkoutWhenAvailable() {
+        let workout = Workout(name: "  Push   Day  ")
+
+        XCTAssertEqual(
+            WorkoutDetailView.draftExerciseDetailsEmptyStateMessage(for: workout),
+            "Add at least one exercise to “Push Day” before you can finish it. Save for Later keeps it as a draft if you're not ready yet."
+        )
+    }
+
+    func testDraftExerciseDetailsEmptyStateMessage_fallsBackForPlaceholderWorkoutNames() {
+        let workout = Workout(name: "Current Workout")
+
+        XCTAssertEqual(
+            WorkoutDetailView.draftExerciseDetailsEmptyStateMessage(for: workout),
+            ActiveWorkoutView.emptyStateHelperMessage
+        )
+    }
+
     func testDisplayName_usesGenericFallbackForLegacyPlaceholderNames() {
         XCTAssertEqual(WorkoutDetailView.displayName(for: Workout(name: "Current Workout")), "Workout")
         XCTAssertEqual(WorkoutDetailView.displayName(for: Workout(name: "  Current   Workout  ")), "Workout")

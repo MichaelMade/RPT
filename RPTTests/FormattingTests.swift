@@ -907,7 +907,8 @@ final class FormattingTests: XCTestCase {
     func testWorkoutDetailEmptyState_describesZeroSetCompletedAndDraftWorkouts() {
         let completedWorkout = Workout(name: "Legacy Import", isCompleted: true)
         let placeholderCompletedWorkout = Workout(name: "Placeholder Import", isCompleted: true)
-        let draftWorkout = Workout(name: "Draft")
+        let namedDraftWorkout = Workout(name: "Push Day")
+        let placeholderDraftWorkout = Workout(name: "Current Workout")
         let loggedWorkout = Workout(name: "Logged")
         let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
 
@@ -916,7 +917,8 @@ final class FormattingTests: XCTestCase {
 
         let completedState = WorkoutDetailView.exerciseDetailsEmptyState(for: completedWorkout)
         let placeholderCompletedState = WorkoutDetailView.exerciseDetailsEmptyState(for: placeholderCompletedWorkout)
-        let draftState = WorkoutDetailView.exerciseDetailsEmptyState(for: draftWorkout)
+        let namedDraftState = WorkoutDetailView.exerciseDetailsEmptyState(for: namedDraftWorkout)
+        let placeholderDraftState = WorkoutDetailView.exerciseDetailsEmptyState(for: placeholderDraftWorkout)
         let loggedState = WorkoutDetailView.exerciseDetailsEmptyState(for: loggedWorkout)
 
         XCTAssertEqual(completedState?.title, "No exercise details saved")
@@ -929,11 +931,17 @@ final class FormattingTests: XCTestCase {
             placeholderCompletedState?.subtitle,
             "This completed workout only saved planned or unlogged exercise placeholders, so there are no recorded sets to review here."
         )
-        XCTAssertEqual(draftState?.title, "No exercises added yet")
+        XCTAssertEqual(namedDraftState?.title, "No exercises added yet")
         XCTAssertEqual(
-            draftState?.subtitle,
+            namedDraftState?.subtitle,
+            "Add at least one exercise to “Push Day” before you can finish it. Save for Later keeps it as a draft if you're not ready yet.",
+            "Named draft workout details should keep the same recovery guidance while anchoring it to the specific workout."
+        )
+        XCTAssertEqual(placeholderDraftState?.title, "No exercises added yet")
+        XCTAssertEqual(
+            placeholderDraftState?.subtitle,
             ActiveWorkoutView.emptyStateHelperMessage,
-            "Draft workout details should mirror the live workout empty-state recovery guidance."
+            "Placeholder draft workout details should stay generic instead of manufacturing a fake workout name."
         )
         XCTAssertNil(loggedState)
     }
