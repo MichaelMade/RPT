@@ -1875,6 +1875,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "launch Upper Body Push"
         XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Upper Body Push")
+
+        viewModel.searchText = "open training program Lower Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Lower Day")
+
+        viewModel.searchText = "find program Push Day"
+        XCTAssertEqual(viewModel.suggestedTemplateNameFromSearch(), "Push Day")
     }
 
     func testSuggestedTemplateNameFromSearch_prefersQuotedTemplateNameFromRecoveryCopy() {
@@ -1988,6 +1994,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "select upper body push"
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
+
+        viewModel.searchText = "open training program lower day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Lower Day"])
+
+        viewModel.searchText = "find program push day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
     }
 
     func testFetchTemplates_matchesBareTemplateEntityPrefixes() {
@@ -2006,6 +2018,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "workout plan push day"
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+
+        viewModel.searchText = "training program lower day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Lower Day"])
+
+        viewModel.searchText = "program upper body push"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper Body Push"])
     }
 
     func testFetchTemplates_stripsTrailingTemplateEntityWordsFromNaturalLanguageSearches() {
@@ -2082,6 +2100,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         viewModel.searchText = "select upper body push"
         XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "Upper Body Push")
+
+        viewModel.searchText = "open training programs lower day"
+        XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "Lower Day")
+
+        viewModel.searchText = "find program push day"
+        XCTAssertEqual(viewModel.preferredNewTemplatePrefillName(), "Push Day")
     }
 
     func testPreferredDuplicateTemplateName_defaultsToCopySuffix() {

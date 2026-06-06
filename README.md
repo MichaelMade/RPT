@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search and search-driven `Create “...”` recovery now also understand `program` / `training program` phrasing like `open training program lower day` and `find program push day`, so users who think in broader workout-program language still land on the right saved routine—and no-match recovery suggests a clean template name instead of preserving that wrapper wording.
 - Home’s empty progress card now stays aware of in-progress drafts, so first-run users with an unfinished workout see guidance to add an exercise, save the draft, or finish the exact workout they already started instead of a generic `Finish your first workout` message that ignores live progress.
 - Workout Template search now teaches its richer matching right in the UI too, so the prompt and no-match helper explicitly suggest notes, body-region, action-word, and issue-based searches instead of making users guess that template search only understands names.
 - Exercise search screens now teach what the smarter search can do right where users get stuck: no-match states call out names, notes, body regions, muscle groups, and action-word searches, and the search prompts now hint that notes/body-region lookups work too, so people are more likely to recover with a better query instead of assuming exercise search only matches names.
