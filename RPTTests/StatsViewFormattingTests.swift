@@ -22,16 +22,25 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
-    func testThisWeekSummaryMessage_callsOutEmptyDraftWhenFirstWorkoutIsInProgress() {
+    func testThisWeekSummaryMessage_namesEmptyDraftWhenFirstWorkoutIsInProgress() {
         let draftWorkout = Workout(name: "Push Day")
 
         XCTAssertEqual(
             sut.thisWeekSummaryMessage(totalWorkouts: 0, weeklyWorkoutCount: 0, resumableWorkout: draftWorkout),
-            "Workout in progress — add an exercise to start this week’s trend"
+            "“Push Day” draft in progress — add an exercise to start this week’s trend"
         )
     }
 
-    func testThisWeekSummaryMessage_callsOutStartedDraftWhenFirstWorkoutIsInProgress() {
+    func testThisWeekSummaryMessage_fallsBackGracefullyForUnnamedEmptyDraft() {
+        let draftWorkout = Workout(name: "Current Workout")
+
+        XCTAssertEqual(
+            sut.thisWeekSummaryMessage(totalWorkouts: 0, weeklyWorkoutCount: 0, resumableWorkout: draftWorkout),
+            "Workout draft in progress — add an exercise to start this week’s trend"
+        )
+    }
+
+    func testThisWeekSummaryMessage_namesStartedDraftWhenFirstWorkoutIsInProgress() {
         let draftWorkout = Workout(name: "Pull Day")
         let exercise = Exercise(name: "Pull-Up", category: .bodyweight, primaryMuscleGroups: [.back])
         draftWorkout.sets = [
@@ -40,7 +49,7 @@ final class StatsViewFormattingTests: XCTestCase {
 
         XCTAssertEqual(
             sut.thisWeekSummaryMessage(totalWorkouts: 0, weeklyWorkoutCount: 0, resumableWorkout: draftWorkout),
-            "Workout in progress — finish it to start this week’s trend"
+            "“Pull Day” in progress — finish it to start this week’s trend"
         )
     }
 

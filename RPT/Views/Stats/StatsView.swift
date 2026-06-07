@@ -308,7 +308,15 @@ struct StatsView: View {
 
             if let resumableWorkout {
                 if resumableWorkout.exerciseCount == 0 {
-                    return "Workout in progress — add an exercise to start this week’s trend"
+                    if let displayName = WorkoutRow.specificDisplayName(for: resumableWorkout) {
+                        return "“\(displayName)” draft in progress — add an exercise to start this week’s trend"
+                    }
+
+                    return "Workout draft in progress — add an exercise to start this week’s trend"
+                }
+
+                if let displayName = WorkoutRow.specificDisplayName(for: resumableWorkout) {
+                    return "“\(displayName)” in progress — finish it to start this week’s trend"
                 }
 
                 return "Workout in progress — finish it to start this week’s trend"
