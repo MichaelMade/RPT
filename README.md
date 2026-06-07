@@ -1,5 +1,6 @@
 # RPT
 
+- Home’s empty `Progress Snapshot` card now uses the same named draft-vs-started status titles as the rest of the app, so resumable sessions read as `“Push Day” Draft In Progress` or `“Push Day” In Progress` instead of flattening that high-visibility state into a generic `Workout draft in progress` / `Workout in progress` headline.
 - Home’s empty `Recent Workouts` card now uses the same draft-vs-started status titles as the rest of the app, so resumable sessions read as `“Push Day” Draft In Progress` or `Workout In Progress` instead of staying under the stale generic `No completed workouts yet` heading.
 - Blocked workout status titles now stay draft-aware across Home recovery alerts, template conflict prompts, and template list/detail badges, so untouched sessions read as `“Push Day” Draft In Progress` instead of being overstated as already underway before the user logs any real work.
 - Active Workout’s leading `Save for Later` toolbar button now names the current draft when it has a real title (`Save “Push Day” for Later`), so the primary keep-this-session action stays easier to trust and distinguish when several routines are in play instead of falling back to generic save copy.

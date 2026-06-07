@@ -508,29 +508,31 @@ class HomeViewModel: ObservableObject {
 
     func progressEmptyState(activeWorkout: Workout?) -> (title: String, subtitle: String) {
         if let activeWorkout = resumableWorkout(activeWorkout: activeWorkout) {
+            let title = Self.resumableWorkoutStatusTitle(for: activeWorkout)
+
             if activeWorkout.exerciseCount == 0 {
                 if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
                     return (
-                        title: "Workout draft in progress",
+                        title: title,
                         subtitle: "Add an exercise to “\(displayName)” to start your streak, or save it for later until you are ready to train."
                     )
                 }
 
                 return (
-                    title: "Workout draft in progress",
+                    title: title,
                     subtitle: "Add an exercise to start your streak, or save this workout for later until you are ready to train."
                 )
             }
 
             if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
                 return (
-                    title: "Workout in progress",
+                    title: title,
                     subtitle: "Finish “\(displayName)” to start a streak and unlock lifetime progress on Home."
                 )
             }
 
             return (
-                title: "Workout in progress",
+                title: title,
                 subtitle: "Finish this workout to start a streak and unlock lifetime progress on Home."
             )
         }
