@@ -433,7 +433,7 @@ final class HomeViewModelTests: XCTestCase {
 
         let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
 
-        XCTAssertEqual(emptyState.title, "No completed workouts yet")
+        XCTAssertEqual(emptyState.title, "“Push Day” In Progress")
         XCTAssertEqual(emptyState.subtitle, "Finish “Push Day” to see it show up here with your latest stats.")
     }
 
@@ -442,7 +442,7 @@ final class HomeViewModelTests: XCTestCase {
 
         let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
 
-        XCTAssertEqual(emptyState.title, "No completed workouts yet")
+        XCTAssertEqual(emptyState.title, "“Push Day” Draft In Progress")
         XCTAssertEqual(emptyState.subtitle, "Add an exercise to “Push Day” before finishing it, or save it for later to keep it as a draft.")
     }
 
@@ -452,7 +452,7 @@ final class HomeViewModelTests: XCTestCase {
 
         let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
 
-        XCTAssertEqual(emptyState.title, "No completed workouts yet")
+        XCTAssertEqual(emptyState.title, "Workout In Progress")
         XCTAssertEqual(emptyState.subtitle, "Finish this workout to see it show up here with your latest stats.")
     }
 
@@ -461,7 +461,7 @@ final class HomeViewModelTests: XCTestCase {
 
         let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
 
-        XCTAssertEqual(emptyState.title, "No completed workouts yet")
+        XCTAssertEqual(emptyState.title, "Workout Draft In Progress")
         XCTAssertEqual(emptyState.subtitle, "Add an exercise before finishing this workout, or save it for later to keep it as a draft.")
     }
 

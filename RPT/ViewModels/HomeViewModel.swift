@@ -495,7 +495,7 @@ class HomeViewModel: ObservableObject {
             }
 
             return (
-                title: "No completed workouts yet",
+                title: Self.resumableWorkoutStatusTitle(for: activeWorkout),
                 subtitle: subtitle
             )
         }
