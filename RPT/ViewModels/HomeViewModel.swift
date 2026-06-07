@@ -225,6 +225,15 @@ class HomeViewModel: ObservableObject {
         return "\(actionText), save it for later, or discard it\(terminator)"
     }
 
+    static func resumableWorkoutStatusReference(for workout: Workout, unnamedFallback: String = "a workout") -> String {
+        let workoutReference = WorkoutRow.specificDisplayName(for: workout).map { "“\($0)”" } ?? unnamedFallback
+        let statusSuffix = resumableWorkoutActionPrefix(for: workout) == "Continue"
+            ? "in progress"
+            : "draft in progress"
+
+        return "\(workoutReference) \(statusSuffix)"
+    }
+
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
         let actionPrefix = Self.resumableWorkoutActionPrefix(for: workout)
 
@@ -784,11 +793,7 @@ class HomeViewModel: ObservableObject {
     }
 
     func startFreshWorkoutPromptPrefix(for workout: Workout) -> String {
-        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "You already have a workout in progress:"
-        }
-
-        return "You already have “\(displayName)” in progress:"
+        "You already have \(Self.resumableWorkoutStatusReference(for: workout)):"
     }
 
     func startFreshWorkoutMessage(for workout: Workout, now: Date = Date()) -> String {

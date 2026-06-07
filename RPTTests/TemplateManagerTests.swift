@@ -1237,7 +1237,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Ready to start with 1 exercise. You already have a workout in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting Template “Push Day”."
+            "Ready to start with 1 exercise. You already have a workout draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting Template “Push Day”."
         )
     }
 

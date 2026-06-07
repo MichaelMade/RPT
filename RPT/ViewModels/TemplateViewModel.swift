@@ -979,12 +979,9 @@ class TemplateViewModel: ObservableObject {
 
     func activeWorkoutPromptPrefix(for workout: Workout) -> String {
         let workoutSummary = HomeViewModel().resumableWorkoutSummary(for: workout)
+        let statusReference = HomeViewModel.resumableWorkoutStatusReference(for: workout)
 
-        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "You already have a workout in progress: \(workoutSummary)."
-        }
-
-        return "You already have “\(displayName)” in progress: \(workoutSummary)."
+        return "You already have \(statusReference): \(workoutSummary)."
     }
 
     func activeWorkoutPromptMessage(for workout: Workout, opening template: WorkoutTemplate) -> String {

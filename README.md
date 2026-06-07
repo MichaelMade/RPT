@@ -1,5 +1,6 @@
 # RPT
 
+- Blocked workout-handoff prompts now keep draft vs started wording aligned across Home, Stats, Templates, and template-start alerts, so untouched sessions consistently read as `“Push Day” draft in progress` instead of overstating them as generic active progress before any logged work exists.
 - Stats’ visible `This Week` summary now names the exact in-progress workout when it can and distinguishes draft vs started sessions, so first-workout guidance can say `“Push Day” draft in progress` or `“Pull Day” in progress` instead of flattening everything into a generic `Workout in progress` message.
 - Active Workout’s zero-exercise empty state now names the specific draft when it can, so a fresh session like `Push Day` tells you to add an exercise to that exact workout before finishing it instead of falling back to generic unnamed guidance.
 - Stats now treats untouched planned drafts as drafts instead of active progress, so the empty stats card keeps `Open` / `start your first set` guidance for template-seeded or manually planned workouts until real logged work begins.

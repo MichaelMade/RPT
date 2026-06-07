@@ -339,18 +339,18 @@ class StatsViewModel: ObservableObject {
             return "Complete your first workout to unlock weekly volume, muscle group focus, and personal records here."
         }
 
-        let workoutReference = specificWorkoutReference(for: resumableWorkout)
+        let workoutStatusReference = HomeViewModel.resumableWorkoutStatusReference(for: resumableWorkout)
         let actionPrefix = HomeViewModel.resumableWorkoutActionPrefix(for: resumableWorkout)
 
         if actionPrefix == "Open" {
             if resumableWorkout.sets.isEmpty {
-                return "You already have \(workoutReference) in progress. Open it from Home, add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
+                return "You already have \(workoutStatusReference). Open it from Home, add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
             }
 
-            return "You already have \(workoutReference) in progress. Open it from Home and log your first set to unlock weekly volume, muscle group focus, and personal records here."
+            return "You already have \(workoutStatusReference). Open it from Home and log your first set to unlock weekly volume, muscle group focus, and personal records here."
         }
 
-        return "You already have \(workoutReference) in progress. Finish it from Home to unlock weekly volume, muscle group focus, and personal records here."
+        return "You already have \(workoutStatusReference). Finish it from Home to unlock weekly volume, muscle group focus, and personal records here."
     }
 
     func emptyStateHint() -> String {

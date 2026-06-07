@@ -1161,7 +1161,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have a workout in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it.",
+            "You already have a workout draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it.",
             "Start-fresh guidance should tell users how to recover from an empty draft even when the name is blank or corrupted"
         )
     }
@@ -1173,7 +1173,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have “Upper A” in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it.",
+            "You already have “Upper A” draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it.",
             "Start-fresh guidance should stop vaguely saying to keep going when the in-progress draft is still empty"
         )
     }
@@ -1758,7 +1758,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have “Push Day” in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting a follow-up from “Upper A”.",
+            "You already have “Push Day” draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting a follow-up from “Upper A”.",
             "Blocked follow-up guidance should name real active drafts so users can tell which workout would be interrupted before starting a follow-up"
         )
     }
