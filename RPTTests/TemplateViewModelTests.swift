@@ -2869,8 +2869,8 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: workout),
-            "“Upper A” In Progress",
-            "Blocked template states should name the exact in-progress workout when possible"
+            "“Upper A” Draft In Progress",
+            "Blocked template states should name the exact workout and reflect that it is still a draft when possible"
         )
     }
 
@@ -2881,12 +2881,12 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: blankWorkout),
-            "Workout In Progress",
+            "Workout Draft In Progress",
             "Unnamed drafts should keep the generic blocked-start status label"
         )
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: legacyPlaceholderWorkout),
-            "Workout In Progress",
+            "Workout Draft In Progress",
             "Legacy placeholder draft names should keep the generic blocked-start status label"
         )
         XCTAssertEqual(

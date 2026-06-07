@@ -1061,15 +1061,7 @@ class TemplateViewModel: ObservableObject {
     }
 
     func activeWorkoutInProgressTitle(for workout: Workout?) -> String {
-        guard let workout else {
-            return "Workout In Progress"
-        }
-
-        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Workout In Progress"
-        }
-
-        return "“\(displayName)” In Progress"
+        HomeViewModel.resumableWorkoutStatusTitle(for: workout)
     }
 
     func startTemplateButtonTitle(for template: WorkoutTemplate) -> String {

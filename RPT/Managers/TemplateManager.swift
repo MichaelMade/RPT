@@ -553,15 +553,7 @@ class TemplateManager {
         }
 
         if blockedByActiveWorkout {
-            guard let blockingWorkout else {
-                return "Workout In Progress"
-            }
-
-            guard let displayName = WorkoutRow.specificDisplayName(for: blockingWorkout) else {
-                return "Workout In Progress"
-            }
-
-            return "“\(displayName)” In Progress"
+            return HomeViewModel.resumableWorkoutStatusTitle(for: blockingWorkout)
         }
 
         guard unavailableCount > 0 || duplicateCount > 0 else {

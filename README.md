@@ -1,5 +1,6 @@
 # RPT
 
+- Blocked workout status titles now stay draft-aware across Home recovery alerts, template conflict prompts, and template list/detail badges, so untouched sessions read as `“Push Day” Draft In Progress` instead of being overstated as already underway before the user logs any real work.
 - Active Workout’s leading `Save for Later` toolbar button now names the current draft when it has a real title (`Save “Push Day” for Later`), so the primary keep-this-session action stays easier to trust and distinguish when several routines are in play instead of falling back to generic save copy.
 - Blocked workout-handoff prompts now keep draft vs started wording aligned across Home, Stats, Templates, and template-start alerts, so untouched sessions consistently read as `“Push Day” draft in progress` instead of overstating them as generic active progress before any logged work exists.
 - Stats’ visible `This Week` summary now names the exact in-progress workout when it can and distinguishes draft vs started sessions, so first-workout guidance can say `“Push Day” draft in progress` or `“Pull Day” in progress` instead of flattening everything into a generic `Workout in progress` message.

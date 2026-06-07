@@ -985,8 +985,8 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: workout),
-            "“Upper A” In Progress",
-            "Blocked-workout titles should name the exact draft when possible so recovery alerts are easier to scan"
+            "“Upper A” Draft In Progress",
+            "Blocked-workout titles should name the exact draft and reflect that it has not started yet"
         )
     }
 
@@ -996,12 +996,12 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: blankWorkout),
-            "Workout In Progress",
+            "Workout Draft In Progress",
             "Blocked-workout titles should stay generic when the draft name is blank or corrupted"
         )
         XCTAssertEqual(
             viewModel.activeWorkoutInProgressTitle(for: legacyPlaceholderWorkout),
-            "Workout In Progress",
+            "Workout Draft In Progress",
             "Blocked-workout titles should stay generic when older placeholder draft names resurface"
         )
         XCTAssertEqual(

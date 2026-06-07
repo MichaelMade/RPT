@@ -1373,7 +1373,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "“Upper A” In Progress"
+            "“Upper A” Draft In Progress"
         )
     }
 
@@ -1400,7 +1400,7 @@ final class TemplateManagerTests: XCTestCase {
                 blockedByActiveWorkout: true,
                 blockingWorkout: activeWorkout
             ),
-            "Workout In Progress"
+            "Workout Draft In Progress"
         )
     }
 

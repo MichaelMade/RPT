@@ -234,6 +234,19 @@ class HomeViewModel: ObservableObject {
         return "\(workoutReference) \(statusSuffix)"
     }
 
+    static func resumableWorkoutStatusTitle(for workout: Workout?, unnamedFallback: String = "Workout") -> String {
+        guard let workout else {
+            return "\(unnamedFallback) In Progress"
+        }
+
+        let workoutReference = WorkoutRow.specificDisplayName(for: workout).map { "“\($0)”" } ?? unnamedFallback
+        let statusSuffix = resumableWorkoutActionPrefix(for: workout) == "Continue"
+            ? "In Progress"
+            : "Draft In Progress"
+
+        return "\(workoutReference) \(statusSuffix)"
+    }
+
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
         let actionPrefix = Self.resumableWorkoutActionPrefix(for: workout)
 
@@ -287,15 +300,7 @@ class HomeViewModel: ObservableObject {
     }
 
     func activeWorkoutInProgressTitle(for workout: Workout?) -> String {
-        guard let workout else {
-            return "Workout In Progress"
-        }
-
-        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "Workout In Progress"
-        }
-
-        return "“\(displayName)” In Progress"
+        Self.resumableWorkoutStatusTitle(for: workout)
     }
 
     private func exerciseCountTextForResumableSummary(for workout: Workout) -> String {
