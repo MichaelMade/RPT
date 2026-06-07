@@ -15,7 +15,7 @@ struct ActiveWorkoutView: View {
         "Add at least one exercise before you can finish this workout. \(toolbarSaveForLaterLabel) keeps it as a draft if you're not ready yet."
     }
 
-    static func emptyStateSaveForLaterLabel(for workoutName: String) -> String {
+    static func toolbarSaveForLaterLabel(for workoutName: String) -> String {
         let normalizedWorkout = Workout(name: workoutName)
 
         guard let displayName = WorkoutRow.specificDisplayName(for: normalizedWorkout) else {
@@ -23,6 +23,10 @@ struct ActiveWorkoutView: View {
         }
 
         return "Save “\(displayName)” for Later"
+    }
+
+    static func emptyStateSaveForLaterLabel(for workoutName: String) -> String {
+        toolbarSaveForLaterLabel(for: workoutName)
     }
 
     static func emptyStateHelperMessage(for workoutName: String) -> String {
@@ -203,7 +207,9 @@ struct ActiveWorkoutView: View {
                     }) {
                         HStack {
                             Image(systemName: "arrow.down.circle")
-                            Text(Self.toolbarSaveForLaterLabel)
+                            Text(Self.toolbarSaveForLaterLabel(for: viewModel.workoutName))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                         }
                     }
                     .accessibilityLabel(viewModel.saveForLaterButtonTitle())

@@ -6,6 +6,20 @@ final class ActiveWorkoutViewTests: XCTestCase {
         XCTAssertEqual(ActiveWorkoutView.toolbarSaveForLaterLabel, "Save for Later")
     }
 
+    func testToolbarSaveForLaterLabel_namesSpecificWorkout() {
+        XCTAssertEqual(
+            ActiveWorkoutView.toolbarSaveForLaterLabel(for: "  Push   Day  "),
+            "Save “Push Day” for Later"
+        )
+    }
+
+    func testToolbarSaveForLaterLabel_fallsBackForLegacyPlaceholderNames() {
+        XCTAssertEqual(
+            ActiveWorkoutView.toolbarSaveForLaterLabel(for: "Current Workout"),
+            ActiveWorkoutView.toolbarSaveForLaterLabel
+        )
+    }
+
     func testEmptyStateHelperMessage_mentionsFinishRequirementAndDraftRecovery() {
         XCTAssertEqual(
             ActiveWorkoutView.emptyStateHelperMessage,
@@ -23,7 +37,7 @@ final class ActiveWorkoutViewTests: XCTestCase {
     func testNamedEmptyStateHelperMessage_usesNamedSaveForLaterAction() {
         XCTAssertEqual(
             ActiveWorkoutView.emptyStateSaveForLaterLabel(for: "  Push   Day  "),
-            "Save “Push Day” for Later"
+            ActiveWorkoutView.toolbarSaveForLaterLabel(for: "  Push   Day  ")
         )
         XCTAssertEqual(
             ActiveWorkoutView.emptyStateSaveForLaterLabel(for: "Current Workout"),
