@@ -247,6 +247,26 @@ class HomeViewModel: ObservableObject {
         return "\(workoutReference) \(statusSuffix)"
     }
 
+    static func saveForLaterActionLabel(for workout: Workout?) -> String {
+        guard let workout,
+              let displayName = WorkoutRow.specificDisplayName(for: workout)
+        else {
+            return "Save for Later"
+        }
+
+        return "Save “\(displayName)” for Later"
+    }
+
+    static func saveForLaterActionHint(for workout: Workout?) -> String {
+        guard let workout,
+              WorkoutRow.specificDisplayName(for: workout) != nil
+        else {
+            return "save it for later"
+        }
+
+        return "tap \(saveForLaterActionLabel(for: workout))"
+    }
+
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
         let actionPrefix = Self.resumableWorkoutActionPrefix(for: workout)
 
@@ -484,7 +504,7 @@ class HomeViewModel: ObservableObject {
             let subtitle: String
             if activeWorkout.exerciseCount == 0 {
                 if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
-                    subtitle = "Add an exercise to “\(displayName)” before finishing it, or save it for later to keep it as a draft."
+                    subtitle = "Add an exercise to “\(displayName)” before finishing it, or \(Self.saveForLaterActionHint(for: activeWorkout)) to keep it as a draft."
                 } else {
                     subtitle = "Add an exercise before finishing this workout, or save it for later to keep it as a draft."
                 }
@@ -514,7 +534,7 @@ class HomeViewModel: ObservableObject {
                 if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
                     return (
                         title: title,
-                        subtitle: "Add an exercise to “\(displayName)” to start your streak, or save it for later until you are ready to train."
+                        subtitle: "Add an exercise to “\(displayName)” to start your streak, or \(Self.saveForLaterActionHint(for: activeWorkout)) until you are ready to train."
                     )
                 }
 

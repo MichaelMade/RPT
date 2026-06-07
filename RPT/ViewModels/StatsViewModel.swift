@@ -359,15 +359,17 @@ class StatsViewModel: ObservableObject {
         let workoutReference = specificWorkoutReference(for: resumableWorkout, fallback: "your workout")
         let actionPrefix = HomeViewModel.resumableWorkoutActionPrefix(for: resumableWorkout)
 
+        let saveForLaterHint = HomeViewModel.saveForLaterActionHint(for: resumableWorkout)
+
         if actionPrefix == "Open" {
             if resumableWorkout.sets.isEmpty {
-                return "Open \(workoutReference) from Home to add an exercise, save it for later, or discard it."
+                return "Open \(workoutReference) from Home to add an exercise, \(saveForLaterHint), or discard it."
             }
 
-            return "Open \(workoutReference) from Home to start it, save it for later, or discard it."
+            return "Open \(workoutReference) from Home to start it, \(saveForLaterHint), or discard it."
         }
 
-        return "Open \(workoutReference) from Home to continue it, save it for later, or finish it."
+        return "Open \(workoutReference) from Home to continue it, \(saveForLaterHint), or finish it."
     }
 
     private func specificWorkoutReference(for workout: Workout, fallback: String = "a workout") -> String {

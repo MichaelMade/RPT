@@ -405,7 +405,7 @@ final class HomeViewModelTests: XCTestCase {
         let emptyState = viewModel.progressEmptyState(activeWorkout: draft)
 
         XCTAssertEqual(emptyState.title, "“Push Day” Draft In Progress")
-        XCTAssertEqual(emptyState.subtitle, "Add an exercise to “Push Day” to start your streak, or save it for later until you are ready to train.")
+        XCTAssertEqual(emptyState.subtitle, "Add an exercise to “Push Day” to start your streak, or tap Save “Push Day” for Later until you are ready to train.")
     }
 
     func testProgressEmptyState_withPlaceholderDraftStaysGeneric() {
@@ -443,7 +443,7 @@ final class HomeViewModelTests: XCTestCase {
         let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
 
         XCTAssertEqual(emptyState.title, "“Push Day” Draft In Progress")
-        XCTAssertEqual(emptyState.subtitle, "Add an exercise to “Push Day” before finishing it, or save it for later to keep it as a draft.")
+        XCTAssertEqual(emptyState.subtitle, "Add an exercise to “Push Day” before finishing it, or tap Save “Push Day” for Later to keep it as a draft.")
     }
 
     func testRecentWorkoutsEmptyState_withPlaceholderDraftStaysGeneric() {

@@ -313,7 +313,7 @@ final class StatsViewModelTests: XCTestCase {
         )
         XCTAssertEqual(
             viewModel.emptyStateHint(),
-            "Open “Push Day” from Home to add an exercise, save it for later, or discard it."
+            "Open “Push Day” from Home to add an exercise, tap Save “Push Day” for Later, or discard it."
         )
     }
 
@@ -329,7 +329,7 @@ final class StatsViewModelTests: XCTestCase {
         )
         XCTAssertEqual(
             viewModel.emptyStateHint(),
-            "Open “Pull Day” from Home to start it, save it for later, or discard it."
+            "Open “Pull Day” from Home to start it, tap Save “Pull Day” for Later, or discard it."
         )
     }
 
@@ -354,7 +354,7 @@ final class StatsViewModelTests: XCTestCase {
         )
         XCTAssertEqual(
             viewModel.emptyStateHint(),
-            "Open “Pull Day” from Home to continue it, save it for later, or finish it."
+            "Open “Pull Day” from Home to continue it, tap Save “Pull Day” for Later, or finish it."
         )
     }
 }
