@@ -60,6 +60,28 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
+    func testThisWeekSummaryMessage_namesReturningUserDraftWhenNoRecentWorkoutsExist() {
+        let draftWorkout = Workout(name: "Push Day")
+
+        XCTAssertEqual(
+            sut.thisWeekSummaryMessage(totalWorkouts: 5, weeklyWorkoutCount: 0, resumableWorkout: draftWorkout),
+            "“Push Day” draft in progress — add an exercise to restart your weekly streak"
+        )
+    }
+
+    func testThisWeekSummaryMessage_namesReturningUserStartedWorkoutWhenNoRecentWorkoutsExist() {
+        let draftWorkout = Workout(name: "Pull Day")
+        let exercise = Exercise(name: "Pull-Up", category: .bodyweight, primaryMuscleGroups: [.back])
+        draftWorkout.sets = [
+            ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: draftWorkout, completedAt: Date(), isWarmup: false)
+        ]
+
+        XCTAssertEqual(
+            sut.thisWeekSummaryMessage(totalWorkouts: 5, weeklyWorkoutCount: 0, resumableWorkout: draftWorkout),
+            "“Pull Day” in progress — finish it to restart your weekly streak"
+        )
+    }
+
     func testThisWeekSummaryMessage_usesSingularAndPluralWorkoutCopy() {
         XCTAssertEqual(
             sut.thisWeekSummaryMessage(totalWorkouts: 5, weeklyWorkoutCount: 1),

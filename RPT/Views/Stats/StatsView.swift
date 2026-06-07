@@ -302,24 +302,26 @@ struct StatsView: View {
         let safeWeeklyCount = max(0, weeklyWorkoutCount)
 
         guard safeWeeklyCount > 0 else {
-            guard totalWorkouts == 0 else {
-                return "No completed workouts in the last 7 days"
-            }
-
             if let resumableWorkout {
+                let streakVerb = totalWorkouts > 0 ? "restart" : "start"
+
                 if resumableWorkout.exerciseCount == 0 {
                     if let displayName = WorkoutRow.specificDisplayName(for: resumableWorkout) {
-                        return "“\(displayName)” draft in progress — add an exercise to start this week’s trend"
+                        return "“\(displayName)” draft in progress — add an exercise to \(streakVerb) your weekly streak"
                     }
 
-                    return "Workout draft in progress — add an exercise to start this week’s trend"
+                    return "Workout draft in progress — add an exercise to \(streakVerb) your weekly streak"
                 }
 
                 if let displayName = WorkoutRow.specificDisplayName(for: resumableWorkout) {
-                    return "“\(displayName)” in progress — finish it to start this week’s trend"
+                    return "“\(displayName)” in progress — finish it to \(streakVerb) your weekly streak"
                 }
 
-                return "Workout in progress — finish it to start this week’s trend"
+                return "Workout in progress — finish it to \(streakVerb) your weekly streak"
+            }
+
+            guard totalWorkouts == 0 else {
+                return "No completed workouts in the last 7 days"
             }
 
             return "Finish a workout to start this week’s trend"
