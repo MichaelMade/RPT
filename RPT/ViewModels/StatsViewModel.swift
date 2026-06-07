@@ -329,9 +329,7 @@ class StatsViewModel: ObservableObject {
             return "No workout stats yet"
         }
 
-        return HomeViewModel.resumableWorkoutActionPrefix(for: resumableWorkout) == "Continue"
-            ? "Workout in progress"
-            : "Workout draft in progress"
+        return HomeViewModel.resumableWorkoutStatusTitle(for: resumableWorkout)
     }
 
     func emptyStateMessage() -> String {
