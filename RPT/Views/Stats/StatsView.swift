@@ -197,7 +197,8 @@ struct StatsView: View {
                 message: weeklyVolumeEmptyStateMessage(
                     totalWorkouts: viewModel.totalWorkouts,
                     hasRecentCompletedWorkouts: viewModel.hasRecentCompletedWorkoutsForWeeklyVolume,
-                    hasWeightedVolumeData: viewModel.hasWeeklyVolumeChartData
+                    hasWeightedVolumeData: viewModel.hasWeeklyVolumeChartData,
+                    resumableWorkout: viewModel.resumableWorkout
                 )
             )
         }
@@ -251,7 +252,10 @@ struct StatsView: View {
             SectionPlaceholderCard(
                 title: "Muscle Group Focus",
                 systemImage: "figure.strengthtraining.traditional",
-                message: muscleGroupEmptyStateMessage(totalWorkouts: viewModel.totalWorkouts)
+                message: muscleGroupEmptyStateMessage(
+                    totalWorkouts: viewModel.totalWorkouts,
+                    resumableWorkout: viewModel.resumableWorkout
+                )
             )
         }
     }
@@ -291,7 +295,10 @@ struct StatsView: View {
             SectionPlaceholderCard(
                 title: "Recent Personal Records",
                 systemImage: "trophy",
-                message: personalRecordsEmptyStateMessage(totalWorkouts: viewModel.totalWorkouts)
+                message: personalRecordsEmptyStateMessage(
+                    totalWorkouts: viewModel.totalWorkouts,
+                    resumableWorkout: viewModel.resumableWorkout
+                )
             )
         }
     }
@@ -357,10 +364,21 @@ struct StatsView: View {
     func weeklyVolumeEmptyStateMessage(
         totalWorkouts: Int,
         hasRecentCompletedWorkouts: Bool = false,
-        hasWeightedVolumeData: Bool = false
+        hasWeightedVolumeData: Bool = false,
+        resumableWorkout: Workout? = nil
     ) -> String {
         guard totalWorkouts > 0 else {
             return "Complete a workout to start building your weekly training chart."
+        }
+
+        if !hasRecentCompletedWorkouts,
+           let resumableWorkout {
+            return resumableWorkoutStatsPrompt(
+                for: resumableWorkout,
+                emptyDraft: "Open it from Home, add an exercise, and finish it to start filling this week’s training chart.",
+                unopenedDraft: "Open it from Home and log your first set to start filling this week’s training chart.",
+                inProgress: "Finish it from Home to add fresh volume to your weekly training chart."
+            )
         }
 
         if hasRecentCompletedWorkouts, !hasWeightedVolumeData {
@@ -394,20 +412,57 @@ struct StatsView: View {
         return "Last 12 weeks"
     }
 
-    func muscleGroupEmptyStateMessage(totalWorkouts: Int) -> String {
+    func muscleGroupEmptyStateMessage(totalWorkouts: Int, resumableWorkout: Workout? = nil) -> String {
         guard totalWorkouts > 0 else {
             return "Complete a workout to see where your working sets are landing."
+        }
+
+        if let resumableWorkout {
+            return resumableWorkoutStatsPrompt(
+                for: resumableWorkout,
+                emptyDraft: "Open it from Home, add an exercise, and finish working sets to see where your training is landing.",
+                unopenedDraft: "Open it from Home and log your first working set to see which muscle groups are getting the most attention.",
+                inProgress: "Finish a few working sets from Home to see which muscle groups are getting the most attention."
+            )
         }
 
         return "Log completed working sets in the last 4 weeks to see which muscle groups are getting the most attention."
     }
 
-    func personalRecordsEmptyStateMessage(totalWorkouts: Int) -> String {
+    func personalRecordsEmptyStateMessage(totalWorkouts: Int, resumableWorkout: Workout? = nil) -> String {
         guard totalWorkouts > 0 else {
             return "Complete a workout to start capturing personal records."
         }
 
+        if let resumableWorkout {
+            return resumableWorkoutStatsPrompt(
+                for: resumableWorkout,
+                emptyDraft: "Open it from Home, add an exercise, and finish a working set to start capturing new personal records.",
+                unopenedDraft: "Open it from Home and log your first working set to start capturing new personal records.",
+                inProgress: "Finish a few strong working sets from Home and your next personal record could show up here."
+            )
+        }
+
         return "Finish a few completed working sets and your strongest recent performances will show up here."
+    }
+
+    private func resumableWorkoutStatsPrompt(
+        for workout: Workout,
+        emptyDraft: String,
+        unopenedDraft: String,
+        inProgress: String
+    ) -> String {
+        let workoutStatus = HomeViewModel.resumableWorkoutStatusReference(for: workout)
+
+        if workout.sets.isEmpty {
+            return "You already have \(workoutStatus). \(emptyDraft)"
+        }
+
+        if HomeViewModel.resumableWorkoutActionPrefix(for: workout) == "Open" {
+            return "You already have \(workoutStatus). \(unopenedDraft)"
+        }
+
+        return "You already have \(workoutStatus). \(inProgress)"
     }
 
     func personalRecordDateText(

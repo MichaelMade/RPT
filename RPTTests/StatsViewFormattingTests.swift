@@ -153,6 +153,15 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
+    func testWeeklyVolumeEmptyStateMessage_pointsBackToResumableDraftWhenRecentWindowIsEmpty() {
+        let draftWorkout = Workout(name: "Push Day")
+
+        XCTAssertEqual(
+            sut.weeklyVolumeEmptyStateMessage(totalWorkouts: 3, resumableWorkout: draftWorkout),
+            "You already have “Push Day” draft in progress. Open it from Home, add an exercise, and finish it to start filling this week’s training chart."
+        )
+    }
+
     func testWeeklyWorkChartTitle_prefersWeightedVolumeWhenAvailable() {
         XCTAssertEqual(
             sut.weeklyWorkChartTitle(hasWeightedVolumeData: true, hasBodyweightRepsData: true),
@@ -181,10 +190,34 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
+    func testMuscleGroupEmptyStateMessage_pointsBackToUnstartedDraft() {
+        let draftWorkout = Workout(name: "Upper A")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = draftWorkout.addSet(exercise: exercise, weight: 185, reps: 8)
+
+        XCTAssertEqual(
+            sut.muscleGroupEmptyStateMessage(totalWorkouts: 2, resumableWorkout: draftWorkout),
+            "You already have “Upper A” draft in progress. Open it from Home and log your first working set to see which muscle groups are getting the most attention."
+        )
+    }
+
     func testPersonalRecordsEmptyStateMessage_explainsMissingCompletedSets() {
         XCTAssertEqual(
             sut.personalRecordsEmptyStateMessage(totalWorkouts: 1),
             "Finish a few completed working sets and your strongest recent performances will show up here."
+        )
+    }
+
+    func testPersonalRecordsEmptyStateMessage_pointsBackToInProgressWorkout() {
+        let startedWorkout = Workout(name: "Pull Day")
+        let exercise = Exercise(name: "Pull-Up", category: .bodyweight, primaryMuscleGroups: [.back])
+        startedWorkout.sets = [
+            ExerciseSet(weight: 0, reps: 10, exercise: exercise, workout: startedWorkout, completedAt: Date(), isWarmup: false)
+        ]
+
+        XCTAssertEqual(
+            sut.personalRecordsEmptyStateMessage(totalWorkouts: 1, resumableWorkout: startedWorkout),
+            "You already have “Pull Day” in progress. Finish a few strong working sets from Home and your next personal record could show up here."
         )
     }
 
