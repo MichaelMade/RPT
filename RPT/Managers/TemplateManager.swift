@@ -587,11 +587,7 @@ class TemplateManager {
             return "workout in progress"
         }
 
-        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "workout in progress"
-        }
-
-        return "“\(displayName)” in progress"
+        return HomeViewModel.resumableWorkoutStatusReference(for: workout)
     }
 
     private func activeWorkoutStatusPrompt(for workout: Workout?, starting template: WorkoutTemplate) -> String {
@@ -600,13 +596,7 @@ class TemplateManager {
         }
 
         let workoutSummary = HomeViewModel().resumableWorkoutSummary(for: workout)
-        let statusLead: String
-
-        if let displayName = WorkoutRow.specificDisplayName(for: workout) {
-            statusLead = "“\(displayName)” is in progress: \(workoutSummary)."
-        } else {
-            statusLead = "You already have a workout in progress: \(workoutSummary)."
-        }
+        let statusLead = "You already have \(HomeViewModel.resumableWorkoutStatusReference(for: workout)): \(workoutSummary)."
 
         let startTarget = templateStartTargetText(for: template)
         let actionInstruction: String

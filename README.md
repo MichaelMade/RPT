@@ -1,5 +1,6 @@
 # RPT
 
+- Template blocking summaries now stay draft-aware for untouched or not-yet-started sessions too, so template rows and start prompts say `“Upper A” draft in progress` until real work begins instead of overstating planned workouts as already underway.
 - Stats’ `This Week` summary now stays resumable-workout aware for returning users too, so if the last 7 days are empty but a draft like `Push Day` is still open the subtitle points them to `restart your weekly streak` by finishing or adding to that exact workout instead of incorrectly stopping at `No completed workouts in the last 7 days`.
 - Stats’ empty-state title now uses the same named draft-vs-started status titles as the rest of the app, so resumable sessions read as `“Push Day” Draft In Progress` or `“Pull Day” In Progress` instead of flattening that first-workout recovery headline into a generic `Workout draft in progress` / `Workout in progress` label.
 - Home’s empty `Progress Snapshot` card now uses the same named draft-vs-started status titles as the rest of the app, so resumable sessions read as `“Push Day” Draft In Progress` or `“Push Day” In Progress` instead of flattening that high-visibility state into a generic `Workout draft in progress` / `Workout in progress` headline.
