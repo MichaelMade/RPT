@@ -10,8 +10,19 @@ import SwiftData
 
 struct ActiveWorkoutView: View {
     static let toolbarSaveForLaterLabel = "Save for Later"
+
     static var emptyStateHelperMessage: String {
         "Add at least one exercise before you can finish this workout. \(toolbarSaveForLaterLabel) keeps it as a draft if you're not ready yet."
+    }
+
+    static func emptyStateSaveForLaterLabel(for workoutName: String) -> String {
+        let normalizedWorkout = Workout(name: workoutName)
+
+        guard let displayName = WorkoutRow.specificDisplayName(for: normalizedWorkout) else {
+            return toolbarSaveForLaterLabel
+        }
+
+        return "Save “\(displayName)” for Later"
     }
 
     static func emptyStateHelperMessage(for workoutName: String) -> String {
@@ -21,7 +32,7 @@ struct ActiveWorkoutView: View {
             return emptyStateHelperMessage
         }
 
-        return "Add at least one exercise to “\(displayName)” before you can finish it. \(toolbarSaveForLaterLabel) keeps it as a draft if you're not ready yet."
+        return "Add at least one exercise to “\(displayName)” before you can finish it. \(emptyStateSaveForLaterLabel(for: workoutName)) keeps it as a draft if you're not ready yet."
     }
 
     static func navigationTitle(for workoutName: String) -> String {

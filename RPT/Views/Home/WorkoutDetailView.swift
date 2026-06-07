@@ -161,11 +161,11 @@ struct WorkoutDetailView: View {
     }
 
     static func draftExerciseDetailsEmptyStateMessage(for workout: Workout) -> String {
-        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+        guard WorkoutRow.specificDisplayName(for: workout) != nil else {
             return ActiveWorkoutView.emptyStateHelperMessage
         }
 
-        return "Add at least one exercise to “\(displayName)” before you can finish it. \(ActiveWorkoutView.toolbarSaveForLaterLabel) keeps it as a draft if you're not ready yet."
+        return ActiveWorkoutView.emptyStateHelperMessage(for: workout.name)
     }
 
     static func discardCurrentWorkoutAndStartFollowUpAlertTitle(for workout: Workout?, currentWorkout: Workout? = nil) -> String {

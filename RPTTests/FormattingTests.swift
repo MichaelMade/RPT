@@ -934,7 +934,7 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(namedDraftState?.title, "No exercises added yet")
         XCTAssertEqual(
             namedDraftState?.subtitle,
-            "Add at least one exercise to “Push Day” before you can finish it. Save for Later keeps it as a draft if you're not ready yet.",
+            "Add at least one exercise to “Push Day” before you can finish it. Save “Push Day” for Later keeps it as a draft if you're not ready yet.",
             "Named draft workout details should keep the same recovery guidance while anchoring it to the specific workout."
         )
         XCTAssertEqual(placeholderDraftState?.title, "No exercises added yet")

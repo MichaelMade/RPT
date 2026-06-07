@@ -16,7 +16,18 @@ final class ActiveWorkoutViewTests: XCTestCase {
     func testNamedEmptyStateHelperMessage_mentionsSpecificWorkout() {
         XCTAssertEqual(
             ActiveWorkoutView.emptyStateHelperMessage(for: "  Push   Day  "),
-            "Add at least one exercise to “Push Day” before you can finish it. Save for Later keeps it as a draft if you're not ready yet."
+            "Add at least one exercise to “Push Day” before you can finish it. Save “Push Day” for Later keeps it as a draft if you're not ready yet."
+        )
+    }
+
+    func testNamedEmptyStateHelperMessage_usesNamedSaveForLaterAction() {
+        XCTAssertEqual(
+            ActiveWorkoutView.emptyStateSaveForLaterLabel(for: "  Push   Day  "),
+            "Save “Push Day” for Later"
+        )
+        XCTAssertEqual(
+            ActiveWorkoutView.emptyStateSaveForLaterLabel(for: "Current Workout"),
+            ActiveWorkoutView.toolbarSaveForLaterLabel
         )
     }
 

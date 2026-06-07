@@ -462,6 +462,7 @@ RPT/
 
 ## Recent Improvements
 
+- Named empty workout states now reuse the same exact `Save “...” for Later` action wording shown elsewhere in Active Workout, so zero-exercise draft guidance on both the live workout screen and Workout Details stays explicit about which session will be preserved instead of falling back to generic `Save for Later` copy; added regression coverage in `ActiveWorkoutViewTests`, `WorkoutDetailViewTests`, and `FormattingTests`.
 - Template Details’ status summary now matches the same active-draft recovery state as the rest of the app, switching between `Add an exercise ...`, `Open ...`, and `Continue ...` guidance instead of flattening every blocked template start into older generic `Continue, save, or discard ...` copy; added regression coverage in `TemplateManagerTests`.
 - Home and Template now share one `resumableWorkoutRecoveryInstruction(...)` helper for active-draft conflict copy, so `Add an exercise ...`, `Open it ...`, and `Continue it ...` wording stays aligned across start-fresh, follow-up, and template handoff flows; added regression coverage in `HomeViewModelTests`.
 - Renaming a custom exercise now also updates matching template references behind the scenes, so templates that already used that movement keep starting normally instead of suddenly treating the renamed exercise as missing; added regression coverage in `ExerciseManagerTests`.

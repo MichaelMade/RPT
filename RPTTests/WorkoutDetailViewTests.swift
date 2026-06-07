@@ -8,7 +8,7 @@ final class WorkoutDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             WorkoutDetailView.draftExerciseDetailsEmptyStateMessage(for: workout),
-            "Add at least one exercise to “Push Day” before you can finish it. Save for Later keeps it as a draft if you're not ready yet."
+            "Add at least one exercise to “Push Day” before you can finish it. Save “Push Day” for Later keeps it as a draft if you're not ready yet."
         )
     }
 
