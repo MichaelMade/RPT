@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also indexes the exact `tap Save for Later` / `Save “...” for Later` recovery wording users see in Home, Stats, and blocked-start prompts, so searching the visible save-action copy can still refind blocked templates instead of only older generic save phrasing.
 - Stats’ draft-only `This Week` summary now points to the exact visible `Save for Later` control too — including `Save “...” for Later` when a workout already has a real name — so zero-exercise weekly-streak guidance stays aligned with the action users can actually tap instead of only telling them to add an exercise.
 - Template search empty-state guidance and blocked-start matching now include the exact `use Save for Later` wording users see in recovery prompts, so no-results help teaches the real action label and generic blocked-template searches can refind results from the updated copy instead of older `save` phrasing alone.
 - Generic template-start fallback alerts now say `use Save for Later` too, so when RPT can’t name the blocking workout yet the Home/template-detail warning still points at the exact visible control instead of the vaguer old `save` wording.

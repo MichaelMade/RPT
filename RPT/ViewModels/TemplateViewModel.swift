@@ -1776,12 +1776,18 @@ class TemplateViewModel: ObservableObject {
             let genericSaveAndStartFailureMessage = activeWorkoutPersistenceFailureMessage(for: .saveForLater, opening: template)
             let genericDiscardAndStartFailureMessage = activeWorkoutPersistenceFailureMessage(for: .discard, opening: template)
             let genericBlockedStartMessage = templateManager.genericTemplateStartBlockMessage(for: template)
+            let genericSaveForLaterActionLabel = HomeViewModel.saveForLaterActionLabel(for: nil)
+            let genericSaveForLaterActionHint = HomeViewModel.saveForLaterActionHint(for: nil)
+            let genericSaveForLaterRecoveryInstruction = HomeViewModel.saveForLaterRecoveryInstruction(for: nil)
 
             if let activeWorkout {
                 terms.append(contentsOf: [
                     activeWorkoutPromptMessage(for: activeWorkout, opening: template),
                     continueCurrentWorkoutButtonTitle(for: activeWorkout),
-                    resumeCurrentWorkoutSearchTitle(for: activeWorkout)
+                    resumeCurrentWorkoutSearchTitle(for: activeWorkout),
+                    HomeViewModel.saveForLaterActionLabel(for: activeWorkout),
+                    HomeViewModel.saveForLaterActionHint(for: activeWorkout),
+                    HomeViewModel.saveForLaterRecoveryInstruction(for: activeWorkout)
                 ])
             }
 
@@ -1811,6 +1817,9 @@ class TemplateViewModel: ObservableObject {
                 genericBlockedStartMessage,
                 "add an exercise",
                 "add an exercise to keep going",
+                genericSaveForLaterActionLabel,
+                genericSaveForLaterActionHint,
+                genericSaveForLaterRecoveryInstruction,
                 "save for later",
                 "use save for later",
                 "tap save for later",
@@ -1829,17 +1838,24 @@ class TemplateViewModel: ObservableObject {
                 "open it \(startTemplateSuffix)",
                 "add an exercise to keep going, use Save for Later, or discard it \(openTemplateSuffix)",
                 "add an exercise to keep going, use Save for Later, or discard it \(startTemplateSuffix)",
+                "add an exercise to keep going, \(genericSaveForLaterActionHint), or discard it \(openTemplateSuffix)",
+                "add an exercise to keep going, \(genericSaveForLaterActionHint), or discard it \(startTemplateSuffix)",
                 "add an exercise to keep going, save it for later, or discard it \(openTemplateSuffix)",
                 "add an exercise to keep going, save it for later, or discard it \(startTemplateSuffix)",
                 "continue it, use Save for Later, or discard it \(openTemplateSuffix)",
+                "continue it, \(genericSaveForLaterRecoveryInstruction), or discard it \(openTemplateSuffix)",
                 "continue it, save it for later, or discard it \(openTemplateSuffix)",
                 "open it, use Save for Later, or discard it \(openTemplateSuffix)",
+                "open it, \(genericSaveForLaterRecoveryInstruction), or discard it \(openTemplateSuffix)",
                 "open it, save it for later, or discard it \(openTemplateSuffix)",
                 "use Save for Later, discard it, or keep going \(openTemplateSuffix)",
+                "\(genericSaveForLaterRecoveryInstruction), discard it, or keep going \(openTemplateSuffix)",
                 "save it for later, discard it, or keep going \(openTemplateSuffix)",
                 "continue it, use Save for Later, or discard it \(startTemplateSuffix)",
+                "continue it, \(genericSaveForLaterRecoveryInstruction), or discard it \(startTemplateSuffix)",
                 "continue it, save it for later, or discard it \(startTemplateSuffix)",
                 "open it, use Save for Later, or discard it \(startTemplateSuffix)",
+                "open it, \(genericSaveForLaterRecoveryInstruction), or discard it \(startTemplateSuffix)",
                 "open it, save it for later, or discard it \(startTemplateSuffix)",
                 "save open template",
                 "save & open template",

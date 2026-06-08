@@ -583,6 +583,37 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesGenericTapSaveForLaterBlockedStartGuidance() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Ghost Day", exerciseNames: ["Ghost Lift"]),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "tap Save for Later"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Ghost Day", "Push Day"]
+        )
+    }
+
+    func testFetchTemplates_matchesNamedSaveForLaterActionLabelWhenActiveWorkoutExists() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Upper A")
+        viewModel.templates = [
+            makeTemplate(name: "Ghost Day", exerciseNames: ["Ghost Lift"]),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "Save “Upper A” for Later"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true, activeWorkout: activeWorkout).map(\.name),
+            ["Ghost Day", "Push Day"]
+        )
+    }
+
     func testFetchTemplates_matchesGenericDiscardAndStartTemplateAlertTitle() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
