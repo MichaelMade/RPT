@@ -341,11 +341,13 @@ class StatsViewModel: ObservableObject {
         let actionPrefix = HomeViewModel.resumableWorkoutActionPrefix(for: resumableWorkout)
 
         if actionPrefix == "Open" {
+            let openAction = openWorkoutFromHomeInstruction(for: resumableWorkout)
+
             if resumableWorkout.sets.isEmpty {
-                return "You already have \(workoutStatusReference). Open it from Home, add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
+                return "You already have \(workoutStatusReference). \(openAction), add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
             }
 
-            return "You already have \(workoutStatusReference). Open it from Home and log your first set to unlock weekly volume, muscle group focus, and personal records here."
+            return "You already have \(workoutStatusReference). \(openAction) and log your first set to unlock weekly volume, muscle group focus, and personal records here."
         }
 
         return "You already have \(workoutStatusReference). Finish it from Home to unlock weekly volume, muscle group focus, and personal records here."
@@ -378,6 +380,14 @@ class StatsViewModel: ObservableObject {
         }
 
         return fallback
+    }
+
+    private func openWorkoutFromHomeInstruction(for workout: Workout) -> String {
+        guard WorkoutRow.specificDisplayName(for: workout) != nil else {
+            return "Open it from Home"
+        }
+
+        return "\(HomeViewModel.resumableWorkoutActionLabel(for: workout)) from Home"
     }
 
     private func formatVolumeForHeadline(_ volume: Double) -> String {

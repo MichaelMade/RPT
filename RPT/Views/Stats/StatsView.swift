@@ -457,14 +457,22 @@ struct StatsView: View {
         let workoutStatus = HomeViewModel.resumableWorkoutStatusReference(for: workout)
 
         if workout.sets.isEmpty {
-            return "You already have \(workoutStatus). \(emptyDraft)"
+            return "You already have \(workoutStatus). \(emptyDraft.replacingOccurrences(of: "Open it from Home", with: openWorkoutFromHomeInstruction(for: workout)))"
         }
 
         if HomeViewModel.resumableWorkoutActionPrefix(for: workout) == "Open" {
-            return "You already have \(workoutStatus). \(unopenedDraft)"
+            return "You already have \(workoutStatus). \(unopenedDraft.replacingOccurrences(of: "Open it from Home", with: openWorkoutFromHomeInstruction(for: workout)))"
         }
 
         return "You already have \(workoutStatus). \(inProgress)"
+    }
+
+    private func openWorkoutFromHomeInstruction(for workout: Workout) -> String {
+        guard WorkoutRow.specificDisplayName(for: workout) != nil else {
+            return "Open it from Home"
+        }
+
+        return "\(HomeViewModel.resumableWorkoutActionLabel(for: workout)) from Home"
     }
 
     func personalRecordDateText(

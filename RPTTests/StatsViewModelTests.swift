@@ -309,7 +309,7 @@ final class StatsViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.emptyStateTitle(), "“Push Day” Draft In Progress")
         XCTAssertEqual(
             viewModel.emptyStateMessage(),
-            "You already have “Push Day” draft in progress. Open it from Home, add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
+            "You already have “Push Day” draft in progress. Open “Push Day” from Home, add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
         )
         XCTAssertEqual(
             viewModel.emptyStateHint(),
@@ -325,7 +325,7 @@ final class StatsViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.emptyStateTitle(), "“Pull Day” Draft In Progress")
         XCTAssertEqual(
             viewModel.emptyStateMessage(),
-            "You already have “Pull Day” draft in progress. Open it from Home and log your first set to unlock weekly volume, muscle group focus, and personal records here."
+            "You already have “Pull Day” draft in progress. Open “Pull Day” from Home and log your first set to unlock weekly volume, muscle group focus, and personal records here."
         )
         XCTAssertEqual(
             viewModel.emptyStateHint(),

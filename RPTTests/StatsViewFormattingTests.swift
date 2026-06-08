@@ -158,7 +158,7 @@ final class StatsViewFormattingTests: XCTestCase {
 
         XCTAssertEqual(
             sut.weeklyVolumeEmptyStateMessage(totalWorkouts: 3, resumableWorkout: draftWorkout),
-            "You already have “Push Day” draft in progress. Open it from Home, add an exercise, and finish it to start filling this week’s training chart."
+            "You already have “Push Day” draft in progress. Open “Push Day” from Home, add an exercise, and finish it to start filling this week’s training chart."
         )
     }
 
@@ -197,7 +197,7 @@ final class StatsViewFormattingTests: XCTestCase {
 
         XCTAssertEqual(
             sut.muscleGroupEmptyStateMessage(totalWorkouts: 2, resumableWorkout: draftWorkout),
-            "You already have “Upper A” draft in progress. Open it from Home and log your first working set to see which muscle groups are getting the most attention."
+            "You already have “Upper A” draft in progress. Open “Upper A” from Home and log your first working set to see which muscle groups are getting the most attention."
         )
     }
 
