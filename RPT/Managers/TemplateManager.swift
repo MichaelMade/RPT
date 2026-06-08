@@ -599,20 +599,21 @@ class TemplateManager {
         let statusLead = "You already have \(HomeViewModel.resumableWorkoutStatusReference(for: workout)): \(workoutSummary)."
 
         let startTarget = templateStartTargetText(for: template)
+        let saveForLaterText = HomeViewModel.saveForLaterRecoveryInstruction(for: workout)
         let actionInstruction: String
         if workout.sets.isEmpty {
             if let displayName = WorkoutRow.specificDisplayName(for: workout) {
-                actionInstruction = "Add an exercise to “\(displayName)” to keep going, save it for later, or discard it before starting \(startTarget)"
+                actionInstruction = "Add an exercise to “\(displayName)” to keep going, \(saveForLaterText), or discard it before starting \(startTarget)"
             } else {
-                actionInstruction = "Add an exercise to keep going, save it for later, or discard it before starting \(startTarget)"
+                actionInstruction = "Add an exercise to keep going, \(saveForLaterText), or discard it before starting \(startTarget)"
             }
         } else {
             let actionPrefix = HomeViewModel.resumableWorkoutActionPrefix(for: workout)
 
             if let displayName = WorkoutRow.specificDisplayName(for: workout) {
-                actionInstruction = "\(actionPrefix) “\(displayName)”, save it for later, or discard it before starting \(startTarget)"
+                actionInstruction = "\(actionPrefix) “\(displayName)”, \(saveForLaterText), or discard it before starting \(startTarget)"
             } else {
-                actionInstruction = "\(actionPrefix) this workout, save it for later, or discard it before starting \(startTarget)"
+                actionInstruction = "\(actionPrefix) this workout, \(saveForLaterText), or discard it before starting \(startTarget)"
             }
         }
 

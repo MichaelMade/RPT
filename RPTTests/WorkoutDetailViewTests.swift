@@ -195,7 +195,7 @@ final class WorkoutDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             WorkoutDetailView.sourceTemplateBlockMessage(for: partialTemplate, activeWorkout: activeWorkout),
-            "You already have “Push Day” draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting the available part of Template “Upper A”."
+            "You already have “Push Day” draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, use Save “Push Day” for Later, or discard it before starting the available part of Template “Upper A”."
         )
     }
 

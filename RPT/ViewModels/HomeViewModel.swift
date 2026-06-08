@@ -214,15 +214,17 @@ class HomeViewModel: ObservableObject {
     }
 
     static func resumableWorkoutRecoveryInstruction(for workout: Workout, terminator: String = "") -> String {
+        let saveForLaterText = saveForLaterRecoveryInstruction(for: workout)
+
         if workout.sets.isEmpty {
-            return "Add an exercise to keep going, save it for later, or discard it\(terminator)"
+            return "Add an exercise to keep going, \(saveForLaterText), or discard it\(terminator)"
         }
 
         let actionText = resumableWorkoutActionPrefix(for: workout) == "Continue"
             ? "Continue it"
             : "Open it"
 
-        return "\(actionText), save it for later, or discard it\(terminator)"
+        return "\(actionText), \(saveForLaterText), or discard it\(terminator)"
     }
 
     static func resumableWorkoutStatusReference(for workout: Workout, unnamedFallback: String = "a workout") -> String {
@@ -265,6 +267,16 @@ class HomeViewModel: ObservableObject {
         }
 
         return "tap \(saveForLaterActionLabel(for: workout))"
+    }
+
+    static func saveForLaterRecoveryInstruction(for workout: Workout?) -> String {
+        guard let workout,
+              WorkoutRow.specificDisplayName(for: workout) != nil
+        else {
+            return "save it for later"
+        }
+
+        return "use \(saveForLaterActionLabel(for: workout))"
     }
 
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
