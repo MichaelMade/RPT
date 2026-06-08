@@ -424,7 +424,7 @@ final class HomeViewModelTests: XCTestCase {
         let emptyState = viewModel.progressEmptyState(activeWorkout: draft)
 
         XCTAssertEqual(emptyState.title, "Workout Draft In Progress")
-        XCTAssertEqual(emptyState.subtitle, "Add an exercise to start your streak, or save this workout for later until you are ready to train.")
+        XCTAssertEqual(emptyState.subtitle, "Add an exercise to start your streak, or tap Save for Later until you are ready to train.")
     }
 
     func testRecentWorkoutsEmptyState_withNamedResumableDraftUsesWorkoutName() {
@@ -462,7 +462,7 @@ final class HomeViewModelTests: XCTestCase {
         let emptyState = viewModel.recentWorkoutsEmptyState(activeWorkout: draft)
 
         XCTAssertEqual(emptyState.title, "Workout Draft In Progress")
-        XCTAssertEqual(emptyState.subtitle, "Add an exercise before finishing this workout, or save it for later to keep it as a draft.")
+        XCTAssertEqual(emptyState.subtitle, "Add an exercise before finishing this workout, or tap Save for Later to keep it as a draft.")
     }
 
     func testShouldShowSingleRecentWorkoutQuickActions_onlyForSoloHistoryEntry() {

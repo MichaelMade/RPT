@@ -518,7 +518,7 @@ class HomeViewModel: ObservableObject {
                 if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
                     subtitle = "Add an exercise to “\(displayName)” before finishing it, or \(Self.saveForLaterActionHint(for: activeWorkout)) to keep it as a draft."
                 } else {
-                    subtitle = "Add an exercise before finishing this workout, or save it for later to keep it as a draft."
+                    subtitle = "Add an exercise before finishing this workout, or tap Save for Later to keep it as a draft."
                 }
             } else if let displayName = WorkoutRow.specificDisplayName(for: activeWorkout) {
                 subtitle = "Finish “\(displayName)” to see it show up here with your latest stats."
@@ -552,7 +552,7 @@ class HomeViewModel: ObservableObject {
 
                 return (
                     title: title,
-                    subtitle: "Add an exercise to start your streak, or save this workout for later until you are ready to train."
+                    subtitle: "Add an exercise to start your streak, or tap Save for Later until you are ready to train."
                 )
             }
 
