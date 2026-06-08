@@ -641,6 +641,39 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper A"])
     }
 
+    func testFetchTemplates_matchesReadyStatusSummary() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat", "Romanian Deadlift"])
+        ]
+
+        viewModel.searchText = "Ready to start with 1 exercise."
+
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper A"])
+    }
+
+    func testFetchTemplates_matchesPartialStatusSummary() throws {
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        try context.save()
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press", "Missing Lift"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "Starts with 1 of 2 unique exercises right now. 1 missing from your library."
+
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper A"])
+    }
+
     func testFetchTemplates_matchesNamedOpenItBlockedStartGuidanceForTemplateTarget() {
         let viewModel = TemplateViewModel()
         let template = makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])

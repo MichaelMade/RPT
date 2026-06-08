@@ -1619,6 +1619,13 @@ class TemplateViewModel: ObservableObject {
         let canStartWorkout = availableCount > 0
         let isOnlyBlockedByActiveWorkout = blockedByActiveWorkout
         let shouldSuggestEditingTemplate = totalCount == 0 || unavailableCount > 0 || duplicateCount > 0 || !canStartWorkout
+        let detailStatusSummary = templateManager.templateDetailStatusSummary(
+            for: template,
+            blockedByActiveWorkout: blockedByActiveWorkout,
+            blockingWorkout: activeWorkout
+        )
+        let disabledStartMessage = templateManager.startWorkoutDisabledMessage(for: template)
+        let partialStartConfirmation = templateManager.startWorkoutConfirmationMessage(for: template)
 
         var terms: [String] = [
             "review template",
@@ -1735,9 +1742,18 @@ class TemplateViewModel: ObservableObject {
             "clone \(templateName)",
             "clone this template",
             "\(templateName) copy",
+            detailStatusSummary,
             startTemplateFailureAlertTitle(for: template),
             startTemplateFailureMessage(for: template)
         ]
+
+        if let disabledStartMessage {
+            terms.append(disabledStartMessage)
+        }
+
+        if let partialStartConfirmation {
+            terms.append(partialStartConfirmation)
+        }
 
         if canStartWorkout {
             let isPartialStart = templateManager.startWorkoutConfirmationMessage(for: template) != nil
