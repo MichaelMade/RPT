@@ -1,5 +1,6 @@
 # RPT
 
+- Unnamed blocked-workout recovery prompts now point to the exact `Save for Later` control too, so generic Home/template/template-detail handoff copy stays aligned with the visible button label instead of falling back to vaguer `save it for later` wording.
 - Home’s generic empty-draft cards now point users at the exact `Save for Later` button label even when a workout still has a placeholder name, so both Home recovery states stay aligned with the actual control they can tap instead of drifting into vaguer `save it for later` wording.
 - Blocked workout recovery prompts now name the exact `Save “...” for Later` action whenever a draft already has a real title, so Home/template handoff alerts point users at the same labeled control they can actually tap instead of a vaguer generic `save it for later` phrase.
 - Stats’ Weekly Volume, Muscle Group Focus, and Personal Records placeholders now stay resumable-workout aware too, so if history is empty but a draft like `Push Day` is still open those sections point you back to the exact workout to finish instead of dead-ending on generic `log more sets` guidance.

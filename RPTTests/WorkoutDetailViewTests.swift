@@ -224,7 +224,7 @@ final class WorkoutDetailViewTests: XCTestCase {
 
         XCTAssertEqual(
             WorkoutDetailView.sourceTemplateBlockMessage(for: partialTemplate, activeWorkout: activeWorkout),
-            "You already have a workout draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting the available part of this template."
+            "You already have a workout draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, use Save for Later, or discard it before starting the available part of this template."
         )
         XCTAssertNil(WorkoutDetailView.sourceTemplateBlockMessage(for: nil, activeWorkout: activeWorkout))
         XCTAssertNil(WorkoutDetailView.sourceTemplateBlockMessage(for: partialTemplate, activeWorkout: nil))

@@ -1161,7 +1161,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have a workout draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it.",
+            "You already have a workout draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, use Save for Later, or discard it.",
             "Start-fresh guidance should tell users how to recover from an empty draft even when the name is blank or corrupted"
         )
     }
@@ -1724,7 +1724,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have a workout in progress: Started just now • Workout. Continue it, save it for later, or discard it before starting a follow-up from “Upper A”.",
+            "You already have a workout in progress: Started just now • Workout. Continue it, use Save for Later, or discard it before starting a follow-up from “Upper A”.",
             "Blocked follow-up copy should keep placeholder draft names generic while still explaining the exact saved workout the follow-up would come from"
         )
     }
@@ -1741,7 +1741,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have a workout in progress: Started just now • Workout. Continue it, save it for later, or discard it before starting this follow-up.",
+            "You already have a workout in progress: Started just now • Workout. Continue it, use Save for Later, or discard it before starting this follow-up.",
             "Legacy placeholder names on either the active draft or source workout should keep blocked follow-up guidance generic instead of surfacing placeholder copy as if it were user-chosen"
         )
     }

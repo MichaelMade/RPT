@@ -2228,7 +2228,7 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutPromptMessage(for: workout, opening: template),
-            "You already have a workout draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before opening this template."
+            "You already have a workout draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, use Save for Later, or discard it before opening this template."
         )
     }
 
@@ -2250,7 +2250,7 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutBlocksTemplateStartMessage(for: workout, opening: template),
-            "You already have a workout draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, save it for later, or discard it before starting this template."
+            "You already have a workout draft in progress: Started just now • No exercises added yet. Add an exercise to keep going, use Save for Later, or discard it before starting this template."
         )
     }
 

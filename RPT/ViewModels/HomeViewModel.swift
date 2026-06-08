@@ -263,7 +263,7 @@ class HomeViewModel: ObservableObject {
         guard let workout,
               WorkoutRow.specificDisplayName(for: workout) != nil
         else {
-            return "save it for later"
+            return "tap Save for Later"
         }
 
         return "tap \(saveForLaterActionLabel(for: workout))"
@@ -273,7 +273,7 @@ class HomeViewModel: ObservableObject {
         guard let workout,
               WorkoutRow.specificDisplayName(for: workout) != nil
         else {
-            return "save it for later"
+            return "use Save for Later"
         }
 
         return "use \(saveForLaterActionLabel(for: workout))"
