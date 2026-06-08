@@ -313,11 +313,13 @@ struct StatsView: View {
                 let streakVerb = totalWorkouts > 0 ? "restart" : "start"
 
                 if resumableWorkout.exerciseCount == 0 {
+                    let saveHint = HomeViewModel.saveForLaterActionHint(for: resumableWorkout)
+
                     if let displayName = WorkoutRow.specificDisplayName(for: resumableWorkout) {
-                        return "“\(displayName)” draft in progress — add an exercise to \(streakVerb) your weekly streak"
+                        return "“\(displayName)” draft in progress — add an exercise to \(streakVerb) your weekly streak, or \(saveHint) until you're ready to train"
                     }
 
-                    return "Workout draft in progress — add an exercise to \(streakVerb) your weekly streak"
+                    return "Workout draft in progress — add an exercise to \(streakVerb) your weekly streak, or \(saveHint) until you're ready to train"
                 }
 
                 if let displayName = WorkoutRow.specificDisplayName(for: resumableWorkout) {

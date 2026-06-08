@@ -27,7 +27,7 @@ final class StatsViewFormattingTests: XCTestCase {
 
         XCTAssertEqual(
             sut.thisWeekSummaryMessage(totalWorkouts: 0, weeklyWorkoutCount: 0, resumableWorkout: draftWorkout),
-            "“Push Day” draft in progress — add an exercise to start this week’s trend"
+            "“Push Day” draft in progress — add an exercise to start this week’s trend, or tap Save “Push Day” for Later until you're ready to train"
         )
     }
 
@@ -36,7 +36,7 @@ final class StatsViewFormattingTests: XCTestCase {
 
         XCTAssertEqual(
             sut.thisWeekSummaryMessage(totalWorkouts: 0, weeklyWorkoutCount: 0, resumableWorkout: draftWorkout),
-            "Workout draft in progress — add an exercise to start this week’s trend"
+            "Workout draft in progress — add an exercise to start this week’s trend, or tap Save for Later until you're ready to train"
         )
     }
 
@@ -65,7 +65,7 @@ final class StatsViewFormattingTests: XCTestCase {
 
         XCTAssertEqual(
             sut.thisWeekSummaryMessage(totalWorkouts: 5, weeklyWorkoutCount: 0, resumableWorkout: draftWorkout),
-            "“Push Day” draft in progress — add an exercise to restart your weekly streak"
+            "“Push Day” draft in progress — add an exercise to restart your weekly streak, or tap Save “Push Day” for Later until you're ready to train"
         )
     }
 
