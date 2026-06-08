@@ -1,5 +1,6 @@
 # RPT
 
+- Stats’ unnamed resumable-workout prompts now reuse the exact visible generic CTA too (`Open Workout from Home`) instead of the vaguer `Open it from Home`, so weekly volume, muscle-group, personal-record, and other draft recovery guidance stays aligned with the button users can actually tap even before a workout has a real name.
 - Stats’ draft-only empty states and placeholder cards now reuse the exact visible `Open “...”` CTA label when a resumable workout already has a real name, so weekly volume, muscle-group, personal-record, and first-workout guidance points at the same action users can actually tap instead of older generic `Open it from Home` phrasing.
 - Resumable-workout recovery prompts now reuse the exact visible `Open “...”` / `Continue “...”` CTA labels whenever a draft has a real name, so Home and template conflict alerts point users at the same action text they can actually tap instead of the older generic `Open it` / `Continue it` phrasing.
 - Stats’ started-workout empty-state hint now says `Continue “...” from Home` instead of `Open ... to continue it`, so the recovery copy matches Home’s real primary CTA once a resumable workout already has logged progress.

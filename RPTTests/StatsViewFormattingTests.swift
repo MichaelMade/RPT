@@ -162,6 +162,15 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
+    func testWeeklyVolumeEmptyStateMessage_usesGenericOpenWorkoutLabelForUnnamedDraft() {
+        let draftWorkout = Workout(name: "Current Workout")
+
+        XCTAssertEqual(
+            sut.weeklyVolumeEmptyStateMessage(totalWorkouts: 3, resumableWorkout: draftWorkout),
+            "You already have a workout draft in progress. Open Workout from Home, add an exercise, and finish it to start filling this week’s training chart."
+        )
+    }
+
     func testWeeklyWorkChartTitle_prefersWeightedVolumeWhenAvailable() {
         XCTAssertEqual(
             sut.weeklyWorkChartTitle(hasWeightedVolumeData: true, hasBodyweightRepsData: true),
@@ -198,6 +207,17 @@ final class StatsViewFormattingTests: XCTestCase {
         XCTAssertEqual(
             sut.muscleGroupEmptyStateMessage(totalWorkouts: 2, resumableWorkout: draftWorkout),
             "You already have “Upper A” draft in progress. Open “Upper A” from Home and log your first working set to see which muscle groups are getting the most attention."
+        )
+    }
+
+    func testMuscleGroupEmptyStateMessage_usesGenericOpenWorkoutLabelForUnnamedUnstartedDraft() {
+        let draftWorkout = Workout(name: "Current Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = draftWorkout.addSet(exercise: exercise, weight: 185, reps: 8)
+
+        XCTAssertEqual(
+            sut.muscleGroupEmptyStateMessage(totalWorkouts: 2, resumableWorkout: draftWorkout),
+            "You already have a workout draft in progress. Open Workout from Home and log your first working set to see which muscle groups are getting the most attention."
         )
     }
 

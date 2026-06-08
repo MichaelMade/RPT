@@ -357,4 +357,19 @@ final class StatsViewModelTests: XCTestCase {
             "Continue “Pull Day” from Home, tap Save “Pull Day” for Later, or finish it."
         )
     }
+
+    func testEmptyStateCopy_usesGenericOpenWorkoutLabelForUnnamedDraft() {
+        let draftWorkout = Workout(name: "Current Workout")
+        viewModel.resumableWorkout = draftWorkout
+
+        XCTAssertEqual(viewModel.emptyStateTitle(), "Workout Draft In Progress")
+        XCTAssertEqual(
+            viewModel.emptyStateMessage(),
+            "You already have a workout draft in progress. Open Workout from Home, add an exercise, and complete it to unlock weekly volume, muscle group focus, and personal records here."
+        )
+        XCTAssertEqual(
+            viewModel.emptyStateHint(),
+            "Open your workout from Home to add an exercise, tap Save for Later, or discard it."
+        )
+    }
 }

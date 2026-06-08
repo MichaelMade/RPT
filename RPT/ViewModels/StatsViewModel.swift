@@ -383,11 +383,7 @@ class StatsViewModel: ObservableObject {
     }
 
     private func openWorkoutFromHomeInstruction(for workout: Workout) -> String {
-        guard WorkoutRow.specificDisplayName(for: workout) != nil else {
-            return "Open it from Home"
-        }
-
-        return "\(HomeViewModel.resumableWorkoutActionLabel(for: workout)) from Home"
+        "\(HomeViewModel.resumableWorkoutActionLabel(for: workout)) from Home"
     }
 
     private func formatVolumeForHeadline(_ volume: Double) -> String {
