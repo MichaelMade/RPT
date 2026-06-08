@@ -1,5 +1,6 @@
 # RPT
 
+- Template search empty-state guidance and blocked-start matching now include the exact `use Save for Later` wording users see in recovery prompts, so no-results help teaches the real action label and generic blocked-template searches can refind results from the updated copy instead of older `save` phrasing alone.
 - Generic template-start fallback alerts now say `use Save for Later` too, so when RPT can’t name the blocking workout yet the Home/template-detail warning still points at the exact visible control instead of the vaguer old `save` wording.
 - Unnamed blocked-workout recovery prompts now point to the exact `Save for Later` control too, so generic Home/template/template-detail handoff copy stays aligned with the visible button label instead of falling back to vaguer `save it for later` wording.
 - Home’s generic empty-draft cards now point users at the exact `Save for Later` button label even when a workout still has a placeholder name, so both Home recovery states stay aligned with the actual control they can tap instead of drifting into vaguer `save it for later` wording.

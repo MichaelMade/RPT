@@ -484,6 +484,21 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesThisWorkoutBlockedStartGuidanceWithSaveForLaterLabelWhenActiveWorkoutExists() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Ghost Day", exerciseNames: ["Ghost Lift"]),
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
+        ]
+
+        viewModel.searchText = "continue, use Save for Later, or discard this workout before starting this template"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Ghost Day", "Push Day"]
+        )
+    }
+
     func testFetchTemplates_matchesNamedBlockedStartFallbackGuidanceWhenActiveWorkoutExists() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
@@ -1535,13 +1550,13 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "  Lower\n Day  "
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
-            "No templates matched “Lower Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, body regions like upper body or full body, action wording like start, use, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated. You can also create a new template from this search."
+            "No templates matched “Lower Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, body regions like upper body or full body, action wording like start, use Save for Later, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated. You can also create a new template from this search."
         )
 
         viewModel.searchText = "  Push\n Day  "
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
-            "No templates matched “Push Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, body regions like upper body or full body, action wording like start, use, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated."
+            "No templates matched “Push Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, body regions like upper body or full body, action wording like start, use Save for Later, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated."
         )
     }
 
