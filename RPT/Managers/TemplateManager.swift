@@ -564,11 +564,13 @@ class TemplateManager {
     }
 
     func genericTemplateStartBlockMessage(for template: WorkoutTemplate?) -> String {
+        let saveForLaterText = HomeViewModel.saveForLaterRecoveryInstruction(for: nil)
+
         guard let template else {
-            return "You already have a workout in progress. Continue, save, or discard this workout before starting this template"
+            return "You already have a workout in progress. Continue, \(saveForLaterText), or discard this workout before starting this template"
         }
 
-        return "You already have a workout in progress. Continue, save, or discard this workout before starting \(templateStartTargetText(for: template))"
+        return "You already have a workout in progress. Continue, \(saveForLaterText), or discard this workout before starting \(templateStartTargetText(for: template))"
     }
 
     private func templateStartTargetText(for template: WorkoutTemplate) -> String {

@@ -560,7 +560,7 @@ final class TemplateViewModelTests: XCTestCase {
             makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"])
         ]
 
-        viewModel.searchText = "open it, save it for later, or discard it before starting this template"
+        viewModel.searchText = "open it, use Save for Later, or discard it before starting this template"
 
         XCTAssertEqual(
             viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
@@ -607,7 +607,7 @@ final class TemplateViewModelTests: XCTestCase {
             template
         ]
 
-        viewModel.searchText = "open it, save it for later, or discard it before starting template lower day"
+        viewModel.searchText = "open it, use Save for Later, or discard it before starting template lower day"
 
         XCTAssertEqual(
             viewModel.fetchTemplates(blockedByActiveWorkout: true, activeWorkout: activeWorkout).map(\.name),

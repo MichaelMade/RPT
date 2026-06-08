@@ -1158,7 +1158,7 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(
             TemplateManager.shared.templateDetailStatusSummary(for: template, blockedByActiveWorkout: true),
-            "Ready to start with 1 exercise. You already have a workout in progress. Continue, save, or discard this workout before starting Template “Push Day”."
+            "Ready to start with 1 exercise. You already have a workout in progress. Continue, use Save for Later, or discard this workout before starting Template “Push Day”."
         )
     }
 
@@ -1183,7 +1183,7 @@ final class TemplateManagerTests: XCTestCase {
 
         XCTAssertEqual(
             TemplateManager.shared.templateDetailStatusSummary(for: template, blockedByActiveWorkout: true),
-            "Starts with 1 of 2 exercises right now. 1 missing from your library. You already have a workout in progress. Continue, save, or discard this workout before starting the available part of Template “Push Day”."
+            "Starts with 1 of 2 exercises right now. 1 missing from your library. You already have a workout in progress. Continue, use Save for Later, or discard this workout before starting the available part of Template “Push Day”."
         )
     }
 

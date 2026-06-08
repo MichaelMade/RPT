@@ -134,7 +134,7 @@ final class HomeViewTests: XCTestCase {
     func testSourceTemplateBlockAlertMessage_namesTemplateWhenWorkoutDetailsAreUnavailable() {
         XCTAssertEqual(
             HomeView.sourceTemplateBlockAlertMessage(for: WorkoutTemplate(name: "Upper A"), activeWorkout: nil),
-            "You already have a workout in progress. Continue, save, or discard this workout before starting Template “Upper A”."
+            "You already have a workout in progress. Continue, use Save for Later, or discard this workout before starting Template “Upper A”."
         )
     }
 
@@ -159,7 +159,7 @@ final class HomeViewTests: XCTestCase {
 
         XCTAssertEqual(
             HomeView.sourceTemplateBlockAlertMessage(for: template, activeWorkout: nil),
-            "You already have a workout in progress. Continue, save, or discard this workout before starting the available part of Template “Upper A”."
+            "You already have a workout in progress. Continue, use Save for Later, or discard this workout before starting the available part of Template “Upper A”."
         )
     }
 
