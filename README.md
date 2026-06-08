@@ -1,5 +1,6 @@
 # RPT
 
+- Stats’ started-workout empty-state hint now says `Continue “...” from Home` instead of `Open ... to continue it`, so the recovery copy matches Home’s real primary CTA once a resumable workout already has logged progress.
 - Workout Templates search now also indexes each row/detail status summary and partial-start confirmation copy (`Ready to start with 1 exercise.`, `Starts with 1 of 2 unique exercises right now. 1 missing from your library.`), so users can refind a plan from the exact readiness text they just saw instead of needing the template name first.
 - Workout Templates search now also indexes the exact `tap Save for Later` / `Save “...” for Later` recovery wording users see in Home, Stats, and blocked-start prompts, so searching the visible save-action copy can still refind blocked templates instead of only older generic save phrasing.
 - Stats’ draft-only `This Week` summary now points to the exact visible `Save for Later` control too — including `Save “...” for Later` when a workout already has a real name — so zero-exercise weekly-streak guidance stays aligned with the action users can actually tap instead of only telling them to add an exercise.

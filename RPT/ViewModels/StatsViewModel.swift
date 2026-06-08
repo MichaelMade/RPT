@@ -369,7 +369,7 @@ class StatsViewModel: ObservableObject {
             return "Open \(workoutReference) from Home to start it, \(saveForLaterHint), or discard it."
         }
 
-        return "Open \(workoutReference) from Home to continue it, \(saveForLaterHint), or finish it."
+        return "Continue \(workoutReference) from Home, \(saveForLaterHint), or finish it."
     }
 
     private func specificWorkoutReference(for workout: Workout, fallback: String = "a workout") -> String {

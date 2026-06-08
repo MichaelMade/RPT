@@ -354,7 +354,7 @@ final class StatsViewModelTests: XCTestCase {
         )
         XCTAssertEqual(
             viewModel.emptyStateHint(),
-            "Open “Pull Day” from Home to continue it, tap Save “Pull Day” for Later, or finish it."
+            "Continue “Pull Day” from Home, tap Save “Pull Day” for Later, or finish it."
         )
     }
 }
