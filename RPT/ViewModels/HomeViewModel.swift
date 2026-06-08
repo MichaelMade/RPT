@@ -220,11 +220,17 @@ class HomeViewModel: ObservableObject {
             return "Add an exercise to keep going, \(saveForLaterText), or discard it\(terminator)"
         }
 
-        let actionText = resumableWorkoutActionPrefix(for: workout) == "Continue"
-            ? "Continue it"
-            : "Open it"
+        return "\(resumableWorkoutActionLabel(for: workout)), \(saveForLaterText), or discard it\(terminator)"
+    }
 
-        return "\(actionText), \(saveForLaterText), or discard it\(terminator)"
+    static func resumableWorkoutActionLabel(for workout: Workout) -> String {
+        let actionPrefix = resumableWorkoutActionPrefix(for: workout)
+
+        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
+            return "\(actionPrefix) Workout"
+        }
+
+        return "\(actionPrefix) “\(displayName)”"
     }
 
     static func resumableWorkoutStatusReference(for workout: Workout, unnamedFallback: String = "a workout") -> String {
@@ -280,13 +286,7 @@ class HomeViewModel: ObservableObject {
     }
 
     func continueCurrentWorkoutButtonTitle(for workout: Workout) -> String {
-        let actionPrefix = Self.resumableWorkoutActionPrefix(for: workout)
-
-        guard let displayName = WorkoutRow.specificDisplayName(for: workout) else {
-            return "\(actionPrefix) Workout"
-        }
-
-        return "\(actionPrefix) “\(displayName)”"
+        Self.resumableWorkoutActionLabel(for: workout)
     }
 
     func replaceCurrentWorkoutAlertTitle(for workout: Workout) -> String {

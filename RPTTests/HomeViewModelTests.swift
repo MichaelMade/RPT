@@ -963,7 +963,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             HomeViewModel.resumableWorkoutRecoveryInstruction(for: workout),
-            "Open it, use Save “Upper A” for Later, or discard it",
+            "Open “Upper A”, use Save “Upper A” for Later, or discard it",
             "Shared recovery guidance should keep untouched planned drafts on the reopen path"
         )
     }
@@ -975,7 +975,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             HomeViewModel.resumableWorkoutRecoveryInstruction(for: workout, terminator: "."),
-            "Continue it, use Save “Upper A” for Later, or discard it.",
+            "Continue “Upper A”, use Save “Upper A” for Later, or discard it.",
             "Shared recovery guidance should preserve the continue wording and punctuation for in-progress drafts with logged work"
         )
     }
@@ -1149,7 +1149,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have “Upper A” in progress: Started 30m ago • 1 exercise • 1 set • Exercise started. Continue it, use Save “Upper A” for Later, or discard it.",
+            "You already have “Upper A” in progress: Started 30m ago • 1 exercise • 1 set • Exercise started. Continue “Upper A”, use Save “Upper A” for Later, or discard it.",
             "Start-fresh guidance should lead with the safest recovery path while still reusing the resumable-workout summary so users know exactly what they are about to replace"
         )
     }
@@ -1724,7 +1724,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have a workout in progress: Started just now • Workout. Continue it, use Save for Later, or discard it before starting a follow-up from “Upper A”.",
+            "You already have a workout in progress: Started just now • Workout. Continue Workout, use Save for Later, or discard it before starting a follow-up from “Upper A”.",
             "Blocked follow-up copy should keep placeholder draft names generic while still explaining the exact saved workout the follow-up would come from"
         )
     }
@@ -1741,7 +1741,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have a workout in progress: Started just now • Workout. Continue it, use Save for Later, or discard it before starting this follow-up.",
+            "You already have a workout in progress: Started just now • Workout. Continue Workout, use Save for Later, or discard it before starting this follow-up.",
             "Legacy placeholder names on either the active draft or source workout should keep blocked follow-up guidance generic instead of surfacing placeholder copy as if it were user-chosen"
         )
     }
@@ -1777,7 +1777,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have “Push Day” in progress: Started just now • 1 exercise • 1 set • Exercise started. Continue it, use Save “Push Day” for Later, or discard it before starting a follow-up from “Upper A”.",
+            "You already have “Push Day” in progress: Started just now • 1 exercise • 1 set • Exercise started. Continue “Push Day”, use Save “Push Day” for Later, or discard it before starting a follow-up from “Upper A”.",
             "Blocked follow-up guidance should name the active draft when it has a real title so users can recognize which session is in the way"
         )
     }
@@ -1797,7 +1797,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             message,
-            "You already have “Push Day” in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open it, use Save “Push Day” for Later, or discard it before starting a follow-up from “Upper A”.",
+            "You already have “Push Day” in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open “Push Day”, use Save “Push Day” for Later, or discard it before starting a follow-up from “Upper A”.",
             "Blocked follow-up guidance should treat untouched planned drafts as something to reopen, not continue, until the user has logged work"
         )
     }

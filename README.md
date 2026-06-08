@@ -1,5 +1,6 @@
 # RPT
 
+- Resumable-workout recovery prompts now reuse the exact visible `Open “...”` / `Continue “...”` CTA labels whenever a draft has a real name, so Home and template conflict alerts point users at the same action text they can actually tap instead of the older generic `Open it` / `Continue it` phrasing.
 - Stats’ started-workout empty-state hint now says `Continue “...” from Home` instead of `Open ... to continue it`, so the recovery copy matches Home’s real primary CTA once a resumable workout already has logged progress.
 - Workout Templates search now also indexes each row/detail status summary and partial-start confirmation copy (`Ready to start with 1 exercise.`, `Starts with 1 of 2 unique exercises right now. 1 missing from your library.`), so users can refind a plan from the exact readiness text they just saw instead of needing the template name first.
 - Workout Templates search now also indexes the exact `tap Save for Later` / `Save “...” for Later` recovery wording users see in Home, Stats, and blocked-start prompts, so searching the visible save-action copy can still refind blocked templates instead of only older generic save phrasing.

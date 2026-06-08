@@ -115,7 +115,7 @@ final class HomeViewTests: XCTestCase {
 
         XCTAssertEqual(
             HomeView.sourceTemplateBlockMessage(for: template, activeWorkout: workout),
-            "You already have a workout draft in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open it, use Save for Later, or discard it before starting Template “Upper A”."
+            "You already have a workout draft in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open Workout, use Save for Later, or discard it before starting Template “Upper A”."
         )
     }
 
@@ -127,7 +127,7 @@ final class HomeViewTests: XCTestCase {
 
         XCTAssertEqual(
             HomeView.sourceTemplateBlockMessage(for: template, activeWorkout: workout),
-            "You already have “Push Day” in progress: Started just now • 1 exercise • 1 set • Exercise started. Continue it, use Save “Push Day” for Later, or discard it before starting Template “Upper A”."
+            "You already have “Push Day” in progress: Started just now • 1 exercise • 1 set • Exercise started. Continue “Push Day”, use Save “Push Day” for Later, or discard it before starting Template “Upper A”."
         )
     }
 

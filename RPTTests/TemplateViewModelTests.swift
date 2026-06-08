@@ -2363,7 +2363,7 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.activeWorkoutBlocksTemplateStartMessage(for: workout, opening: template),
-            "You already have “Upper A” in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open it, use Save “Upper A” for Later, or discard it before starting Template “Lower Day”."
+            "You already have “Upper A” in progress: Started just now • 1 exercise • 1 set • Exercise not started yet. Open “Upper A”, use Save “Upper A” for Later, or discard it before starting Template “Lower Day”."
         )
     }
 
