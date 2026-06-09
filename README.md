@@ -1,5 +1,6 @@
 # RPT
 
+- Stats’ in-progress empty states now reuse the same visible `Continue … from Home` CTA wording that Home shows for resumable workouts, so weekly volume, muscle-group, and personal-record prompts point users at the exact action they can take instead of the older generic `Finish it from Home` phrasing.
 - Workout Templates search now also indexes the newer unnamed blocked-start CTA sentences users actually see (`Open Workout, tap Save for Later, or discard it...`, `Continue Workout, use Save for Later, or discard it...`) instead of leaning only on the older `open it` / `continue it` phrasing, so generic active-draft conflict searches stay aligned with current on-screen recovery copy.
 - Stats’ resumable-workout empty-state copy now builds its `Open … from Home` guidance directly instead of swapping a hard-coded `Open it from Home` placeholder at the end, so weekly volume, muscle-group, and personal-record prompts keep the visible CTA aligned even if the surrounding copy gets revised again later.
 - Stats’ unnamed resumable-workout prompts now reuse the exact visible generic CTA too (`Open Workout from Home`) instead of the vaguer `Open it from Home`, so weekly volume, muscle-group, personal-record, and other draft recovery guidance stays aligned with the button users can actually tap even before a workout has a real name.

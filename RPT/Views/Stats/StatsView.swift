@@ -379,7 +379,7 @@ struct StatsView: View {
                 for: resumableWorkout,
                 emptyDraftFollowUp: "add an exercise, and finish it to start filling this week’s training chart.",
                 unopenedDraftFollowUp: "and log your first set to start filling this week’s training chart.",
-                inProgress: "Finish it from Home to add fresh volume to your weekly training chart."
+                inProgressFollowUp: "and finish it to add fresh volume to your weekly training chart."
             )
         }
 
@@ -424,7 +424,7 @@ struct StatsView: View {
                 for: resumableWorkout,
                 emptyDraftFollowUp: "add an exercise, and finish working sets to see where your training is landing.",
                 unopenedDraftFollowUp: "and log your first working set to see which muscle groups are getting the most attention.",
-                inProgress: "Finish a few working sets from Home to see which muscle groups are getting the most attention."
+                inProgressFollowUp: "and finish a few working sets to see which muscle groups are getting the most attention."
             )
         }
 
@@ -441,7 +441,7 @@ struct StatsView: View {
                 for: resumableWorkout,
                 emptyDraftFollowUp: "add an exercise, and finish a working set to start capturing new personal records.",
                 unopenedDraftFollowUp: "and log your first working set to start capturing new personal records.",
-                inProgress: "Finish a few strong working sets from Home and your next personal record could show up here."
+                inProgressFollowUp: "and log a few strong working sets to give your next personal record a chance to show up here."
             )
         }
 
@@ -452,7 +452,7 @@ struct StatsView: View {
         for workout: Workout,
         emptyDraftFollowUp: String,
         unopenedDraftFollowUp: String,
-        inProgress: String
+        inProgressFollowUp: String
     ) -> String {
         let workoutStatus = HomeViewModel.resumableWorkoutStatusReference(for: workout)
         let openInstruction = openWorkoutFromHomeInstruction(for: workout)
@@ -465,7 +465,7 @@ struct StatsView: View {
             return "You already have \(workoutStatus). \(openInstruction) \(unopenedDraftFollowUp)"
         }
 
-        return "You already have \(workoutStatus). \(inProgress)"
+        return "You already have \(workoutStatus). \(openInstruction) \(inProgressFollowUp)"
     }
 
     private func openWorkoutFromHomeInstruction(for workout: Workout) -> String {

@@ -350,7 +350,7 @@ class StatsViewModel: ObservableObject {
             return "You already have \(workoutStatusReference). \(openAction) and log your first set to unlock weekly volume, muscle group focus, and personal records here."
         }
 
-        return "You already have \(workoutStatusReference). Finish it from Home to unlock weekly volume, muscle group focus, and personal records here."
+        return "You already have \(workoutStatusReference). \(openWorkoutFromHomeInstruction(for: resumableWorkout)) and finish it to unlock weekly volume, muscle group focus, and personal records here."
     }
 
     func emptyStateHint() -> String {

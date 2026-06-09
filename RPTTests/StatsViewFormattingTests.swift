@@ -171,6 +171,19 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
+    func testWeeklyVolumeEmptyStateMessage_pointsBackToInProgressWorkoutByName() {
+        let startedWorkout = Workout(name: "Push Day")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        startedWorkout.sets = [
+            ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: startedWorkout, completedAt: Date(), isWarmup: false)
+        ]
+
+        XCTAssertEqual(
+            sut.weeklyVolumeEmptyStateMessage(totalWorkouts: 3, resumableWorkout: startedWorkout),
+            "You already have “Push Day” in progress. Continue “Push Day” from Home and finish it to add fresh volume to your weekly training chart."
+        )
+    }
+
     func testWeeklyWorkChartTitle_prefersWeightedVolumeWhenAvailable() {
         XCTAssertEqual(
             sut.weeklyWorkChartTitle(hasWeightedVolumeData: true, hasBodyweightRepsData: true),
@@ -221,6 +234,19 @@ final class StatsViewFormattingTests: XCTestCase {
         )
     }
 
+    func testMuscleGroupEmptyStateMessage_pointsBackToInProgressWorkoutByName() {
+        let startedWorkout = Workout(name: "Upper A")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        startedWorkout.sets = [
+            ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: startedWorkout, completedAt: Date(), isWarmup: false)
+        ]
+
+        XCTAssertEqual(
+            sut.muscleGroupEmptyStateMessage(totalWorkouts: 2, resumableWorkout: startedWorkout),
+            "You already have “Upper A” in progress. Continue “Upper A” from Home and finish a few working sets to see which muscle groups are getting the most attention."
+        )
+    }
+
     func testPersonalRecordsEmptyStateMessage_explainsMissingCompletedSets() {
         XCTAssertEqual(
             sut.personalRecordsEmptyStateMessage(totalWorkouts: 1),
@@ -237,7 +263,7 @@ final class StatsViewFormattingTests: XCTestCase {
 
         XCTAssertEqual(
             sut.personalRecordsEmptyStateMessage(totalWorkouts: 1, resumableWorkout: startedWorkout),
-            "You already have “Pull Day” in progress. Finish a few strong working sets from Home and your next personal record could show up here."
+            "You already have “Pull Day” in progress. Continue “Pull Day” from Home and log a few strong working sets to give your next personal record a chance to show up here."
         )
     }
 

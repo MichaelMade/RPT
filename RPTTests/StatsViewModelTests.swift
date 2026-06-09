@@ -350,7 +350,7 @@ final class StatsViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.emptyStateTitle(), "“Pull Day” In Progress")
         XCTAssertEqual(
             viewModel.emptyStateMessage(),
-            "You already have “Pull Day” in progress. Finish it from Home to unlock weekly volume, muscle group focus, and personal records here."
+            "You already have “Pull Day” in progress. Continue “Pull Day” from Home and finish it to unlock weekly volume, muscle group focus, and personal records here."
         )
         XCTAssertEqual(
             viewModel.emptyStateHint(),
