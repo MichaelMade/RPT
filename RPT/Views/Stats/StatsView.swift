@@ -377,8 +377,8 @@ struct StatsView: View {
            let resumableWorkout {
             return resumableWorkoutStatsPrompt(
                 for: resumableWorkout,
-                emptyDraft: "Open it from Home, add an exercise, and finish it to start filling this week’s training chart.",
-                unopenedDraft: "Open it from Home and log your first set to start filling this week’s training chart.",
+                emptyDraftFollowUp: "add an exercise, and finish it to start filling this week’s training chart.",
+                unopenedDraftFollowUp: "and log your first set to start filling this week’s training chart.",
                 inProgress: "Finish it from Home to add fresh volume to your weekly training chart."
             )
         }
@@ -422,8 +422,8 @@ struct StatsView: View {
         if let resumableWorkout {
             return resumableWorkoutStatsPrompt(
                 for: resumableWorkout,
-                emptyDraft: "Open it from Home, add an exercise, and finish working sets to see where your training is landing.",
-                unopenedDraft: "Open it from Home and log your first working set to see which muscle groups are getting the most attention.",
+                emptyDraftFollowUp: "add an exercise, and finish working sets to see where your training is landing.",
+                unopenedDraftFollowUp: "and log your first working set to see which muscle groups are getting the most attention.",
                 inProgress: "Finish a few working sets from Home to see which muscle groups are getting the most attention."
             )
         }
@@ -439,8 +439,8 @@ struct StatsView: View {
         if let resumableWorkout {
             return resumableWorkoutStatsPrompt(
                 for: resumableWorkout,
-                emptyDraft: "Open it from Home, add an exercise, and finish a working set to start capturing new personal records.",
-                unopenedDraft: "Open it from Home and log your first working set to start capturing new personal records.",
+                emptyDraftFollowUp: "add an exercise, and finish a working set to start capturing new personal records.",
+                unopenedDraftFollowUp: "and log your first working set to start capturing new personal records.",
                 inProgress: "Finish a few strong working sets from Home and your next personal record could show up here."
             )
         }
@@ -450,18 +450,19 @@ struct StatsView: View {
 
     private func resumableWorkoutStatsPrompt(
         for workout: Workout,
-        emptyDraft: String,
-        unopenedDraft: String,
+        emptyDraftFollowUp: String,
+        unopenedDraftFollowUp: String,
         inProgress: String
     ) -> String {
         let workoutStatus = HomeViewModel.resumableWorkoutStatusReference(for: workout)
+        let openInstruction = openWorkoutFromHomeInstruction(for: workout)
 
         if workout.sets.isEmpty {
-            return "You already have \(workoutStatus). \(emptyDraft.replacingOccurrences(of: "Open it from Home", with: openWorkoutFromHomeInstruction(for: workout)))"
+            return "You already have \(workoutStatus). \(openInstruction), \(emptyDraftFollowUp)"
         }
 
         if HomeViewModel.resumableWorkoutActionPrefix(for: workout) == "Open" {
-            return "You already have \(workoutStatus). \(unopenedDraft.replacingOccurrences(of: "Open it from Home", with: openWorkoutFromHomeInstruction(for: workout)))"
+            return "You already have \(workoutStatus). \(openInstruction) \(unopenedDraftFollowUp)"
         }
 
         return "You already have \(workoutStatus). \(inProgress)"
