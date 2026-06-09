@@ -1,5 +1,6 @@
 # RPT
 
+- Workout Templates search now also indexes the exact `Open … from Home` / `Continue … from Home` CTA labels surfaced elsewhere in Home and Stats, so searching the live resumable-workout recovery copy can still refind the blocked template instead of matching only shorter in-template phrasing like `Open Workout` or `Continue “Push Day”`.
 - Stats’ `This Week` started-workout summary now reuses the exact visible `Continue … from Home` CTA wording that Home shows for resumable workouts, so streak guidance points users at the real action they can take instead of the older generic `finish it` phrasing.
 - Stats’ in-progress empty states now reuse the same visible `Continue … from Home` CTA wording that Home shows for resumable workouts, so weekly volume, muscle-group, and personal-record prompts point users at the exact action they can take instead of the older generic `Finish it from Home` phrasing.
 - Workout Templates search now also indexes the newer unnamed blocked-start CTA sentences users actually see (`Open Workout, tap Save for Later, or discard it...`, `Continue Workout, use Save for Later, or discard it...`) instead of leaning only on the older `open it` / `continue it` phrasing, so generic active-draft conflict searches stay aligned with current on-screen recovery copy.

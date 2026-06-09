@@ -1800,6 +1800,7 @@ class TemplateViewModel: ObservableObject {
                 terms.append(contentsOf: [
                     activeWorkoutPromptMessage(for: activeWorkout, opening: template),
                     continueCurrentWorkoutButtonTitle(for: activeWorkout),
+                    "\(HomeViewModel.resumableWorkoutActionLabel(for: activeWorkout)) from Home",
                     resumeCurrentWorkoutSearchTitle(for: activeWorkout),
                     HomeViewModel.saveForLaterActionLabel(for: activeWorkout),
                     HomeViewModel.saveForLaterActionHint(for: activeWorkout),

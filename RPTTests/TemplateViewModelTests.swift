@@ -1377,6 +1377,27 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesExactContinueFromHomeCTAForBlockingWorkoutName() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Push Day")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = activeWorkout.addSet(exercise: exercise, weight: 185, reps: 8)
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+
+        viewModel.searchText = "Continue “Push Day” from Home"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Upper A"]
+        )
+    }
+
     func testFetchTemplates_matchesLegacyResumeCTAForBlockingWorkoutName() {
         let viewModel = TemplateViewModel()
         let activeWorkout = Workout(name: "Push Day")
@@ -1425,6 +1446,24 @@ final class TemplateViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Lower Day"]
+        )
+    }
+
+    func testFetchTemplates_matchesGenericOpenFromHomeCTAWhenAnotherWorkoutIsActive() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Workout")
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "Open Workout from Home"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
             ["Lower Day"]
         )
     }
