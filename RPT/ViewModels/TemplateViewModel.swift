@@ -1513,6 +1513,7 @@ class TemplateViewModel: ObservableObject {
 
         for exercise in exerciseManager.fetchAllExercises() {
             let key = ExerciseManager.normalizedNameLookupKey(exercise.name)
+            let instructionTerms = Exercise.normalizedDisplayInstructions(exercise.instructions).map { [$0] } ?? []
             let terms = [
                 exercise.category.rawValue,
                 exercise.category.rawValue.capitalized
@@ -1523,6 +1524,7 @@ class TemplateViewModel: ObservableObject {
                 primaryMuscleGroups: exercise.primaryMuscleGroups,
                 secondaryMuscleGroups: exercise.secondaryMuscleGroups
             )
+            + instructionTerms
 
             lookup[key] = ExerciseSearchMetadata(searchTerms: terms)
         }

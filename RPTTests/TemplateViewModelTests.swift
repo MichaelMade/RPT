@@ -93,6 +93,79 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Pull Day"])
     }
 
+    func testFetchTemplates_matchesExerciseInstructionCuesFromLibraryMetadata() throws {
+        let context = DataManager.shared.getModelContext()
+        let bench = Exercise(
+            name: "Bench Instruction Alias \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [.triceps],
+            instructions: "Lower the bar to your mid chest with elbows stacked under wrists."
+        )
+        let row = Exercise(
+            name: "Row Instruction Alias \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.back],
+            secondaryMuscleGroups: [.biceps],
+            instructions: "Drive elbows back and squeeze your shoulder blades together at the top."
+        )
+        context.insert(bench)
+        context.insert(row)
+        try context.save()
+        defer {
+            context.delete(bench)
+            context.delete(row)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: [bench.name]),
+            makeTemplate(name: "Pull Day", exerciseNames: [row.name])
+        ]
+
+        viewModel.searchText = "mid chest"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+
+        viewModel.searchText = "deb"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Pull Day"])
+    }
+
+    func testFetchTemplates_matchesCrossFieldTemplateNameAndExerciseInstructionTokens() throws {
+        let context = DataManager.shared.getModelContext()
+        let bench = Exercise(
+            name: "Push Instruction Cross Field \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [.triceps],
+            instructions: "Pause on the chest before pressing."
+        )
+        let row = Exercise(
+            name: "Pull Instruction Cross Field \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.back],
+            secondaryMuscleGroups: [.biceps],
+            instructions: "Drive elbows back at the top."
+        )
+        context.insert(bench)
+        context.insert(row)
+        try context.save()
+        defer {
+            context.delete(bench)
+            context.delete(row)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: [bench.name]),
+            makeTemplate(name: "Pull Day", exerciseNames: [row.name])
+        ]
+
+        viewModel.searchText = "push pause"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+    }
+
     func testFetchTemplates_matchesExerciseMuscleGroupAliases() throws {
         let context = DataManager.shared.getModelContext()
         let bench = Exercise(
