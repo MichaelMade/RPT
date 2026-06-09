@@ -1063,10 +1063,14 @@ class TemplateViewModel: ObservableObject {
     private func statsRecoverySearchTerms(for workout: Workout) -> [String] {
         let statsViewModel = StatsViewModel()
         statsViewModel.resumableWorkout = workout
+        let statsView = StatsView()
 
         return [
             statsViewModel.emptyStateMessage(),
-            statsViewModel.emptyStateHint()
+            statsViewModel.emptyStateHint(),
+            statsView.weeklyVolumeEmptyStateMessage(totalWorkouts: 1, resumableWorkout: workout),
+            statsView.muscleGroupEmptyStateMessage(totalWorkouts: 1, resumableWorkout: workout),
+            statsView.personalRecordsEmptyStateMessage(totalWorkouts: 1, resumableWorkout: workout)
         ]
     }
 

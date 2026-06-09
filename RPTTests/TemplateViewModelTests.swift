@@ -1520,6 +1520,70 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesStatsWeeklyVolumeEmptyStateMessageWhenAnotherWorkoutIsActive() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Push Day")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        activeWorkout.sets = [
+            ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: activeWorkout, completedAt: Date(), isWarmup: false)
+        ]
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "You already have “Push Day” in progress. Continue “Push Day” from Home and finish it to add fresh volume to your weekly training chart."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Lower Day"]
+        )
+    }
+
+    func testFetchTemplates_matchesStatsMuscleGroupEmptyStateMessageWhenUnnamedDraftBlocksTemplateStart() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Current Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = activeWorkout.addSet(exercise: exercise, weight: 185, reps: 8)
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "You already have a workout draft in progress. Open Workout from Home and log your first working set to see which muscle groups are getting the most attention."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Lower Day"]
+        )
+    }
+
+    func testFetchTemplates_matchesStatsPersonalRecordsEmptyStateMessageWhenAnotherWorkoutIsActive() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Pull Day")
+        let exercise = Exercise(name: "Pull-Up", category: .bodyweight, primaryMuscleGroups: [.back])
+        activeWorkout.sets = [
+            ExerciseSet(weight: 0, reps: 10, exercise: exercise, workout: activeWorkout, completedAt: Date(), isWarmup: false)
+        ]
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "You already have “Pull Day” in progress. Continue “Pull Day” from Home and log a few strong working sets to give your next personal record a chance to show up here."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Lower Day"]
+        )
+    }
+
     func testFetchTemplates_doesNotMatchCurrentWorkoutKeywordsWhenNoWorkoutBlocksTemplateStart() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
