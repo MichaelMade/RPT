@@ -1840,7 +1840,17 @@ class TemplateViewModel: ObservableObject {
                     resumeCurrentWorkoutSearchTitle(for: activeWorkout),
                     HomeViewModel.saveForLaterActionLabel(for: activeWorkout),
                     HomeViewModel.saveForLaterActionHint(for: activeWorkout),
-                    HomeViewModel.saveForLaterRecoveryInstruction(for: activeWorkout)
+                    HomeViewModel.saveForLaterRecoveryInstruction(for: activeWorkout),
+                    activeWorkoutPersistenceFailureMessage(
+                        for: .saveForLater,
+                        currentWorkout: activeWorkout,
+                        opening: template
+                    ),
+                    activeWorkoutPersistenceFailureMessage(
+                        for: .discard,
+                        currentWorkout: activeWorkout,
+                        opening: template
+                    )
                 ])
                 terms.append(contentsOf: statsRecoverySearchTerms(for: activeWorkout))
             }

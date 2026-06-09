@@ -1526,6 +1526,53 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesNamedSaveFailureMessageForBlockingWorkout() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Push Day")
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+
+        viewModel.searchText = "Couldn’t save “Push Day”. Keep it open, then try starting Template “Upper A” again."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Upper A"]
+        )
+    }
+
+    func testFetchTemplates_matchesNamedDiscardFailureMessageForPartialTemplateStart() throws {
+        let viewModel = TemplateViewModel()
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        let activeWorkout = Workout(name: "Push Day")
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press", "Incline Dumbbell Press"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+
+        viewModel.searchText = "Couldn’t discard “Push Day”. Keep it open, then try starting the available part of Template “Upper A” again."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Upper A"]
+        )
+    }
+
     func testFetchTemplates_matchesKeepGoingBeforeOpeningTemplatePromptWhenAnotherWorkoutIsActive() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
