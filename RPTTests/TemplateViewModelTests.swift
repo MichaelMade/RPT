@@ -1657,6 +1657,46 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesStatsThisWeekSummaryMessageWhenStartedWorkoutBlocksTemplateStart() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Pull Day")
+        let exercise = Exercise(name: "Pull-Up", category: .bodyweight, primaryMuscleGroups: [.back])
+        activeWorkout.sets = [
+            ExerciseSet(weight: 0, reps: 10, exercise: exercise, workout: activeWorkout, completedAt: Date(), isWarmup: false)
+        ]
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "“Pull Day” in progress — Continue “Pull Day” from Home to restart your weekly streak"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Lower Day"]
+        )
+    }
+
+    func testFetchTemplates_matchesStatsThisWeekSummaryMessageWhenEmptyDraftBlocksTemplateStart() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Workout")
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "Workout draft in progress — add an exercise to restart your weekly streak, or tap Save for Later until you're ready to train"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Lower Day"]
+        )
+    }
+
     func testFetchTemplates_doesNotMatchCurrentWorkoutKeywordsWhenNoWorkoutBlocksTemplateStart() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

@@ -1068,6 +1068,7 @@ class TemplateViewModel: ObservableObject {
         return [
             statsViewModel.emptyStateMessage(),
             statsViewModel.emptyStateHint(),
+            statsView.thisWeekSummaryMessage(totalWorkouts: 1, weeklyWorkoutCount: 0, resumableWorkout: workout),
             statsView.weeklyVolumeEmptyStateMessage(totalWorkouts: 1, resumableWorkout: workout),
             statsView.muscleGroupEmptyStateMessage(totalWorkouts: 1, resumableWorkout: workout),
             statsView.personalRecordsEmptyStateMessage(totalWorkouts: 1, resumableWorkout: workout)
