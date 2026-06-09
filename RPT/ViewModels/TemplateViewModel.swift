@@ -1623,6 +1623,18 @@ class TemplateViewModel: ObservableObject {
         [
             "source template",
             WorkoutDetailView.sourceTemplateDescription(for: template)
+        ] + visibleTemplateActionSearchTerms(for: template)
+    }
+
+    private func visibleTemplateActionSearchTerms(for template: WorkoutTemplate) -> [String] {
+        [
+            startTemplateButtonTitle(for: template),
+            quickStartTemplateButtonTitle(for: template),
+            reviewTemplateButtonTitle(for: template),
+            editTemplateButtonTitle(for: template),
+            duplicateTemplateButtonTitle(for: template),
+            deleteTemplateButtonTitle(for: template),
+            deleteTemplateAlertTitle(for: template)
         ]
     }
 

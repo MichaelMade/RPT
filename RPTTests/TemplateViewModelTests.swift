@@ -495,6 +495,23 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Empty Draft"])
     }
 
+    func testFetchTemplates_matchesExactVisibleTemplateActionLabels() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+
+        viewModel.searchText = "Review “Upper A”"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper A"])
+
+        viewModel.searchText = "Duplicate “Upper A”"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper A"])
+
+        viewModel.searchText = "Delete “Upper A”?"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Upper A"])
+    }
+
     func testFetchTemplates_matchesResumeCurrentWorkoutWhenActiveWorkoutExistsEvenIfTemplateNeedsRepair() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
