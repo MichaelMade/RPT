@@ -1619,6 +1619,13 @@ class TemplateViewModel: ObservableObject {
             .joined(separator: " ")
     }
 
+    private func sourceTemplateSearchTerms(for template: WorkoutTemplate) -> [String] {
+        [
+            "source template",
+            WorkoutDetailView.sourceTemplateDescription(for: template)
+        ]
+    }
+
     private func issueSearchTerms(
         for template: WorkoutTemplate,
         activeWorkoutAvailable: Bool,
@@ -1762,7 +1769,7 @@ class TemplateViewModel: ObservableObject {
             detailStatusSummary,
             startTemplateFailureAlertTitle(for: template),
             startTemplateFailureMessage(for: template)
-        ]
+        ] + sourceTemplateSearchTerms(for: template)
 
         if let disabledStartMessage {
             terms.append(disabledStartMessage)

@@ -1697,6 +1697,43 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesSourceTemplateDetailDescription() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+        viewModel.searchText = "This workout started from “Upper A”. Review the original plan or jump straight back into a fresh run from here."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper A"]
+        )
+    }
+
+    func testFetchTemplates_matchesPartialSourceTemplateDetailDescription() throws {
+        let viewModel = TemplateViewModel()
+        let context = DataManager.shared.getModelContext()
+        let availableExercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        context.insert(availableExercise)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(availableExercise)
+            try? context.save()
+        }
+
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press", "Incline Dumbbell Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+        viewModel.searchText = "This workout started from “Upper A”. Review the original plan or jump straight back into the available part of that template from here."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper A"]
+        )
+    }
+
     func testFetchTemplates_doesNotMatchCurrentWorkoutKeywordsWhenNoWorkoutBlocksTemplateStart() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [
