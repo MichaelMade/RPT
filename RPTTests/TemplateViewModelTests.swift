@@ -1482,6 +1482,44 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesStatsStartedWorkoutHintCopyWhenAnotherWorkoutIsActive() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Push Day")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = activeWorkout.addSet(exercise: exercise, weight: 185, reps: 8)
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "Continue “Push Day” from Home, tap Save “Push Day” for Later, or finish it."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Lower Day"]
+        )
+    }
+
+    func testFetchTemplates_matchesStatsDraftHintCopyWhenUnnamedWorkoutBlocksTemplateStart() {
+        let viewModel = TemplateViewModel()
+        let activeWorkout = Workout(name: "Workout")
+        viewModel.templates = [
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "Open Workout from Home to add an exercise, tap Save for Later, or discard it."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(
+                blockedByActiveWorkout: true,
+                activeWorkout: activeWorkout
+            ).map(\.name),
+            ["Lower Day"]
+        )
+    }
+
     func testFetchTemplates_doesNotMatchCurrentWorkoutKeywordsWhenNoWorkoutBlocksTemplateStart() {
         let viewModel = TemplateViewModel()
         viewModel.templates = [

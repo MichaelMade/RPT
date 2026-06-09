@@ -1060,6 +1060,16 @@ class TemplateViewModel: ObservableObject {
         return "Resume “\(displayName)”"
     }
 
+    private func statsRecoverySearchTerms(for workout: Workout) -> [String] {
+        let statsViewModel = StatsViewModel()
+        statsViewModel.resumableWorkout = workout
+
+        return [
+            statsViewModel.emptyStateMessage(),
+            statsViewModel.emptyStateHint()
+        ]
+    }
+
     func activeWorkoutInProgressTitle(for workout: Workout?) -> String {
         HomeViewModel.resumableWorkoutStatusTitle(for: workout)
     }
@@ -1806,6 +1816,7 @@ class TemplateViewModel: ObservableObject {
                     HomeViewModel.saveForLaterActionHint(for: activeWorkout),
                     HomeViewModel.saveForLaterRecoveryInstruction(for: activeWorkout)
                 ])
+                terms.append(contentsOf: statsRecoverySearchTerms(for: activeWorkout))
             }
 
             terms.append(contentsOf: [
