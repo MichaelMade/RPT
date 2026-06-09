@@ -49,7 +49,20 @@ final class StatsViewFormattingTests: XCTestCase {
 
         XCTAssertEqual(
             sut.thisWeekSummaryMessage(totalWorkouts: 0, weeklyWorkoutCount: 0, resumableWorkout: draftWorkout),
-            "“Pull Day” in progress — finish it to start this week’s trend"
+            "“Pull Day” in progress — Continue “Pull Day” from Home to start this week’s trend"
+        )
+    }
+
+    func testThisWeekSummaryMessage_usesGenericContinueLabelForUnnamedStartedWorkout() {
+        let draftWorkout = Workout(name: "Current Workout")
+        let exercise = Exercise(name: "Pull-Up", category: .bodyweight, primaryMuscleGroups: [.back])
+        draftWorkout.sets = [
+            ExerciseSet(weight: 185, reps: 8, exercise: exercise, workout: draftWorkout, completedAt: Date(), isWarmup: false)
+        ]
+
+        XCTAssertEqual(
+            sut.thisWeekSummaryMessage(totalWorkouts: 0, weeklyWorkoutCount: 0, resumableWorkout: draftWorkout),
+            "Workout in progress — Continue Workout from Home to start this week’s trend"
         )
     }
 
@@ -78,7 +91,7 @@ final class StatsViewFormattingTests: XCTestCase {
 
         XCTAssertEqual(
             sut.thisWeekSummaryMessage(totalWorkouts: 5, weeklyWorkoutCount: 0, resumableWorkout: draftWorkout),
-            "“Pull Day” in progress — finish it to restart your weekly streak"
+            "“Pull Day” in progress — Continue “Pull Day” from Home to restart your weekly streak"
         )
     }
 

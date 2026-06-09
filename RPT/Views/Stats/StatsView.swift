@@ -323,10 +323,10 @@ struct StatsView: View {
                 }
 
                 if let displayName = WorkoutRow.specificDisplayName(for: resumableWorkout) {
-                    return "“\(displayName)” in progress — finish it to \(streakVerb) your weekly streak"
+                    return "“\(displayName)” in progress — \(openWorkoutFromHomeInstruction(for: resumableWorkout)) to \(streakVerb) your weekly streak"
                 }
 
-                return "Workout in progress — finish it to \(streakVerb) your weekly streak"
+                return "Workout in progress — \(openWorkoutFromHomeInstruction(for: resumableWorkout)) to \(streakVerb) your weekly streak"
             }
 
             guard totalWorkouts == 0 else {
