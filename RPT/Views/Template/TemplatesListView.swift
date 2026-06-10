@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct TemplatesListView: View {
-    static let searchPrompt = "Search templates, exercises, notes, instruction cues, muscle groups, set/rep plans, actions, or issues"
+    static let searchPrompt = TemplateViewModel.searchPrompt
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = TemplateViewModel()

@@ -26,6 +26,9 @@ class TemplateViewModel: ObservableObject {
     @Published var templates: [WorkoutTemplate] = []
     @Published var searchText = ""
 
+    static let searchPrompt = "Search templates, exercises, notes, instruction cues, muscle groups, set/rep plans, actions, status, history, or alerts"
+    private static let searchHelpDescription = "search names, exercises, notes, instruction cues like drive elbows back, muscle groups like chest or hamstrings, set/rep plans like 5x5 or 3x8-10, action wording like start, duplicate, delete, or use Save for Later, status/history phrases like ready right now, current workout in progress, or source template, and alert/issue labels like couldn’t save, missing, or repeated"
+
     static func normalizedSearchQuery(_ rawQuery: String) -> String {
         rawQuery
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -580,7 +583,7 @@ class TemplateViewModel: ObservableObject {
             ? " You can also create a new template from this search."
             : ""
 
-        return "No templates matched “\(normalizedQuery)”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, instruction cues like drive elbows back, muscle groups like chest or hamstrings, set/rep plans like 5x5 or 3x8-10, action wording like start, use Save for Later, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated.\(createSuggestion)"
+        return "No templates matched “\(normalizedQuery)”. Try a different search, clear it to browse every workout template, or \(Self.searchHelpDescription).\(createSuggestion)"
     }
 
     func shouldShowResultsRecoveryActions(filteredCount: Int) -> Bool {
