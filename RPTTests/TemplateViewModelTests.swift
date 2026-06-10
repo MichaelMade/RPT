@@ -1587,6 +1587,34 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesDeleteTemplateConfirmationBody() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"], notes: "Heavy chest focus"),
+            WorkoutTemplate(name: "Lower Day", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "Delete “Upper A”? This will remove 1 exercise, 3 planned sets, and template notes. This action cannot be undone."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper A"]
+        )
+    }
+
+    func testFetchTemplates_matchesDiscardAndStartTemplateConfirmationBodyWithoutNamedWorkout() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            WorkoutTemplate(name: "Empty Template", exercises: [], notes: "")
+        ]
+        viewModel.searchText = "Your in-progress workout will be lost and RPT will immediately start Template “Upper A”. Source template: 1 exercise and 3 planned sets. This action cannot be undone."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates(blockedByActiveWorkout: true).map(\.name),
+            ["Upper A"]
+        )
+    }
+
     func testFetchTemplates_matchesGenericOpenFromHomeCTAWhenAnotherWorkoutIsActive() {
         let viewModel = TemplateViewModel()
         let activeWorkout = Workout(name: "Workout")

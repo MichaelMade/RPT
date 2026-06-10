@@ -1634,7 +1634,8 @@ class TemplateViewModel: ObservableObject {
             editTemplateButtonTitle(for: template),
             duplicateTemplateButtonTitle(for: template),
             deleteTemplateButtonTitle(for: template),
-            deleteTemplateAlertTitle(for: template)
+            deleteTemplateAlertTitle(for: template),
+            deleteTemplateMessage(for: template)
         ]
     }
 
@@ -1823,6 +1824,7 @@ class TemplateViewModel: ObservableObject {
             let genericSaveAndStartTitle = saveAndStartTemplateButtonTitle(for: template)
             let genericDiscardAndStartTitle = discardAndStartTemplateButtonTitle(for: template, currentWorkout: nil)
             let genericDiscardAndStartAlertTitle = discardCurrentWorkoutAndStartTemplateAlertTitle(for: template, currentWorkout: nil)
+            let genericDiscardAndStartAlertMessage = discardCurrentWorkoutAndStartTemplateAlertMessage(for: template, currentWorkout: nil)
             let genericSaveAndStartFailureTitle = activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template)
             let genericDiscardAndStartFailureTitle = activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template)
             let genericSaveAndStartFailureMessage = activeWorkoutPersistenceFailureMessage(for: .saveForLater, opening: template)
@@ -1952,6 +1954,7 @@ class TemplateViewModel: ObservableObject {
                 "discard and start template",
                 genericDiscardAndStartTitle,
                 genericDiscardAndStartAlertTitle,
+                genericDiscardAndStartAlertMessage,
                 genericDiscardAndStartFailureTitle,
                 genericDiscardAndStartFailureMessage
             ])
