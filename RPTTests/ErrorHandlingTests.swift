@@ -505,9 +505,9 @@ final class ErrorHandlingTests: XCTestCase {
         
         // Test ActiveWorkoutViewModel error descriptions
         let workoutError1 = ActiveWorkoutViewModel.WorkoutError.saveFailure
-        XCTAssertEqual(workoutError1.description, "Failed to save workout")
-        
+        XCTAssertEqual(workoutError1.description, "Couldn’t save this workout. Keep it open, then try again.")
+
         let workoutError2 = ActiveWorkoutViewModel.WorkoutError.invalidSetData
-        XCTAssertEqual(workoutError2.description, "Invalid set data")
+        XCTAssertEqual(workoutError2.description, "Invalid set data.")
     }
 }
