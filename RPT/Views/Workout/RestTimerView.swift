@@ -2,398 +2,140 @@
 //  RestTimerView.swift
 //  RPT
 //
-//  Created by Michael Moore on 4/29/25.
+//  Countdown between sets with a progress ring, quick ±15s adjustments,
+//  and sound + haptic completion cues.
 //
 
 import SwiftUI
-import Combine
 
 struct RestTimerView: View {
-    let defaultDuration: Int
-    @Binding var isShowing: Bool
+    @Environment(\.dismiss) private var dismiss
 
-    @State private var timeRemaining: Int
-    @State private var timerDuration: Int
+    let duration: Int
+
+    @State private var remainingSeconds: Int = 0
+    @State private var totalSeconds: Int = 0
     @State private var isPaused = false
-    @State private var isTimerActive = false
-    @State private var timerCancellable = Set<AnyCancellable>()
-    @State private var dismissWorkItem: DispatchWorkItem?
+    @State private var didComplete = false
 
-    enum TimerPhase: Equatable {
-        case normal
-        case warning
-        case critical
-    }
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    enum PlaybackControlState: Equatable {
-        case pause
-        case resume
-        case done
-    }
-
-    init(defaultDuration: Int, isShowing: Binding<Bool>) {
-        self.defaultDuration = defaultDuration
-        self._isShowing = isShowing
-        let safeDefaultDuration = max(defaultDuration, 0)
-        self._timeRemaining = State(initialValue: safeDefaultDuration)
-        self._timerDuration = State(initialValue: safeDefaultDuration)
-    }
-    
     var body: some View {
-        VStack(spacing: 16) {
-            // Title and close button
-            HStack {
-                Text("Rest Timer")
-                    .font(.headline)
-                
-                Spacer()
-                
-                Button {
-                    stopTimer()
-                    withAnimation {
-                        isShowing = false
-                    }
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.gray)
-                        .font(.title3)
-                }
-            }
-            
-            // Timer display
+        VStack(spacing: 24) {
+            Capsule()
+                .fill(Color.secondary.opacity(0.4))
+                .frame(width: 36, height: 5)
+                .padding(.top, 10)
+
+            Text(didComplete ? "Rest Complete" : "Rest Timer")
+                .font(.headline)
+                .foregroundStyle(didComplete ? Theme.success : .primary)
+
             ZStack {
-                // Background circle
-                Circle()
-                    .stroke(lineWidth: 10)
-                    .opacity(0.2)
-                    .foregroundColor(.blue)
-                
-                // Progress circle
-                Circle()
-                    .trim(from: 0.0, to: progress)
-                    .stroke(style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round))
-                    .foregroundColor(timerColor)
-                    .rotationEffect(Angle(degrees: 270.0))
-                    .animation(.linear, value: progress)
-                
-                // Time remaining
-                VStack {
-                    Text(timeFormatted)
-                        .font(.system(size: 36, weight: .bold, design: .monospaced))
-                        .foregroundColor(timerColor)
-                    
-                    Text("Seconds")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                ProgressRing(
+                    progress: progress,
+                    lineWidth: 12,
+                    tint: didComplete ? AnyShapeStyle(Theme.success) : AnyShapeStyle(Theme.brandGradient)
+                )
+                .frame(width: 180, height: 180)
+
+                VStack(spacing: 2) {
+                    Text(timeString)
+                        .font(Theme.statFont(size: 44))
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+
+                    if !didComplete {
+                        Text("of \(formatted(totalSeconds))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
-            .frame(width: 200, height: 200)
-            .padding()
-            
-            // Controls
-            HStack(spacing: 40) {
-                // Reset button
+
+            HStack(spacing: 12) {
                 Button {
-                    resetTimer()
+                    adjust(by: -15)
                 } label: {
-                    VStack {
-                        Image(systemName: "arrow.counterclockwise")
-                            .font(.title2)
-                        Text("Reset")
-                            .font(.caption)
-                    }
-                    .foregroundColor(.blue)
+                    Text("−15s")
                 }
-                
-                // Play/Pause button
+                .buttonStyle(SecondaryCapsuleButtonStyle())
+                .disabled(didComplete)
+
                 Button {
-                    toggleTimer()
+                    isPaused.toggle()
                 } label: {
-                    VStack {
-                        Image(systemName: playPauseIconName)
-                            .font(.title)
-                        Text(playPauseLabel)
-                            .font(.caption)
-                    }
-                    .foregroundColor(playPauseColor)
+                    Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                        .frame(width: 24)
                 }
-                .disabled(playbackControlState == .done)
-                
-                // Skip button
+                .buttonStyle(SecondaryCapsuleButtonStyle())
+                .disabled(didComplete)
+
                 Button {
-                    skipTimer()
+                    adjust(by: 15)
                 } label: {
-                    VStack {
-                        Image(systemName: "forward.fill")
-                            .font(.title2)
-                        Text("Skip")
-                            .font(.caption)
-                    }
-                    .foregroundColor(.gray)
+                    Text("+15s")
                 }
+                .buttonStyle(SecondaryCapsuleButtonStyle())
+                .disabled(didComplete)
             }
-            .padding(.vertical)
-            
-            // Quick time adjust buttons
-            HStack {
-                ForEach([30, 60, 90, 120, 180], id: \.self) { seconds in
-                    Button("\(formatTimeButton(seconds))") {
-                        setTime(seconds)
-                    }
-                    .buttonStyle(.bordered)
-                    .font(.caption)
-                }
+
+            Button {
+                dismiss()
+            } label: {
+                Text(didComplete ? "Back to Training" : "Skip Rest")
             }
-            .padding(.bottom)
+            .buttonStyle(BrandButtonStyle())
+            .padding(.horizontal, Theme.screenPadding)
+
+            Spacer(minLength: 0)
         }
-        .padding()
-        .background(Color(UIColor.systemBackground))
-        .cornerRadius(16)
-        .shadow(radius: 10)
-        .frame(width: 300)
+        .padding(.horizontal, Theme.screenPadding)
         .onAppear {
-            startTimer()
+            totalSeconds = max(1, duration)
+            remainingSeconds = max(1, duration)
         }
-        .onDisappear {
-            stopTimer()
-        }
-    }
-    
-    // MARK: - Computed Properties
-    
-    private var timeFormatted: String {
-        let minutes = timeRemaining / 60
-        let seconds = timeRemaining % 60
-        return String(format: "%01d:%02d", minutes, seconds)
-    }
-    
-    private func formatTimeButton(_ seconds: Int) -> String {
-        Self.quickDurationLabel(seconds)
-    }
-
-    static func quickDurationLabel(_ seconds: Int) -> String {
-        let safeSeconds = max(seconds, 0)
-        let minutes = safeSeconds / 60
-        let remainingSeconds = safeSeconds % 60
-
-        if minutes == 0 {
-            return "\(safeSeconds)s"
-        }
-
-        if remainingSeconds == 0 {
-            return "\(minutes)m"
-        }
-
-        return "\(minutes)m \(remainingSeconds)s"
-    }
-    
-    private var progress: CGFloat {
-        Self.normalizedProgress(timeRemaining: timeRemaining, duration: timerDuration)
-    }
-
-    private var playbackControlState: PlaybackControlState {
-        Self.playbackControlState(isPaused: isPaused, timeRemaining: timeRemaining)
-    }
-
-    private var playPauseIconName: String {
-        switch playbackControlState {
-        case .pause:
-            return "pause.fill"
-        case .resume:
-            return "play.fill"
-        case .done:
-            return "checkmark"
+        .onReceive(timer) { _ in
+            tick()
         }
     }
 
-    private var playPauseLabel: String {
-        switch playbackControlState {
-        case .pause:
-            return "Pause"
-        case .resume:
-            return "Resume"
-        case .done:
-            return "Done"
-        }
+    private var progress: Double {
+        guard totalSeconds > 0 else { return 0 }
+        return 1 - Double(remainingSeconds) / Double(totalSeconds)
     }
 
-    private var playPauseColor: Color {
-        switch playbackControlState {
-        case .pause:
-            return .orange
-        case .resume:
-            return .green
-        case .done:
-            return .gray
-        }
+    private var timeString: String {
+        formatted(remainingSeconds)
     }
 
-    private var timerColor: Color {
-        switch Self.phase(forTimeRemaining: timeRemaining, duration: timerDuration) {
-        case .normal:
-            return .blue
-        case .warning:
-            return .orange
-        case .critical:
-            return .red
-        }
-    }
-
-    static func normalizedProgress(timeRemaining: Int, duration: Int) -> CGFloat {
-        guard duration > 0 else { return 0 }
-
-        let clampedRemaining = min(max(timeRemaining, 0), duration)
-        return 1.0 - CGFloat(clampedRemaining) / CGFloat(duration)
-    }
-
-    static func playbackControlState(isPaused: Bool, timeRemaining: Int) -> PlaybackControlState {
-        guard timeRemaining > 0 else { return .done }
-        return isPaused ? .resume : .pause
-    }
-
-    static func shouldRestartAfterManualTimeChange(isPaused: Bool, timerIsActive: Bool) -> Bool {
-        isPaused || !timerIsActive
-    }
-
-    static func phase(forTimeRemaining timeRemaining: Int, duration: Int) -> TimerPhase {
-        guard duration > 0 else { return .critical }
-
-        let clampedRemaining = max(timeRemaining, 0)
-        let warningThreshold = max(1, Int(ceil(Double(duration) / 3.0)))
-        let criticalThreshold = max(1, Int(ceil(Double(duration) / 6.0)))
-
-        if clampedRemaining > warningThreshold {
-            return .normal
-        } else if clampedRemaining > criticalThreshold {
-            return .warning
-        } else {
-            return .critical
-        }
-    }
-    
-    // MARK: - Timer Methods
-    
-    private func startTimer() {
-        stopTimer()
-
-        let safeDuration = max(timerDuration, 0)
-        timerDuration = safeDuration
-        timeRemaining = min(max(timeRemaining, 0), safeDuration)
-
-        guard safeDuration > 0 else {
-            timeRemaining = 0
-            isPaused = true
-            isTimerActive = false
-            scheduleDismiss(after: 0.2)
-            return
-        }
-
-        isPaused = false
-        isTimerActive = true
-        HapticFeedbackManager.shared.medium()
-
-        Timer.publish(every: 1, on: .main, in: .common)
-            .autoconnect()
-            .sink { _ in
-                tick()
-            }
-            .store(in: &timerCancellable)
+    private func formatted(_ seconds: Int) -> String {
+        let safe = max(0, seconds)
+        return String(format: "%d:%02d", safe / 60, safe % 60)
     }
 
     private func tick() {
-        guard !isPaused, timeRemaining > 0 else { return }
+        guard !isPaused, !didComplete else { return }
 
-        timeRemaining -= 1
-
-        if timeRemaining <= 3 && timeRemaining > 0 {
-            HapticFeedbackManager.shared.medium()
+        if remainingSeconds <= 4 && remainingSeconds > 1 {
+            HapticFeedbackManager.shared.timerCountdown()
         }
 
-        if timeRemaining == 0 {
-            HapticFeedbackManager.shared.success()
-            scheduleDismiss(after: 2)
-        }
-    }
-
-    private func stopTimer() {
-        timerCancellable.forEach { $0.cancel() }
-        timerCancellable.removeAll()
-        isTimerActive = false
-        cancelScheduledDismiss()
-    }
-    
-    private func resetTimer() {
-        cancelScheduledDismiss()
-
-        let safeDefaultDuration = max(defaultDuration, 0)
-        timerDuration = safeDefaultDuration
-        timeRemaining = safeDefaultDuration
-
-        if Self.shouldRestartAfterManualTimeChange(isPaused: isPaused, timerIsActive: isTimerActive) {
-            startTimer()
-        }
-    }
-    
-    private func toggleTimer() {
-        guard timeRemaining > 0 else { return }
-
-        isPaused.toggle()
-        HapticFeedbackManager.shared.medium()
-    }
-    
-    private func skipTimer() {
-        // Stop the timer first
-        if !isPaused {
-            stopTimer()
-        }
-        
-        timeRemaining = 0
-        HapticFeedbackManager.shared.success()
-        
-        // Auto-close after a delay
-        scheduleDismiss(after: 1)
-    }
-
-    private func scheduleDismiss(after delay: TimeInterval) {
-        cancelScheduledDismiss()
-
-        let workItem = DispatchWorkItem {
+        if remainingSeconds > 0 {
             withAnimation {
-                isShowing = false
+                remainingSeconds -= 1
             }
         }
 
-        dismissWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
-    }
-
-    private func cancelScheduledDismiss() {
-        dismissWorkItem?.cancel()
-        dismissWorkItem = nil
-    }
-    
-    private func setTime(_ seconds: Int) {
-        cancelScheduledDismiss()
-
-        let safeSeconds = max(seconds, 0)
-        timerDuration = safeSeconds
-        timeRemaining = safeSeconds
-
-        if Self.shouldRestartAfterManualTimeChange(isPaused: isPaused, timerIsActive: isTimerActive) {
-            startTimer()
+        if remainingSeconds <= 0 {
+            didComplete = true
+            HapticFeedbackManager.shared.timerComplete()
+            SoundManager.shared.playTimerComplete()
         }
-        HapticFeedbackManager.shared.medium()
     }
-}
 
-#Preview {
-    ZStack {
-        Color.gray.opacity(0.3)
-            .ignoresSafeArea()
-        
-        RestTimerView(
-            defaultDuration: 180,
-            isShowing: .constant(true)
-        )
+    private func adjust(by delta: Int) {
+        remainingSeconds = max(1, remainingSeconds + delta)
+        totalSeconds = max(totalSeconds, remainingSeconds)
     }
 }

@@ -2,118 +2,88 @@
 //  OnboardingView.swift
 //  RPT
 //
-//  Created by Michael Moore on 4/29/25.
+//  Three-page welcome explaining reverse pyramid training and the app.
 //
 
 import SwiftUI
-import SwiftData
 
 struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
     @State private var currentPage = 0
-    
+
+    private let pages: [(icon: String, title: String, message: String)] = [
+        (
+            "triangle.fill",
+            "Welcome to RPT",
+            "Reverse Pyramid Training: hit your heaviest set first while you're fresh, then drop the weight and chase reps."
+        ),
+        (
+            "wand.and.stars",
+            "Smart Suggestions",
+            "RPT calculates your back-off weights, builds warm-up ramps, and tells you exactly what to attempt next session."
+        ),
+        (
+            "chart.line.uptrend.xyaxis",
+            "Watch Yourself Get Stronger",
+            "Estimated 1RM trends, weekly volume, muscle balance, streaks, and personal records — all from the sets you log."
+        )
+    ]
+
     var body: some View {
-        TabView(selection: $currentPage) {
-            OnboardingPage(
-                title: "Welcome to RPT Trainer",
-                description: "Your all-in-one app for Reverse Pyramid Training",
-                imageName: "dumbbell.fill",
-                buttonText: "Next",
-                buttonAction: {
-                    withAnimation {
-                        currentPage = 1
+        VStack(spacing: 0) {
+            TabView(selection: $currentPage) {
+                ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
+                    VStack(spacing: 24) {
+                        Spacer()
+
+                        Image(systemName: page.icon)
+                            .font(.system(size: 70))
+                            .rotationEffect(page.icon == "triangle.fill" ? .degrees(180) : .degrees(0))
+                            .foregroundStyle(Theme.brandGradient)
+
+                        Text(page.title)
+                            .font(.largeTitle.weight(.heavy))
+                            .multilineTextAlignment(.center)
+
+                        Text(page.message)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+
+                        Spacer()
+                        Spacer()
                     }
+                    .tag(index)
                 }
-            )
-            .tag(0)
-            
-            OnboardingPage(
-                title: "Track Your Workouts",
-                description: "Log your weights, reps, and sets with our easy-to-use interface",
-                imageName: "list.bullet.clipboard.fill",
-                buttonText: "Next",
-                buttonAction: {
+            }
+            .tabViewStyle(.page(indexDisplayMode: .always))
+            .indexViewStyle(.page(backgroundDisplayMode: .always))
+
+            Button {
+                if currentPage < pages.count - 1 {
                     withAnimation {
-                        currentPage = 2
+                        currentPage += 1
                     }
-                }
-            )
-            .tag(1)
-            
-            OnboardingPage(
-                title: "Monitor Your Progress",
-                description: "Visualize your strength gains over time with detailed charts",
-                imageName: "chart.line.uptrend.xyaxis.circle.fill",
-                buttonText: "Next",
-                buttonAction: {
-                    withAnimation {
-                        currentPage = 3
-                    }
-                }
-            )
-            .tag(2)
-            
-            OnboardingPage(
-                title: "Ready to Start?",
-                description: "Begin your journey to increased strength with Reverse Pyramid Training",
-                imageName: "figure.strengthtraining.traditional",
-                buttonText: "Get Started",
-                buttonAction: {
+                } else {
                     hasCompletedOnboarding = true
                 }
-            )
-            .tag(3)
-        }
-        .tabViewStyle(.page)
-        .indexViewStyle(.page(backgroundDisplayMode: .always))
-        .animation(.default, value: currentPage)
-    }
-}
-
-// Individual onboarding page
-struct OnboardingPage: View {
-    let title: String
-    let description: String
-    let imageName: String
-    let buttonText: String
-    let buttonAction: () -> Void
-    
-    var body: some View {
-        VStack(spacing: 30) {
-            Spacer()
-            
-            Image(systemName: imageName)
-                .font(.system(size: 80))
-                .foregroundColor(.blue)
-            
-            Text(title)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.center)
-            
-            Text(description)
-                .font(.title3)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-                .foregroundColor(.secondary)
-            
-            Spacer()
-            
-            Button(action: buttonAction) {
-                Text(buttonText)
-                    .font(.headline)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
+            } label: {
+                Text(currentPage < pages.count - 1 ? "Continue" : "Start Training")
             }
-            .padding(.horizontal, 32)
-            .padding(.bottom, 50)
-        }
-    }
-}
+            .buttonStyle(BrandButtonStyle())
+            .padding(.horizontal, 24)
+            .padding(.bottom, 16)
 
-#Preview {
-    OnboardingView(hasCompletedOnboarding: .constant(false))
+            if currentPage < pages.count - 1 {
+                Button("Skip") {
+                    hasCompletedOnboarding = true
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 12)
+            }
+        }
+        .background(Theme.screenBackground)
+    }
 }

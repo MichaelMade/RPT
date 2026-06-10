@@ -122,6 +122,8 @@ class SettingsManager: ObservableObject, SettingsManaging {
         let defaultRPTPercentageDrops: [Double]
         let showRPE: Bool
         let darkModePreference: DarkModePreference
+        let autoStartRestTimerEnabled: Bool
+        let weeklyWorkoutGoal: Int
     }
 
     private func makeSnapshot() -> SettingsSnapshot {
@@ -129,7 +131,9 @@ class SettingsManager: ObservableObject, SettingsManaging {
             restTimerDuration: settings.restTimerDuration,
             defaultRPTPercentageDrops: settings.defaultRPTPercentageDrops,
             showRPE: settings.showRPE,
-            darkModePreference: settings.darkModePreference
+            darkModePreference: settings.darkModePreference,
+            autoStartRestTimerEnabled: settings.autoStartRestTimerEnabled,
+            weeklyWorkoutGoal: settings.weeklyWorkoutGoal
         )
     }
 
@@ -138,6 +142,8 @@ class SettingsManager: ObservableObject, SettingsManaging {
         settings.defaultRPTPercentageDrops = snapshot.defaultRPTPercentageDrops
         settings.showRPE = snapshot.showRPE
         settings.darkModePreference = snapshot.darkModePreference
+        settings.autoStartRestTimerEnabled = snapshot.autoStartRestTimerEnabled
+        settings.weeklyWorkoutGoal = snapshot.weeklyWorkoutGoal
     }
 
     private func commitSettingsChange(syncUserDefaults: Bool = true) throws {
@@ -262,12 +268,55 @@ class SettingsManager: ObservableObject, SettingsManaging {
         }
     }
     
+    func updateAutoStartRestTimer(enabled: Bool) throws {
+        let original = settings.autoStartRestTimerEnabled
+        settings.autoStartRestTimerEnabled = enabled
+        do {
+            try commitSettingsChange(syncUserDefaults: false)
+        } catch {
+            settings.autoStartRestTimerEnabled = original
+            throw error
+        }
+    }
+
+    func updateAutoStartRestTimerSafely(enabled: Bool) -> Bool {
+        do {
+            try updateAutoStartRestTimer(enabled: enabled)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    func updateWeeklyWorkoutGoal(_ goal: Int) throws {
+        let normalizedGoal = UserSettings.normalizedWeeklyWorkoutGoal(goal)
+        let original = settings.weeklyWorkoutGoal
+        settings.weeklyWorkoutGoal = normalizedGoal
+        do {
+            try commitSettingsChange(syncUserDefaults: false)
+        } catch {
+            settings.weeklyWorkoutGoal = original
+            throw error
+        }
+    }
+
+    func updateWeeklyWorkoutGoalSafely(_ goal: Int) -> Bool {
+        do {
+            try updateWeeklyWorkoutGoal(goal)
+            return true
+        } catch {
+            return false
+        }
+    }
+
     func resetToDefaults() throws {
         let snapshot = makeSnapshot()
         settings.restTimerDuration = UserSettings.defaultRestTimerDuration
         settings.defaultRPTPercentageDrops = UserSettings.defaultRPTPercentageDrops
         settings.showRPE = true
         settings.darkModePreference = .system
+        settings.autoStartRestTimerEnabled = true
+        settings.weeklyWorkoutGoal = UserSettings.defaultWeeklyWorkoutGoal
 
         do {
             try commitSettingsChange()

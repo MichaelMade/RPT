@@ -2,594 +2,237 @@
 //  StatsView.swift
 //  RPT
 //
+//  Training analytics: lifetime summary, consistency heatmap, weekly
+//  volume trend, muscle balance, and e1RM personal records.
+//
 
 import SwiftUI
-import SwiftData
 import Charts
 
 struct StatsView: View {
     @StateObject private var viewModel = StatsViewModel()
+    @State private var exportURL: URL?
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    headlineCards
-                    thisWeekSnapshot
-
-                    if viewModel.totalWorkouts == 0 {
-                        emptyStateCard
+                VStack(spacing: Theme.sectionSpacing) {
+                    if viewModel.completedWorkoutCount == 0 {
+                        EmptyStateCard(
+                            icon: "chart.bar.xaxis",
+                            title: "No Stats Yet",
+                            message: "Complete your first workout and your volume trends, muscle balance, and personal records will show up here."
+                        )
                     } else {
-                        weeklyVolumeChart
+                        summaryTiles
+                        heatmapSection
+                        volumeSection
 
-                        muscleGroupDistribution
+                        if !viewModel.muscleGroupShares.isEmpty {
+                            muscleSection
+                        }
 
-                        personalRecords
+                        if !viewModel.personalRecords.isEmpty {
+                            recordsSection
+                        }
                     }
                 }
-                .padding()
+                .padding(.horizontal, Theme.screenPadding)
+                .padding(.bottom, 24)
             }
+            .background(Theme.screenBackground)
             .navigationTitle("Stats")
-            .onAppear { viewModel.reload() }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if viewModel.completedWorkoutCount > 0 {
+                        exportButton
+                    }
+                }
+            }
+            .onAppear {
+                viewModel.refresh()
+            }
         }
     }
 
-    // MARK: - Headline cards
+    // MARK: - Export
 
-    private var headlineCards: some View {
-        let columns = [GridItem(.flexible()), GridItem(.flexible())]
-        return LazyVGrid(columns: columns, spacing: 12) {
-            StatTile(
-                icon: "flame.fill",
-                title: "Streak",
-                value: "\(viewModel.currentStreak)",
-                subtitle: viewModel.currentStreak == 1 ? "day" : "days",
-                tint: .orange
-            )
-            StatTile(
-                icon: "figure.strengthtraining.traditional",
-                title: "Workouts",
-                value: "\(viewModel.totalWorkouts)",
-                subtitle: "total",
-                tint: .blue
-            )
-            StatTile(
-                icon: "scalemass",
-                title: viewModel.lifetimeWorkMetricTitle,
-                value: viewModel.lifetimeWorkMetricValue,
-                subtitle: viewModel.lifetimeWorkMetricSubtitle,
-                tint: .purple
-            )
-            StatTile(
-                icon: "calendar",
-                title: "Active Weeks",
-                value: "\(viewModel.weeksActive)",
-                subtitle: "weeks",
-                tint: .green
-            )
+    @ViewBuilder
+    private var exportButton: some View {
+        if let exportURL {
+            ShareLink(item: exportURL) {
+                Image(systemName: "square.and.arrow.up")
+            }
+        } else {
+            Button {
+                exportURL = WorkoutCSVExporter.exportFile(for: viewModel.allCompletedWorkouts)
+            } label: {
+                Image(systemName: "square.and.arrow.up")
+            }
         }
     }
 
-    // MARK: - This week snapshot
+    // MARK: - Summary
 
-    private var thisWeekSnapshot: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("This Week")
-                    .font(.headline)
-
-                Spacer()
-
-                Text(
-                    thisWeekSummaryMessage(
-                        totalWorkouts: viewModel.totalWorkouts,
-                        weeklyWorkoutCount: viewModel.weeklyWorkoutCount,
-                        resumableWorkout: viewModel.resumableWorkout
-                    )
+    private var summaryTiles: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                StatTile(
+                    title: "Workouts",
+                    value: "\(viewModel.completedWorkoutCount)",
+                    icon: "checkmark.seal.fill"
                 )
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                StatTile(
+                    title: "Day Streak",
+                    value: "\(viewModel.workoutStreak)",
+                    icon: "flame.fill",
+                    tint: Theme.amber
+                )
             }
 
             HStack(spacing: 12) {
                 StatTile(
-                    icon: "calendar.badge.clock",
-                    title: "Workouts",
-                    value: "\(viewModel.weeklyWorkoutCount)",
-                    subtitle: "last 7 days",
-                    tint: .blue
+                    title: "Total Volume",
+                    value: viewModel.formattedVolume(viewModel.totalVolume),
+                    icon: "scalemass.fill",
+                    tint: Theme.info
                 )
                 StatTile(
-                    icon: "scalemass",
-                    title: viewModel.weeklyWorkMetricTitle,
-                    value: viewModel.weeklyWorkMetricValue,
-                    subtitle: viewModel.weeklyWorkMetricSubtitle,
-                    tint: .purple
-                )
-                StatTile(
-                    icon: "clock",
-                    title: "Avg Time",
-                    value: thisWeekAverageDurationValue(
-                        weeklyWorkoutCount: viewModel.weeklyWorkoutCount,
-                        hasAverageDuration: viewModel.hasWeeklyAverageDuration,
-                        formattedDuration: viewModel.weeklyAverageDuration
-                    ),
-                    subtitle: thisWeekAverageDurationSubtitle(
-                        weeklyWorkoutCount: viewModel.weeklyWorkoutCount,
-                        hasAverageDuration: viewModel.hasWeeklyAverageDuration
-                    ),
-                    tint: .green
+                    title: "Avg Duration",
+                    value: viewModel.averageDuration > 0 ? viewModel.formattedDuration(viewModel.averageDuration) : "—",
+                    icon: "clock.fill",
+                    tint: Theme.success
                 )
             }
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
     }
 
-    // MARK: - Empty state
+    // MARK: - Heatmap
 
-    private var emptyStateCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                Image(systemName: "chart.line.uptrend.xyaxis")
-                    .font(.title2)
-                    .foregroundColor(.blue)
+    private var heatmapSection: some View {
+        VStack(spacing: 12) {
+            SectionHeader(title: "Consistency")
 
-                Text(viewModel.emptyStateTitle())
-                    .font(.headline)
-            }
-
-            Text(viewModel.emptyStateMessage())
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-
-            Label(viewModel.emptyStateHint(), systemImage: "arrow.right.circle")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            TrainingHeatmapView(dailyIntensity: viewModel.dailyVolume)
+                .rptCard()
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
     }
 
-    // MARK: - Weekly volume chart
+    // MARK: - Weekly Volume
 
-    @ViewBuilder
-    private var weeklyVolumeChart: some View {
-        let showsBodyweightTrend = !viewModel.hasWeeklyVolumeChartData && viewModel.hasWeeklyBodyweightChartData
-        let chartData = showsBodyweightTrend ? viewModel.weeklyBodyweightReps : viewModel.weeklyVolume
+    private var volumeSection: some View {
+        VStack(spacing: 12) {
+            SectionHeader(title: "Weekly Volume")
 
-        if viewModel.hasWeeklyVolumeChartData || viewModel.hasWeeklyBodyweightChartData {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(weeklyWorkChartTitle(
-                    hasWeightedVolumeData: viewModel.hasWeeklyVolumeChartData,
-                    hasBodyweightRepsData: viewModel.hasWeeklyBodyweightChartData
-                ))
-                    .font(.headline)
-                Text(weeklyWorkChartSubtitle(
-                    hasWeightedVolumeData: viewModel.hasWeeklyVolumeChartData,
-                    hasBodyweightRepsData: viewModel.hasWeeklyBodyweightChartData
-                ))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-
-                Chart(chartData) { point in
+            VStack(alignment: .leading, spacing: 8) {
+                Chart(viewModel.weeklyVolume) { point in
                     BarMark(
                         x: .value("Week", point.weekStart, unit: .weekOfYear),
-                        y: .value(showsBodyweightTrend ? "Reps" : "Volume", point.volume)
+                        y: .value("Volume", point.volume)
                     )
-                    .foregroundStyle(Color.blue.gradient)
+                    .foregroundStyle(Theme.brandGradient)
+                    .cornerRadius(4)
                 }
-                .chartYAxis { AxisMarks(position: .leading) }
+                .chartYAxis {
+                    AxisMarks(position: .leading)
+                }
                 .frame(height: 180)
+
+                Text("Completed working-set volume per week, last 12 weeks.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(UIColor.secondarySystemBackground))
-            .cornerRadius(12)
-        } else if viewModel.totalWorkouts > 0 {
-            SectionPlaceholderCard(
-                title: "Weekly Volume",
-                systemImage: "chart.bar.xaxis",
-                message: weeklyVolumeEmptyStateMessage(
-                    totalWorkouts: viewModel.totalWorkouts,
-                    hasRecentCompletedWorkouts: viewModel.hasRecentCompletedWorkoutsForWeeklyVolume,
-                    hasWeightedVolumeData: viewModel.hasWeeklyVolumeChartData,
-                    resumableWorkout: viewModel.resumableWorkout
-                )
-            )
+            .rptCard()
         }
     }
 
-    // MARK: - Muscle group distribution
+    // MARK: - Muscle Balance
 
-    @ViewBuilder
-    private var muscleGroupDistribution: some View {
-        if !viewModel.muscleGroupShare.isEmpty {
-            let totalSets = viewModel.muscleGroupShare.reduce(0) { $0 + $1.setCount }
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Muscle Group Focus")
-                    .font(.headline)
-                Text("Working sets over the last 4 weeks")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+    private var muscleSection: some View {
+        VStack(spacing: 12) {
+            SectionHeader(title: "Muscle Balance")
 
-                Chart(viewModel.muscleGroupShare) { share in
-                    SectorMark(
-                        angle: .value("Sets", share.setCount),
-                        innerRadius: .ratio(0.55),
-                        angularInset: 1.5
-                    )
-                    .foregroundStyle(by: .value("Group", share.group.displayName))
-                    .cornerRadius(3)
-                }
-                .frame(height: 220)
+            VStack(spacing: 10) {
+                let maxSets = max(viewModel.muscleGroupShares.first?.workingSets ?? 1, 1)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(viewModel.muscleGroupShare.prefix(6)) { share in
-                        HStack {
-                            Text(share.group.displayName)
-                                .font(.caption)
-                            Spacer()
-                            Text("\(share.setCount) sets")
-                                .font(.caption.monospacedDigit())
-                                .foregroundColor(.secondary)
-                            Text(formattedSetSharePercentage(setCount: share.setCount, totalSets: totalSets))
-                                .font(.caption.monospacedDigit())
-                                .foregroundColor(.secondary)
+                ForEach(viewModel.muscleGroupShares.prefix(8)) { share in
+                    HStack(spacing: 10) {
+                        Text(share.muscleGroup.displayName)
+                            .font(.caption.weight(.medium))
+                            .frame(width: 86, alignment: .leading)
+                            .lineLimit(1)
+
+                        GeometryReader { proxy in
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color.primary.opacity(0.06))
+
+                                Capsule()
+                                    .fill(Theme.brandGradient)
+                                    .frame(width: max(6, proxy.size.width * CGFloat(share.workingSets) / CGFloat(maxSets)))
+                            }
                         }
+                        .frame(height: 10)
+
+                        Text("\(share.workingSets)")
+                            .font(.caption.weight(.semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                            .frame(width: 30, alignment: .trailing)
                     }
                 }
+
+                Text("Working sets per primary muscle group, last 4 weeks.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(UIColor.secondarySystemBackground))
-            .cornerRadius(12)
-        } else if viewModel.totalWorkouts > 0 {
-            SectionPlaceholderCard(
-                title: "Muscle Group Focus",
-                systemImage: "figure.strengthtraining.traditional",
-                message: muscleGroupEmptyStateMessage(
-                    totalWorkouts: viewModel.totalWorkouts,
-                    resumableWorkout: viewModel.resumableWorkout
-                )
-            )
+            .rptCard()
         }
     }
 
-    // MARK: - Personal records
+    // MARK: - Personal Records
 
-    @ViewBuilder
-    private var personalRecords: some View {
-        if !viewModel.recentPRs.isEmpty {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Recent Personal Records")
-                    .font(.headline)
+    private var recordsSection: some View {
+        VStack(spacing: 12) {
+            SectionHeader(title: "Personal Records")
 
-                ForEach(viewModel.recentPRs) { pr in
-                    HStack {
+            VStack(spacing: 0) {
+                ForEach(Array(viewModel.personalRecords.prefix(6).enumerated()), id: \.element.id) { index, record in
+                    HStack(spacing: 12) {
                         Image(systemName: "trophy.fill")
-                            .foregroundColor(.yellow)
-                        VStack(alignment: .leading) {
-                            Text(pr.exerciseName)
-                                .font(.subheadline)
-                            Text(personalRecordDateText(for: pr.date))
+                            .font(.subheadline)
+                            .foregroundStyle(index == 0 ? Theme.amber : Color.secondary.opacity(0.5))
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(record.exerciseName)
+                                .font(.subheadline.weight(.semibold))
+                                .lineLimit(1)
+
+                            Text("\(record.weight) lb × \(record.reps) • \(record.date.formatted(date: .abbreviated, time: .omitted))")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                         }
+
                         Spacer()
-                        Text(pr.formattedWeightReps)
-                            .font(.headline.monospacedDigit())
+
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(OneRepMax.formatted(record.estimatedOneRepMax))
+                                .font(.subheadline.weight(.bold))
+                                .monospacedDigit()
+                            Text("e1RM")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
-                    .padding(.vertical, 6)
-                }
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(UIColor.secondarySystemBackground))
-            .cornerRadius(12)
-        } else if viewModel.totalWorkouts > 0 {
-            SectionPlaceholderCard(
-                title: "Recent Personal Records",
-                systemImage: "trophy",
-                message: personalRecordsEmptyStateMessage(
-                    totalWorkouts: viewModel.totalWorkouts,
-                    resumableWorkout: viewModel.resumableWorkout
-                )
-            )
-        }
-    }
+                    .padding(.vertical, 10)
 
-    // MARK: - Helpers
-
-    func thisWeekSummaryMessage(totalWorkouts: Int, weeklyWorkoutCount: Int, resumableWorkout: Workout? = nil) -> String {
-        let safeWeeklyCount = max(0, weeklyWorkoutCount)
-
-        guard safeWeeklyCount > 0 else {
-            if let resumableWorkout {
-                let streakVerb = totalWorkouts > 0 ? "restart" : "start"
-
-                if resumableWorkout.exerciseCount == 0 {
-                    let saveHint = HomeViewModel.saveForLaterActionHint(for: resumableWorkout)
-
-                    if let displayName = WorkoutRow.specificDisplayName(for: resumableWorkout) {
-                        return "“\(displayName)” draft in progress — add an exercise to \(streakVerb) your weekly streak, or \(saveHint) until you're ready to train"
+                    if index < min(viewModel.personalRecords.count, 6) - 1 {
+                        Divider()
                     }
-
-                    return "Workout draft in progress — add an exercise to \(streakVerb) your weekly streak, or \(saveHint) until you're ready to train"
                 }
-
-                if let displayName = WorkoutRow.specificDisplayName(for: resumableWorkout) {
-                    return "“\(displayName)” in progress — \(openWorkoutFromHomeInstruction(for: resumableWorkout)) to \(streakVerb) your weekly streak"
-                }
-
-                return "Workout in progress — \(openWorkoutFromHomeInstruction(for: resumableWorkout)) to \(streakVerb) your weekly streak"
             }
-
-            guard totalWorkouts == 0 else {
-                return "No completed workouts in the last 7 days"
-            }
-
-            return "Finish a workout to start this week’s trend"
+            .rptCard()
         }
-
-        return safeWeeklyCount == 1
-            ? "1 workout in the last 7 days"
-            : "\(safeWeeklyCount) workouts in the last 7 days"
     }
-
-    func thisWeekAverageDurationValue(weeklyWorkoutCount: Int, hasAverageDuration: Bool, formattedDuration: String) -> String {
-        guard max(0, weeklyWorkoutCount) > 0, hasAverageDuration else {
-            return "—"
-        }
-
-        return formattedDuration
-    }
-
-    func thisWeekAverageDurationSubtitle(weeklyWorkoutCount: Int, hasAverageDuration: Bool) -> String {
-        let safeWeeklyCount = max(0, weeklyWorkoutCount)
-
-        guard safeWeeklyCount > 0 else {
-            return "no recent workouts"
-        }
-
-        guard hasAverageDuration else {
-            return "duration unavailable"
-        }
-
-        return "per workout"
-    }
-
-    func weeklyVolumeEmptyStateMessage(
-        totalWorkouts: Int,
-        hasRecentCompletedWorkouts: Bool = false,
-        hasWeightedVolumeData: Bool = false,
-        resumableWorkout: Workout? = nil
-    ) -> String {
-        guard totalWorkouts > 0 else {
-            return "Complete a workout to start building your weekly training chart."
-        }
-
-        if !hasRecentCompletedWorkouts,
-           let resumableWorkout {
-            return resumableWorkoutStatsPrompt(
-                for: resumableWorkout,
-                emptyDraftFollowUp: "add an exercise, and finish it to start filling this week’s training chart.",
-                unopenedDraftFollowUp: "and log your first set to start filling this week’s training chart.",
-                inProgressFollowUp: "and finish it to add fresh volume to your weekly training chart."
-            )
-        }
-
-        if hasRecentCompletedWorkouts, !hasWeightedVolumeData {
-            return "You’ve logged recent workouts, but none added weighted volume in the last 12 weeks yet, so there’s no meaningful volume chart to show."
-        }
-
-        return "No completed workouts landed in the last 12 weeks, so there’s no recent volume to chart yet."
-    }
-
-    func weeklyWorkChartTitle(hasWeightedVolumeData: Bool, hasBodyweightRepsData: Bool) -> String {
-        if hasWeightedVolumeData {
-            return "Weekly Volume"
-        }
-
-        if hasBodyweightRepsData {
-            return "Weekly Reps"
-        }
-
-        return "Weekly Volume"
-    }
-
-    func weeklyWorkChartSubtitle(hasWeightedVolumeData: Bool, hasBodyweightRepsData: Bool) -> String {
-        if hasWeightedVolumeData {
-            return "Last 12 weeks"
-        }
-
-        if hasBodyweightRepsData {
-            return "Last 12 weeks of bodyweight reps"
-        }
-
-        return "Last 12 weeks"
-    }
-
-    func muscleGroupEmptyStateMessage(totalWorkouts: Int, resumableWorkout: Workout? = nil) -> String {
-        guard totalWorkouts > 0 else {
-            return "Complete a workout to see where your working sets are landing."
-        }
-
-        if let resumableWorkout {
-            return resumableWorkoutStatsPrompt(
-                for: resumableWorkout,
-                emptyDraftFollowUp: "add an exercise, and finish working sets to see where your training is landing.",
-                unopenedDraftFollowUp: "and log your first working set to see which muscle groups are getting the most attention.",
-                inProgressFollowUp: "and finish a few working sets to see which muscle groups are getting the most attention."
-            )
-        }
-
-        return "Log completed working sets in the last 4 weeks to see which muscle groups are getting the most attention."
-    }
-
-    func personalRecordsEmptyStateMessage(totalWorkouts: Int, resumableWorkout: Workout? = nil) -> String {
-        guard totalWorkouts > 0 else {
-            return "Complete a workout to start capturing personal records."
-        }
-
-        if let resumableWorkout {
-            return resumableWorkoutStatsPrompt(
-                for: resumableWorkout,
-                emptyDraftFollowUp: "add an exercise, and finish a working set to start capturing new personal records.",
-                unopenedDraftFollowUp: "and log your first working set to start capturing new personal records.",
-                inProgressFollowUp: "and log a few strong working sets to give your next personal record a chance to show up here."
-            )
-        }
-
-        return "Finish a few completed working sets and your strongest recent performances will show up here."
-    }
-
-    private func resumableWorkoutStatsPrompt(
-        for workout: Workout,
-        emptyDraftFollowUp: String,
-        unopenedDraftFollowUp: String,
-        inProgressFollowUp: String
-    ) -> String {
-        let workoutStatus = HomeViewModel.resumableWorkoutStatusReference(for: workout)
-        let openInstruction = openWorkoutFromHomeInstruction(for: workout)
-
-        if workout.sets.isEmpty {
-            return "You already have \(workoutStatus). \(openInstruction), \(emptyDraftFollowUp)"
-        }
-
-        if HomeViewModel.resumableWorkoutActionPrefix(for: workout) == "Open" {
-            return "You already have \(workoutStatus). \(openInstruction) \(unopenedDraftFollowUp)"
-        }
-
-        return "You already have \(workoutStatus). \(openInstruction) \(inProgressFollowUp)"
-    }
-
-    private func openWorkoutFromHomeInstruction(for workout: Workout) -> String {
-        "\(HomeViewModel.resumableWorkoutActionLabel(for: workout)) from Home"
-    }
-
-    func personalRecordDateText(
-        for date: Date,
-        now: Date = Date(),
-        calendar: Calendar = .current,
-        locale: Locale = .autoupdatingCurrent,
-        timeZone: TimeZone = .autoupdatingCurrent
-    ) -> String {
-        WorkoutRow.relativeDateText(
-            for: date,
-            now: now,
-            calendar: calendar,
-            locale: locale,
-            timeZone: timeZone
-        )
-    }
-
-    func formattedTotal(_ volume: Double) -> String {
-        let safeVolume = volume.isFinite ? max(0, volume) : 0
-        let truncatedVolume = floor(safeVolume * 10) / 10
-
-        if truncatedVolume >= 1_000_000 {
-            let millions = truncatedVolume / 1_000_000
-            let truncatedMillions = floor(millions * 10) / 10
-            let isWhole = truncatedMillions.truncatingRemainder(dividingBy: 1) == 0
-            return isWhole
-                ? "\(Int(truncatedMillions))M lb"
-                : String(format: "%.1fM lb", truncatedMillions)
-        }
-
-        if truncatedVolume >= 1000 {
-            let thousands = truncatedVolume / 1000
-            let truncatedThousands = floor(thousands * 10) / 10
-            let isWhole = truncatedThousands.truncatingRemainder(dividingBy: 1) == 0
-            return isWhole
-                ? "\(Int(truncatedThousands))k lb"
-                : String(format: "%.1fk lb", truncatedThousands)
-        }
-
-        return "\(Int(floor(truncatedVolume))) lb"
-    }
-
-    func formattedSetSharePercentage(setCount: Int, totalSets: Int) -> String {
-        let safeTotalSets = max(0, totalSets)
-
-        guard safeTotalSets > 0 else {
-            return "(0%)"
-        }
-
-        let safeSetCount = min(max(0, setCount), safeTotalSets)
-        let ratio = Double(safeSetCount) / Double(safeTotalSets)
-        let rawPercentage = ratio.isFinite ? ratio * 100 : 0
-        let safePercentage = min(100, max(0, Int(rawPercentage)))
-
-        return "(\(safePercentage)%)"
-    }
-}
-
-private struct SectionPlaceholderCard: View {
-    let title: String
-    let systemImage: String
-    let message: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                Image(systemName: systemImage)
-                    .font(.title3)
-                    .foregroundColor(.blue)
-                Text(title)
-                    .font(.headline)
-            }
-
-            Text(message)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
-    }
-}
-
-private struct StatTile: View {
-    let icon: String
-    let title: String
-    let value: String
-    let subtitle: String
-    let tint: Color
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundColor(tint)
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Spacer()
-            }
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(value)
-                    .font(.title.monospacedDigit())
-                    .fontWeight(.bold)
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
-    }
-}
-
-#Preview {
-    StatsView()
-        .modelContainer(for: [Exercise.self, Workout.self, ExerciseSet.self, UserSettings.self, User.self])
 }

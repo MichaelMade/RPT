@@ -2,198 +2,67 @@
 //  ContentView.swift
 //  RPT
 //
-//  Created by Michael Moore on 4/27/25.
+//  Root tab shell. The single in-progress workout is coordinated by
+//  WorkoutSession and presented full-screen from here.
 //
 
 import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @State private var selectedTab = 0
     @StateObject private var settingsManager = SettingsManager.shared
-    @StateObject private var workoutStateManager = WorkoutStateManager.shared
-    
-    // Track active workout
-    @State private var activeWorkout: Workout?
-    @State private var showingActiveWorkoutSheet = false
-    
+    @StateObject private var session = WorkoutSession.shared
+
     var body: some View {
-        TabView(selection: $selectedTab) {
-            HomeView(
-                activeWorkoutBinding: Binding(
-                    get: {
-                        guard let workout = activeWorkout else { return nil }
-                        return workoutStateManager.shouldResume(workout) ? workout : nil
-                    },
-                    set: { newWorkout in
-                        if newWorkout != nil {
-                            // Setting a new workout - clear any discard state
-                            workoutStateManager.clearDiscardedState()
-                            activeWorkout = newWorkout
-                        } else if activeWorkout != nil {
-                            // Setting to nil - mark as discarded
-                            if let workout = activeWorkout {
-                                workoutStateManager.markWorkoutAsDiscarded(workout.id)
-                            }
-                            activeWorkout = nil
-                        }
-                    }
-                ),
-                showActiveWorkoutSheet: Binding(
-                    get: {
-                        if let workout = activeWorkout, !workoutStateManager.shouldResume(workout) {
-                            return false
-                        }
-                        return showingActiveWorkoutSheet
-                    },
-                    set: { newValue in
-                        if newValue, let workout = activeWorkout, !workoutStateManager.shouldResume(workout) {
-                            showingActiveWorkoutSheet = false
-                        } else {
-                            showingActiveWorkoutSheet = newValue
-                        }
-                    }
-                )
-            )
-            .tabItem {
-                Label("Home", systemImage: "house.fill")
-            }
-            .tag(0)
-            
+        TabView {
+            HomeView()
+                .tabItem {
+                    Label("Home", systemImage: "house.fill")
+                }
+
+            TemplatesListView()
+                .tabItem {
+                    Label("Templates", systemImage: "square.grid.2x2.fill")
+                }
+
             ExercisesView()
                 .tabItem {
                     Label("Exercises", systemImage: "figure.strengthtraining.traditional")
                 }
-                .tag(1)
-            
+
             StatsView()
                 .tabItem {
                     Label("Stats", systemImage: "chart.bar.fill")
                 }
-                .tag(2)
-
-            TemplatesListView(
-                activeWorkoutBinding: Binding(
-                    get: {
-                        guard let workout = activeWorkout else { return nil }
-                        return workoutStateManager.shouldResume(workout) ? workout : nil
-                    },
-                    set: { newWorkout in
-                        if newWorkout != nil {
-                            // Setting a new workout - clear any discard state
-                            workoutStateManager.clearDiscardedState()
-                            activeWorkout = newWorkout
-                        } else if activeWorkout != nil {
-                            // Setting to nil - mark as discarded
-                            if let workout = activeWorkout {
-                                workoutStateManager.markWorkoutAsDiscarded(workout.id)
-                            }
-                            activeWorkout = nil
-                        }
-                    }
-                ),
-                showActiveWorkoutSheet: Binding(
-                    get: {
-                        if let workout = activeWorkout, !workoutStateManager.shouldResume(workout) {
-                            return false
-                        }
-                        return showingActiveWorkoutSheet
-                    },
-                    set: { newValue in
-                        if newValue, let workout = activeWorkout, !workoutStateManager.shouldResume(workout) {
-                            showingActiveWorkoutSheet = false
-                        } else {
-                            showingActiveWorkoutSheet = newValue
-                        }
-                    }
-                )
-            )
-            .tabItem {
-                Label("Templates", systemImage: "doc.text")
-            }
-            .tag(3)
 
             SettingsView()
                 .tabItem {
-                    Label("Settings", systemImage: "gear")
+                    Label("Settings", systemImage: "gearshape.fill")
                 }
-                .tag(4)
         }
-        .fullScreenCover(isPresented: $showingActiveWorkoutSheet) {
-            if let workout = activeWorkout {
-                ActiveWorkoutView(
-                    workout: workout,
-                    showCustomBackButton: false,
-                    onCompleteWorkout: {
-                        if workoutStateManager.wasAnyWorkoutDiscarded() {
-                            activeWorkout = nil
-                        }
-                        showingActiveWorkoutSheet = false
-                    }
-                )
+        .environmentObject(session)
+        .tint(Theme.accent)
+        .fullScreenCover(isPresented: $session.isPresentingWorkout) {
+            if let workout = session.activeWorkout {
+                ActiveWorkoutView(workout: workout)
+                    .environmentObject(session)
             } else {
-                Text("No active workout")
-                    .onAppear { showingActiveWorkoutSheet = false }
+                // Defensive: never present an empty workout screen.
+                Color.clear
+                    .onAppear { session.isPresentingWorkout = false }
             }
         }
-        .onChange(of: activeWorkout) { oldValue, newValue in
-            if newValue != nil && oldValue == nil && !workoutStateManager.wasAnyWorkoutDiscarded() {
-                workoutStateManager.clearDiscardedState()
-                showingActiveWorkoutSheet = true
-            } else if newValue == nil && oldValue != nil {
-                if let workout = oldValue {
-                    workoutStateManager.markWorkoutAsDiscarded(workout.id)
-                }
-                showingActiveWorkoutSheet = false
-            }
-        }
-        .onChange(of: selectedTab) { _, _ in
-            restoreResumableWorkoutIfAvailable()
-        }
-        // Initial setup when ContentView appears
         .onAppear {
-            restoreResumableWorkoutIfAvailable()
+            session.restoreResumableWorkout()
         }
-        .onChange(of: workoutStateManager.workoutWasDiscarded) { _, isDiscarded in
-            if isDiscarded {
-                showingActiveWorkoutSheet = false
-            }
-        }
-        .preferredColorScheme(colorSchemeForPreference(settingsManager.settings.darkModePreference))
+        .preferredColorScheme(colorScheme(for: settingsManager.settings.darkModePreference))
     }
-    
-    private func colorSchemeForPreference(_ preference: DarkModePreference) -> ColorScheme? {
+
+    private func colorScheme(for preference: DarkModePreference) -> ColorScheme? {
         switch preference {
-        case .light:
-            return .light
-        case .dark:
-            return .dark
-        case .system:
-            return nil
-        }
-    }
-
-    private func restoreResumableWorkoutIfAvailable() {
-        guard activeWorkout == nil else {
-            if let workout = activeWorkout, !workoutStateManager.shouldResume(workout) {
-                showingActiveWorkoutSheet = false
-
-                // Keep completed workouts in local state so we don't accidentally
-                // mark them as discarded through the activeWorkout onChange path.
-                if !workout.isCompleted {
-                    activeWorkout = nil
-                }
-            }
-            return
-        }
-
-        let incompleteWorkouts = WorkoutManager.shared.getIncompleteWorkouts()
-
-        if let resumableWorkout = workoutStateManager.firstResumableWorkout(in: incompleteWorkouts) {
-            activeWorkout = resumableWorkout
-        } else {
-            showingActiveWorkoutSheet = false
-            activeWorkout = nil
+        case .light: return .light
+        case .dark: return .dark
+        case .system: return nil
         }
     }
 }
