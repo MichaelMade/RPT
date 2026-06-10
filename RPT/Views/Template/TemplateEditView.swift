@@ -2,589 +2,339 @@
 //  TemplateEditView.swift
 //  RPT
 //
-//  Created by Michael Moore on 4/27/25.
+//  Create or edit a routine: name, notes, and the exercise list with
+//  per-exercise set counts and rep ranges.
 //
 
 import SwiftUI
-import SwiftData
 
 struct TemplateEditView: View {
-    private struct DraftSnapshot: Equatable {
-        struct ExerciseSnapshot: Equatable {
-            let id: UUID
-            let name: String
-            let suggestedSets: Int
-            let repRanges: [TemplateRepRange]
-            let notes: String
-        }
-
-        let name: String
-        let notes: String
-        let exercises: [ExerciseSnapshot]
-
-        init(name: String, notes: String, exercises: [TemplateExercise]) {
-            self.name = Self.normalizedDraftText(name)
-            self.notes = Self.normalizedDraftText(notes)
-            self.exercises = exercises.map {
-                ExerciseSnapshot(
-                    id: $0.id,
-                    name: Self.normalizedDraftText($0.exerciseName),
-                    suggestedSets: $0.suggestedSets,
-                    repRanges: $0.repRanges,
-                    notes: Self.normalizedDraftText($0.notes)
-                )
-            }
-        }
-
-        private static func normalizedDraftText(_ raw: String) -> String {
-            let collapsed = raw
-                .components(separatedBy: .whitespacesAndNewlines)
-                .filter { !$0.isEmpty }
-                .joined(separator: " ")
-
-            return String(collapsed.prefix(80))
-        }
+    enum Mode {
+        case create
+        case edit(WorkoutTemplate)
     }
 
     @Environment(\.dismiss) private var dismiss
-    @State private var templateName = ""
-    @State private var templateNotes = ""
+
+    let mode: Mode
+    var onSaved: (() -> Void)? = nil
+
+    @State private var name: String = ""
+    @State private var notes: String = ""
     @State private var exercises: [TemplateExercise] = []
-    @State private var showingExerciseSelector = false
-    @State private var showingExerciseEditor: TemplateExercise?
+
+    @State private var showingExercisePicker = false
+    @State private var editingExercise: TemplateExercise?
     @State private var showingDiscardConfirmation = false
-    @State private var exerciseToDelete: TemplateExercise?
-    @State private var showingDeleteExerciseConfirmation = false
-    @State private var saveResult: TemplateManager.MutationResult?
-    
-    let isNewTemplate: Bool
-    let existingTemplate: WorkoutTemplate?
-    let initialTemplateName: String
-    let initialTemplateNotes: String
-    let initialExercises: [TemplateExercise]
-    
+    @State private var saveErrorTitle: String?
+    @State private var saveErrorMessage: String = ""
+
+    // TemplateExercise equality is id-based, so rep-range edits don't show
+    // up in array comparison; track them explicitly.
+    @State private var didEditPrescriptions = false
+
     private let templateManager = TemplateManager.shared
 
-    private var draftValidation: TemplateManager.DraftValidationResult {
+    private var editedTemplate: WorkoutTemplate? {
+        if case .edit(let template) = mode {
+            return template
+        }
+        return nil
+    }
+
+    private var validation: TemplateManager.DraftValidationResult {
         templateManager.validateDraft(
-            name: templateName,
+            name: name,
             exercises: exercises,
-            excludingTemplateId: existingTemplate?.id
+            excludingTemplateId: editedTemplate?.id
         )
     }
 
-    private var saveHelperText: String? {
-        switch draftValidation {
-        case .duplicateExercise:
-            return templateManager.duplicateExerciseMessage(for: exercises, style: .helper)
-        default:
-            return draftValidation.helperText
-        }
-    }
-
-    private func saveAlertTitle(for result: TemplateManager.MutationResult) -> String {
-        switch result {
-        case .persistenceFailure:
-            return TemplateViewModel.templateSaveFailureAlertTitle(for: templateName)
-        default:
-            return result.alertTitle
-        }
-    }
-
-    private func saveAlertMessage(for result: TemplateManager.MutationResult) -> String {
-        switch result {
-        case .duplicateExercise:
-            return templateManager.duplicateExerciseMessage(for: exercises, style: .alert)
-        default:
-            return result.alertMessage
-        }
-    }
-
-    private var canSave: Bool {
-        draftValidation == .valid
-    }
-
-    private var initialDraftSnapshot: DraftSnapshot {
-        if let existingTemplate {
-            return DraftSnapshot(
-                name: existingTemplate.name,
-                notes: existingTemplate.notes,
-                exercises: existingTemplate.exercises
-            )
+    private var hasChanges: Bool {
+        if let template = editedTemplate {
+            return name != template.name
+                || notes != template.notes
+                || exercises != template.exercises
+                || didEditPrescriptions
         }
 
-        return DraftSnapshot(
-            name: initialTemplateName,
-            notes: initialTemplateNotes,
-            exercises: initialExercises
-        )
+        return !name.trimmingCharacters(in: .whitespaces).isEmpty
+            || !notes.trimmingCharacters(in: .whitespaces).isEmpty
+            || !exercises.isEmpty
     }
 
-    private var currentDraftSnapshot: DraftSnapshot {
-        DraftSnapshot(name: templateName, notes: templateNotes, exercises: exercises)
-    }
-
-    private var hasUnsavedChanges: Bool {
-        currentDraftSnapshot != initialDraftSnapshot
-    }
-
-    private var discardAlertTitle: String {
-        Self.discardAlertTitle(isNewTemplate: isNewTemplate, templateName: templateName)
-    }
-
-    private var discardAlertMessage: String {
-        Self.discardAlertMessage(
-            isNewTemplate: isNewTemplate,
-            changedFields: discardImpactFields
-        )
-    }
-
-    private var discardAlertActionTitle: String {
-        Self.discardAlertActionTitle(isNewTemplate: isNewTemplate, templateName: templateName)
-    }
-
-    private var duplicateExerciseLookupKeys: Set<String> {
-        var counts: [String: Int] = [:]
-
-        for exercise in exercises {
-            let lookupKey = ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
-            counts[lookupKey, default: 0] += 1
-        }
-
-        return Set(counts.compactMap { lookupKey, count in
-            count > 1 ? lookupKey : nil
-        })
-    }
-
-    private func isDuplicateExercise(_ exercise: TemplateExercise) -> Bool {
-        duplicateExerciseLookupKeys.contains(
-            ExerciseManager.normalizedNameLookupKey(exercise.exerciseName)
-        )
-    }
-
-    private func removeExercise(id: UUID) {
-        exercises.removeAll { $0.id == id }
-    }
-
-    private func queueExerciseDeletion(_ exercise: TemplateExercise) {
-        exerciseToDelete = exercise
-        showingDeleteExerciseConfirmation = true
-    }
-
-    static func discardAlertTitle(isNewTemplate: Bool, templateName: String) -> String {
-        if let displayName = specificTemplateDisplayName(templateName) {
-            return "Discard “\(displayName)”?"
-        }
-
-        return isNewTemplate ? "Discard New Template?" : "Discard Template Changes?"
-    }
-
-    static func discardAlertActionTitle(isNewTemplate: Bool, templateName: String) -> String {
-        if let displayName = specificTemplateDisplayName(templateName) {
-            return "Discard “\(displayName)”"
-        }
-
-        return isNewTemplate ? "Discard New Template" : "Discard Template Changes"
-    }
-
-    private static func specificTemplateDisplayName(_ rawTemplateName: String) -> String? {
-        let displayName = WorkoutTemplate.normalizedDisplayName(rawTemplateName)
-        return displayName == "Template" ? nil : displayName
-    }
-
-    static func discardAlertMessage(isNewTemplate: Bool, changedFields: [String]) -> String {
-        let prefix = isNewTemplate
-            ? "You’ll lose this template draft"
-            : "You’ll lose your unsaved changes to this template"
-
-        guard !changedFields.isEmpty else {
-            return prefix + "."
-        }
-
-        return prefix + ", including its \(humanReadableList(changedFields))."
-    }
-
-    private var discardImpactFields: [String] {
-        var fields: [String] = []
-
-        if currentDraftSnapshot.name != initialDraftSnapshot.name {
-            fields.append("name")
-        }
-
-        if currentDraftSnapshot.notes != initialDraftSnapshot.notes {
-            fields.append("notes")
-        }
-
-        if exerciseLineupChanged {
-            fields.append("exercise list")
-        }
-
-        if exerciseProgrammingChanged {
-            fields.append("planned sets or rep targets")
-        }
-
-        if exerciseNotesChanged {
-            fields.append("exercise notes")
-        }
-
-        return fields
-    }
-
-    private var exerciseLineupChanged: Bool {
-        guard currentDraftSnapshot.exercises.count == initialDraftSnapshot.exercises.count else {
-            return true
-        }
-
-        return zip(currentDraftSnapshot.exercises, initialDraftSnapshot.exercises).contains { current, initial in
-            current.id != initial.id || current.name != initial.name
-        }
-    }
-
-    private var exerciseProgrammingChanged: Bool {
-        guard currentDraftSnapshot.exercises.count == initialDraftSnapshot.exercises.count else {
-            return false
-        }
-
-        return zip(currentDraftSnapshot.exercises, initialDraftSnapshot.exercises).contains { current, initial in
-            current.suggestedSets != initial.suggestedSets || current.repRanges != initial.repRanges
-        }
-    }
-
-    private var exerciseNotesChanged: Bool {
-        guard currentDraftSnapshot.exercises.count == initialDraftSnapshot.exercises.count else {
-            return false
-        }
-
-        return zip(currentDraftSnapshot.exercises, initialDraftSnapshot.exercises).contains { current, initial in
-            current.notes != initial.notes
-        }
-    }
-
-    private static func humanReadableList(_ items: [String]) -> String {
-        switch items.count {
-        case 0:
-            return ""
-        case 1:
-            return items[0]
-        case 2:
-            return "\(items[0]) and \(items[1])"
-        default:
-            let head = items.dropLast().joined(separator: ", ")
-            return "\(head), and \(items.last!)"
-        }
-    }
-
-    static func deleteExerciseAlertTitle(for exerciseName: String) -> String {
-        if let displayName = specificTemplateExerciseDisplayName(exerciseName) {
-            return "Delete “\(displayName)” from Template?"
-        }
-
-        return "Delete This Exercise?"
-    }
-
-    static func deleteExerciseActionTitle(for exerciseName: String) -> String {
-        if let displayName = specificTemplateExerciseDisplayName(exerciseName) {
-            return "Delete “\(displayName)”"
-        }
-
-        return "Delete Exercise"
-    }
-
-    static func deleteExerciseAlertMessage(for exercise: TemplateExercise?) -> String {
-        guard let exercise else {
-            return "This exercise setup will be removed from this template."
-        }
-
-        let hasNotes = TemplateExercise.normalizedDisplayNotes(exercise.notes) != nil
-        let hasRepTargets = !exercise.repRanges.isEmpty
-
-        guard exercise.suggestedSets > 0 || hasRepTargets || hasNotes else {
-            return "This exercise setup will be removed from this template."
-        }
-
-        if exercise.suggestedSets > 0 {
-            let setSummary = exercise.suggestedSets == 1 ? "1 planned set" : "\(exercise.suggestedSets) planned sets"
-            let repTargetSummary = exercise.suggestedSets == 1 ? "its rep target" : "their rep targets"
-
-            if hasRepTargets && hasNotes {
-                return "This will remove \(setSummary), \(repTargetSummary), and any exercise notes from this template."
-            }
-
-            if hasRepTargets {
-                return "This will remove \(setSummary) and \(repTargetSummary) from this template."
-            }
-
-            if hasNotes {
-                return "This will remove \(setSummary) and any exercise notes from this template."
-            }
-
-            return "This will remove \(setSummary) from this template."
-        }
-
-        if hasNotes {
-            return hasRepTargets
-                ? "This will remove the rep targets and any exercise notes from this template."
-                : "This will remove any exercise notes from this template."
-        }
-
-        return "This will remove the rep targets from this template."
-    }
-
-    private static func specificTemplateExerciseDisplayName(_ rawExerciseName: String) -> String? {
-        let displayName = TemplateExercise.normalizedDisplayName(rawExerciseName)
-        return displayName == "Exercise" ? nil : displayName
-    }
-    
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Template Information")) {
-                    TextField("Template Name", text: $templateName)
+                Section("Name") {
+                    TextField("e.g. Upper Body A", text: $name)
 
-                    if let saveHelperText, draftValidation == .missingName || draftValidation == .duplicateName {
-                        Text(saveHelperText)
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
+                    if let helperText = validation.helperText {
+                        Text(helperText)
+                            .font(.caption)
+                            .foregroundStyle(Theme.amber)
                     }
-                    
-                    TextField("Notes (optional)", text: $templateNotes, axis: .vertical)
-                        .lineLimit(5)
                 }
-                
-                Section(header: Text("Exercises")) {
-                    ForEach(exercises.indices, id: \.self) { index in
-                        let exercise = exercises[index]
 
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack(alignment: .top, spacing: 12) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(TemplateExercise.normalizedDisplayName(exercise.exerciseName))
-                                        .font(.headline)
-                                        .foregroundColor(.primary)
+                Section("Exercises") {
+                    if exercises.isEmpty {
+                        Text("Add at least one exercise.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
 
-                                    if isDuplicateExercise(exercise) {
-                                        HStack(alignment: .center, spacing: 8) {
-                                            Label("Repeated entry — only the first copy will be added", systemImage: "square.on.square.fill")
-                                                .font(.caption)
-                                                .foregroundColor(.orange)
+                    ForEach(exercises) { exercise in
+                        Button {
+                            editingExercise = exercise
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(exercise.exerciseName)
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(.primary)
 
-                                            Button("Remove Extra Copy") {
-                                                removeExercise(id: exercise.id)
-                                            }
-                                            .font(.caption.weight(.semibold))
-                                            .buttonStyle(.borderless)
-                                        }
-                                    }
-
-                                    Text("\(exercise.suggestedSets) sets")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-
-                                    // Show rep ranges
-                                    HStack {
-                                        ForEach(exercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber }), id: \.setNumber) { repRange in
-                                            Text("Set \(repRange.setNumber): \(repRange.minReps)-\(repRange.maxReps)")
-                                                .font(.caption)
-                                                .padding(.horizontal, 6)
-                                                .padding(.vertical, 2)
-                                                .background(Color.blue.opacity(0.1))
-                                                .foregroundColor(.blue)
-                                                .cornerRadius(4)
-                                        }
-                                    }
-                                    .padding(.top, 2)
+                                    Text(prescriptionSummary(for: exercise))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
                                 }
 
-                                Spacer(minLength: 0)
+                                Spacer()
 
-                                Image(systemName: "chevron.right")
-                                    .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(.tertiary)
-                                    .padding(.top, 4)
+                                Image(systemName: "pencil")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
-                        .padding(.vertical, 4)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            showingExerciseEditor = exercise
-                        }
                     }
-                    .onDelete { indexSet in
-                        guard let index = indexSet.first else { return }
-                        queueExerciseDeletion(exercises[index])
+                    .onDelete { offsets in
+                        exercises.remove(atOffsets: offsets)
                     }
-                    
-                    Button("Add Exercise") {
-                        showingExerciseSelector = true
+                    .onMove { source, destination in
+                        exercises.move(fromOffsets: source, toOffset: destination)
                     }
 
-                    if let saveHelperText, draftValidation == .noExercises || draftValidation == .duplicateExercise {
-                        Text(saveHelperText)
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
+                    Button {
+                        showingExercisePicker = true
+                    } label: {
+                        Label("Add Exercise", systemImage: "plus")
+                            .foregroundStyle(Theme.accent)
                     }
                 }
+
+                Section("Notes") {
+                    TextField("Rest 2–3 minutes between sets…", text: $notes, axis: .vertical)
+                        .lineLimit(2...5)
+                }
             }
-            .navigationTitle(TemplateViewModel.templateEditorNavigationTitle(isNewTemplate: isNewTemplate, templateName: templateName))
+            .navigationTitle(editedTemplate == nil ? "New Template" : "Edit Template")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") {
-                        if hasUnsavedChanges {
+                        if hasChanges {
                             showingDiscardConfirmation = true
                         } else {
                             dismiss()
                         }
                     }
                 }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
+
+                ToolbarItem(placement: .topBarTrailing) {
                     Button("Save") {
-                        let result = saveTemplate()
-                        if result == .success {
-                            dismiss()
-                        } else {
-                            saveResult = result
-                        }
+                        save()
                     }
-                    .disabled(!canSave)
+                    .fontWeight(.semibold)
+                    .disabled(validation != .valid)
                 }
             }
-            .onAppear {
-                if let template = existingTemplate {
-                    templateName = WorkoutTemplate.normalizedDisplayName(template.name)
-                    templateNotes = WorkoutTemplate.normalizedDisplayNotes(template.notes) ?? ""
-                    exercises = template.exercises
-                } else if templateName.isEmpty && templateNotes.isEmpty && exercises.isEmpty {
-                    templateName = TemplateViewModel.normalizedSearchQuery(initialTemplateName)
-                    templateNotes = WorkoutTemplate.normalizedDisplayNotes(initialTemplateNotes) ?? ""
-                    exercises = initialExercises
+            .sheet(isPresented: $showingExercisePicker) {
+                ExercisePickerView(
+                    excludedExerciseIDs: [],
+                    title: "Add to Template"
+                ) { exercise in
+                    addExercise(named: exercise.name)
                 }
             }
-            .sheet(isPresented: $showingExerciseSelector) {
-                ExerciseSelectorForTemplateView(
-                    excludedExerciseNames: exercises.map(\.exerciseName)
-                ) { exerciseName in
-                    addExerciseToTemplate(exerciseName)
-                }
-            }
-            .sheet(item: $showingExerciseEditor) { exercise in
-                TemplateExerciseEditView(
-                    exercise: exercise,
-                    onSave: { updatedExercise in
-                        // Find the exercise to update
-                        if let index = exercises.firstIndex(where: { $0.id == updatedExercise.id }) {
-                            // Remove the old exercise and insert the updated one at the same index
-                            exercises.remove(at: index)
-                            exercises.insert(updatedExercise, at: index)
-                        }
+            .sheet(item: $editingExercise) { exercise in
+                TemplateExerciseEditorSheet(templateExercise: exercise) { updated in
+                    if let index = exercises.firstIndex(where: { $0.id == updated.id }) {
+                        exercises[index] = updated
+                        didEditPrescriptions = true
                     }
-                )
+                }
             }
-            .alert(discardAlertTitle, isPresented: $showingDiscardConfirmation) {
-                Button(discardAlertActionTitle, role: .destructive) {
-                    showingDiscardConfirmation = false
+            .confirmationDialog(
+                "Discard Changes?",
+                isPresented: $showingDiscardConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Discard Changes", role: .destructive) {
                     dismiss()
                 }
-
-                Button("Keep Editing", role: .cancel) {
-                    showingDiscardConfirmation = false
-                }
+                Button("Keep Editing", role: .cancel) {}
+            }
+            .alert(saveErrorTitle ?? "Couldn’t Save Template", isPresented: errorBinding) {
+                Button("OK", role: .cancel) {}
             } message: {
-                Text(discardAlertMessage)
+                Text(saveErrorMessage)
             }
-            .interactiveDismissDisabled(hasUnsavedChanges)
-            .confirmationDialog(
-                Self.deleteExerciseAlertTitle(for: exerciseToDelete?.exerciseName ?? ""),
-                isPresented: $showingDeleteExerciseConfirmation,
-                presenting: exerciseToDelete
-            ) { exercise in
-                Button(Self.deleteExerciseActionTitle(for: exercise.exerciseName), role: .destructive) {
-                    removeExercise(id: exercise.id)
-                    exerciseToDelete = nil
+            .onAppear {
+                if let template = editedTemplate {
+                    name = template.name
+                    notes = template.notes
+                    exercises = template.exercises
                 }
-
-                Button("Keep Exercise", role: .cancel) {
-                    exerciseToDelete = nil
-                }
-            } message: { exercise in
-                Text(Self.deleteExerciseAlertMessage(for: exercise))
             }
-            .alert(
-                saveResult.map(saveAlertTitle(for:)) ?? TemplateManager.MutationResult.persistenceFailure.alertTitle,
-                isPresented: Binding(
-                    get: { saveResult != nil },
-                    set: { isPresented in
-                        if !isPresented {
-                            saveResult = nil
-                        }
-                    }
-                ),
-                presenting: saveResult
-            ) { _ in
-                Button("OK", role: .cancel) {
-                    saveResult = nil
-                }
-            } message: { result in
-                Text(saveAlertMessage(for: result))
-            }
+            .interactiveDismissDisabled(hasChanges)
         }
     }
-    
-    private func saveTemplate() -> TemplateManager.MutationResult {
-        if isNewTemplate {
-            return templateManager.createTemplate(name: templateName, exercises: exercises, notes: templateNotes)
-        } else if let template = existingTemplate {
-            return templateManager.updateTemplate(template, name: templateName, exercises: exercises, notes: templateNotes)
+
+    // MARK: - Helpers
+
+    private func prescriptionSummary(for exercise: TemplateExercise) -> String {
+        let ranges = exercise.repRanges.sorted { $0.setNumber < $1.setNumber }
+        guard let first = ranges.first else {
+            return "\(exercise.suggestedSets) sets"
         }
 
-        return .persistenceFailure
+        return "\(exercise.suggestedSets) sets • top set \(first.minReps)–\(first.maxReps) reps"
     }
-    
-    private func addExerciseToTemplate(_ exerciseName: String) {
-        // Create default template exercise with RPT pattern
-        let newExercise = TemplateExercise(
-            exerciseName: exerciseName,
-            suggestedSets: 3,
-            repRanges: [
-                TemplateRepRange(setNumber: 1, minReps: 6, maxReps: 8, percentageOfFirstSet: 1.0),
-                TemplateRepRange(setNumber: 2, minReps: 8, maxReps: 10, percentageOfFirstSet: 0.9),
-                TemplateRepRange(setNumber: 3, minReps: 10, maxReps: 12, percentageOfFirstSet: 0.8)
-            ],
-            notes: ""
+
+    private func addExercise(named exerciseName: String) {
+        let alreadyAdded = exercises.contains {
+            ExerciseManager.namesCollide($0.exerciseName, exerciseName)
+        }
+        guard !alreadyAdded else { return }
+
+        exercises.append(
+            TemplateExercise(
+                exerciseName: exerciseName,
+                suggestedSets: 3,
+                repRanges: [
+                    TemplateRepRange(setNumber: 1, minReps: 6, maxReps: 8, percentageOfFirstSet: 1.0),
+                    TemplateRepRange(setNumber: 2, minReps: 8, maxReps: 10, percentageOfFirstSet: 0.9),
+                    TemplateRepRange(setNumber: 3, minReps: 10, maxReps: 12, percentageOfFirstSet: 0.8)
+                ],
+                notes: ""
+            )
         )
-        
-        exercises.append(newExercise)
+    }
+
+    private func save() {
+        let result: TemplateManager.MutationResult
+
+        if let template = editedTemplate {
+            result = templateManager.updateTemplate(template, name: name, exercises: exercises, notes: notes)
+        } else {
+            result = templateManager.createTemplate(name: name, exercises: exercises, notes: notes)
+        }
+
+        if result == .success {
+            onSaved?()
+            dismiss()
+        } else {
+            saveErrorTitle = result.alertTitle
+            saveErrorMessage = result.alertMessage
+        }
+    }
+
+    private var errorBinding: Binding<Bool> {
+        Binding(
+            get: { saveErrorTitle != nil },
+            set: { if !$0 { saveErrorTitle = nil } }
+        )
     }
 }
 
-#Preview {
-    let modelContainer = try! ModelContainer(for: WorkoutTemplate.self, Exercise.self)
-    
-    let template = WorkoutTemplate(
-        name: "Upper Body Day",
-        exercises: [
-            TemplateExercise(
-                exerciseName: "Bench Press",
-                suggestedSets: 3,
-                repRanges: [
-                    TemplateRepRange(setNumber: 1, minReps: 4, maxReps: 6, percentageOfFirstSet: 1.0),
-                    TemplateRepRange(setNumber: 2, minReps: 6, maxReps: 8, percentageOfFirstSet: 0.9)
-                ],
-                notes: "Focus on chest contraction"
+// MARK: - Template Exercise Editor
+
+struct TemplateExerciseEditorSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let templateExercise: TemplateExercise
+    let onSave: (TemplateExercise) -> Void
+
+    @State private var setCount: Int = 3
+    @State private var repRanges: [TemplateRepRange] = []
+    @State private var notes: String = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Sets") {
+                    Stepper("Working sets: \(setCount)", value: $setCount, in: 1...6)
+                        .onChange(of: setCount) { _, newValue in
+                            repRanges = TemplateExercise.normalizedRepRanges(for: newValue, from: repRanges)
+                        }
+                }
+
+                Section("Rep Ranges") {
+                    ForEach($repRanges, id: \.setNumber) { $range in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(range.setNumber == 1 ? "Top set" : "Back-off \(range.setNumber - 1)")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+
+                            HStack {
+                                Stepper("Min \(range.minReps)", value: $range.minReps, in: 1...30)
+                                    .font(.subheadline)
+                            }
+
+                            HStack {
+                                Stepper("Max \(range.maxReps)", value: $range.maxReps, in: range.minReps...30)
+                                    .font(.subheadline)
+                            }
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+
+                Section("Notes") {
+                    TextField("Form cues for this movement…", text: $notes, axis: .vertical)
+                        .lineLimit(2...4)
+                }
+            }
+            .navigationTitle(templateExercise.exerciseName)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Save") {
+                        let updated = TemplateExercise(
+                            id: templateExercise.id,
+                            exerciseName: templateExercise.exerciseName,
+                            suggestedSets: setCount,
+                            repRanges: sanitizedRanges(),
+                            notes: notes
+                        )
+                        onSave(updated)
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+            .onAppear {
+                setCount = max(1, templateExercise.suggestedSets)
+                repRanges = TemplateExercise.normalizedRepRanges(
+                    for: max(1, templateExercise.suggestedSets),
+                    from: templateExercise.repRanges
+                )
+                notes = templateExercise.notes
+            }
+        }
+    }
+
+    private func sanitizedRanges() -> [TemplateRepRange] {
+        repRanges.map { range in
+            TemplateRepRange(
+                setNumber: range.setNumber,
+                minReps: range.minReps,
+                maxReps: max(range.minReps, range.maxReps),
+                percentageOfFirstSet: range.percentageOfFirstSet
             )
-        ],
-        notes: "Rest 2-3 minutes between sets"
-    )
-    
-    return NavigationStack {
-        TemplateEditView(
-            isNewTemplate: false,
-            existingTemplate: template,
-            initialTemplateName: "",
-            initialTemplateNotes: "",
-            initialExercises: []
-        )
-        .modelContainer(modelContainer)
+        }
     }
 }

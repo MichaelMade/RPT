@@ -2,788 +2,351 @@
 //  ExerciseDetailView.swift
 //  RPT
 //
-//  Created by Michael Moore on 4/27/25.
+//  Everything about one movement: muscles, instructions, e1RM trend,
+//  progression target, and complete set history.
 //
 
 import SwiftUI
-import SwiftData
-import UIKit
+import Charts
 
 struct ExerciseDetailView: View {
-    @Bindable var exercise: Exercise
-    @StateObject private var homeViewModel = HomeViewModel()
-    @StateObject private var templateViewModel = TemplateViewModel()
-    @State private var showingEditSheet = false
-    @State private var recentHistory: [(workout: Workout, set: ExerciseSet)] = []
-    @State private var selectedSourceTemplate: WorkoutTemplate?
-    @State private var copiedWorkoutName: String?
-    @State private var showingCopySummaryAlert = false
-    @State private var workoutToDelete: Workout?
-    @State private var showingDeleteWorkoutAlert = false
-    @State private var workoutToDiscardAndStartFollowUp: Workout?
-    @State private var showingDiscardAndStartFollowUpConfirmation = false
-    @State private var templateToDiscardAndStart: WorkoutTemplate?
-    @State private var showingDiscardAndStartTemplateConfirmation = false
-    @State private var localActiveWorkout: Workout?
-    @State private var showingLocalActiveWorkoutSheet = false
-    @State private var templateStartFailureTitle = "Workout Action Failed"
-    @State private var templateStartFailureMessage: String?
-    
+    @Environment(\.dismiss) private var dismiss
+
+    let exercise: Exercise
+    var onLibraryChanged: (() -> Void)? = nil
+
+    @State private var history: [(workout: Workout, sets: [ExerciseSet])] = []
+    @State private var showingEdit = false
+    @State private var showingDeleteConfirmation = false
+    @State private var errorMessage: String?
+
     private let workoutManager = WorkoutManager.shared
-    private let templateManager = TemplateManager.shared
+    private let exerciseManager = ExerciseManager.shared
 
-    static func displayName(for exercise: Exercise) -> String {
-        let collapsedName = exercise.name
-            .components(separatedBy: .whitespacesAndNewlines)
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
-
-        guard !collapsedName.isEmpty else {
-            return "Exercise"
-        }
-
-        return String(collapsedName.prefix(80))
-    }
-
-    static func normalizedInstructions(for exercise: Exercise) -> String? {
-        let collapsedInstructions = exercise.instructions
-            .components(separatedBy: .whitespacesAndNewlines)
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
-
-        guard !collapsedInstructions.isEmpty else {
-            return nil
-        }
-
-        return collapsedInstructions
-    }
-
-    static func recentHistoryEntries(from history: [(workout: Workout, sets: [ExerciseSet])]) -> [(workout: Workout, set: ExerciseSet)] {
+    /// Completed workouts containing logged working sets of this exercise, newest first.
+    private var completedHistory: [(workout: Workout, sets: [ExerciseSet])] {
         history
-            .compactMap { workout, sets in
-                let completedWorkingSets = sets.filter(\.isCompletedWorkingSet)
-
-                guard let bestSet = completedWorkingSets.max(by: { lhs, rhs in
-                    rhs.isBetterPerformance(than: lhs)
-                }) else {
-                    return nil
-                }
-
-                return (workout: workout, set: bestSet)
-            }
-            .sorted { lhs, rhs in
-                if lhs.workout.date != rhs.workout.date {
-                    return lhs.workout.date > rhs.workout.date
-                }
-
-                return lhs.set.completedAt > rhs.set.completedAt
-            }
+            .filter { $0.workout.isCompleted }
+            .map { (workout: $0.workout, sets: $0.sets.filter(\.isCompletedWorkingSet)) }
+            .filter { !$0.sets.isEmpty }
     }
 
-    static func templateStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
-        guard let template else {
-            return "Couldn’t Start This Template"
-        }
-
-        return TemplateViewModel().startTemplateFailureAlertTitle(for: template)
-    }
-
-    static func templateSaveAndStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
-        guard let template else {
-            return "Couldn’t Save & Start This Template"
-        }
-
-        return TemplateViewModel().activeWorkoutPersistenceFailureAlertTitle(for: .saveForLater, opening: template)
-    }
-
-    static func templateDiscardAndStartFailureAlertTitle(for template: WorkoutTemplate?) -> String {
-        guard let template else {
-            return "Couldn’t Discard & Start This Template"
-        }
-
-        return TemplateViewModel().activeWorkoutPersistenceFailureAlertTitle(for: .discard, opening: template)
-    }
-
-    static func discardCurrentWorkoutAndStartTemplateAlertTitle(for template: WorkoutTemplate?, currentWorkout: Workout? = nil) -> String {
-        guard let template else {
-            return "Discard This Workout & Start This Template?"
-        }
-
-        return TemplateViewModel().discardCurrentWorkoutAndStartTemplateAlertTitle(for: template, currentWorkout: currentWorkout)
-    }
-
-    static func discardCurrentWorkoutAndStartTemplateAlertMessage(for template: WorkoutTemplate?, currentWorkout: Workout? = nil) -> String {
-        guard let template else {
-            return "Your in-progress workout will be lost before RPT starts the selected template. This action cannot be undone."
-        }
-
-        return TemplateViewModel().discardCurrentWorkoutAndStartTemplateAlertMessage(for: template, currentWorkout: currentWorkout)
-    }
-
-    static func discardCurrentWorkoutAndStartFollowUpAlertTitle(for workout: Workout?, currentWorkout: Workout? = nil) -> String {
-        guard let workout else {
-            return "Discard This Workout & Start This Follow-Up?"
-        }
-
-        return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertTitle(for: workout, currentWorkout: currentWorkout)
-    }
-
-    static func discardCurrentWorkoutAndStartFollowUpAlertMessage(for workout: Workout?, currentWorkout: Workout? = nil) -> String {
-        guard let workout else {
-            return "Your in-progress workout will be lost before RPT starts the selected follow-up. This action cannot be undone."
-        }
-
-        return HomeViewModel().discardCurrentWorkoutAndStartFollowUpAlertMessage(for: workout, currentWorkout: currentWorkout)
-    }
-    
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Header with icon
-                HStack(alignment: .center, spacing: 16) {
-                    // Exercise icon
-                    ExerciseIconView(category: exercise.category, size: 60)
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(Self.displayName(for: exercise))
-                            .font(.title2)
-                            .fontWeight(.bold)
+            VStack(spacing: Theme.sectionSpacing) {
+                headerCard
 
-                        // Category and custom badge
-                        HStack {
-                            ExerciseCategoryTag(category: exercise.category)
-                            
-                            if exercise.isCustom {
-                                Text("Custom")
-                                    .font(.caption2)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.orange.opacity(0.2))
-                                    .foregroundColor(.orange)
-                                    .cornerRadius(4)
-                            }
-                        }
-                        
-                        // Main muscles
-                        if !exercise.primaryMuscleGroups.isEmpty {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Primary Muscles")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                
-                                HStack(spacing: 4) {
-                                    ForEach(exercise.primaryMuscleGroups, id: \.self) { muscle in
-                                        MuscleGroupTag(muscleGroup: muscle, isPrimary: true)
-                                    }
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        
-                        // Secondary muscles
-                        if !exercise.secondaryMuscleGroups.isEmpty {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Secondary Muscles")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                
-                                HStack(spacing: 4) {
-                                    ForEach(exercise.secondaryMuscleGroups, id: \.self) { muscle in
-                                        MuscleGroupTag(muscleGroup: muscle, isPrimary: false)
-                                    }
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                    }
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color(UIColor.secondarySystemBackground))
-                .cornerRadius(12)
-                
-                // Instructions
-                if let normalizedInstructions = Self.normalizedInstructions(for: exercise) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "list.bullet.clipboard")
-                                .foregroundColor(exercise.category.style.color)
-                            
-                            Text("Instructions")
-                                .font(.headline)
-                        }
-                        
-                        Text(normalizedInstructions)
-                            .font(.body)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(UIColor.secondarySystemBackground))
-                    .cornerRadius(12)
-                }
-                
-                // View progress charts
-                NavigationLink(destination: ExerciseProgressView(exercise: exercise)) {
-                    HStack {
-                        Image(systemName: "chart.xyaxis.line")
-                            .foregroundColor(.white)
-                        Text("View Progress")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(exercise.category.style.color)
-                    .cornerRadius(12)
+                if let progression = progressionNote {
+                    progressionCard(progression)
                 }
 
-                // Recent history
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .foregroundColor(exercise.category.style.color)
-
-                        Text("Exercise History")
-                            .font(.headline)
-                    }
-                    
-                    if recentHistory.isEmpty {
-                        Text("No workout history for this exercise")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .padding()
-                    } else {
-                        ForEach(Array(recentHistory.prefix(5).enumerated()), id: \.element.set.id) { _, entry in
-                            let sourceTemplate = sourceTemplate(for: entry.workout)
-
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack(spacing: 12) {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(WorkoutDetailView.displayName(for: entry.workout))
-                                            .font(.subheadline)
-
-                                        Text(WorkoutRow.relativeDateText(for: entry.workout.date))
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-
-                                        if let templateOriginText = WorkoutRow.templateOriginText(
-                                            for: entry.workout,
-                                            resolvedTemplateName: sourceTemplate?.name
-                                        ) {
-                                            Text(templateOriginText)
-                                                .font(.caption2)
-                                                .foregroundColor(.secondary)
-                                        }
-                                    }
-
-                                    Spacer()
-
-                                    Text(entry.set.formattedWeightReps)
-                                        .font(.headline)
-                                        .foregroundColor(.primary)
-                                }
-
-                                VStack(spacing: 8) {
-                                    HStack(spacing: 12) {
-                                        NavigationLink(destination: WorkoutDetailView(workout: entry.workout)) {
-                                            Label(homeViewModel.reviewWorkoutButtonTitle(for: entry.workout), systemImage: "chevron.right")
-                                                .font(.caption.weight(.semibold))
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .tint(.blue)
-
-                                        if let sourceTemplate,
-                                           let sourceTemplateQuickActionTitle = homeViewModel.sourceTemplateQuickActionTitle(
-                                            for: entry.workout,
-                                            resolvedTemplateName: sourceTemplate.name,
-                                            resolvedTemplate: sourceTemplate
-                                           ) {
-                                            Button {
-                                                selectedSourceTemplate = sourceTemplate
-                                            } label: {
-                                                Label(sourceTemplateQuickActionTitle, systemImage: "square.on.square")
-                                                    .font(.caption.weight(.semibold))
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                            }
-                                            .buttonStyle(.bordered)
-                                            .tint(.purple)
-                                        }
-                                    }
-
-                                    if let sourceTemplate {
-                                        if let resumableWorkout = protectedResumableWorkout() {
-                                            VStack(alignment: .leading, spacing: 8) {
-                                                Text(templateViewModel.activeWorkoutBlocksTemplateStartMessage(for: resumableWorkout, opening: sourceTemplate))
-                                                    .font(.caption)
-                                                    .foregroundColor(.secondary)
-
-                                                Button {
-                                                    openStartedWorkout(resumableWorkout)
-                                                } label: {
-                                                    Label(templateViewModel.continueCurrentWorkoutButtonTitle(for: resumableWorkout), systemImage: "arrow.clockwise.circle.fill")
-                                                        .font(.caption.weight(.semibold))
-                                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                                }
-                                                .buttonStyle(.borderedProminent)
-                                                .tint(.green)
-
-                                                Button {
-                                                    saveActiveWorkoutAndOpenTemplate(sourceTemplate)
-                                                } label: {
-                                                    Label(templateViewModel.saveAndStartTemplateButtonTitle(for: sourceTemplate, currentWorkout: resumableWorkout), systemImage: "square.and.arrow.down")
-                                                        .font(.caption.weight(.semibold))
-                                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                                }
-                                                .buttonStyle(.bordered)
-
-                                                Button(role: .destructive) {
-                                                    templateToDiscardAndStart = sourceTemplate
-                                                    showingDiscardAndStartTemplateConfirmation = true
-                                                } label: {
-                                                    Label(
-                                                        templateViewModel.discardAndStartTemplateButtonTitle(
-                                                            for: sourceTemplate,
-                                                            currentWorkout: resumableWorkout
-                                                        ),
-                                                        systemImage: "trash"
-                                                    )
-                                                        .font(.caption.weight(.semibold))
-                                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                                }
-                                                .buttonStyle(.bordered)
-                                            }
-                                        } else {
-                                            Button {
-                                                startWorkout(from: sourceTemplate)
-                                            } label: {
-                                                Label(templateViewModel.startTemplateButtonTitle(for: sourceTemplate), systemImage: "play.fill")
-                                                    .font(.caption.weight(.semibold))
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                            }
-                                            .buttonStyle(.borderedProminent)
-                                            .tint(.green)
-                                        }
-                                    }
-
-                                    if let resumableWorkout = protectedResumableWorkout(), homeViewModel.shouldOfferFollowUpRecovery(for: entry.workout) {
-                                        VStack(alignment: .leading, spacing: 8) {
-                                            Text(homeViewModel.activeWorkoutBlocksFollowUpMessage(for: resumableWorkout, startingFrom: entry.workout))
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-
-                                            Button {
-                                                openStartedWorkout(resumableWorkout)
-                                            } label: {
-                                                Label(homeViewModel.continueCurrentWorkoutButtonTitle(for: resumableWorkout), systemImage: "arrow.clockwise.circle.fill")
-                                                    .font(.caption.weight(.semibold))
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                            }
-                                            .buttonStyle(.borderedProminent)
-                                            .tint(.green)
-
-                                            Button {
-                                                saveActiveWorkoutAndStartFollowUp(from: entry.workout)
-                                            } label: {
-                                                Label(homeViewModel.saveAndStartFollowUpButtonTitle(for: entry.workout, currentWorkout: resumableWorkout), systemImage: "square.and.arrow.down")
-                                                    .font(.caption.weight(.semibold))
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                            }
-                                            .buttonStyle(.bordered)
-
-                                            Button(role: .destructive) {
-                                                workoutToDiscardAndStartFollowUp = entry.workout
-                                                showingDiscardAndStartFollowUpConfirmation = true
-                                            } label: {
-                                                Label(homeViewModel.discardAndStartFollowUpButtonTitle(for: entry.workout, currentWorkout: resumableWorkout), systemImage: "trash")
-                                                    .font(.caption.weight(.semibold))
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                            }
-                                            .buttonStyle(.bordered)
-                                        }
-                                    } else if homeViewModel.canStartFollowUpWorkout(from: entry.workout, activeWorkout: protectedResumableWorkout()) {
-                                        VStack(alignment: .leading, spacing: 8) {
-                                            Text(homeViewModel.followUpWorkoutHelperText(for: entry.workout))
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-
-                                            Button {
-                                                startFollowUp(from: entry.workout)
-                                            } label: {
-                                                Label(homeViewModel.followUpWorkoutButtonTitle(for: entry.workout), systemImage: "arrow.triangle.2.circlepath")
-                                                    .font(.caption.weight(.semibold))
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                            }
-                                            .buttonStyle(.borderedProminent)
-                                            .tint(.green)
-                                        }
-                                    }
-
-                                    Button {
-                                        copyWorkoutSummary(entry.workout)
-                                    } label: {
-                                        Label(homeViewModel.copySummaryButtonTitle(for: entry.workout), systemImage: "doc.on.doc")
-                                            .font(.caption.weight(.semibold))
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .tint(.indigo)
-
-                                    Button(role: .destructive) {
-                                        workoutToDelete = entry.workout
-                                        showingDeleteWorkoutAlert = true
-                                    } label: {
-                                        Label(homeViewModel.deleteRecentWorkoutButtonTitle(for: entry.workout), systemImage: "trash")
-                                            .font(.caption.weight(.semibold))
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                    .buttonStyle(.bordered)
-                                }
-                            }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(UIColor.tertiarySystemBackground))
-                            )
-                        }
-                    }
+                if e1rmPoints.count >= 2 {
+                    trendSection
                 }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(UIColor.secondarySystemBackground))
-                .cornerRadius(12)
-                
-                Spacer()
+
+                historySection
             }
-            .padding()
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, Theme.screenPadding)
+            .padding(.bottom, 24)
         }
-        .navigationTitle(Self.displayName(for: exercise))
+        .background(Theme.screenBackground)
+        .navigationTitle(exercise.displayName)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if exercise.isCustom {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(ExerciseLibraryViewModel.editScreenTitle(for: exercise)) {
-                        showingEditSheet = true
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button {
+                            showingEdit = true
+                        } label: {
+                            Label("Edit Exercise", systemImage: "pencil")
+                        }
+
+                        Button(role: .destructive) {
+                            showingDeleteConfirmation = true
+                        } label: {
+                            Label("Delete Exercise", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
                     }
                 }
             }
         }
-        .sheet(isPresented: $showingEditSheet) {
-            EditExerciseView(exercise: exercise)
-        }
-        .navigationDestination(item: $selectedSourceTemplate) { template in
-            TemplateDetailView(
-                template: template,
-                onStartWorkout: { openStartedWorkout($0) },
-                onEditTemplate: nil,
-                onDuplicateTemplate: nil,
-                onResumeActiveWorkout: protectedResumableWorkout() == nil ? nil : {
-                    guard let activeWorkout = protectedResumableWorkout() else { return }
-                    openStartedWorkout(activeWorkout)
-                },
-                onSaveActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil ? nil : {
-                    saveActiveWorkoutAndOpenTemplate(template)
-                },
-                onDiscardActiveWorkoutAndOpenTemplate: protectedResumableWorkout() == nil ? nil : {
-                    discardActiveWorkoutAndOpenTemplate(template)
-                },
-                currentActiveWorkout: protectedResumableWorkout(),
-                activeWorkoutBlockMessage: sourceTemplateBlockMessage(for: template)
-            )
-        }
-        .alert("Workout Summary Copied", isPresented: $showingCopySummaryAlert) {
-            Button("OK", role: .cancel) {
-                copiedWorkoutName = nil
+        .sheet(isPresented: $showingEdit) {
+            ExerciseFormView(mode: .edit(exercise)) {
+                onLibraryChanged?()
             }
-        } message: {
-            Text(copySummaryMessage)
         }
-        .alert(
-            workoutToDelete.map(homeViewModel.deleteRecentWorkoutAlertTitle(for:)) ?? "Delete Workout?",
-            isPresented: $showingDeleteWorkoutAlert
+        .confirmationDialog(
+            "Delete \(exercise.displayName)?",
+            isPresented: $showingDeleteConfirmation,
+            titleVisibility: .visible
         ) {
-            Button(
-                workoutToDelete.map(homeViewModel.deleteRecentWorkoutConfirmationButtonTitle(for:)) ?? "Delete",
-                role: .destructive
-            ) {
-                guard let workoutToDelete else {
-                    return
-                }
-
-                guard homeViewModel.deleteRecentWorkout(workoutToDelete) else {
-                    return
-                }
-
-                recentHistory.removeAll { $0.workout.id == workoutToDelete.id }
-                if copiedWorkoutName == WorkoutRow.displayName(for: workoutToDelete) {
-                    copiedWorkoutName = nil
-                }
-                self.workoutToDelete = nil
+            Button("Delete Exercise", role: .destructive) {
+                deleteExercise()
             }
-
-            Button("Cancel", role: .cancel) {
-                workoutToDelete = nil
-            }
+            Button("Cancel", role: .cancel) {}
         } message: {
-            Text(workoutToDelete.map(homeViewModel.deleteRecentWorkoutMessage(for:)) ?? "")
+            Text(deletionImpactMessage)
         }
-        .alert(
-            Self.discardCurrentWorkoutAndStartFollowUpAlertTitle(
-                for: workoutToDiscardAndStartFollowUp,
-                currentWorkout: protectedResumableWorkout()
-            ),
-            isPresented: $showingDiscardAndStartFollowUpConfirmation,
-            presenting: workoutToDiscardAndStartFollowUp
-        ) { workout in
-            Button(homeViewModel.discardAndStartFollowUpButtonTitle(for: workout, currentWorkout: protectedResumableWorkout()), role: .destructive) {
-                discardActiveWorkoutAndStartFollowUp(from: workout)
-                workoutToDiscardAndStartFollowUp = nil
-            }
-
-            Button(
-                protectedResumableWorkout().map { homeViewModel.continueCurrentWorkoutButtonTitle(for: $0) }
-                ?? "Continue Workout",
-                role: .cancel
-            ) {
-                workoutToDiscardAndStartFollowUp = nil
-            }
-        } message: { workout in
-            Text(
-                Self.discardCurrentWorkoutAndStartFollowUpAlertMessage(
-                    for: workout,
-                    currentWorkout: protectedResumableWorkout()
-                )
-            )
-        }
-        .alert(
-            Self.discardCurrentWorkoutAndStartTemplateAlertTitle(
-                for: templateToDiscardAndStart,
-                currentWorkout: protectedResumableWorkout()
-            ),
-            isPresented: $showingDiscardAndStartTemplateConfirmation,
-            presenting: templateToDiscardAndStart
-        ) { template in
-            Button(
-                templateViewModel.discardAndStartTemplateButtonTitle(
-                    for: template,
-                    currentWorkout: protectedResumableWorkout()
-                ),
-                role: .destructive
-            ) {
-                discardActiveWorkoutAndOpenTemplate(template)
-                templateToDiscardAndStart = nil
-            }
-
-            Button(
-                protectedResumableWorkout().map { templateViewModel.continueCurrentWorkoutButtonTitle(for: $0) }
-                ?? "Continue Workout",
-                role: .cancel
-            ) {
-                templateToDiscardAndStart = nil
-            }
-        } message: { template in
-            Text(
-                Self.discardCurrentWorkoutAndStartTemplateAlertMessage(
-                    for: template,
-                    currentWorkout: protectedResumableWorkout()
-                )
-            )
-        }
-        .alert(templateStartFailureTitle, isPresented: Binding(
-            get: { templateStartFailureMessage != nil },
-            set: { isPresented in
-                if !isPresented {
-                    clearTemplateStartFailure()
-                }
-            }
-        )) {
-            Button("OK", role: .cancel) {
-                clearTemplateStartFailure()
-            }
+        .alert("Couldn’t Delete Exercise", isPresented: errorBinding) {
+            Button("OK", role: .cancel) {}
         } message: {
-            Text(templateStartFailureMessage ?? "")
-        }
-        .alert(homeViewModel.startWorkoutFailureAlertTitle, isPresented: Binding(
-            get: { homeViewModel.startWorkoutFailureMessage != nil },
-            set: { isPresented in
-                if !isPresented {
-                    homeViewModel.clearStartWorkoutFailure()
-                }
-            }
-        )) {
-            Button("OK", role: .cancel) {
-                homeViewModel.clearStartWorkoutFailure()
-            }
-        } message: {
-            Text(homeViewModel.startWorkoutFailureMessage ?? "")
-        }
-        .sheet(isPresented: $showingLocalActiveWorkoutSheet, onDismiss: {
-            if localActiveWorkout?.isCompleted == true {
-                localActiveWorkout = nil
-            }
-        }) {
-            if let localActiveWorkout {
-                ActiveWorkoutView(workout: localActiveWorkout)
-            }
+            Text(errorMessage ?? "Please try again.")
         }
         .onAppear {
-            loadRecentSets()
+            history = workoutManager.getWorkoutHistory(for: exercise)
         }
     }
-    
-    // Load recent sets for this exercise
-    private func loadRecentSets() {
-        let history = workoutManager.getWorkoutHistory(for: exercise)
-        recentHistory = Self.recentHistoryEntries(from: history)
+
+    // MARK: - Header
+
+    private var headerCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                ExerciseIconView(category: exercise.category, size: 44)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    ExerciseCategoryTag(category: exercise.category)
+
+                    if exercise.isCustom {
+                        PillTag(text: "Custom Exercise", tint: Theme.info)
+                    }
+                }
+
+                Spacer()
+
+                let best = bestE1RM
+                if best > 0 {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(OneRepMax.formatted(best))
+                            .font(Theme.statFont(size: 22))
+                        Text("Best e1RM")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            if !exercise.primaryMuscleGroups.isEmpty || !exercise.secondaryMuscleGroups.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    if !exercise.primaryMuscleGroups.isEmpty {
+                        muscleRow(title: "Primary", muscles: exercise.primaryMuscleGroups, isPrimary: true)
+                    }
+                    if !exercise.secondaryMuscleGroups.isEmpty {
+                        muscleRow(title: "Secondary", muscles: exercise.secondaryMuscleGroups, isPrimary: false)
+                    }
+                }
+            }
+
+            if !exercise.instructions.isEmpty {
+                Text(exercise.instructions)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .rptCard()
     }
 
-    private var copySummaryMessage: String {
-        WorkoutRow.copySummaryMessage(forWorkoutNamed: copiedWorkoutName)
+    private func muscleRow(title: String, muscles: [MuscleGroup], isPrimary: Bool) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 70, alignment: .leading)
+
+            FlowingTags(muscles: muscles, isPrimary: isPrimary)
+        }
     }
 
-    private func sourceTemplate(for workout: Workout) -> WorkoutTemplate? {
-        templateManager.sourceTemplate(for: workout)
-    }
+    // MARK: - Progression
 
-    private func protectedResumableWorkout() -> Workout? {
-        WorkoutStateManager.shared.resolvedResumableWorkout(
-            currentBinding: localActiveWorkout,
-            fallbackWorkouts: workoutManager.getIncompleteWorkouts()
-        )
-    }
-
-    private func sourceTemplateBlockMessage(for template: WorkoutTemplate) -> String? {
-        guard let activeWorkout = protectedResumableWorkout() else {
+    private var progressionNote: ProgressionSuggestion? {
+        guard let lastSession = completedHistory.first,
+              let topSet = lastSession.sets.first,
+              topSet.weight > 0
+        else {
             return nil
         }
 
-        return templateViewModel.activeWorkoutBlocksTemplateStartMessage(for: activeWorkout, opening: template)
+        return ProgressionAdvisor.suggestion(lastWeight: topSet.weight, lastReps: topSet.reps)
     }
 
-    private func openStartedWorkout(_ startedWorkout: Workout) {
-        localActiveWorkout = startedWorkout
-        showingLocalActiveWorkoutSheet = true
-    }
+    private func progressionCard(_ suggestion: ProgressionSuggestion) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "lightbulb.fill")
+                .font(.title3)
+                .foregroundStyle(Theme.amber)
 
-    private func startWorkout(from template: WorkoutTemplate) {
-        guard let startedWorkout = templateViewModel.createWorkoutFromTemplate(template) else {
-            presentTemplateStartFailure(
-                templateViewModel.startTemplateFailureMessage(for: template),
-                title: Self.templateStartFailureAlertTitle(for: template)
-            )
-            return
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Next Session Target")
+                    .font(.subheadline.weight(.semibold))
+                Text(suggestion.note)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 0)
         }
-
-        openStartedWorkout(startedWorkout)
+        .rptCard(padding: 14)
     }
 
-    private func saveActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
-        guard let activeWorkout = protectedResumableWorkout() else { return }
+    // MARK: - e1RM Trend
 
-        switch templateViewModel.startTemplateAfterPersistingActiveWorkout(
-            activeWorkout,
-            action: .saveForLater,
-            opening: template,
-            persist: { workoutManager.saveWorkoutSafely($0) }
-        ) {
-        case .success(let startedWorkout):
-            openStartedWorkout(startedWorkout)
-        case .failure(let message):
-            presentTemplateStartFailure(
-                message,
-                title: Self.templateSaveAndStartFailureAlertTitle(for: template)
-            )
+    private struct E1RMPoint: Identifiable {
+        let date: Date
+        let value: Double
+        var id: Date { date }
+    }
+
+    private var e1rmPoints: [E1RMPoint] {
+        completedHistory
+            .compactMap { session -> E1RMPoint? in
+                let best = OneRepMax.bestEstimate(in: session.sets)
+                guard best > 0 else { return nil }
+                return E1RMPoint(date: session.workout.date, value: best)
+            }
+            .sorted { $0.date < $1.date }
+    }
+
+    private var bestE1RM: Double {
+        e1rmPoints.map(\.value).max() ?? 0
+    }
+
+    private var trendSection: some View {
+        VStack(spacing: 12) {
+            SectionHeader(title: "Strength Trend")
+
+            VStack(alignment: .leading, spacing: 8) {
+                Chart(e1rmPoints) { point in
+                    LineMark(
+                        x: .value("Date", point.date),
+                        y: .value("e1RM", point.value)
+                    )
+                    .foregroundStyle(Theme.accent)
+                    .interpolationMethod(.catmullRom)
+
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("e1RM", point.value)
+                    )
+                    .foregroundStyle(Theme.accentDeep)
+                }
+                .chartYAxis {
+                    AxisMarks(position: .leading)
+                }
+                .frame(height: 180)
+
+                Text("Estimated one-rep max from your best working set each session.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            .rptCard()
         }
     }
 
-    private func discardActiveWorkoutAndOpenTemplate(_ template: WorkoutTemplate) {
-        guard let activeWorkout = protectedResumableWorkout() else { return }
+    // MARK: - History
 
-        switch templateViewModel.startTemplateAfterPersistingActiveWorkout(
-            activeWorkout,
-            action: .discard,
-            opening: template,
-            persist: { workoutManager.deleteWorkoutSafely($0) }
-        ) {
-        case .success(let startedWorkout):
-            openStartedWorkout(startedWorkout)
-        case .failure(let message):
-            presentTemplateStartFailure(
-                message,
-                title: Self.templateDiscardAndStartFailureAlertTitle(for: template)
-            )
-        }
-    }
+    private var historySection: some View {
+        VStack(spacing: 12) {
+            SectionHeader(title: "History")
 
-    private func presentTemplateStartFailure(_ message: String, title: String = "Workout Action Failed") {
-        templateStartFailureTitle = title
-        templateStartFailureMessage = message
-    }
-
-    private func clearTemplateStartFailure() {
-        templateStartFailureTitle = "Workout Action Failed"
-        templateStartFailureMessage = nil
-    }
-
-    private func startFollowUp(from workout: Workout) {
-        guard homeViewModel.startFollowUpWorkout(from: workout), let startedWorkout = homeViewModel.currentWorkout else {
-            return
-        }
-
-        openStartedWorkout(startedWorkout)
-    }
-
-    private func saveActiveWorkoutAndStartFollowUp(from workout: Workout) {
-        guard let activeWorkout = protectedResumableWorkout() else { return }
-
-        switch homeViewModel.startFollowUpAfterPersistingActiveWorkout(
-            activeWorkout,
-            action: .saveForLater,
-            from: workout,
-            persist: { workoutManager.saveWorkoutSafely($0) }
-        ) {
-        case .success(let startedWorkout):
-            openStartedWorkout(startedWorkout)
-        case .failure(let message):
-            homeViewModel.presentStartWorkoutFailure(
-                message,
-                title: homeViewModel.activeWorkoutPersistenceFailureAlertTitle(
-                    for: .saveForLater,
-                    startingFollowUpFrom: workout
+            if completedHistory.isEmpty {
+                EmptyStateCard(
+                    icon: "clock",
+                    title: "No Sessions Yet",
+                    message: "Log this exercise in a workout and your set history will appear here."
                 )
-            )
+            } else {
+                ForEach(completedHistory, id: \.workout.id) { session in
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text(session.workout.date, format: .dateTime.month().day().year())
+                                .font(.subheadline.weight(.semibold))
+
+                            Spacer()
+
+                            let best = OneRepMax.bestEstimate(in: session.sets)
+                            if best > 0 {
+                                Text("e1RM \(OneRepMax.formatted(best))")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        ForEach(session.sets) { set in
+                            HStack {
+                                Text(set.formattedWeightReps)
+                                    .font(.subheadline)
+                                    .monospacedDigit()
+
+                                Spacer()
+
+                                if let rpe = set.displayRPE {
+                                    PillTag(text: "RPE \(rpe)", tint: .secondary)
+                                }
+                            }
+                        }
+                    }
+                    .rptCard(padding: 14)
+                }
+            }
         }
     }
 
-    private func discardActiveWorkoutAndStartFollowUp(from workout: Workout) {
-        guard let activeWorkout = protectedResumableWorkout() else { return }
+    // MARK: - Deletion
 
-        switch homeViewModel.startFollowUpAfterPersistingActiveWorkout(
-            activeWorkout,
-            action: .discard,
-            from: workout,
-            persist: { workoutManager.deleteWorkoutSafely($0) }
-        ) {
-        case .success(let startedWorkout):
-            openStartedWorkout(startedWorkout)
-        case .failure(let message):
-            homeViewModel.presentStartWorkoutFailure(
-                message,
-                title: homeViewModel.activeWorkoutPersistenceFailureAlertTitle(
-                    for: .discard,
-                    startingFollowUpFrom: workout
-                )
-            )
+    private var deletionImpactMessage: String {
+        let impact = exerciseManager.deletionImpact(for: exercise)
+
+        var parts: [String] = []
+        if impact.loggedSetCount > 0 {
+            parts.append("\(impact.loggedSetCount) logged \(impact.loggedSetCount == 1 ? "set" : "sets") will be removed from your history")
+        }
+        if impact.draftSetCount > 0 {
+            parts.append("\(impact.draftSetCount) draft \(impact.draftSetCount == 1 ? "set" : "sets") will be removed from in-progress workouts")
+        }
+        if impact.templateCount > 0 {
+            parts.append("\(impact.templateCount) \(impact.templateCount == 1 ? "template references" : "templates reference") this exercise")
+        }
+
+        guard !parts.isEmpty else {
+            return "This custom exercise has no logged history. This cannot be undone."
+        }
+
+        return parts.joined(separator: ". ") + ". This cannot be undone."
+    }
+
+    private func deleteExercise() {
+        let result = exerciseManager.deleteExercise(exercise)
+        if result == .success {
+            onLibraryChanged?()
+            dismiss()
+        } else {
+            errorMessage = "This exercise could not be deleted right now. Please try again."
         }
     }
 
-    private func copyWorkoutSummary(_ workout: Workout) {
-        UIPasteboard.general.string = workout.generateFormattedSummary()
-        copiedWorkoutName = WorkoutRow.displayName(for: workout)
-        showingCopySummaryAlert = true
+    private var errorBinding: Binding<Bool> {
+        Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )
+    }
+}
+
+// MARK: - Flowing Muscle Tags
+
+private struct FlowingTags: View {
+    let muscles: [MuscleGroup]
+    let isPrimary: Bool
+
+    var body: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 84), spacing: 6, alignment: .leading)], alignment: .leading, spacing: 6) {
+            ForEach(muscles, id: \.self) { muscle in
+                PillTag(text: muscle.displayName, tint: isPrimary ? Theme.accent : .secondary)
+            }
+        }
     }
 }

@@ -2,7 +2,9 @@
 //  ActiveWorkoutViewModel.swift
 //  RPT
 //
-//  Created by Michael Moore on 4/29/25.
+//  State and persistence for a live workout session: exercise/set CRUD
+//  with rollback on failed saves, RPT back-off weight suggestions, and
+//  rest-timer state.
 //
 
 import Foundation
@@ -23,42 +25,37 @@ class ActiveWorkoutViewModel: ObservableObject {
 
         var description: String {
             switch self {
-            case .saveFailure: return "Failed to save workout"
-            case .completeFailure: return "Failed to complete workout"
-            case .deleteFailure: return "Failed to delete workout"
-            case .exerciseNotFound: return "Exercise not found in workout"
-            case .invalidExerciseData: return "Invalid exercise data"
-            case .invalidSetData: return "Invalid set data"
-            case .duplicateExercise: return "Exercise already added to this workout"
-            case .operationFailed: return "Operation failed"
+            case .saveFailure: return "Couldn’t save this workout. Keep it open, then try again."
+            case .completeFailure: return "Couldn’t complete this workout. Keep it open, then try again."
+            case .deleteFailure: return "Couldn’t discard this workout. Keep it open, then try again."
+            case .exerciseNotFound: return "Exercise not found in workout."
+            case .invalidExerciseData: return "Invalid exercise data."
+            case .invalidSetData: return "Invalid set data."
+            case .duplicateExercise: return "This exercise is already in the workout."
+            case .operationFailed: return "Something went wrong. Please try again."
             }
         }
     }
-    
+
     @Published var workout: Workout
     @Published var workoutName: String
     @Published var exerciseGroups: [Exercise: [ExerciseSet]] = [:]
-    @Published var exerciseOrder: [Exercise] = [] // Track order of exercises
+    @Published var exerciseOrder: [Exercise] = []
     @Published var showingRestTimer = false
     @Published var currentRestDuration: Int = 180
-    @Published var completedExercises: Set<PersistentIdentifier> = [] // Only manually tracked completions
-    @Published var expandedExercises: Set<PersistentIdentifier> = Set() // Track which exercises are expanded
+    @Published var completedExercises: Set<PersistentIdentifier> = []
+    @Published var expandedExercises: Set<PersistentIdentifier> = Set()
     @Published var errorMessage: String?
     @Published var errorAlertTitle: String = "Workout Action Failed"
-    
-    // State for confirmation dialogs
-    @Published var exerciseToDelete: Exercise? = nil
-    @Published var showingDeleteExerciseConfirmation = false
-    
+
     private let workoutManager: WorkoutManager
     private let exerciseManager: ExerciseManager
     private let settingsManager: SettingsManager
-    
+
     var hasSets: Bool {
-        return !workout.sets.isEmpty
+        !workout.sets.isEmpty
     }
-    
-    // Add computed property to check if all exercises are completed
+
     var allExercisesCompleted: Bool {
         guard !exerciseOrder.isEmpty else { return false }
         return exerciseOrder.allSatisfy { isExerciseCompleted($0) }
@@ -68,289 +65,48 @@ class ActiveWorkoutViewModel: ObservableObject {
         exerciseOrder.filter { !isExerciseCompleted($0) }
     }
 
-    var finishHelperText: String? {
-        helperTextForIncompleteExercises(enableActionLabel: finishButtonTitle())
+    var completedExercisesCount: Int {
+        completedExercises.count
     }
 
-    var exitDialogHelperText: String {
-        if exerciseOrder.isEmpty {
-            return "\(saveForLaterButtonTitle()) keeps it as a draft. Add at least one exercise before you can finish this workout."
-        }
-
-        return helperTextForIncompleteExercises(enableActionLabel: completeWorkoutButtonTitle())
-            ?? "\(saveForLaterButtonTitle()) keeps it as a draft. \(completeWorkoutButtonTitle()) marks it as finished."
+    var totalExercisesCount: Int {
+        exerciseOrder.count
     }
 
-    var canCompleteWorkoutFromExitDialog: Bool {
-        allExercisesCompleted
+    var displayName: String {
+        WorkoutNameFormatter.displayName(for: workout)
     }
 
-    func discardWorkoutAlertTitle() -> String {
-        guard let displayName = specificWorkoutDisplayName else {
-            return "Discard This Workout?"
-        }
-
-        return "Discard “\(displayName)”?"
+    var autoStartRestTimerEnabled: Bool {
+        settingsManager.settings.autoStartRestTimerEnabled
     }
 
-    func discardWorkoutButtonTitle() -> String {
-        guard let displayName = specificWorkoutDisplayName else {
-            return "Discard This Workout"
-        }
-
-        return "Discard “\(displayName)”"
-    }
-
-    func discardWorkoutMessage() -> String {
-        let impactSummary = discardWorkoutImpactSummary(workoutName: specificWorkoutDisplayName)
-
-        guard let displayName = specificWorkoutDisplayName else {
-            return "Discard this workout? \(impactSummary) This action cannot be undone."
-        }
-
-        return "Discard “\(displayName)”? \(impactSummary) This action cannot be undone."
-    }
-
-    private func discardWorkoutImpactSummary(workoutName: String?) -> String {
-        let exerciseCount = workout.exerciseCount
-        let setCount = workout.sets.count
-
-        guard exerciseCount > 0 || setCount > 0 else {
-            guard let workoutName else {
-                return "This draft has no exercises yet, but it will still be removed."
-            }
-
-            return "“\(workoutName)” has no exercises yet, but it will still be removed."
-        }
-
-        let exerciseSummary = "\(exerciseCount) \(exerciseCount == 1 ? "exercise" : "exercises")"
-        let setSummary = setTypeBreakdownSummary(for: workout.sets) ?? "\(setCount) \(setCount == 1 ? "set" : "sets")"
-        let draftReference = workoutName.map { "“\($0)”" } ?? "this draft"
-        var summary = "This will remove \(exerciseSummary) and \(setSummary) from \(draftReference)"
-
-        if let loggedSetSummary = loggedSetBreakdownSummary(for: workout.sets) {
-            summary += ", including \(loggedSetSummary)"
-        }
-
-        return summary + "."
-    }
-
-    func completeWorkoutAlertTitle() -> String {
-        guard let displayName = specificWorkoutDisplayName else {
-            return "Complete This Workout?"
-        }
-
-        return "Complete “\(displayName)”?"
-    }
-
-    func finishButtonTitle() -> String {
-        guard let displayName = specificWorkoutDisplayName else {
-            return "Finish This Workout"
-        }
-
-        return "Finish “\(displayName)”"
-    }
-
-    func completeWorkoutButtonTitle() -> String {
-        guard let displayName = specificWorkoutDisplayName else {
-            return "Complete This Workout & Save"
-        }
-
-        return "Complete “\(displayName)” & Save"
-    }
-
-    func continueWorkoutButtonTitle() -> String {
-        guard let displayName = specificWorkoutDisplayName else {
-            return "Continue This Workout"
-        }
-
-        return "Continue “\(displayName)”"
-    }
-
-    func saveForLaterButtonTitle() -> String {
-        guard let displayName = specificWorkoutDisplayName else {
-            return "Save This Workout for Later"
-        }
-
-        return "Save “\(displayName)” for Later"
-    }
-
-    func exitWorkoutMenuTitle() -> String {
-        guard let displayName = specificWorkoutDisplayName else {
-            return "Exit This Workout"
-        }
-
-        return "Exit “\(displayName)”"
-    }
-
-    func discardWorkoutMenuTitle() -> String {
-        guard let displayName = specificWorkoutDisplayName else {
-            return "Discard This Workout"
-        }
-
-        return "Discard “\(displayName)”"
-    }
-
-    func completeWorkoutMessage() -> String {
-        guard let displayName = specificWorkoutDisplayName else {
-            return "Would you like to complete and save this workout?"
-        }
-
-        return "Would you like to complete and save “\(displayName)”?"
-    }
-
-    func deleteExerciseAlertTitle(for exercise: Exercise?) -> String {
-        guard let displayName = exercise?.specificDisplayName else {
-            return "Delete Exercise?"
-        }
-
-        guard let workoutDisplayName = specificWorkoutDisplayName else {
-            return "Delete “\(displayName)” from Workout?"
-        }
-
-        return "Delete “\(displayName)” from “\(workoutDisplayName)”?”
-    }
-
-    func deleteExerciseButtonTitle(for exercise: Exercise) -> String {
-        guard let displayName = exercise.specificDisplayName else {
-            return "Delete Exercise"
-        }
-
-        return "Delete “\(displayName)”"
-    }
-
-    func deleteExerciseMessage(for exercise: Exercise?) -> String {
-        guard let exercise else {
-            return "Are you sure you want to remove this exercise from the workout? All sets for this exercise will be deleted."
-        }
-
-        let impactSummary = deleteExerciseImpactSummary(for: exercise)
-
-        guard let displayName = exercise.specificDisplayName else {
-            return "Are you sure you want to remove this exercise from the workout? \(impactSummary)"
-        }
-
-        guard let workoutDisplayName = specificWorkoutDisplayName else {
-            return "Are you sure you want to remove “\(displayName)” from this workout? \(impactSummary)"
-        }
-
-        return "Are you sure you want to remove “\(displayName)” from “\(workoutDisplayName)”? \(impactSummary)"
-    }
-
-    private func deleteExerciseImpactSummary(for exercise: Exercise) -> String {
-        let matchingSets = workout.sets.filter { $0.exercise?.id == exercise.id }
-
-        guard !matchingSets.isEmpty else {
-            return "All sets for this exercise will be deleted."
-        }
-
-        let totalSetCount = matchingSets.count
-        let totalSetSummary = totalSetCount == 1 ? "1 set" : "\(totalSetCount) sets"
-        let setTypeBreakdown = setTypeBreakdownSummary(for: matchingSets)
-        let loggedSetSummary = loggedSetBreakdownSummary(for: matchingSets)
-
-        if let setTypeBreakdown, let loggedSetSummary {
-            return "This will remove \(totalSetSummary) from the workout (\(setTypeBreakdown)), including \(loggedSetSummary)."
-        }
-
-        if let setTypeBreakdown {
-            return totalSetCount == 1
-                ? "This will remove \(setTypeBreakdown) from the workout."
-                : "This will remove \(totalSetSummary) from the workout (\(setTypeBreakdown))."
-        }
-
-        guard let loggedSetSummary else {
-            return "This will remove \(totalSetSummary) from the workout."
-        }
-
-        return "This will remove \(totalSetSummary) from the workout, including \(loggedSetSummary)."
-    }
-
-    private func setTypeBreakdownSummary(for sets: [ExerciseSet]) -> String? {
-        let warmupCount = sets.filter(\.isWarmup).count
-        let workingCount = sets.count - warmupCount
-
-        if warmupCount == 0 {
-            return workingCount == 1 ? "1 working set" : "\(workingCount) working sets"
-        }
-
-        if workingCount == 0 {
-            return warmupCount == 1
-                ? "1 warm-up set"
-                : "\(warmupCount) warm-up sets"
-        }
-
-        let workingSummary = workingCount == 1
-            ? "1 working set"
-            : "\(workingCount) working sets"
-        let warmupSummary = warmupCount == 1
-            ? "1 warm-up set"
-            : "\(warmupCount) warm-up sets"
-
-        return "\(workingSummary) and \(warmupSummary)"
-    }
-
-    private func loggedSetBreakdownSummary(for sets: [ExerciseSet]) -> String? {
-        let loggedSets = sets.filter(\.isCompletedLoggedSet)
-
-        guard !loggedSets.isEmpty else {
-            return nil
-        }
-
-        let warmupCount = loggedSets.filter(\.isWarmup).count
-        let workingCount = loggedSets.count - warmupCount
-
-        if warmupCount == 0 {
-            return workingCount == 1
-                ? "1 logged working set"
-                : "\(workingCount) logged working sets"
-        }
-
-        if workingCount == 0 {
-            return warmupCount == 1
-                ? "1 logged warm-up set"
-                : "\(warmupCount) logged warm-up sets"
-        }
-
-        let workingSummary = workingCount == 1
-            ? "1 logged working set"
-            : "\(workingCount) logged working sets"
-        let warmupSummary = warmupCount == 1
-            ? "1 logged warm-up set"
-            : "\(warmupCount) logged warm-up sets"
-
-        return "\(workingSummary) and \(warmupSummary)"
-    }
-    
     init(workout: Workout, workoutManager: WorkoutManager? = nil, exerciseManager: ExerciseManager? = nil, settingsManager: SettingsManager? = nil) {
         self.workout = workout
-        self.workoutName = Self.visibleWorkoutName(for: workout.name)
+        self.workoutName = WorkoutNameFormatter.displayName(for: workout.name)
         self.workoutManager = workoutManager ?? WorkoutManager.shared
         self.exerciseManager = exerciseManager ?? ExerciseManager.shared
         self.settingsManager = settingsManager ?? SettingsManager.shared
-        
-        // Initialize exercise groups and order
+
         updateExerciseGroupsAndOrder()
-        
+
         do {
             try populateWithPreviousWeights()
         } catch {
-            setError(
-                title: workoutFailureAlertTitle(action: "Load"),
-                message: workoutFailureMessage(action: "Load")
-            )
+            setError(title: "Couldn’t Load Previous Weights", message: WorkoutError.saveFailure.description)
         }
-        
-        // Initialize all exercises as expanded by default
+
         for exercise in exerciseOrder {
             expandedExercises.insert(exercise.id)
         }
-        
-        // Set rest duration from settings
+
         currentRestDuration = self.settingsManager.settings.restTimerDuration
     }
-    
-    // Updated method to populate workout with previous weights without affecting completion
+
+    // MARK: - Template Autofill
+
+    /// Pre-fills template-created sets with the weights from the most recent
+    /// completed session of each exercise, without marking anything logged.
     private func populateWithPreviousWeights() throws {
         guard workout.startedFromTemplate != nil else {
             return
@@ -367,56 +123,39 @@ class ActiveWorkoutViewModel: ObservableObject {
         var snapshots: [PersistentIdentifier: SetSnapshot] = [:]
 
         for exercise in exerciseOrder {
-            // Get the workout history for this exercise - Safe to use without try because the method handles errors internally
             let history = workoutManager.getWorkoutHistory(for: exercise)
 
-            // If there's previous workout data
-            if !history.isEmpty {
-                // Find the most recent workout that has completed working sets
-                let recentWorkouts = history.filter { workout, sets in
-                    workout.isCompleted && sets.contains(where: Self.shouldUseForTemplateAutofill)
-                }
+            let recentWorkouts = history.filter { workout, sets in
+                workout.isCompleted && sets.contains(where: \.isCompletedWorkingSet)
+            }
 
-                if let mostRecent = recentWorkouts.first {
-                    // Use completed working sets only (exclude warmups/placeholders)
-                    let sortedSets = orderSetsForDisplay(
-                        mostRecent.sets.filter(Self.shouldUseForTemplateAutofill)
+            guard let mostRecent = recentWorkouts.first else { continue }
+
+            let previousSets = orderSetsForDisplay(mostRecent.sets.filter(\.isCompletedWorkingSet))
+            guard let currentSets = exerciseGroups[exercise].map(orderSetsForDisplay) else { continue }
+
+            for (index, currentSet) in currentSets.enumerated() {
+                guard let previousSet = previousSets[safe: index] else { continue }
+
+                if snapshots[currentSet.id] == nil {
+                    snapshots[currentSet.id] = SetSnapshot(
+                        set: currentSet,
+                        weight: currentSet.weight,
+                        reps: currentSet.reps,
+                        rpe: currentSet.rpe,
+                        completedAt: currentSet.completedAt
                     )
-
-                    // Get current sets for this exercise in the current workout
-                    if let currentSets = exerciseGroups[exercise].map(orderSetsForDisplay) {
-                        // Apply previous weights to the new sets
-                        for (index, currentSet) in currentSets.enumerated() {
-                            if let previousSet = sortedSets[safe: index] {
-                                if snapshots[currentSet.id] == nil {
-                                    snapshots[currentSet.id] = SetSnapshot(
-                                        set: currentSet,
-                                        weight: currentSet.weight,
-                                        reps: currentSet.reps,
-                                        rpe: currentSet.rpe,
-                                        completedAt: currentSet.completedAt
-                                    )
-                                }
-
-                                // Apply the weight directly to the set
-                                currentSet.weight = previousSet.weight
-
-                                // Use the previous reps if currentSet has 0 reps
-                                if currentSet.reps == 0 {
-                                    currentSet.reps = previousSet.reps
-                                }
-
-                                // Copy RPE if available
-                                currentSet.rpe = previousSet.rpe
-                            }
-                        }
-                    }
                 }
+
+                currentSet.weight = previousSet.weight
+                if currentSet.reps == 0 {
+                    currentSet.reps = previousSet.reps
+                }
+                currentSet.rpe = previousSet.rpe
             }
         }
 
         do {
-            // Save the workout with the weights but no exercises marked as completed
             try saveWorkout()
         } catch {
             for snapshot in snapshots.values {
@@ -428,9 +167,9 @@ class ActiveWorkoutViewModel: ObservableObject {
             throw error
         }
     }
-    
-    // MARK: - Workout Management
-    
+
+    // MARK: - Workout Lifecycle
+
     func updateWorkoutName() throws {
         let originalWorkoutName = workout.name
         let sanitizedName = workoutManager.sanitizedWorkoutName(workoutName)
@@ -441,25 +180,21 @@ class ActiveWorkoutViewModel: ObservableObject {
             try workoutManager.saveWorkout(workout)
         } catch {
             workout.name = originalWorkoutName
-            workoutName = Self.visibleWorkoutName(for: originalWorkoutName)
+            workoutName = WorkoutNameFormatter.displayName(for: originalWorkoutName)
             throw error
         }
     }
-    
-    // Safe version that doesn't throw
+
     func updateWorkoutNameSafely() -> Bool {
         do {
             try updateWorkoutName()
             return true
         } catch {
-            setError(
-                title: workoutFailureAlertTitle(action: "Rename"),
-                message: workoutFailureMessage(action: "Rename")
-            )
+            setError(title: "Couldn’t Rename Workout", message: WorkoutError.saveFailure.description)
             return false
         }
     }
-    
+
     func saveWorkout() throws {
         do {
             try workoutManager.saveWorkout(workout)
@@ -468,16 +203,12 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
     }
 
-    // Safe version that doesn't throw
     func saveWorkoutSafely() -> Bool {
         do {
             try saveWorkout()
             return true
         } catch {
-            setError(
-                title: workoutFailureAlertTitle(action: "Save"),
-                message: workoutFailureMessage(action: "Save")
-            )
+            setError(title: "Couldn’t Save Workout", message: WorkoutError.saveFailure.description)
             return false
         }
     }
@@ -499,16 +230,12 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
     }
 
-    // Safe version that doesn't throw
     func completeWorkoutSafely() -> Bool {
         do {
             try completeWorkout()
             return true
         } catch {
-            setError(
-                title: workoutFailureAlertTitle(action: "Complete"),
-                message: workoutFailureMessage(action: "Complete")
-            )
+            setError(title: "Couldn’t Complete Workout", message: WorkoutError.completeFailure.description)
             return false
         }
     }
@@ -529,17 +256,13 @@ class ActiveWorkoutViewModel: ObservableObject {
             throw WorkoutError.deleteFailure
         }
     }
-    
-    // Safe version that doesn't throw
+
     func discardWorkoutSafely() -> Bool {
         do {
             try discardWorkout()
             return true
         } catch {
-            setError(
-                title: workoutFailureAlertTitle(action: "Discard"),
-                message: workoutFailureMessage(action: "Discard")
-            )
+            setError(title: "Couldn’t Discard Workout", message: WorkoutError.deleteFailure.description)
             return false
         }
     }
@@ -552,33 +275,24 @@ class ActiveWorkoutViewModel: ObservableObject {
         WorkoutStateManager.shared.markWorkoutAsDiscarded(workout.id)
         return true
     }
-    
+
     // MARK: - Exercise Management
-    
+
     func addExerciseToWorkout(_ exercise: Exercise) throws {
         guard !exerciseOrder.contains(where: { $0.id == exercise.id }) else {
             throw WorkoutError.duplicateExercise
         }
 
-        // Create a new set for this exercise
-        let newSet = workout.addSet(
-            exercise: exercise,
-            weight: 0,
-            reps: 8
-        )
-        // Newly inserted sets should start incomplete until explicitly logged.
+        let newSet = workout.addSet(exercise: exercise, weight: 0, reps: 8)
         newSet.completedAt = .distantPast
-        
-        // Update exercise groups and order
+
         if exerciseGroups[exercise] != nil {
             exerciseGroups[exercise]?.append(newSet)
         } else {
             exerciseGroups[exercise] = [newSet]
-            // Add to order if it's a new exercise
             exerciseOrder.append(exercise)
         }
-        
-        // Automatically expand the newly added exercise
+
         expandedExercises.insert(exercise.id)
 
         do {
@@ -588,70 +302,83 @@ class ActiveWorkoutViewModel: ObservableObject {
             throw error
         }
     }
-    
-    // Safe version that doesn't throw
+
     func addExerciseToWorkoutSafely(_ exercise: Exercise) -> Bool {
         do {
             try addExerciseToWorkout(exercise)
             return true
         } catch let error as WorkoutError {
-            let title = exerciseFailureAlertTitle(action: "Add", exercise: exercise)
-            setError(title: title, message: error.description)
+            setError(title: "Couldn’t Add \(exercise.displayName)", message: error.description)
             return false
         } catch {
-            setError(
-                title: exerciseFailureAlertTitle(action: "Add", exercise: exercise),
-                message: "Failed to add exercise: \(error.localizedDescription)"
-            )
+            setError(title: "Couldn’t Add \(exercise.displayName)", message: WorkoutError.saveFailure.description)
             return false
         }
     }
-    
+
+    func deleteExerciseFromWorkout(_ exercise: Exercise) throws {
+        guard exerciseGroups.keys.contains(where: { $0.id == exercise.id }) else {
+            throw WorkoutError.exerciseNotFound
+        }
+
+        // Delete through manager so backing ExerciseSet records are removed,
+        // not just detached from this workout.
+        try workoutManager.removeExercise(exercise, from: workout)
+        updateExerciseGroupsAndOrder(maintainOrder: true)
+
+        expandedExercises.remove(exercise.id)
+        completedExercises.remove(exercise.id)
+    }
+
+    func deleteExerciseFromWorkoutSafely(_ exercise: Exercise) -> Bool {
+        do {
+            try deleteExerciseFromWorkout(exercise)
+            return true
+        } catch {
+            setError(title: "Couldn’t Delete \(exercise.displayName)", message: WorkoutError.deleteFailure.description)
+            return false
+        }
+    }
+
+    // MARK: - Set Management
+
+    /// Adds the next RPT back-off set. The suggested weight always drops
+    /// from the exercise's top (first completed working) set, so back-off
+    /// percentages never compound on each other.
     func addSetToExercise(_ exercise: Exercise) throws {
-        // Get existing sets for this exercise in the current workout
         let existingSets = workout.sets.filter { $0.exercise?.id == exercise.id }
         let orderedExistingSets = orderSetsForDisplay(existingSets)
         let completedWorkingSets = orderedExistingSets.filter(\.isCompletedWorkingSet)
-        
+
         var newWeight = 0
         var newReps = 8
-        
-        // Keep progression tied to canonical insertion order, but only count
-        // completed working sets for drop-index math so warmups/incomplete
-        // placeholders never shift top/back-off progression.
-        if let lastSet = completedWorkingSets.last ?? orderedExistingSets.last {
-            // For RPT, reduce weight by default percentage.
-            // Clamp to a safe range so malformed settings never yield invalid math.
-            let reductionPercentage = min(max(getReductionPercentage(forSetNumber: completedWorkingSets.count), 0), 1)
-            let safeLastWeight = max(0, lastSet.weight)
-            let calculatedWeight = Double(safeLastWeight) * (1.0 - reductionPercentage)
-            // Round to nearest 5 and keep suggestions non-negative.
-            newWeight = max(0, workoutManager.roundToNearest5(calculatedWeight))
 
-            // For RPT, usually increase reps from the prior completed value.
-            // Keep the default starter reps when prior reps are zero/corrupted.
-            let safeLastReps = max(0, lastSet.reps)
+        if let topSet = completedWorkingSets.first {
+            let reductionPercentage = min(max(reductionPercentage(forSetIndex: completedWorkingSets.count), 0), 1)
+            let safeTopWeight = max(0, topSet.weight)
+            newWeight = max(0, workoutManager.roundToNearest5(Double(safeTopWeight) * (1.0 - reductionPercentage)))
+
+            let safeLastReps = max(0, completedWorkingSets.last?.reps ?? 0)
             if safeLastReps > 0 {
                 newReps = min(safeLastReps + 2, 15)
             }
+        } else if let lastSet = orderedExistingSets.last {
+            // Nothing logged yet — mirror the most recent placeholder.
+            newWeight = max(0, lastSet.weight)
+            let safeLastReps = max(0, lastSet.reps)
+            if safeLastReps > 0 {
+                newReps = safeLastReps
+            }
         }
-        
-        // Add the new set
-        let newSet = workout.addSet(
-            exercise: exercise,
-            weight: newWeight,
-            reps: newReps
-        )
-        // Auto-generated set suggestions should remain incomplete until user confirms/logs them.
+
+        let newSet = workout.addSet(exercise: exercise, weight: newWeight, reps: newReps)
         newSet.completedAt = .distantPast
-        
-        // Update our local exercise groups
+
         if exerciseGroups[exercise] != nil {
             exerciseGroups[exercise]?.append(newSet)
         } else {
             exerciseGroups[exercise] = [newSet]
-            // Add to order if it's a new exercise (shouldn't happen but just in case)
-            if !exerciseOrder.contains(exercise) {
+            if !exerciseOrder.contains(where: { $0.id == exercise.id }) {
                 exerciseOrder.append(exercise)
             }
         }
@@ -663,21 +390,55 @@ class ActiveWorkoutViewModel: ObservableObject {
             throw error
         }
     }
-    
-    // Safe version that doesn't throw
+
     func addSetToExerciseSafely(_ exercise: Exercise) -> Bool {
         do {
             try addSetToExercise(exercise)
             return true
         } catch {
-            setError(
-                title: exerciseFailureAlertTitle(action: "Add", exercise: exercise),
-                message: "Failed to add set: \(error.localizedDescription)"
-            )
+            setError(title: "Couldn’t Add Set", message: WorkoutError.saveFailure.description)
             return false
         }
     }
-    
+
+    /// Adds a warm-up set ahead of the working sets.
+    func addWarmupSet(to exercise: Exercise, weight: Int, reps: Int) throws {
+        let sanitized = workoutManager.sanitizedSetInput(weight: weight, reps: reps, rpe: nil)
+        let newSet = workout.addSet(
+            exercise: exercise,
+            weight: sanitized.weight,
+            reps: sanitized.reps,
+            isWarmup: true
+        )
+        newSet.completedAt = .distantPast
+
+        if exerciseGroups[exercise] != nil {
+            exerciseGroups[exercise]?.append(newSet)
+        } else {
+            exerciseGroups[exercise] = [newSet]
+            if !exerciseOrder.contains(where: { $0.id == exercise.id }) {
+                exerciseOrder.append(exercise)
+            }
+        }
+
+        do {
+            try saveWorkout()
+        } catch {
+            rollbackInsertedSet(newSet, for: exercise)
+            throw error
+        }
+    }
+
+    func addWarmupSetSafely(to exercise: Exercise, weight: Int, reps: Int) -> Bool {
+        do {
+            try addWarmupSet(to: exercise, weight: weight, reps: reps)
+            return true
+        } catch {
+            setError(title: "Couldn’t Add Warm-up Set", message: WorkoutError.saveFailure.description)
+            return false
+        }
+    }
+
     func updateSet(_ set: ExerciseSet, weight: Int, reps: Int, rpe: Int?) throws {
         guard weight >= 0, reps >= 0 else {
             throw WorkoutError.invalidSetData
@@ -718,23 +479,18 @@ class ActiveWorkoutViewModel: ObservableObject {
 
         updateExerciseGroupsAndOrder(maintainOrder: true)
     }
-    
-    // Safe version that doesn't throw
+
     func updateSetSafely(_ set: ExerciseSet, weight: Int, reps: Int, rpe: Int?) -> Bool {
         do {
             try updateSet(set, weight: weight, reps: reps, rpe: rpe)
             return true
         } catch {
-            setError(
-                title: exerciseFailureAlertTitle(action: "Update", exercise: set.exercise),
-                message: "Failed to update set: \(error.localizedDescription)"
-            )
+            setError(title: "Couldn’t Update Set", message: WorkoutError.saveFailure.description)
             return false
         }
     }
-    
+
     func deleteSet(_ set: ExerciseSet) throws {
-        // Find which exercise this set belongs to
         guard let exercise = set.exercise else {
             throw WorkoutError.invalidSetData
         }
@@ -744,269 +500,26 @@ class ActiveWorkoutViewModel: ObservableObject {
         try workoutManager.deleteSet(set)
         updateExerciseGroupsAndOrder(maintainOrder: true)
 
-        // If that was the last set for this exercise, clear UI state too.
         if !exerciseGroups.keys.contains(where: { $0.id == exercise.id }) {
             expandedExercises.remove(exercise.id)
             completedExercises.remove(exercise.id)
         }
     }
-    
-    // Safe version that doesn't throw
+
     func deleteSetSafely(_ set: ExerciseSet) -> Bool {
         do {
             try deleteSet(set)
             return true
         } catch {
-            setError(
-                title: exerciseFailureAlertTitle(action: "Delete", exercise: set.exercise),
-                message: "Failed to delete set: \(error.localizedDescription)"
-            )
+            setError(title: "Couldn’t Delete Set", message: WorkoutError.deleteFailure.description)
             return false
         }
     }
-    
-    func deleteExerciseFromWorkout(_ exercise: Exercise) throws {
-        // Validate that the exercise exists in the workout
-        guard exerciseGroups.keys.contains(where: { $0.id == exercise.id }) else {
-            throw WorkoutError.exerciseNotFound
-        }
 
-        // Delete through manager so backing ExerciseSet records are removed,
-        // not just detached from this workout.
-        try workoutManager.removeExercise(exercise, from: workout)
-        updateExerciseGroupsAndOrder(maintainOrder: true)
-
-        // Also remove from expanded exercises and completed
-        expandedExercises.remove(exercise.id)
-        completedExercises.remove(exercise.id)
-    }
-    
-    // Safe version that doesn't throw
-    func deleteExerciseFromWorkoutSafely(_ exercise: Exercise) -> Bool {
-        do {
-            try deleteExerciseFromWorkout(exercise)
-            return true
-        } catch {
-            setError(
-                title: exerciseFailureAlertTitle(action: "Delete", exercise: exercise),
-                message: "Failed to delete exercise: \(error.localizedDescription)"
-            )
-            return false
-        }
-    }
-    
-    // MARK: - Exercise Completion and Expansion
-    
-    func toggleExerciseCompletion(_ exercise: Exercise) {
-        if completedExercises.contains(exercise.id) {
-            completedExercises.remove(exercise.id)
-        } else {
-            completedExercises.insert(exercise.id)
-        }
-    }
-    
-    func isExerciseCompleted(_ exercise: Exercise) -> Bool {
-        // Exercise is completed ONLY if manually marked as completed
-        return completedExercises.contains(exercise.id)
-    }
-    
-    func toggleExerciseExpansion(_ exercise: Exercise) {
-        if expandedExercises.contains(exercise.id) {
-            expandedExercises.remove(exercise.id)
-        } else {
-            expandedExercises.insert(exercise.id)
-        }
-    }
-    
-    // MARK: - Helper Methods
-
-    private var specificWorkoutDisplayName: String? {
-        WorkoutRow.specificDisplayName(for: workout)
-    }
-
-    private static func visibleWorkoutName(for workoutName: String) -> String {
-        WorkoutRow.displayName(forWorkoutName: workoutName)
-    }
-
-    private func rollbackInsertedSet(_ set: ExerciseSet, for exercise: Exercise) {
-        exerciseGroups[exercise]?.removeAll { $0.id == set.id }
-
-        if exerciseGroups[exercise]?.isEmpty == true {
-            exerciseGroups.removeValue(forKey: exercise)
-            exerciseOrder.removeAll { $0.id == exercise.id }
-            expandedExercises.remove(exercise.id)
-            completedExercises.remove(exercise.id)
-        }
-
-        workout.sets.removeAll { $0.id == set.id }
-        exercise.sets.removeAll { $0.id == set.id }
-        set.workout = nil
-        set.exercise = nil
-    }
-
-    private func setError(title: String, message: String) {
-        errorAlertTitle = title
-        errorMessage = message
-    }
-
-    private func workoutFailureAlertTitle(action: String) -> String {
-        guard let displayName = specificWorkoutDisplayName else {
-            return genericWorkoutFailureAlertTitle(action: action)
-        }
-
-        return "Couldn’t \(action) “\(displayName)”"
-    }
-
-    private func workoutFailureMessage(action: String) -> String {
-        let workoutReference = specificWorkoutDisplayName.map { "“\($0)”" } ?? "this workout"
-
-        switch action {
-        case "Load":
-            return "Couldn’t load \(workoutReference) right now. Please try again."
-        case "Rename":
-            return "Couldn’t rename \(workoutReference) right now. Please try again."
-        case "Save":
-            return "Couldn’t save \(workoutReference) right now. Keep it open, then try again."
-        case "Complete":
-            return "Couldn’t complete \(workoutReference) right now. Keep it open, then try again."
-        case "Discard":
-            return "Couldn’t discard \(workoutReference) right now. Keep it open, then try again."
-        default:
-            return "Something went wrong with \(workoutReference). Please try again."
-        }
-    }
-
-    private func exerciseFailureAlertTitle(action: String, exercise: Exercise?) -> String {
-        guard let displayName = exercise?.specificDisplayName else {
-            return genericExerciseFailureAlertTitle(action: action)
-        }
-
-        return "Couldn’t \(action) “\(displayName)”"
-    }
-
-    private func genericWorkoutFailureAlertTitle(action: String) -> String {
-        switch action {
-        case "Load":
-            return "Couldn’t Load This Workout"
-        case "Rename":
-            return "Couldn’t Rename This Workout"
-        case "Save":
-            return "Couldn’t Save This Workout"
-        case "Complete":
-            return "Couldn’t Complete This Workout"
-        case "Discard":
-            return "Couldn’t Discard This Workout"
-        default:
-            return "Workout Action Failed"
-        }
-    }
-
-    private func genericExerciseFailureAlertTitle(action: String) -> String {
-        switch action {
-        case "Add":
-            return "Couldn’t Add This Exercise"
-        case "Update":
-            return "Couldn’t Update This Exercise"
-        case "Delete":
-            return "Couldn’t Delete This Exercise"
-        default:
-            return "Workout Action Failed"
-        }
-    }
-
-    private func helperTextForIncompleteExercises(enableActionLabel: String) -> String? {
-        guard !exerciseOrder.isEmpty, !allExercisesCompleted else {
-            return nil
-        }
-
-        let remainingNames = remainingExercises.map(\.displayName)
-        let remainingCount = remainingNames.count
-
-        switch remainingCount {
-        case 1:
-            return "1 exercise left: \(remainingNames[0]). Tap the circle beside it when you're done to enable \(enableActionLabel)."
-        case 2:
-            return "2 exercises left: \(remainingNames[0]) and \(remainingNames[1]). Tap each circle when you're done to enable \(enableActionLabel)."
-        default:
-            let previewNames = remainingNames.prefix(2).joined(separator: ", ")
-            let extraCount = remainingCount - 2
-            return "\(remainingCount) exercises left: \(previewNames), +\(extraCount) more. Tap each circle when you're done to enable \(enableActionLabel)."
-        }
-    }
-
-    private static func shouldUseForTemplateAutofill(_ set: ExerciseSet) -> Bool {
-        set.isCompletedWorkingSet
-    }
-    
-    private func getReductionPercentage(forSetNumber setNumber: Int) -> Double {
-        // Get reduction percentages from settings
-        let settingsDrops = settingsManager.settings.defaultRPTPercentageDrops
-        
-        if setNumber < settingsDrops.count {
-            return settingsDrops[setNumber]
-        }
-        
-        // Fallback to default if settings don't have enough drops
-        let defaultDrops = [0.0, 0.1, 0.15, 0.2]
-        return defaultDrops[safe: setNumber] ?? 0.1
-    }
-    
-    private func updateExerciseGroupsAndOrder(maintainOrder: Bool = false) {
-        // Rebuild exercise groups, filtering out sets without exercises
-        let setsWithExercise = workout.sets.compactMap { set -> (Exercise, ExerciseSet)? in
-            guard let exercise = set.exercise else { return nil }
-            return (exercise, set)
-        }
-        let groups = Dictionary(grouping: setsWithExercise, by: { $0.0 }).mapValues { $0.map { $0.1 } }
-        self.exerciseGroups = groups
-        
-        if maintainOrder {
-            let groupKeyIds = Set(groups.keys.map { $0.id })
-            exerciseOrder.removeAll(where: { !groupKeyIds.contains($0.id) })
-
-            for exercise in groups.keys where !exerciseOrder.contains(where: { $0.id == exercise.id }) {
-                exerciseOrder.append(exercise)
-            }
-        } else {
-            // Determine initial exercise order from canonical workout insertion order.
-            // This avoids unstable ordering when multiple sets share `.distantPast`.
-            var orderedExercises: [Exercise] = []
-
-            for set in workout.sets {
-                guard let exercise = set.exercise else { continue }
-                if !orderedExercises.contains(where: { $0.id == exercise.id }) {
-                    orderedExercises.append(exercise)
-                }
-            }
-
-            // Keep any group keys that may not be represented in `workout.sets` yet.
-            for exercise in groups.keys where !orderedExercises.contains(where: { $0.id == exercise.id }) {
-                orderedExercises.append(exercise)
-            }
-
-            exerciseOrder = orderedExercises
-        }
-    }
-
-    private func orderSetsForDisplay(_ sets: [ExerciseSet]) -> [ExerciseSet] {
-        sets.sorted { lhs, rhs in
-            let lhsOrder = setOrderIndex(lhs)
-            let rhsOrder = setOrderIndex(rhs)
-
-            if lhsOrder != rhsOrder {
-                return lhsOrder < rhsOrder
-            }
-
-            return lhs.completedAt < rhs.completedAt
-        }
-    }
-
-    func orderedSetsForDisplay(in exercise: Exercise) -> [ExerciseSet] {
-        orderSetsForDisplay(exerciseGroups[exercise] ?? [])
-    }
-
+    /// Recalculates back-off set weights from a new top-set weight using the
+    /// configured RPT percentage drops.
     func updateDropSetSuggestions(for exercise: Exercise, firstSetWeight: Int) throws {
-        let sets = orderedSetsForDisplay(in: exercise)
+        let sets = orderedSetsForDisplay(in: exercise).filter { !$0.isWarmup }
         guard sets.count > 1 else { return }
 
         let dropPercentages = settingsManager.settings.defaultRPTPercentageDrops
@@ -1016,20 +529,11 @@ class ActiveWorkoutViewModel: ObservableObject {
         struct SetSnapshot {
             let set: ExerciseSet
             let weight: Int
-            let reps: Int
-            let rpe: Int?
             let completedAt: Date
         }
 
         let snapshots = (1..<affectedSetCount).map { index in
-            let set = sets[index]
-            return SetSnapshot(
-                set: set,
-                weight: set.weight,
-                reps: set.reps,
-                rpe: set.rpe,
-                completedAt: set.completedAt
-            )
+            SetSnapshot(set: sets[index], weight: sets[index].weight, completedAt: sets[index].completedAt)
         }
 
         for index in 1..<affectedSetCount {
@@ -1058,8 +562,6 @@ class ActiveWorkoutViewModel: ObservableObject {
         } catch {
             for snapshot in snapshots {
                 snapshot.set.weight = snapshot.weight
-                snapshot.set.reps = snapshot.reps
-                snapshot.set.rpe = snapshot.rpe
                 snapshot.set.completedAt = snapshot.completedAt
             }
             throw error
@@ -1073,46 +575,143 @@ class ActiveWorkoutViewModel: ObservableObject {
             try updateDropSetSuggestions(for: exercise, firstSetWeight: firstSetWeight)
             return true
         } catch {
-            setError(
-                title: exerciseFailureAlertTitle(action: "Update", exercise: exercise),
-                message: "Failed to update drop sets: \(error.localizedDescription)"
-            )
+            setError(title: "Couldn’t Update Back-off Sets", message: WorkoutError.saveFailure.description)
             return false
+        }
+    }
+
+    // MARK: - Completion & Expansion
+
+    func toggleExerciseCompletion(_ exercise: Exercise) {
+        if completedExercises.contains(exercise.id) {
+            completedExercises.remove(exercise.id)
+        } else {
+            completedExercises.insert(exercise.id)
+        }
+    }
+
+    func isExerciseCompleted(_ exercise: Exercise) -> Bool {
+        completedExercises.contains(exercise.id)
+    }
+
+    func toggleExerciseExpansion(_ exercise: Exercise) {
+        if expandedExercises.contains(exercise.id) {
+            expandedExercises.remove(exercise.id)
+        } else {
+            expandedExercises.insert(exercise.id)
+        }
+    }
+
+    // MARK: - Rest Timer
+
+    func startRestTimer() {
+        currentRestDuration = settingsManager.settings.restTimerDuration
+        showingRestTimer = true
+    }
+
+    func cancelRestTimer() {
+        showingRestTimer = false
+    }
+
+    // MARK: - Errors
+
+    func clearError() {
+        errorAlertTitle = "Workout Action Failed"
+        errorMessage = nil
+    }
+
+    private func setError(title: String, message: String) {
+        errorAlertTitle = title
+        errorMessage = message
+    }
+
+    // MARK: - Ordering Helpers
+
+    func orderedSetsForDisplay(in exercise: Exercise) -> [ExerciseSet] {
+        orderSetsForDisplay(exerciseGroups[exercise] ?? [])
+    }
+
+    private func orderSetsForDisplay(_ sets: [ExerciseSet]) -> [ExerciseSet] {
+        sets.sorted { lhs, rhs in
+            // Warm-ups always lead into the working sets.
+            if lhs.isWarmup != rhs.isWarmup {
+                return lhs.isWarmup
+            }
+
+            let lhsOrder = setOrderIndex(lhs)
+            let rhsOrder = setOrderIndex(rhs)
+
+            if lhsOrder != rhsOrder {
+                return lhsOrder < rhsOrder
+            }
+
+            return lhs.completedAt < rhs.completedAt
         }
     }
 
     private func setOrderIndex(_ set: ExerciseSet) -> Int {
         set.workout?.sets.firstIndex(where: { $0.id == set.id }) ?? Int.max
     }
-    
-    // Start rest timer after completing a set
-    func startRestTimer() {
-        // Get rest duration from settings
-        currentRestDuration = settingsManager.settings.restTimerDuration
-        
-        // Show the timer
-        showingRestTimer = true
+
+    private func updateExerciseGroupsAndOrder(maintainOrder: Bool = false) {
+        let setsWithExercise = workout.sets.compactMap { set -> (Exercise, ExerciseSet)? in
+            guard let exercise = set.exercise else { return nil }
+            return (exercise, set)
+        }
+        let groups = Dictionary(grouping: setsWithExercise, by: { $0.0 }).mapValues { $0.map { $0.1 } }
+        self.exerciseGroups = groups
+
+        if maintainOrder {
+            let groupKeyIds = Set(groups.keys.map { $0.id })
+            exerciseOrder.removeAll(where: { !groupKeyIds.contains($0.id) })
+
+            for exercise in groups.keys where !exerciseOrder.contains(where: { $0.id == exercise.id }) {
+                exerciseOrder.append(exercise)
+            }
+        } else {
+            // Canonical insertion order avoids unstable ordering when several
+            // sets share `.distantPast` completion timestamps.
+            var orderedExercises: [Exercise] = []
+
+            for set in workout.sets {
+                guard let exercise = set.exercise else { continue }
+                if !orderedExercises.contains(where: { $0.id == exercise.id }) {
+                    orderedExercises.append(exercise)
+                }
+            }
+
+            for exercise in groups.keys where !orderedExercises.contains(where: { $0.id == exercise.id }) {
+                orderedExercises.append(exercise)
+            }
+
+            exerciseOrder = orderedExercises
+        }
     }
-    
-    // Cancel rest timer
-    func cancelRestTimer() {
-        showingRestTimer = false
+
+    private func rollbackInsertedSet(_ set: ExerciseSet, for exercise: Exercise) {
+        exerciseGroups[exercise]?.removeAll { $0.id == set.id }
+
+        if exerciseGroups[exercise]?.isEmpty == true {
+            exerciseGroups.removeValue(forKey: exercise)
+            exerciseOrder.removeAll { $0.id == exercise.id }
+            expandedExercises.remove(exercise.id)
+            completedExercises.remove(exercise.id)
+        }
+
+        workout.sets.removeAll { $0.id == set.id }
+        exercise.sets.removeAll { $0.id == set.id }
+        set.workout = nil
+        set.exercise = nil
     }
-    
-    // Clear any error message
-    func clearError() {
-        errorAlertTitle = "Workout Action Failed"
-        errorMessage = nil
-    }
-    
-    // MARK: - Progress Tracking
-    
-    var completedExercisesCount: Int {
-        return completedExercises.count
-    }
-    
-    // Total number of exercises
-    var totalExercisesCount: Int {
-        return exerciseOrder.count
+
+    private func reductionPercentage(forSetIndex setIndex: Int) -> Double {
+        let settingsDrops = settingsManager.settings.defaultRPTPercentageDrops
+
+        if setIndex < settingsDrops.count {
+            return settingsDrops[setIndex]
+        }
+
+        // Past the configured drops, keep the deepest configured drop.
+        return settingsDrops.last ?? 0.1
     }
 }

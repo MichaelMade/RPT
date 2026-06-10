@@ -2,230 +2,212 @@
 //  PlateCalculatorView.swift
 //  RPT
 //
+//  Loads the bar for you: pick a target weight and barbell, get the
+//  plates per side with a visual stack.
+//
 
 import SwiftUI
 
 struct PlateCalculatorView: View {
-    enum BreakdownStatus: Equatable {
-        case validation(message: String)
-        case barOnly(message: String)
-        case unavailable(message: String)
-        case calculated
-    }
-
     @Environment(\.dismiss) private var dismiss
 
-    @State private var targetText: String = "135"
-    @State private var barbell: BarbellType = .olympic
+    var initialTargetWeight: Int = 0
+
+    @State private var targetText: String = ""
     @State private var unit: WeightUnit = .pounds
-    @State private var availableLbPlates: Set<Double> = Set(PlateCalculator.defaultLbPlates)
-    @State private var availableKgPlates: Set<Double> = Set(PlateCalculator.defaultKgPlates)
-
-    private var currentAvailablePlates: [Double] {
-        unit == .pounds
-            ? PlateCalculator.defaultLbPlates.filter(availableLbPlates.contains)
-            : PlateCalculator.defaultKgPlates.filter(availableKgPlates.contains)
-    }
-
-    private var targetWeight: Double? {
-        Self.sanitizedTargetWeight(from: targetText)
-    }
-
-    private var result: PlateCalculator.Result {
-        PlateCalculator.calculate(
-            targetWeight: targetWeight ?? 0,
-            barbell: barbell,
-            unit: unit,
-            availablePlates: currentAvailablePlates
-        )
-    }
-
-    private var breakdownStatus: BreakdownStatus {
-        Self.breakdownStatus(
-            rawTargetText: targetText,
-            barbell: barbell,
-            unit: unit,
-            result: result
-        )
-    }
+    @State private var barbell: BarbellType = .olympic
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Target") {
-                    HStack {
-                        TextField("Weight", text: $targetText)
-                            .keyboardType(.decimalPad)
-                            .font(.system(.title2, design: .monospaced))
-                        Picker("", selection: $unit) {
-                            ForEach(WeightUnit.allCases, id: \.self) { unit in
-                                Text(unit.short).tag(unit)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 120)
-                    }
-
-                    Picker("Barbell", selection: $barbell) {
-                        ForEach(BarbellType.all) { bar in
-                            Text(bar.name).tag(bar)
-                        }
-                    }
+            ScrollView {
+                VStack(spacing: Theme.sectionSpacing) {
+                    inputCard
+                    resultCard
                 }
-
-                Section("Plates Per Side") {
-                    switch breakdownStatus {
-                    case .validation(let message), .unavailable(let message):
-                        Label(message, systemImage: "exclamationmark.triangle")
-                            .foregroundColor(.orange)
-
-                    case .barOnly(let message):
-                        Text(message)
-                            .foregroundColor(.secondary)
-
-                    case .calculated:
-                        ForEach(Array(result.platesPerSide.enumerated()), id: \.offset) { _, plate in
-                            HStack {
-                                RoundedRectangle(cornerRadius: 3)
-                                    .fill(plateColor(plate.weight))
-                                    .frame(width: 24, height: 34)
-                                Text("\(formatted(plate.weight)) \(unit.short)")
-                                    .font(.body.monospacedDigit())
-                                Spacer()
-                                Text("× \(plate.count)")
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-
-                        HStack {
-                            Text("Total loaded")
-                                .font(.subheadline)
-                            Spacer()
-                            Text("\(formatted(result.achievedWeight)) \(unit.short)")
-                                .font(.subheadline.monospacedDigit())
-                                .foregroundColor(result.isExact ? .primary : .orange)
-                        }
-
-                        if !result.isExact {
-                            Text("Can't make \(formatted(result.targetWeight)) exactly with the selected plates — short by \(formatted(result.leftover)) \(unit.short).")
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                        }
-                    }
-                }
-
-                Section("Available Plates (per side)") {
-                    let allPlates = unit == .pounds ? PlateCalculator.defaultLbPlates : PlateCalculator.defaultKgPlates
-                    ForEach(allPlates, id: \.self) { plate in
-                        Toggle(isOn: plateBinding(for: plate)) {
-                            HStack {
-                                RoundedRectangle(cornerRadius: 3)
-                                    .fill(plateColor(plate))
-                                    .frame(width: 16, height: 24)
-                                Text("\(formatted(plate)) \(unit.short)")
-                            }
-                        }
-                    }
-                }
+                .padding(Theme.screenPadding)
             }
-            .navigationTitle("Plate Calculator")
+            .background(Theme.screenBackground)
+            .navigationTitle("Plate Math")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Close") { dismiss() }
+                }
+            }
+            .onAppear {
+                if initialTargetWeight > 0 {
+                    targetText = "\(initialTargetWeight)"
                 }
             }
         }
     }
 
-    static func sanitizedTargetWeight(from rawText: String) -> Double? {
-        let trimmed = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+    // MARK: - Inputs
 
-        guard !trimmed.isEmpty,
-              let parsedValue = Double(trimmed),
-              parsedValue.isFinite,
-              parsedValue > 0 else {
-            return nil
-        }
+    private var inputCard: some View {
+        VStack(spacing: 14) {
+            HStack {
+                Text("Target")
+                    .font(.subheadline.weight(.semibold))
 
-        return parsedValue
-    }
+                Spacer()
 
-    static func formattedWeight(_ value: Double) -> String {
-        value.truncatingRemainder(dividingBy: 1) == 0
-            ? String(Int(value))
-            : String(format: "%.2f", value)
-    }
+                TextField("0", text: $targetText)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+                    .font(Theme.statFont(size: 28))
+                    .frame(maxWidth: 140)
 
-    static func breakdownStatus(
-        rawTargetText: String,
-        barbell: BarbellType,
-        unit: WeightUnit,
-        result: PlateCalculator.Result
-    ) -> BreakdownStatus {
-        let trimmedTarget = rawTargetText.trimmingCharacters(in: .whitespacesAndNewlines)
+                Text(unit.short)
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+            }
 
-        guard !trimmedTarget.isEmpty else {
-            return .validation(message: "Enter a target weight to see the plate breakdown.")
-        }
+            Picker("Unit", selection: $unit) {
+                Text("lb").tag(WeightUnit.pounds)
+                Text("kg").tag(WeightUnit.kilograms)
+            }
+            .pickerStyle(.segmented)
 
-        guard let targetWeight = sanitizedTargetWeight(from: trimmedTarget) else {
-            return .validation(message: "Enter a valid positive target weight.")
-        }
-
-        let barWeight = barbell.weight(in: unit)
-        if targetWeight < barWeight {
-            return .validation(
-                message: "Target is less than the selected bar weight (\(formattedWeight(barWeight)) \(unit.short))."
-            )
-        }
-
-        if abs(targetWeight - barWeight) < 0.001 {
-            return .barOnly(message: "Just the bar (\(formattedWeight(barWeight)) \(unit.short))")
-        }
-
-        let isOnlyBarLoadable = result.platesPerSide.isEmpty && abs(result.achievedWeight - barWeight) < 0.001
-        if isOnlyBarLoadable {
-            return .unavailable(
-                message: "Can't make \(formattedWeight(targetWeight)) \(unit.short) with the selected plates — currently only the bar is loadable."
-            )
-        }
-
-        return .calculated
-    }
-
-    private func plateBinding(for plate: Double) -> Binding<Bool> {
-        Binding(
-            get: {
-                unit == .pounds ? availableLbPlates.contains(plate) : availableKgPlates.contains(plate)
-            },
-            set: { newValue in
-                if unit == .pounds {
-                    if newValue { availableLbPlates.insert(plate) } else { availableLbPlates.remove(plate) }
-                } else {
-                    if newValue { availableKgPlates.insert(plate) } else { availableKgPlates.remove(plate) }
+            Picker("Barbell", selection: $barbell) {
+                ForEach(BarbellType.all) { bar in
+                    Text(bar.name).tag(bar)
                 }
             }
+            .pickerStyle(.menu)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .rptCard()
+    }
+
+    // MARK: - Result
+
+    private var targetWeight: Double {
+        Double(targetText.trimmingCharacters(in: .whitespaces)) ?? 0
+    }
+
+    private var result: PlateCalculator.Result? {
+        guard targetWeight > 0 else { return nil }
+
+        let plates = unit == .pounds ? PlateCalculator.defaultLbPlates : PlateCalculator.defaultKgPlates
+        return PlateCalculator.calculate(
+            targetWeight: targetWeight,
+            barbell: barbell,
+            unit: unit,
+            availablePlates: plates
         )
     }
 
-    private func formatted(_ value: Double) -> String {
-        Self.formattedWeight(value)
+    @ViewBuilder
+    private var resultCard: some View {
+        if let result {
+            VStack(spacing: 16) {
+                if targetWeight < barbell.weight(in: unit) {
+                    Label("Target is lighter than the bar (\(formatted(barbell.weight(in: unit))) \(unit.short)).", systemImage: "exclamationmark.triangle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.amber)
+                } else {
+                    plateStack(result)
+
+                    if result.platesPerSide.isEmpty {
+                        Text("Empty bar — no plates needed.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        VStack(spacing: 8) {
+                            Text("Per side")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .textCase(.uppercase)
+
+                            ForEach(result.platesPerSide, id: \.weight) { plate in
+                                HStack {
+                                    Circle()
+                                        .fill(plateColor(plate.weight))
+                                        .frame(width: 12, height: 12)
+                                    Text("\(formatted(plate.weight)) \(unit.short)")
+                                        .font(.subheadline.weight(.medium))
+                                        .monospacedDigit()
+                                    Spacer()
+                                    Text("× \(plate.count)")
+                                        .font(.subheadline)
+                                        .monospacedDigit()
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+
+                    Divider()
+
+                    LabeledValueRow(
+                        label: "Loaded weight",
+                        value: "\(formatted(result.achievedWeight)) \(unit.short)",
+                        valueTint: result.isExact ? Theme.success : Theme.amber
+                    )
+
+                    if !result.isExact {
+                        Text("Closest load with standard plates — \(formatted(abs(result.leftover))) \(unit.short) short of target.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+            .rptCard()
+        } else {
+            EmptyStateCard(
+                icon: "circle.circle",
+                title: "Enter a Target Weight",
+                message: "RPT will work out exactly which plates to load on each side."
+            )
+        }
+    }
+
+    private func plateStack(_ result: PlateCalculator.Result) -> some View {
+        // Visual bar: sleeve + mirrored plates.
+        let plates = result.platesPerSide.flatMap { plate in
+            Array(repeating: plate.weight, count: plate.count)
+        }
+
+        return HStack(spacing: 3) {
+            Rectangle()
+                .fill(Color.secondary.opacity(0.5))
+                .frame(width: 26, height: 8)
+
+            ForEach(Array(plates.enumerated()), id: \.offset) { _, weight in
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(plateColor(weight))
+                    .frame(width: 14, height: plateHeight(weight))
+            }
+
+            Rectangle()
+                .fill(Color.secondary.opacity(0.5))
+                .frame(width: 20, height: 8)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 90)
+    }
+
+    private func plateHeight(_ weight: Double) -> CGFloat {
+        let maxPlate = unit == .pounds ? 45.0 : 25.0
+        let fraction = max(0.3, min(1, weight / maxPlate))
+        return CGFloat(30 + 55 * fraction)
     }
 
     private func plateColor(_ weight: Double) -> Color {
-        switch weight {
-        case 45, 20:    return .red
-        case 35, 15:    return .blue
-        case 25, 10:    return .green
-        case 5:         return .yellow
-        case 2.5, 1.25: return .gray
-        default:        return .secondary
-        }
-    }
-}
+        let maxPlate = unit == .pounds ? 45.0 : 25.0
+        let fraction = max(0, min(1, weight / maxPlate))
 
-#Preview {
-    PlateCalculatorView()
+        if fraction >= 0.95 { return Theme.accentDeep }
+        if fraction >= 0.5 { return Theme.accent }
+        if fraction >= 0.2 { return Theme.amber }
+        return Theme.info
+    }
+
+    private func formatted(_ value: Double) -> String {
+        value.truncatingRemainder(dividingBy: 1) == 0
+            ? "\(Int(value))"
+            : String(format: "%.1f", value)
+    }
 }

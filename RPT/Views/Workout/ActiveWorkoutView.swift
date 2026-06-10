@@ -2,373 +2,284 @@
 //  ActiveWorkoutView.swift
 //  RPT
 //
-//  Created by Michael Moore on 4/29/25.
+//  The live training screen: exercise sections with RPT set suggestions,
+//  rest timer, and finish/save/discard lifecycle.
 //
 
 import SwiftUI
-import SwiftData
 
 struct ActiveWorkoutView: View {
-    static let toolbarSaveForLaterLabel = "Save for Later"
-
-    static var emptyStateHelperMessage: String {
-        "Add at least one exercise before you can finish this workout. \(toolbarSaveForLaterLabel) keeps it as a draft if you're not ready yet."
-    }
-
-    static func toolbarSaveForLaterLabel(for workoutName: String) -> String {
-        let normalizedWorkout = Workout(name: workoutName)
-
-        guard let displayName = WorkoutRow.specificDisplayName(for: normalizedWorkout) else {
-            return toolbarSaveForLaterLabel
-        }
-
-        return "Save “\(displayName)” for Later"
-    }
-
-    static func emptyStateSaveForLaterLabel(for workoutName: String) -> String {
-        toolbarSaveForLaterLabel(for: workoutName)
-    }
-
-    static func emptyStateHelperMessage(for workoutName: String) -> String {
-        let normalizedWorkout = Workout(name: workoutName)
-
-        guard let displayName = WorkoutRow.specificDisplayName(for: normalizedWorkout) else {
-            return emptyStateHelperMessage
-        }
-
-        return "Add at least one exercise to “\(displayName)” before you can finish it. \(emptyStateSaveForLaterLabel(for: workoutName)) keeps it as a draft if you're not ready yet."
-    }
-
-    static func navigationTitle(for workoutName: String) -> String {
-        WorkoutRow.displayName(forWorkoutName: workoutName)
-    }
-
-    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var session: WorkoutSession
     @StateObject private var viewModel: ActiveWorkoutViewModel
-    @State private var showingExerciseSelector = false
-    @State private var showingConfirmationDialog = false
-    @State private var showingCompleteConfirmation = false
-    @State private var showingExitConfirmation = false
-    
-    // Track whether to show custom back button
-    var showCustomBackButton: Bool
-    
-    // Callback for when the workout is completed or discarded
-    var onCompleteWorkout: (() -> Void)?
-    
-    init(workout: Workout, showCustomBackButton: Bool = false, onCompleteWorkout: (() -> Void)? = nil) {
+
+    @State private var showingExercisePicker = false
+    @State private var showingFinishDialog = false
+    @State private var showingDiscardConfirmation = false
+    @State private var isEditingName = false
+
+    init(workout: Workout) {
         _viewModel = StateObject(wrappedValue: ActiveWorkoutViewModel(workout: workout))
-        self.showCustomBackButton = showCustomBackButton
-        self.onCompleteWorkout = onCompleteWorkout
     }
 
-    private func presentDiscardConfirmationFromExitDialog() {
-        showingExitConfirmation = false
-
-        DispatchQueue.main.async {
-            showingConfirmationDialog = true
-        }
-    }
-    
     var body: some View {
         NavigationStack {
-            ZStack {
-                VStack(spacing: 0) {
-                    // Add progress indicator at the top when there are exercises
-                    if !viewModel.exerciseGroups.isEmpty {
-                        WorkoutProgressView(
-                            completedExercises: viewModel.completedExercisesCount,
-                            totalExercises: viewModel.totalExercisesCount
-                        )
-                        .padding(.top, 8)
-                        .padding(.bottom, 4)
-                        .background(Color(UIColor.systemBackground))
-                    }
-                    
-                    // Exercise list
-                    if !viewModel.exerciseGroups.isEmpty {
-                        List {
-                            // Use exerciseOrder to display exercises in their added order
-                            ForEach(viewModel.exerciseOrder, id: \.self) { exercise in
-                                if viewModel.exerciseGroups[exercise] != nil {
-                                    // Use the new ExerciseSectionView component
-                                    ExerciseSectionView(
-                                        viewModel: viewModel,
-                                        exercise: exercise,
-                                        sets: viewModel.orderedSetsForDisplay(in: exercise)
-                                    )
-                                }
-                            }
+            ScrollView {
+                VStack(spacing: Theme.sectionSpacing) {
+                    headerCard
+
+                    if viewModel.exerciseOrder.isEmpty {
+                        EmptyStateCard(
+                            icon: "dumbbell",
+                            title: "No Exercises Yet",
+                            message: "Add your first movement to start logging sets.",
+                            actionTitle: "Add Exercise"
+                        ) {
+                            showingExercisePicker = true
                         }
-                        .listStyle(.insetGrouped)
                     } else {
-                        // Use the new EmptyWorkoutView component
-                        EmptyWorkoutView(
-                            helperMessage: Self.emptyStateHelperMessage(for: viewModel.workoutName),
-                            onAddExercise: {
-                                showingExerciseSelector = true
-                            }
-                        )
-                    }
-                    
-                    // Bottom action bar - only show when we have exercises
-                    if !viewModel.exerciseGroups.isEmpty {
-                        VStack(spacing: 8) {
-                            if let finishHelperText = viewModel.finishHelperText {
-                                HStack(alignment: .top, spacing: 8) {
-                                    Image(systemName: "checkmark.circle.badge.questionmark")
-                                        .foregroundColor(.secondary)
-                                        .padding(.top, 1)
-
-                                    Text(finishHelperText)
-                                        .font(.footnote)
-                                        .foregroundStyle(.secondary)
-
-                                    Spacer(minLength: 0)
-                                }
-                                .padding(.horizontal)
-                            }
-
-                            HStack {
-                                Button(action: {
-                                    showingExerciseSelector = true
-                                }) {
-                                    Label("Add Exercise", systemImage: "plus")
-                                        .padding(.horizontal)
-                                        .padding(.vertical, 8)
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
-                                }
-
-                                Spacer()
-
-                                // Manual rest timer button
-                                Button(action: {
-                                    viewModel.startRestTimer()
-                                }) {
-                                    Label("Timer", systemImage: "timer")
-                                        .padding(.horizontal)
-                                        .padding(.vertical, 8)
-                                        .background(Color.orange)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
-                                }
-
-                                Spacer()
-
-                                Button(action: {
-                                    showingCompleteConfirmation = true
-                                }) {
-                                    Text(viewModel.finishButtonTitle())
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.8)
-                                        .padding(.horizontal)
-                                        .padding(.vertical, 8)
-                                        .background(viewModel.allExercisesCompleted ? Color.green : Color.gray)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
-                                }
-                                .disabled(!viewModel.allExercisesCompleted)
-                            }
-                            .padding(.horizontal)
+                        ForEach(viewModel.exerciseOrder) { exercise in
+                            ExerciseSectionView(viewModel: viewModel, exercise: exercise)
                         }
-                        .padding(.vertical)
-                        .background(Color(UIColor.systemBackground))
-                        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: -2)
+
+                        Button {
+                            showingExercisePicker = true
+                        } label: {
+                            Label("Add Exercise", systemImage: "plus")
+                        }
+                        .buttonStyle(SecondaryCapsuleButtonStyle(fullWidth: true))
                     }
                 }
-                
-                // Rest timer overlay
-                if viewModel.showingRestTimer {
-                    Color.black.opacity(0.5)
-                        .ignoresSafeArea()
-                        .animation(.easeInOut, value: viewModel.showingRestTimer)
-                    
-                    RestTimerView(
-                        defaultDuration: viewModel.currentRestDuration,
-                        isShowing: $viewModel.showingRestTimer
-                    )
-                    .transition(.scale.combined(with: .opacity))
-                    .animation(.spring(), value: viewModel.showingRestTimer)
-                }
+                .padding(.horizontal, Theme.screenPadding)
+                .padding(.bottom, 100)
             }
-            .navigationTitle(Self.navigationTitle(for: viewModel.workoutName))
+            .background(Theme.screenBackground)
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                // Save the current workout as a draft and close the sheet.
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        guard viewModel.saveWorkoutForLaterSafely() else {
-                            return
-                        }
-
-                        dismiss()
-                    }) {
-                        HStack {
-                            Image(systemName: "arrow.down.circle")
-                            Text(Self.toolbarSaveForLaterLabel(for: viewModel.workoutName))
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Save for Later") {
+                        if viewModel.saveWorkoutForLaterSafely() {
+                            session.dismissKeepingDraft()
                         }
                     }
-                    .accessibilityLabel(viewModel.saveForLaterButtonTitle())
+                    .font(.subheadline)
                 }
-                
-                // Right side of navigation bar (menu)
-                ToolbarItem(placement: .navigationBarTrailing) {
+
+                ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        TextField("Workout Name", text: $viewModel.workoutName)
-                            .onChange(of: viewModel.workoutName) { _, _ in
-                                _ = viewModel.updateWorkoutNameSafely()
-                            }
-                        
-                        Button(action: {
-                            showingExitConfirmation = true
-                        }) {
-                            Label(viewModel.exitWorkoutMenuTitle(), systemImage: "xmark.circle")
+                        Button {
+                            viewModel.startRestTimer()
+                        } label: {
+                            Label("Rest Timer", systemImage: "timer")
                         }
-                        
-                        if viewModel.hasSets {
-                            Button(role: .destructive) {
-                                showingConfirmationDialog = true
-                            } label: {
-                                Label(viewModel.discardWorkoutMenuTitle(), systemImage: "trash")
-                            }
+
+                        Button(role: .destructive) {
+                            showingDiscardConfirmation = true
+                        } label: {
+                            Label("Discard Workout", systemImage: "trash")
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
                 }
             }
-            .sheet(isPresented: $showingExerciseSelector) {
-                ExerciseSelectorView(
-                    excludedExerciseNames: viewModel.exerciseOrder.map(\.name)
-                ) { selectedExercise in
-                    _ = viewModel.addExerciseToWorkoutSafely(selectedExercise)
+            .safeAreaInset(edge: .bottom) {
+                bottomBar
+            }
+            .sheet(isPresented: $showingExercisePicker) {
+                ExercisePickerView(
+                    excludedExerciseIDs: Set(viewModel.exerciseOrder.map(\.id)),
+                    title: "Add to Workout"
+                ) { exercise in
+                    if viewModel.addExerciseToWorkoutSafely(exercise) {
+                        HapticFeedbackManager.shared.light()
+                    }
                 }
             }
-            // Exit confirmation
+            .sheet(isPresented: $viewModel.showingRestTimer) {
+                RestTimerView(duration: viewModel.currentRestDuration)
+                    .presentationDetents([.medium])
+            }
             .confirmationDialog(
-                viewModel.exitWorkoutMenuTitle(),
-                isPresented: $showingExitConfirmation
+                "Finish Workout?",
+                isPresented: $showingFinishDialog,
+                titleVisibility: .visible
             ) {
-                Button(viewModel.saveForLaterButtonTitle()) {
-                    guard viewModel.saveWorkoutForLaterSafely() else {
-                        return
-                    }
-
-                    onCompleteWorkout?()
-                    dismiss()
+                Button("Complete & Save") {
+                    completeWorkout()
                 }
-
-                if viewModel.canCompleteWorkoutFromExitDialog {
-                    Button(viewModel.completeWorkoutButtonTitle()) {
-                        guard viewModel.completeAndMarkSavedSafely() else {
-                            return
-                        }
-
-                        onCompleteWorkout?()
-                        dismiss()
-                    }
-                }
-
-                Button(viewModel.discardWorkoutButtonTitle(), role: .destructive) {
-                    presentDiscardConfirmationFromExitDialog()
-                }
-
-                Button("Cancel", role: .cancel) { }
+                Button("Keep Training", role: .cancel) {}
             } message: {
-                Text(viewModel.exitDialogHelperText)
+                Text(finishDialogMessage)
             }
-            // Discard confirmation
             .confirmationDialog(
-                viewModel.discardWorkoutAlertTitle(),
-                isPresented: $showingConfirmationDialog
+                "Discard This Workout?",
+                isPresented: $showingDiscardConfirmation,
+                titleVisibility: .visible
             ) {
-                Button(viewModel.discardWorkoutButtonTitle(), role: .destructive) {
-                    guard viewModel.discardAndMarkDiscardedSafely() else {
-                        return
+                Button("Discard Workout", role: .destructive) {
+                    if viewModel.discardAndMarkDiscardedSafely() {
+                        session.finishSession()
                     }
-
-                    if let callback = onCompleteWorkout {
-                        callback()
-                    }
-
-                    dismiss()
                 }
+                Button("Cancel", role: .cancel) {}
             } message: {
-                Text(viewModel.discardWorkoutMessage())
+                Text(discardMessage)
             }
-            // Complete confirmation
-            .confirmationDialog(
-                viewModel.completeWorkoutAlertTitle(),
-                isPresented: $showingCompleteConfirmation
-            ) {
-                Button(viewModel.completeWorkoutButtonTitle()) {
-                    guard viewModel.completeAndMarkSavedSafely() else {
-                        return
-                    }
-
-                    if let callback = onCompleteWorkout {
-                        callback()
-                    }
-
-                    dismiss()
-                }
-                Button(viewModel.continueWorkoutButtonTitle(), role: .cancel) { }
+            .alert(viewModel.errorAlertTitle, isPresented: errorBinding) {
+                Button("OK", role: .cancel) { viewModel.clearError() }
             } message: {
-                Text(viewModel.completeWorkoutMessage())
-            }
-            // Delete exercise confirmation
-            .confirmationDialog(
-                viewModel.deleteExerciseAlertTitle(for: viewModel.exerciseToDelete),
-                isPresented: $viewModel.showingDeleteExerciseConfirmation,
-                presenting: viewModel.exerciseToDelete
-            ) { exercise in
-                Button(viewModel.deleteExerciseButtonTitle(for: exercise), role: .destructive) {
-                    _ = viewModel.deleteExerciseFromWorkoutSafely(exercise)
-                    viewModel.exerciseToDelete = nil
-                }
-                Button("Cancel", role: .cancel) {
-                    viewModel.exerciseToDelete = nil
-                }
-            } message: { exercise in
-                Text(viewModel.deleteExerciseMessage(for: exercise))
+                Text(viewModel.errorMessage ?? "Please try again.")
             }
         }
-        .alert(
-            viewModel.errorAlertTitle,
-            isPresented: Binding(
-                get: { viewModel.errorMessage != nil },
-                set: { isPresented in
-                    if !isPresented {
-                        viewModel.clearError()
-                    }
-                }
-            )
-        ) {
-            Button("OK", role: .cancel) {
-                viewModel.clearError()
-            }
-        } message: {
-            Text(viewModel.errorMessage ?? "Something went wrong. Please try again.")
-        }
-        .interactiveDismissDisabled() // Prevent swipe-to-dismiss
+        .interactiveDismissDisabled()
     }
-    
-    // updateDropSets method moved to ExerciseSectionView
-}
 
-#Preview {
-    let modelContainer = try! ModelContainer(for: Workout.self, ExerciseSet.self, Exercise.self)
-    
-    // Create a workout
-    let workout = Workout(date: Date(), name: "Preview Workout")
-    
-    ActiveWorkoutView(
-        workout: workout,
-        onCompleteWorkout: {}
-    )
-    .modelContainer(modelContainer)
+    // MARK: - Header
+
+    private var headerCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                if isEditingName {
+                    TextField("Workout name", text: $viewModel.workoutName)
+                        .font(.title3.weight(.bold))
+                        .textFieldStyle(.roundedBorder)
+                        .submitLabel(.done)
+                        .onSubmit { commitNameEdit() }
+
+                    Button("Done") { commitNameEdit() }
+                        .font(.subheadline.weight(.semibold))
+                } else {
+                    Text(viewModel.workoutName)
+                        .font(.title3.weight(.bold))
+                        .lineLimit(1)
+
+                    Button {
+                        isEditingName = true
+                    } label: {
+                        Image(systemName: "pencil")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Text(viewModel.workout.date, style: .time)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if !viewModel.exerciseOrder.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("\(viewModel.completedExercisesCount) of \(viewModel.totalExercisesCount) exercises done")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(viewModel.workout.hasPreferredWorkMetric ? viewModel.workout.preferredWorkMetricValue : "")
+                            .font(.caption.weight(.semibold))
+                            .monospacedDigit()
+                    }
+
+                    GeometryReader { proxy in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(Color.primary.opacity(0.08))
+
+                            Capsule()
+                                .fill(Theme.brandGradient)
+                                .frame(width: proxy.size.width * progressFraction)
+                                .animation(.easeOut(duration: 0.3), value: progressFraction)
+                        }
+                    }
+                    .frame(height: 8)
+                }
+            }
+        }
+        .rptCard()
+    }
+
+    private var progressFraction: Double {
+        guard viewModel.totalExercisesCount > 0 else { return 0 }
+        return Double(viewModel.completedExercisesCount) / Double(viewModel.totalExercisesCount)
+    }
+
+    // MARK: - Bottom Bar
+
+    private var bottomBar: some View {
+        HStack(spacing: 12) {
+            Button {
+                viewModel.startRestTimer()
+            } label: {
+                Label("Rest", systemImage: "timer")
+            }
+            .buttonStyle(SecondaryCapsuleButtonStyle())
+
+            Button {
+                requestFinish()
+            } label: {
+                Label("Finish", systemImage: "checkmark")
+            }
+            .buttonStyle(BrandButtonStyle())
+            .disabled(!viewModel.hasSets)
+        }
+        .padding(.horizontal, Theme.screenPadding)
+        .padding(.vertical, 10)
+        .background(.bar)
+    }
+
+    // MARK: - Actions
+
+    private func commitNameEdit() {
+        isEditingName = false
+        _ = viewModel.updateWorkoutNameSafely()
+    }
+
+    private func requestFinish() {
+        showingFinishDialog = true
+    }
+
+    private var finishDialogMessage: String {
+        if viewModel.allExercisesCompleted {
+            return "Nice work — everything is checked off. Save this session to your history?"
+        }
+
+        let remaining = viewModel.remainingExercises.map(\.displayName)
+        if remaining.isEmpty {
+            return "Save this session to your history?"
+        }
+
+        let preview = remaining.prefix(2).joined(separator: ", ")
+        let suffix = remaining.count > 2 ? " and \(remaining.count - 2) more" : ""
+        return "Still unchecked: \(preview)\(suffix). You can finish anyway — only logged sets count toward your stats."
+    }
+
+    private var discardMessage: String {
+        let exercises = viewModel.workout.exerciseCount
+        let sets = viewModel.workout.sets.count
+
+        guard exercises > 0 || sets > 0 else {
+            return "This empty draft will be removed. This cannot be undone."
+        }
+
+        let exercisePart = exercises == 1 ? "1 exercise" : "\(exercises) exercises"
+        let setPart = sets == 1 ? "1 set" : "\(sets) sets"
+        return "This removes \(exercisePart) and \(setPart). This cannot be undone."
+    }
+
+    private func completeWorkout() {
+        if viewModel.completeAndMarkSavedSafely() {
+            HapticFeedbackManager.shared.success()
+            SoundManager.shared.playWorkoutComplete()
+            session.finishSession()
+        }
+    }
+
+    private var errorBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.clearError() } }
+        )
+    }
 }

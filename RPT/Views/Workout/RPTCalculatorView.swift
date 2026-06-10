@@ -2,165 +2,113 @@
 //  RPTCalculatorView.swift
 //  RPT
 //
-//  Created by Michael Moore on 4/28/25.
+//  Plans a reverse pyramid session from a top-set weight using the
+//  configured percentage drops.
 //
 
 import SwiftUI
 
 struct RPTCalculatorView: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject private var settingsManager = SettingsManager.shared
+    @StateObject private var settingsManager = SettingsManager.shared
 
-    static let supportedSetCount = UserSettings.supportedRPTSetCount
-    static let defaultPercentageDrops = UserSettings.defaultRPTPercentageDrops
-    
-    @State private var firstSetWeight = 225 // Default in pounds (integer)
-    @State private var targetReps = [6, 8, 10]
-    @State private var percentageDrops = defaultPercentageDrops
-    
+    @State private var topSetText: String = ""
+
     var body: some View {
         NavigationStack {
-            Form {
-                Section(header: Text("First Set")) {
-                    HStack {
-                        Text("Weight")
-                        Spacer()
-                        TextField("Weight", value: $firstSetWeight, format: .number)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                            .onChange(of: firstSetWeight) { _, newValue in
-                                // Round to nearest 5
-                                firstSetWeight = WorkoutManager.shared.roundToNearest5(Double(newValue))
-                            }
-                        Text("lb")
-                    }
-                    
-                    HStack {
-                        Text("Target Reps")
-                        Spacer()
-                        TextField("Reps", value: $targetReps[0], format: .number)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 50)
-                    }
+            ScrollView {
+                VStack(spacing: Theme.sectionSpacing) {
+                    inputCard
+                    resultsCard
+                    explainerCard
                 }
-                
-                // Sets display
-                Section(header: Text("RPT Sets")) {
-                    ForEach(0..<Self.supportedSetCount) { index in
-                        HStack {
-                            Text("Set \(index + 1)")
-                                .fontWeight(.medium)
-                            
-                            Spacer()
-                            
-                            Text("\(calculateWeight(for: index)) lb × \(targetReps[safe: index] ?? 0)")
-                                .fontWeight(index == 0 ? .bold : .regular)
-                        }
-                    }
-                }
-                
-                // Customize percentages
-                Section(header: Text("Weight Reductions")) {
-                    ForEach(1..<Self.supportedSetCount) { index in
-                        HStack {
-                            Text("Set \(index + 1)")
-                            Spacer()
-                            Text("-")
-                            TextField("", value: Binding(
-                                get: { Int(percentageDrops[index] * 100) },
-                                set: {
-                                    percentageDrops = Self.updatedPercentageDrops(
-                                        percentageDrops,
-                                        editing: index,
-                                        rawPercent: $0
-                                    )
-                                }
-                            ), format: .number)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 50)
-                            Text("%")
-                        }
-                    }
-                }
-                
-                // RPT explanation
-                Section(header: Text("How RPT Works")) {
-                    Text("Reverse Pyramid Training starts with your heaviest set first, then reduces weight and increases reps for subsequent sets.")
-                    
-                    Text("This maximizes strength gains by prioritizing heavy lifting when you're fresh, while still getting volume with the lighter follow-up sets.")
-                }
+                .padding(Theme.screenPadding)
             }
+            .background(Theme.screenBackground)
             .navigationTitle("RPT Calculator")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        // Save percentage drops for future use
-                        let normalizedDrops = Self.normalizedPercentageDrops(percentageDrops)
-                        percentageDrops = normalizedDrops
-
-                        if !settingsManager.updateRPTPercentageDropsSafely(drops: normalizedDrops) {
-                            percentageDrops = Self.normalizedPercentageDrops(settingsManager.settings.defaultRPTPercentageDrops)
-                        }
-
-                        dismiss()
-                    }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Close") { dismiss() }
                 }
             }
-            .onAppear {
-                // Load drops from shared settings so calculator and workout defaults stay in sync
-                percentageDrops = Self.normalizedPercentageDrops(settingsManager.settings.defaultRPTPercentageDrops)
+        }
+    }
+
+    private var inputCard: some View {
+        VStack(spacing: 10) {
+            Text("Top-Set Weight")
+                .font(.subheadline.weight(.semibold))
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack {
+                TextField("e.g. 225", text: $topSetText)
+                    .keyboardType(.numberPad)
+                    .font(Theme.statFont(size: 32))
+
+                Text("lb")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .rptCard()
+    }
+
+    private var topSetWeight: Int {
+        max(0, Int(topSetText.trimmingCharacters(in: .whitespaces)) ?? 0)
+    }
+
+    @ViewBuilder
+    private var resultsCard: some View {
+        if topSetWeight > 0 {
+            let drops = settingsManager.settings.defaultRPTPercentageDrops
+            let weights = WorkoutManager.shared.calculateRPTWeights(
+                firstSetWeight: Double(topSetWeight),
+                percentageDrops: drops
+            )
+
+            VStack(spacing: 10) {
+                ForEach(Array(weights.enumerated()), id: \.offset) { index, weight in
+                    let rounded = WorkoutManager.shared.roundToNearest5(weight)
+
+                    HStack(spacing: 12) {
+                        Text("\(index + 1)")
+                            .font(.caption.weight(.bold))
+                            .frame(width: 26, height: 26)
+                            .background(Theme.accent.opacity(0.12), in: Circle())
+                            .foregroundStyle(Theme.accent)
+
+                        Text(index == 0 ? "Top set" : "Back-off \(index)")
+                            .font(.subheadline.weight(.medium))
+
+                        Spacer()
+
+                        if index > 0 {
+                            Text("−\(Int((drops[safe: index] ?? 0) * 100))%")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Text("\(rounded) lb")
+                            .font(.headline)
+                            .monospacedDigit()
+                    }
+                    .rptCard(padding: 12)
+                }
             }
         }
     }
 
-    static func normalizedPercentageDrops(_ drops: [Double]) -> [Double] {
-        let normalizedDrops = Array(UserSettings.normalizedRPTPercentageDrops(drops).prefix(supportedSetCount))
+    private var explainerCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("How RPT works", systemImage: "info.circle")
+                .font(.subheadline.weight(.semibold))
 
-        if normalizedDrops.count == supportedSetCount {
-            return normalizedDrops
+            Text("Your heaviest set comes first, while you're fresh. Each back-off set drops the weight by your configured percentage and adds a couple of reps. Adjust the drops in Settings.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
-
-        var fixedDrops = normalizedDrops
-        while fixedDrops.count < supportedSetCount {
-            fixedDrops.append(defaultPercentageDrops[fixedDrops.count])
-        }
-
-        return fixedDrops
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .rptCard()
     }
-
-    static func updatedPercentageDrops(_ drops: [Double], editing index: Int, rawPercent: Int) -> [Double] {
-        var updatedDrops = normalizedPercentageDrops(drops)
-
-        guard updatedDrops.indices.contains(index) else {
-            return updatedDrops
-        }
-
-        let boundedPercentage = min(max(rawPercent, 0), 100)
-        updatedDrops[index] = Double(boundedPercentage) / 100.0
-        updatedDrops[0] = 0.0
-
-        guard updatedDrops.count > 1 else {
-            return updatedDrops
-        }
-
-        for dropIndex in 1..<updatedDrops.count where updatedDrops[dropIndex] < updatedDrops[dropIndex - 1] {
-            updatedDrops[dropIndex] = updatedDrops[dropIndex - 1]
-        }
-
-        return updatedDrops
-    }
-    
-    private func calculateWeight(for setIndex: Int) -> Int {
-        guard setIndex < percentageDrops.count else { return 0 }
-        let calculatedWeight = Double(firstSetWeight) * (1 - percentageDrops[setIndex])
-        return WorkoutManager.shared.roundToNearest5(calculatedWeight)
-    }
-}
-
-#Preview {
-    // Create a preview with some realistic data
-    RPTCalculatorView()
 }

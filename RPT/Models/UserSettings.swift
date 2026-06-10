@@ -13,11 +13,17 @@ final class UserSettings {
     static let defaultRPTPercentageDrops: [Double] = [0.0, 0.10, 0.15]
     static let supportedRPTSetCount: Int = 3
     static let defaultRestTimerDuration: Int = 180
+    static let defaultWeeklyWorkoutGoal: Int = 3
 
     var restTimerDuration: Int // in seconds
     var defaultRPTPercentageDropsString: String = "0.000,0.100,0.150" // Stored as a comma-separated string with default
     var showRPE: Bool
     var darkModePreference: DarkModePreference
+
+    // Inline defaults keep SwiftData lightweight migration happy for
+    // stores created before these settings existed.
+    var autoStartRestTimerEnabled: Bool = true
+    var weeklyWorkoutGoal: Int = defaultWeeklyWorkoutGoal
     
     // Computed property to access as array
     var defaultRPTPercentageDrops: [Double] {
@@ -70,18 +76,26 @@ final class UserSettings {
     static func normalizedRestTimerDuration(_ duration: Int) -> Int {
         min(max(duration, 1), 3600)
     }
-    
+
+    static func normalizedWeeklyWorkoutGoal(_ goal: Int) -> Int {
+        min(max(goal, 1), 14)
+    }
+
     init(
          restTimerDuration: Int = defaultRestTimerDuration,
          defaultRPTPercentageDrops: [Double] = UserSettings.defaultRPTPercentageDrops,
          showRPE: Bool = true,
-         darkModePreference: DarkModePreference = .system) {
+         darkModePreference: DarkModePreference = .system,
+         autoStartRestTimerEnabled: Bool = true,
+         weeklyWorkoutGoal: Int = defaultWeeklyWorkoutGoal) {
         self.restTimerDuration = Self.normalizedRestTimerDuration(restTimerDuration)
         self.defaultRPTPercentageDropsString = Self.normalizedRPTPercentageDrops(defaultRPTPercentageDrops)
             .map { String(format: "%.3f", $0) }
             .joined(separator: ",")
         self.showRPE = showRPE
         self.darkModePreference = darkModePreference
+        self.autoStartRestTimerEnabled = autoStartRestTimerEnabled
+        self.weeklyWorkoutGoal = Self.normalizedWeeklyWorkoutGoal(weeklyWorkoutGoal)
     }
 }
 
