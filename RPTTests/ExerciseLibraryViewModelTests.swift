@@ -968,6 +968,24 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
     }
 
+    func testSelectionEmptyStateDescription_teachesRicherSearchRecoveryInPickers() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest], secondaryMuscleGroups: [.triceps], instructions: "")
+        ]
+        viewModel.searchText = "squat"
+
+        XCTAssertEqual(
+            viewModel.selectionEmptyStateDescription(
+                totalFetchedCount: 1,
+                excludedCount: 0,
+                context: .workout
+            ),
+            "No exercises matched “squat”. Try a different search, clear it to browse every exercise in your library, or search names, notes, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review. You can also add a custom exercise from this search.",
+            "Workout and template exercise pickers should teach the same richer search recovery users already get in the main library"
+        )
+    }
+
     func testEmptyStateKind_prefersEmptyLibraryWhenNoExercisesExistEvenIfQueryIsActive() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.searchText = "bench"

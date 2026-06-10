@@ -712,6 +712,14 @@ class ExerciseLibraryViewModel: ObservableObject {
         return qualifiers
     }
 
+    private func noMatchingSearchDescription(browseTarget: String) -> String {
+        let createSuggestion = suggestedExerciseNameFromSearch() != nil
+            ? " You can also add a custom exercise from this search."
+            : ""
+
+        return "No exercises matched “\(normalizedSearchText)”. Try a different search, clear it to \(browseTarget), or search names, notes, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review.\(createSuggestion)"
+    }
+
     func emptyStateKind(filteredCount: Int) -> EmptyStateKind? {
         guard filteredCount == 0 else {
             return nil
@@ -740,11 +748,7 @@ class ExerciseLibraryViewModel: ObservableObject {
                 return "Try changing your search or filters, or clear them to see every exercise."
             }
 
-            let createSuggestion = suggestedExerciseNameFromSearch() != nil
-                ? " You can also add a custom exercise from this search."
-                : ""
-
-            return "No exercises matched “\(normalizedSearchText)”. Try a different search, clear it to browse every exercise, or search names, notes, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review.\(createSuggestion)"
+            return noMatchingSearchDescription(browseTarget: "browse every exercise")
         case .none:
             return nil
         }
@@ -776,9 +780,15 @@ class ExerciseLibraryViewModel: ObservableObject {
                 : context.allSelectedDescription
         }
 
-        return exercises.isEmpty
-            ? context.emptyLibraryDescription
-            : "Try changing your search or filters, or clear them to browse every exercise."
+        if exercises.isEmpty {
+            return context.emptyLibraryDescription
+        }
+
+        if hasActiveSearch {
+            return noMatchingSearchDescription(browseTarget: "browse every exercise in your library")
+        }
+
+        return "Try changing your search or filters, or clear them to browse every exercise."
     }
 
     static func searchMatchPriority(
