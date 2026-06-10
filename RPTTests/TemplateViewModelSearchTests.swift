@@ -3,20 +3,20 @@ import XCTest
 
 @MainActor
 final class TemplateViewModelSearchTests: XCTestCase {
-    func testSearchPrompt_teachesBodyRegionsAndMovementTypes() {
+    func testSearchPrompt_teachesInstructionCuesAlongsideBodyRegionsAndMovementTypes() {
         XCTAssertEqual(
             TemplateViewModel.searchPrompt,
-            "Search templates, notes, exercises, body regions, or movement types"
+            "Search templates, notes, exercises, muscle groups, instruction cues, body regions, or movement types"
         )
     }
 
-    func testNoMatchesDescription_teachesBodyRegionsAndMovementTypes() {
+    func testNoMatchesDescription_teachesInstructionCuesAlongsideBodyRegionsAndMovementTypes() {
         let viewModel = TemplateViewModel()
         viewModel.searchText = "legs"
 
         XCTAssertEqual(
             viewModel.noMatchesDescription(),
-            "No template matches “legs”. Search by name, notes, exercise, muscle group, body region, or movement type."
+            "No template matches “legs”. Search by name, notes, exercise, muscle group, instruction cue, body region, or movement type."
         )
     }
 
@@ -88,5 +88,66 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
         viewModel.searchText = "core"
         XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Core Day"])
+    }
+
+    func testFilteredTemplates_matchesInstructionCuesFromExerciseLibrary() throws {
+        let context = DataManager.shared.getModelContext()
+        let bench = Exercise(
+            name: "Search Cue Bench \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [.triceps],
+            instructions: "Drive elbows back and pause on the chest."
+        )
+        context.insert(bench)
+        try context.save()
+        defer {
+            context.delete(bench)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            WorkoutTemplate(name: "Press Day", exercises: [TemplateExercise(exerciseName: bench.name)])
+        ]
+
+        viewModel.searchText = "drive elbows back"
+        XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Press Day"])
+    }
+
+    func testFilteredTemplates_matchesCombinedTermsAcrossExerciseAndMuscleMetadata() throws {
+        let context = DataManager.shared.getModelContext()
+        let bench = Exercise(
+            name: "Search Combo Bench \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [.triceps]
+        )
+        let squat = Exercise(
+            name: "Search Combo Squat \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.quadriceps],
+            secondaryMuscleGroups: [.glutes]
+        )
+        context.insert(bench)
+        context.insert(squat)
+        try context.save()
+        defer {
+            context.delete(bench)
+            context.delete(squat)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            WorkoutTemplate(name: "Push Focus", exercises: [TemplateExercise(exerciseName: bench.name)]),
+            WorkoutTemplate(name: "Leg Focus", exercises: [TemplateExercise(exerciseName: squat.name)])
+        ]
+
+        viewModel.searchText = "bench chest"
+        XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Push Focus"])
+
+        viewModel.searchText = "legs squat"
+        XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Leg Focus"])
     }
 }

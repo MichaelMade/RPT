@@ -2,8 +2,8 @@
 //  TemplateViewModel.swift
 //  RPT
 //
-//  Template library state: list, straightforward search over names,
-//  notes, exercises, and muscle groups, plus CRUD passthrough.
+//  Template library state: list plus flexible search over names,
+//  notes, exercises, muscles, instruction cues, and category aliases.
 //
 
 import Foundation
@@ -14,7 +14,7 @@ class TemplateViewModel: ObservableObject {
     @Published var templates: [WorkoutTemplate] = []
     @Published var searchText: String = ""
 
-    static let searchPrompt = "Search templates, notes, exercises, body regions, or movement types"
+    static let searchPrompt = "Search templates, notes, exercises, muscle groups, instruction cues, body regions, or movement types"
 
     private let templateManager: TemplateManager
     private let exerciseManager: ExerciseManager
@@ -30,33 +30,17 @@ class TemplateViewModel: ObservableObject {
         guard !query.isEmpty else { return templates }
 
         return templates.filter { template in
-            if normalized(template.name).contains(query) { return true }
-            if normalized(template.notes).contains(query) { return true }
-
-            return template.exercises.contains { templateExercise in
-                if normalized(templateExercise.exerciseName).contains(query) { return true }
-                if normalized(templateExercise.notes).contains(query) { return true }
-
-                guard let exercise = exerciseManager.fetchExercise(withName: templateExercise.exerciseName) else {
-                    return false
-                }
-
-                let muscles = exercise.primaryMuscleGroups + exercise.secondaryMuscleGroups
-                if muscles.contains(where: { normalized($0.displayName).contains(query) }) {
-                    return true
-                }
-
-                if normalized(exercise.category.rawValue).contains(query) {
-                    return true
-                }
-
-                return Self.bodyRegionSearchTerms(for: muscles).contains(where: { normalized($0).contains(query) })
+            let searchableText = templateSearchText(for: template)
+            if searchableText.contains(query) {
+                return true
             }
+
+            return queryTerms(from: query).allSatisfy { searchableText.contains($0) }
         }
     }
 
     func noMatchesDescription() -> String {
-        "No template matches “\(searchText)”. Search by name, notes, exercise, muscle group, body region, or movement type."
+        "No template matches “\(searchText)”. Search by name, notes, exercise, muscle group, instruction cue, body region, or movement type."
     }
 
     func refreshTemplates() {
@@ -132,6 +116,38 @@ class TemplateViewModel: ObservableObject {
     }
 
     // MARK: - Helpers
+
+    private func templateSearchText(for template: WorkoutTemplate) -> String {
+        var terms = [template.name, template.notes]
+
+        for templateExercise in template.exercises {
+            terms.append(templateExercise.exerciseName)
+            terms.append(templateExercise.notes)
+
+            guard let exercise = exerciseManager.fetchExercise(withName: templateExercise.exerciseName) else {
+                continue
+            }
+
+            terms.append(exercise.instructions)
+            terms.append(exercise.category.rawValue)
+
+            let muscles = exercise.primaryMuscleGroups + exercise.secondaryMuscleGroups
+            terms.append(contentsOf: muscles.map(\.displayName))
+            terms.append(contentsOf: Self.bodyRegionSearchTerms(for: muscles))
+        }
+
+        return terms
+            .map(normalized)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+    }
+
+    private func queryTerms(from query: String) -> [String] {
+        query
+            .split(whereSeparator: { $0.isWhitespace })
+            .map(String.init)
+            .filter { !$0.isEmpty }
+    }
 
     private static func bodyRegionSearchTerms(for muscleGroups: [MuscleGroup]) -> [String] {
         let uniqueGroups = Set(muscleGroups)
