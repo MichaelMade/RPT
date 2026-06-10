@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct ExercisesView: View {
-    static let searchPrompt = "Search exercises, notes, instruction cues, body regions, muscle groups, or actions"
+    static let searchPrompt = ExerciseLibraryViewModel.searchPrompt()
 
     @StateObject private var viewModel = ExerciseLibraryViewModel()
     @State private var searchText = ""

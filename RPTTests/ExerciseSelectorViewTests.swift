@@ -6,7 +6,7 @@ final class ExerciseSelectorViewTests: XCTestCase {
         XCTAssertEqual(ExerciseSelectorView.navigationTitle, "Add Exercise to Workout")
         XCTAssertEqual(
             ExerciseSelectorView.searchPrompt,
-            "Search workout exercises, notes, instruction cues, body regions, muscle groups, or actions"
+            "Search workout exercises, notes, instruction cues, body regions, muscle groups, movement types, or actions"
         )
     }
 
@@ -14,14 +14,14 @@ final class ExerciseSelectorViewTests: XCTestCase {
         XCTAssertEqual(ExerciseSelectorForTemplateView.navigationTitle, "Add Exercise to Template")
         XCTAssertEqual(
             ExerciseSelectorForTemplateView.searchPrompt,
-            "Search template exercises, notes, instruction cues, body regions, muscle groups, or actions"
+            "Search template exercises, notes, instruction cues, body regions, muscle groups, movement types, or actions"
         )
     }
 
     func testExerciseLibraryUsesExpandedSearchPrompt() {
         XCTAssertEqual(
             ExercisesView.searchPrompt,
-            "Search exercises, notes, instruction cues, body regions, muscle groups, or actions"
+            "Search exercises, notes, instruction cues, body regions, muscle groups, movement types, or actions"
         )
     }
 }

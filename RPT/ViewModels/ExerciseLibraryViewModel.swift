@@ -20,6 +20,15 @@ class ExerciseLibraryViewModel: ObservableObject {
         case workout
         case template
 
+        var searchPrompt: String {
+            switch self {
+            case .workout:
+                return ExerciseLibraryViewModel.searchPrompt(for: "workout exercises")
+            case .template:
+                return ExerciseLibraryViewModel.searchPrompt(for: "template exercises")
+            }
+        }
+
         var emptyLibraryDescription: String {
             switch self {
             case .workout:
@@ -49,6 +58,8 @@ class ExerciseLibraryViewModel: ObservableObject {
     }
 
     private let exerciseManager: ExerciseManager
+
+    static let searchGuidanceHighlights = "notes, instruction cues, body regions, muscle groups, movement types, or actions"
     
     @Published var searchText = ""
     @Published var selectedCategory: ExerciseCategory?
@@ -712,12 +723,16 @@ class ExerciseLibraryViewModel: ObservableObject {
         return qualifiers
     }
 
+    static func searchPrompt(for subject: String = "exercises") -> String {
+        "Search \(subject), \(searchGuidanceHighlights)"
+    }
+
     private func noMatchingSearchDescription(browseTarget: String) -> String {
         let createSuggestion = suggestedExerciseNameFromSearch() != nil
             ? " You can also add a custom exercise from this search."
             : ""
 
-        return "No exercises matched “\(normalizedSearchText)”. Try a different search, clear it to \(browseTarget), or search names, notes, instruction cues like drive elbows back, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review.\(createSuggestion)"
+        return "No exercises matched “\(normalizedSearchText)”. Try a different search, clear it to \(browseTarget), or search names, notes, instruction cues like drive elbows back, body regions like upper body or legs, muscle groups, movement types like compound or bodyweight, and action wording like add, use, choose, or review.\(createSuggestion)"
     }
 
     func emptyStateKind(filteredCount: Int) -> EmptyStateKind? {

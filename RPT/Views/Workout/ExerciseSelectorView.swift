@@ -22,7 +22,7 @@ struct ExerciseSelectorView: View {
     var onSelectExercise: (Exercise) -> Void
 
     static let navigationTitle = "Add Exercise to Workout"
-    static let searchPrompt = "Search workout exercises, notes, instruction cues, body regions, muscle groups, or actions"
+    static let searchPrompt = ExerciseLibraryViewModel.SelectionContext.workout.searchPrompt
 
     private let exerciseManager = ExerciseManager.shared
 
