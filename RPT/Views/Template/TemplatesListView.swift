@@ -33,7 +33,7 @@ struct TemplatesListView: View {
                         EmptyStateCard(
                             icon: "magnifyingglass",
                             title: "No Matches",
-                            message: "No template matches “\(viewModel.searchText)”. Search by name, notes, exercise, or muscle group."
+                            message: viewModel.noMatchesDescription()
                         )
                     } else {
                         ForEach(viewModel.filteredTemplates) { template in
@@ -45,7 +45,7 @@ struct TemplatesListView: View {
                 .padding(.bottom, 24)
             }
             .background(Theme.screenBackground)
-            .searchable(text: $viewModel.searchText, prompt: "Search templates")
+            .searchable(text: $viewModel.searchText, prompt: TemplateViewModel.searchPrompt)
             .navigationTitle("Templates")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
