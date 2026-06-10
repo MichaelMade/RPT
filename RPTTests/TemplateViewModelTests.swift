@@ -2049,20 +2049,20 @@ final class TemplateViewModelTests: XCTestCase {
         viewModel.searchText = "  Lower\n Day  "
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
-            "No templates matched “Lower Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, instruction cues like drive elbows back, body regions like upper body or full body, action wording like start, use Save for Later, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated. You can also create a new template from this search."
+            "No templates matched “Lower Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, instruction cues like drive elbows back, muscle groups like chest or hamstrings, set/rep plans like 5x5 or 3x8-10, action wording like start, use Save for Later, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated. You can also create a new template from this search."
         )
 
         viewModel.searchText = "  Push\n Day  "
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
-            "No templates matched “Push Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, instruction cues like drive elbows back, body regions like upper body or full body, action wording like start, use Save for Later, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated."
+            "No templates matched “Push Day”. Try a different search, clear it to browse every workout template, or search names, exercises, notes, instruction cues like drive elbows back, muscle groups like chest or hamstrings, set/rep plans like 5x5 or 3x8-10, action wording like start, use Save for Later, launch, review, view, edit, open, continue, save, or discard, and issue labels like missing or repeated."
         )
     }
 
-    func testSearchPrompt_teachesInstructionCueBodyRegionAndActionSearch() {
+    func testSearchPrompt_teachesInstructionCueMuscleGroupSetRepAndActionSearch() {
         XCTAssertEqual(
             TemplatesListView.searchPrompt,
-            "Search templates, exercises, notes, instruction cues, body regions, actions, or issues"
+            "Search templates, exercises, notes, instruction cues, muscle groups, set/rep plans, actions, or issues"
         )
     }
 
