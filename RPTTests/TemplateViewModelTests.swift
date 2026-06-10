@@ -1825,6 +1825,48 @@ final class TemplateViewModelTests: XCTestCase {
         )
     }
 
+    func testFetchTemplates_matchesFollowUpButtonTitle() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+        viewModel.searchText = "Start Follow-Up from “Upper A”"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper A"]
+        )
+    }
+
+    func testFetchTemplates_matchesBlockedFollowUpAlertTitle() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+        viewModel.searchText = "Discard This Workout & Start Follow-Up from “Upper A”?"
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper A"]
+        )
+    }
+
+    func testFetchTemplates_matchesFollowUpFailureCopy() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Upper A", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Lower Day", exerciseNames: ["Squat"])
+        ]
+        viewModel.searchText = "Couldn’t start a follow-up from “Upper A”. Keep it in history, then try again."
+
+        XCTAssertEqual(
+            viewModel.fetchTemplates().map(\.name),
+            ["Upper A"]
+        )
+    }
+
     func testFetchTemplates_matchesPartialSourceTemplateDetailDescription() throws {
         let viewModel = TemplateViewModel()
         let context = DataManager.shared.getModelContext()

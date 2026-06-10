@@ -1625,8 +1625,70 @@ class TemplateViewModel: ObservableObject {
     private func sourceTemplateSearchTerms(for template: WorkoutTemplate) -> [String] {
         [
             "source template",
-            WorkoutDetailView.sourceTemplateDescription(for: template)
+            WorkoutDetailView.sourceTemplateDescription(for: template),
+            followUpWorkoutHelperText(for: template),
+            followUpWorkoutButtonTitle(for: template),
+            startFollowUpFailureAlertTitle(for: template),
+            startFollowUpFailureMessage(for: template),
+            saveAndStartFollowUpButtonTitle(for: template),
+            discardAndStartFollowUpButtonTitle(for: template),
+            discardAndStartFollowUpAlertTitle(for: template),
+            discardAndStartFollowUpAlertMessage(for: template)
         ] + visibleTemplateActionSearchTerms(for: template)
+    }
+
+    private func followUpWorkoutHelperText(for template: WorkoutTemplate) -> String {
+        "Create a new draft with your last working-set weights prefilled so you can keep progressing without rebuilding the session."
+    }
+
+    private func followUpWorkoutButtonTitle(for template: WorkoutTemplate) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Start This Follow-Up"
+            : "Start Follow-Up from “\(displayName)”"
+    }
+
+    private func startFollowUpFailureAlertTitle(for template: WorkoutTemplate) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Couldn’t Start This Follow-Up"
+            : "Couldn’t Start Follow-Up from “\(displayName)”"
+    }
+
+    private func startFollowUpFailureMessage(for template: WorkoutTemplate) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Couldn’t start this follow-up. Keep this workout in history, then try again."
+            : "Couldn’t start a follow-up from “\(displayName)”. Keep it in history, then try again."
+    }
+
+    private func saveAndStartFollowUpButtonTitle(for template: WorkoutTemplate) -> String {
+        "Save This Workout & Start \(followUpActionTarget(for: template))"
+    }
+
+    private func discardAndStartFollowUpButtonTitle(for template: WorkoutTemplate) -> String {
+        "Discard This Workout & Start \(followUpActionTarget(for: template))"
+    }
+
+    private func discardAndStartFollowUpAlertTitle(for template: WorkoutTemplate) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Discard This Workout & Start This Follow-Up?"
+            : "Discard This Workout & Start Follow-Up from “\(displayName)”?"
+    }
+
+    private func discardAndStartFollowUpAlertMessage(for template: WorkoutTemplate) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "Your in-progress workout will be lost and RPT will immediately start the selected follow-up. This action cannot be undone."
+            : "Your in-progress workout will be lost and RPT will immediately start a follow-up from “\(displayName)”. This action cannot be undone."
+    }
+
+    private func followUpActionTarget(for template: WorkoutTemplate) -> String {
+        let displayName = WorkoutTemplate.normalizedDisplayName(template.name)
+        return displayName == "Template"
+            ? "This Follow-Up"
+            : "Follow-Up from “\(displayName)”"
     }
 
     private func visibleTemplateActionSearchTerms(for template: WorkoutTemplate) -> [String] {
