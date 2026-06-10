@@ -981,7 +981,7 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
                 excludedCount: 0,
                 context: .workout
             ),
-            "No exercises matched “squat”. Try a different search, clear it to browse every exercise in your library, or search names, notes, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review. You can also add a custom exercise from this search.",
+            "No exercises matched “squat”. Try a different search, clear it to browse every exercise in your library, or search names, notes, instruction cues like drive elbows back, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review. You can also add a custom exercise from this search.",
             "Workout and template exercise pickers should teach the same richer search recovery users already get in the main library"
         )
     }
@@ -1024,7 +1024,7 @@ final class ExerciseLibraryViewModelTests: XCTestCase {
         )
         XCTAssertEqual(
             viewModel.emptyStateDescription(filteredCount: 0),
-            "No exercises matched “squat”. Try a different search, clear it to browse every exercise, or search names, notes, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review. You can also add a custom exercise from this search."
+            "No exercises matched “squat”. Try a different search, clear it to browse every exercise, or search names, notes, instruction cues like drive elbows back, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review. You can also add a custom exercise from this search."
         )
     }
 

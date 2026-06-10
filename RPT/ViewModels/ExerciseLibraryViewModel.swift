@@ -717,7 +717,7 @@ class ExerciseLibraryViewModel: ObservableObject {
             ? " You can also add a custom exercise from this search."
             : ""
 
-        return "No exercises matched “\(normalizedSearchText)”. Try a different search, clear it to \(browseTarget), or search names, notes, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review.\(createSuggestion)"
+        return "No exercises matched “\(normalizedSearchText)”. Try a different search, clear it to \(browseTarget), or search names, notes, instruction cues like drive elbows back, body regions like upper body or legs, muscle groups, and action wording like add, use, choose, or review.\(createSuggestion)"
     }
 
     func emptyStateKind(filteredCount: Int) -> EmptyStateKind? {
