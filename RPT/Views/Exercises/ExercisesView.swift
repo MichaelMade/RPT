@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct ExercisesView: View {
+    static let searchPrompt = "Search exercises, notes, body regions, muscle groups, or actions"
+
     @StateObject private var viewModel = ExerciseLibraryViewModel()
     @State private var searchText = ""
     @State private var selectedCategory: ExerciseCategory?
@@ -244,7 +246,7 @@ struct ExercisesView: View {
                 }
                 .listStyle(.plain)
             }
-            .searchable(text: $searchText, prompt: "Search exercises, notes, or body regions")
+            .searchable(text: $searchText, prompt: Self.searchPrompt)
             .onChange(of: searchText) { _, newValue in
                 viewModel.searchText = newValue
             }
