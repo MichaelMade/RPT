@@ -1632,10 +1632,13 @@ class TemplateViewModel: ObservableObject {
             quickStartTemplateButtonTitle(for: template),
             reviewTemplateButtonTitle(for: template),
             editTemplateButtonTitle(for: template),
+            TemplateViewModel.templateSaveFailureAlertTitle(for: template.name),
             duplicateTemplateButtonTitle(for: template),
             deleteTemplateButtonTitle(for: template),
             deleteTemplateAlertTitle(for: template),
-            deleteTemplateMessage(for: template)
+            deleteTemplateMessage(for: template),
+            deleteTemplateFailureAlertTitle(for: template),
+            deleteTemplateFailureMessage(for: template)
         ]
     }
 

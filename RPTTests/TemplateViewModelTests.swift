@@ -166,6 +166,28 @@ final class TemplateViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
     }
 
+    func testFetchTemplates_matchesNamedTemplateSaveFailureAlertCopy() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"])
+        ]
+
+        viewModel.searchText = "couldn't save template push day"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Push Day"])
+    }
+
+    func testFetchTemplates_matchesNamedTemplateDeleteFailureCopy() {
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            makeTemplate(name: "Push Day", exerciseNames: ["Bench Press"]),
+            makeTemplate(name: "Pull Day", exerciseNames: ["Barbell Row"])
+        ]
+
+        viewModel.searchText = "pull day is still in your templates"
+        XCTAssertEqual(viewModel.fetchTemplates().map(\.name), ["Pull Day"])
+    }
+
     func testFetchTemplates_matchesExerciseMuscleGroupAliases() throws {
         let context = DataManager.shared.getModelContext()
         let bench = Exercise(
