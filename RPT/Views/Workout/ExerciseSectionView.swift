@@ -285,7 +285,8 @@ struct SetRowView: View {
     let onSetRPE: (Int?) -> Void
 
     private var isLogged: Bool {
-        set.isCompletedLoggedSet
+        // `self.` is required: a leading bare `set` parses as a setter keyword.
+        self.set.isCompletedLoggedSet
     }
 
     private var showRPE: Bool {

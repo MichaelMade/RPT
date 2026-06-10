@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 enum Theme {
     // MARK: - Brand Colors
@@ -45,11 +46,11 @@ enum Theme {
     // MARK: - Surfaces
 
     static var cardBackground: Color {
-        Color(.secondarySystemGroupedBackground)
+        Color(UIColor.secondarySystemGroupedBackground)
     }
 
     static var screenBackground: Color {
-        Color(.systemGroupedBackground)
+        Color(UIColor.systemGroupedBackground)
     }
 
     // MARK: - Metrics
