@@ -6,7 +6,7 @@ Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All d
 
 ## Features
 
-- **Template search now understands richer coaching queries** — template results can now match instruction cues from the exercise library, set/rep-plan queries like `5x5`, `3x8-10`, or `3 sets`, and split multi-term intent like `bench chest`, alongside category/body-region queries such as `bodyweight`, `isolation`, `upper body`, `legs`, or `core`, and the Templates screen teaches those cues directly in the search prompt and no-match helper.
+- **Template and exercise search now understand push/pull split intent** — exercises and templates can now match push/pull queries alongside instruction cues, set/rep-plan searches like `5x5` or `3x8-10`, split multi-term intent like `bench chest`, and category/body-region queries such as `bodyweight`, `isolation`, `upper body`, `legs`, or `core`, and both search surfaces teach those cues directly in their prompt and no-match helper.
 
 ### Training
 - **Live workout logging** — fast steppers, tap-to-type set editing, RPE tracking, and per-exercise completion check-offs.
@@ -18,7 +18,7 @@ Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All d
 
 ### Planning
 - **Templates** — reusable routines with per-exercise set counts and rep ranges, duplicate/edit/start in one tap, and automatic weight pre-fill from your last session.
-- **Exercise library** — seeded with common barbell/bodyweight movements, fully searchable across names, muscles, instruction cues, body-region intent, and movement types, and extensible with custom exercises.
+- **Exercise library** — seeded with common barbell/bodyweight movements, fully searchable across names, muscles, push/pull split intent, instruction cues, body-region intent, and movement types, and extensible with custom exercises.
 - **Plate calculator** — visual bar-loading math for lb/kg with multiple bar types.
 - **RPT calculator** — plan a session from any top-set weight.
 

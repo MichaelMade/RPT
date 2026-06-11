@@ -3,20 +3,20 @@ import XCTest
 
 @MainActor
 final class ExerciseLibraryViewModelSearchTests: XCTestCase {
-    func testSearchPrompt_teachesInstructionCuesAlongsideBodyRegionsAndMovementTypes() {
+    func testSearchPrompt_teachesPushPullSplitsAlongsideInstructionCuesAndBodyRegions() {
         XCTAssertEqual(
             ExerciseLibraryViewModel.searchPrompt,
-            "Search exercises, muscles, instruction cues, body regions, or movement types"
+            "Search exercises, muscles, push/pull splits, instruction cues, body regions, or movement types"
         )
     }
 
-    func testNoMatchesDescription_teachesInstructionCuesAlongsideBodyRegionsAndMovementTypes() {
+    func testNoMatchesDescription_teachesPushPullSplitsAlongsideInstructionCuesAndBodyRegions() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.searchText = "legs"
 
         XCTAssertEqual(
             viewModel.noMatchesDescription(),
-            "No exercise matches “legs”. Search by name, muscle group, instruction cue, body region, or movement type."
+            "No exercise matches “legs”. Search by name, muscle group, push/pull split, instruction cue, body region, or movement type."
         )
     }
 
@@ -25,7 +25,7 @@ final class ExerciseLibraryViewModelSearchTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.noMatchesDescription(),
-            "No exercise matches your current search or filters. Search by name, muscle group, instruction cue, body region, or movement type."
+            "No exercise matches your current search or filters. Search by name, muscle group, push/pull split, instruction cue, body region, or movement type."
         )
     }
 
@@ -51,6 +51,30 @@ final class ExerciseLibraryViewModelSearchTests: XCTestCase {
 
         viewModel.searchText = "legs squat"
         XCTAssertEqual(viewModel.filteredExercises.map(\.displayName), ["Back Squat"])
+    }
+
+    func testFilteredExercises_matchesPushAndPullAliases() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(
+                name: "Bench Press",
+                category: .compound,
+                primaryMuscleGroups: [.chest],
+                secondaryMuscleGroups: [.triceps]
+            ),
+            Exercise(
+                name: "Barbell Row",
+                category: .compound,
+                primaryMuscleGroups: [.back],
+                secondaryMuscleGroups: [.biceps]
+            )
+        ]
+
+        viewModel.searchText = "push"
+        XCTAssertEqual(viewModel.filteredExercises.map(\.displayName), ["Bench Press"])
+
+        viewModel.searchText = "pull"
+        XCTAssertEqual(viewModel.filteredExercises.map(\.displayName), ["Barbell Row"])
     }
 
     func testFilteredExercises_matchesInstructionCueTerms() {

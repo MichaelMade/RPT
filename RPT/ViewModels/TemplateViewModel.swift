@@ -14,7 +14,7 @@ class TemplateViewModel: ObservableObject {
     @Published var templates: [WorkoutTemplate] = []
     @Published var searchText: String = ""
 
-    static let searchPrompt = "Search templates, notes, exercises, muscle groups, set/rep plans, instruction cues, body regions, or movement types"
+    static let searchPrompt = "Search templates, notes, exercises, muscle groups, push/pull splits, set/rep plans, instruction cues, body regions, or movement types"
 
     private let templateManager: TemplateManager
     private let exerciseManager: ExerciseManager
@@ -40,7 +40,7 @@ class TemplateViewModel: ObservableObject {
     }
 
     func noMatchesDescription() -> String {
-        "No template matches “\(searchText)”. Search by name, notes, exercise, muscle group, set/rep plan, instruction cue, body region, or movement type."
+        "No template matches “\(searchText)”. Search by name, notes, exercise, muscle group, push/pull split, set/rep plan, instruction cue, body region, or movement type."
     }
 
     func refreshTemplates() {
@@ -134,7 +134,7 @@ class TemplateViewModel: ObservableObject {
 
             let muscles = exercise.primaryMuscleGroups + exercise.secondaryMuscleGroups
             terms.append(contentsOf: muscles.map(\.displayName))
-            terms.append(contentsOf: Self.bodyRegionSearchTerms(for: muscles))
+            terms.append(contentsOf: ExerciseSearchAliases.bodyRegionTerms(for: muscles))
         }
 
         return terms
@@ -203,42 +203,6 @@ class TemplateViewModel: ObservableObject {
             .split(whereSeparator: { $0.isWhitespace })
             .map(String.init)
             .filter { !$0.isEmpty }
-    }
-
-    private static func bodyRegionSearchTerms(for muscleGroups: [MuscleGroup]) -> [String] {
-        let uniqueGroups = Set(muscleGroups)
-        var terms = Set<String>()
-
-        let lowerBodyGroups: Set<MuscleGroup> = [.quadriceps, .hamstrings, .glutes, .calves]
-        let upperBodyGroups: Set<MuscleGroup> = [.chest, .back, .shoulders, .biceps, .triceps, .forearms, .traps]
-        let coreGroups: Set<MuscleGroup> = [.abs, .obliques, .lowerBack]
-        let armGroups: Set<MuscleGroup> = [.biceps, .triceps, .forearms]
-
-        let matchesLowerBody = !uniqueGroups.isDisjoint(with: lowerBodyGroups)
-        let matchesUpperBody = !uniqueGroups.isDisjoint(with: upperBodyGroups)
-        let matchesCore = !uniqueGroups.isDisjoint(with: coreGroups)
-
-        if matchesLowerBody {
-            terms.formUnion(["lower body", "leg", "legs"])
-        }
-
-        if matchesUpperBody {
-            terms.insert("upper body")
-        }
-
-        if !uniqueGroups.isDisjoint(with: armGroups) {
-            terms.formUnion(["arm", "arms"])
-        }
-
-        if matchesCore {
-            terms.insert("core")
-        }
-
-        if (matchesUpperBody && matchesLowerBody) || (matchesCore && (matchesUpperBody || matchesLowerBody)) {
-            terms.formUnion(["full body", "total body"])
-        }
-
-        return terms.sorted()
     }
 
     private func normalized(_ text: String) -> String {

@@ -3,20 +3,20 @@ import XCTest
 
 @MainActor
 final class TemplateViewModelSearchTests: XCTestCase {
-    func testSearchPrompt_teachesRepPlansAlongsideInstructionCuesAndBodyRegions() {
+    func testSearchPrompt_teachesPushPullSplitsAlongsideRepPlansAndInstructionCues() {
         XCTAssertEqual(
             TemplateViewModel.searchPrompt,
-            "Search templates, notes, exercises, muscle groups, set/rep plans, instruction cues, body regions, or movement types"
+            "Search templates, notes, exercises, muscle groups, push/pull splits, set/rep plans, instruction cues, body regions, or movement types"
         )
     }
 
-    func testNoMatchesDescription_teachesRepPlansAlongsideInstructionCuesAndBodyRegions() {
+    func testNoMatchesDescription_teachesPushPullSplitsAlongsideRepPlansAndInstructionCues() {
         let viewModel = TemplateViewModel()
         viewModel.searchText = "legs"
 
         XCTAssertEqual(
             viewModel.noMatchesDescription(),
-            "No template matches “legs”. Search by name, notes, exercise, muscle group, set/rep plan, instruction cue, body region, or movement type."
+            "No template matches “legs”. Search by name, notes, exercise, muscle group, push/pull split, set/rep plan, instruction cue, body region, or movement type."
         )
     }
 
@@ -52,6 +52,42 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
         viewModel.searchText = "isolation"
         XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Arm Day"])
+    }
+
+    func testFilteredTemplates_matchesPushAndPullAliases() throws {
+        let context = DataManager.shared.getModelContext()
+        let bench = Exercise(
+            name: "Search Push Bench \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [.triceps]
+        )
+        let row = Exercise(
+            name: "Search Pull Row \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.back],
+            secondaryMuscleGroups: [.biceps]
+        )
+        context.insert(bench)
+        context.insert(row)
+        try context.save()
+        defer {
+            context.delete(bench)
+            context.delete(row)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            WorkoutTemplate(name: "Push Day", exercises: [TemplateExercise(exerciseName: bench.name)]),
+            WorkoutTemplate(name: "Pull Day", exercises: [TemplateExercise(exerciseName: row.name)])
+        ]
+
+        viewModel.searchText = "push"
+        XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Push Day"])
+
+        viewModel.searchText = "pull"
+        XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Pull Day"])
     }
 
     func testFilteredTemplates_matchesBodyRegionAliases() throws {
