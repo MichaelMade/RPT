@@ -114,4 +114,27 @@ final class ExerciseLibraryViewModelSearchTests: XCTestCase {
         viewModel.searchText = "drive elbows back"
         XCTAssertEqual(viewModel.filteredExercises.map(\.displayName), ["Barbell Row"])
     }
+
+    func testFilteredExercises_matchesHyphenlessAndCollapsedNameQueries() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(
+                name: "Pull-up",
+                category: .bodyweight,
+                primaryMuscleGroups: [.back]
+            ),
+            Exercise(
+                name: "Body Weight Squat",
+                category: .bodyweight,
+                primaryMuscleGroups: [.quadriceps],
+                secondaryMuscleGroups: [.glutes]
+            )
+        ]
+
+        viewModel.searchText = "pullup"
+        XCTAssertEqual(viewModel.filteredExercises.map(\.displayName), ["Pull-up"])
+
+        viewModel.searchText = "bodyweight squat"
+        XCTAssertEqual(viewModel.filteredExercises.map(\.displayName), ["Body Weight Squat"])
+    }
 }

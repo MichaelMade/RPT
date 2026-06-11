@@ -16,6 +16,24 @@ struct ExerciseSearchAliases {
         ]
     }
 
+    static func compactSearchTerms(for text: String) -> [String] {
+        let folded = text.folding(
+            options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive],
+            locale: Locale(identifier: "en_US_POSIX")
+        )
+
+        let punctuationNormalized = folded
+            .replacingOccurrences(of: #"[^\p{L}\p{N}]+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let compact = folded.unicodeScalars
+            .filter { CharacterSet.alphanumerics.contains($0) }
+            .map(String.init)
+            .joined()
+
+        return [punctuationNormalized, compact]
+            .filter { !$0.isEmpty }
+    }
+
     static func bodyRegionTerms(for muscleGroups: [MuscleGroup]) -> [String] {
         let uniqueGroups = Set(muscleGroups)
         var terms = Set<String>()

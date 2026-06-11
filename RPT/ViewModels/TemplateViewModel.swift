@@ -119,10 +119,14 @@ class TemplateViewModel: ObservableObject {
 
     private func templateSearchText(for template: WorkoutTemplate) -> String {
         var terms = [template.name, template.notes]
+        terms.append(contentsOf: ExerciseSearchAliases.compactSearchTerms(for: template.name))
+        terms.append(contentsOf: ExerciseSearchAliases.compactSearchTerms(for: template.notes))
 
         for templateExercise in template.exercises {
             terms.append(templateExercise.exerciseName)
             terms.append(templateExercise.notes)
+            terms.append(contentsOf: ExerciseSearchAliases.compactSearchTerms(for: templateExercise.exerciseName))
+            terms.append(contentsOf: ExerciseSearchAliases.compactSearchTerms(for: templateExercise.notes))
             terms.append(contentsOf: Self.repPlanSearchTerms(for: templateExercise))
 
             guard let exercise = exerciseManager.fetchExercise(withName: templateExercise.exerciseName) else {
@@ -132,6 +136,7 @@ class TemplateViewModel: ObservableObject {
             terms.append(exercise.instructions)
             terms.append(exercise.category.rawValue)
             terms.append(contentsOf: ExerciseSearchAliases.customTerms(isCustom: exercise.isCustom))
+            terms.append(contentsOf: ExerciseSearchAliases.compactSearchTerms(for: exercise.instructions))
 
             let muscles = exercise.primaryMuscleGroups + exercise.secondaryMuscleGroups
             terms.append(contentsOf: muscles.map(\.displayName))

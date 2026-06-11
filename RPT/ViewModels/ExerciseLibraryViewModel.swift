@@ -95,7 +95,9 @@ class ExerciseLibraryViewModel: ObservableObject {
             exercise.instructions,
             muscles.map(\.displayName).joined(separator: " "),
             ExerciseSearchAliases.bodyRegionTerms(for: muscles).joined(separator: " "),
-            ExerciseSearchAliases.customTerms(isCustom: exercise.isCustom).joined(separator: " ")
+            ExerciseSearchAliases.customTerms(isCustom: exercise.isCustom).joined(separator: " "),
+            ExerciseSearchAliases.compactSearchTerms(for: exercise.name).joined(separator: " "),
+            ExerciseSearchAliases.compactSearchTerms(for: exercise.instructions).joined(separator: " ")
         ]
         .map(normalized)
         .filter { !$0.isEmpty }

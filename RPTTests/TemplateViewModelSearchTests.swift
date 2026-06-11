@@ -288,4 +288,27 @@ final class TemplateViewModelSearchTests: XCTestCase {
         viewModel.searchText = "3 sets"
         XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Hypertrophy Focus"])
     }
+
+    func testFilteredTemplates_matchesHyphenlessExerciseQueries() throws {
+        let context = DataManager.shared.getModelContext()
+        let pullUp = Exercise(
+            name: "Search Alias Pull-up \(UUID().uuidString)",
+            category: .bodyweight,
+            primaryMuscleGroups: [.back]
+        )
+        context.insert(pullUp)
+        try context.save()
+        defer {
+            context.delete(pullUp)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            WorkoutTemplate(name: "Travel Pull Day", exercises: [TemplateExercise(exerciseName: pullUp.name)])
+        ]
+
+        viewModel.searchText = "pullup"
+        XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Travel Pull Day"])
+    }
 }
