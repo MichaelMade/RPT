@@ -33,7 +33,7 @@ struct ExercisePickerView: View {
                             icon: "magnifyingglass",
                             title: "No Matches",
                             message: viewModel.hasActiveFilters
-                                ? "Nothing matches your search or filters. Try different terms, or create a custom exercise."
+                                ? viewModel.noMatchesDescription()
                                 : "Every exercise is already in this workout.",
                             actionTitle: "Create Custom Exercise"
                         ) {
@@ -56,7 +56,7 @@ struct ExercisePickerView: View {
                 }
             }
             .background(Theme.screenBackground)
-            .searchable(text: $viewModel.searchText, prompt: "Search exercises or muscles")
+            .searchable(text: $viewModel.searchText, prompt: ExerciseLibraryViewModel.searchPrompt)
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

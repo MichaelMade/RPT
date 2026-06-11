@@ -22,7 +22,7 @@ struct ExercisesView: View {
                         EmptyStateCard(
                             icon: "magnifyingglass",
                             title: "No Matches",
-                            message: "Nothing matches your search or filters. Try different terms, or create a custom exercise.",
+                            message: viewModel.noMatchesDescription(),
                             actionTitle: "Create Custom Exercise"
                         ) {
                             showingCreateExercise = true
@@ -45,7 +45,7 @@ struct ExercisesView: View {
                 }
             }
             .background(Theme.screenBackground)
-            .searchable(text: $viewModel.searchText, prompt: "Search exercises or muscles")
+            .searchable(text: $viewModel.searchText, prompt: ExerciseLibraryViewModel.searchPrompt)
             .navigationTitle("Exercises")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

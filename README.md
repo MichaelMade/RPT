@@ -18,7 +18,7 @@ Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All d
 
 ### Planning
 - **Templates** — reusable routines with per-exercise set counts and rep ranges, duplicate/edit/start in one tap, and automatic weight pre-fill from your last session.
-- **Exercise library** — seeded with common barbell/bodyweight movements, fully searchable (names, muscles, categories, instructions), and extensible with custom exercises.
+- **Exercise library** — seeded with common barbell/bodyweight movements, fully searchable across names, muscles, instruction cues, body-region intent, and movement types, and extensible with custom exercises.
 - **Plate calculator** — visual bar-loading math for lb/kg with multiple bar types.
 - **RPT calculator** — plan a session from any top-set weight.
 
