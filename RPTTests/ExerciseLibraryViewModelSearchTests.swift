@@ -3,20 +3,20 @@ import XCTest
 
 @MainActor
 final class ExerciseLibraryViewModelSearchTests: XCTestCase {
-    func testSearchPrompt_teachesPushPullSplitsAlongsideInstructionCuesAndBodyRegions() {
+    func testSearchPrompt_teachesCustomMovesAlongsidePushPullSplitsAndInstructionCues() {
         XCTAssertEqual(
             ExerciseLibraryViewModel.searchPrompt,
-            "Search exercises, muscles, push/pull splits, instruction cues, body regions, or movement types"
+            "Search exercises, custom moves, muscles, push/pull splits, instruction cues, body regions, or movement types"
         )
     }
 
-    func testNoMatchesDescription_teachesPushPullSplitsAlongsideInstructionCuesAndBodyRegions() {
+    func testNoMatchesDescription_teachesCustomExercisesAlongsidePushPullSplitsAndInstructionCues() {
         let viewModel = ExerciseLibraryViewModel()
         viewModel.searchText = "legs"
 
         XCTAssertEqual(
             viewModel.noMatchesDescription(),
-            "No exercise matches “legs”. Search by name, muscle group, push/pull split, instruction cue, body region, or movement type."
+            "No exercise matches “legs”. Search by name, custom exercise, muscle group, push/pull split, instruction cue, body region, or movement type."
         )
     }
 
@@ -25,7 +25,7 @@ final class ExerciseLibraryViewModelSearchTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.noMatchesDescription(),
-            "No exercise matches your current search or filters. Search by name, muscle group, push/pull split, instruction cue, body region, or movement type."
+            "No exercise matches your current search or filters. Search by name, custom exercise, muscle group, push/pull split, instruction cue, body region, or movement type."
         )
     }
 
@@ -75,6 +75,29 @@ final class ExerciseLibraryViewModelSearchTests: XCTestCase {
 
         viewModel.searchText = "pull"
         XCTAssertEqual(viewModel.filteredExercises.map(\.displayName), ["Barbell Row"])
+    }
+
+    func testFilteredExercises_matchesCustomExerciseAliases() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(
+                name: "Custom Cable Fly",
+                category: .isolation,
+                primaryMuscleGroups: [.chest],
+                isCustom: true
+            ),
+            Exercise(
+                name: "Bench Press",
+                category: .compound,
+                primaryMuscleGroups: [.chest]
+            )
+        ]
+
+        viewModel.searchText = "custom"
+        XCTAssertEqual(viewModel.filteredExercises.map(\.displayName), ["Custom Cable Fly"])
+
+        viewModel.searchText = "my exercise"
+        XCTAssertEqual(viewModel.filteredExercises.map(\.displayName), ["Custom Cable Fly"])
     }
 
     func testFilteredExercises_matchesInstructionCueTerms() {

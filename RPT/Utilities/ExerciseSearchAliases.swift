@@ -1,6 +1,21 @@
 import Foundation
 
 struct ExerciseSearchAliases {
+    static func customTerms(isCustom: Bool) -> [String] {
+        guard isCustom else {
+            return []
+        }
+
+        return [
+            "custom",
+            "custom exercise",
+            "custom movement",
+            "my exercise",
+            "my movement",
+            "user exercise"
+        ]
+    }
+
     static func bodyRegionTerms(for muscleGroups: [MuscleGroup]) -> [String] {
         let uniqueGroups = Set(muscleGroups)
         var terms = Set<String>()

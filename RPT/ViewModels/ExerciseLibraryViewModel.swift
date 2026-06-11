@@ -16,7 +16,7 @@ class ExerciseLibraryViewModel: ObservableObject {
     @Published var selectedCategory: ExerciseCategory? = nil
     @Published var selectedMuscleGroup: MuscleGroup? = nil
 
-    static let searchPrompt = "Search exercises, muscles, push/pull splits, instruction cues, body regions, or movement types"
+    static let searchPrompt = "Search exercises, custom moves, muscles, push/pull splits, instruction cues, body regions, or movement types"
 
     private let exerciseManager: ExerciseManager
 
@@ -58,10 +58,10 @@ class ExerciseLibraryViewModel: ObservableObject {
     func noMatchesDescription() -> String {
         let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmedSearch.isEmpty {
-            return "No exercise matches your current search or filters. Search by name, muscle group, push/pull split, instruction cue, body region, or movement type."
+            return "No exercise matches your current search or filters. Search by name, custom exercise, muscle group, push/pull split, instruction cue, body region, or movement type."
         }
 
-        return "No exercise matches “\(trimmedSearch)”. Search by name, muscle group, push/pull split, instruction cue, body region, or movement type."
+        return "No exercise matches “\(trimmedSearch)”. Search by name, custom exercise, muscle group, push/pull split, instruction cue, body region, or movement type."
     }
 
     func refreshExercises() {
@@ -94,7 +94,8 @@ class ExerciseLibraryViewModel: ObservableObject {
             exercise.category.rawValue,
             exercise.instructions,
             muscles.map(\.displayName).joined(separator: " "),
-            ExerciseSearchAliases.bodyRegionTerms(for: muscles).joined(separator: " ")
+            ExerciseSearchAliases.bodyRegionTerms(for: muscles).joined(separator: " "),
+            ExerciseSearchAliases.customTerms(isCustom: exercise.isCustom).joined(separator: " ")
         ]
         .map(normalized)
         .filter { !$0.isEmpty }

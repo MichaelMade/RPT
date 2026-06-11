@@ -14,7 +14,7 @@ class TemplateViewModel: ObservableObject {
     @Published var templates: [WorkoutTemplate] = []
     @Published var searchText: String = ""
 
-    static let searchPrompt = "Search templates, notes, exercises, muscle groups, push/pull splits, set/rep plans, instruction cues, body regions, or movement types"
+    static let searchPrompt = "Search templates, notes, exercises, custom moves, muscle groups, push/pull splits, set/rep plans, instruction cues, body regions, or movement types"
 
     private let templateManager: TemplateManager
     private let exerciseManager: ExerciseManager
@@ -40,7 +40,7 @@ class TemplateViewModel: ObservableObject {
     }
 
     func noMatchesDescription() -> String {
-        "No template matches “\(searchText)”. Search by name, notes, exercise, muscle group, push/pull split, set/rep plan, instruction cue, body region, or movement type."
+        "No template matches “\(searchText)”. Search by name, notes, exercise, custom exercise, muscle group, push/pull split, set/rep plan, instruction cue, body region, or movement type."
     }
 
     func refreshTemplates() {
@@ -131,6 +131,7 @@ class TemplateViewModel: ObservableObject {
 
             terms.append(exercise.instructions)
             terms.append(exercise.category.rawValue)
+            terms.append(contentsOf: ExerciseSearchAliases.customTerms(isCustom: exercise.isCustom))
 
             let muscles = exercise.primaryMuscleGroups + exercise.secondaryMuscleGroups
             terms.append(contentsOf: muscles.map(\.displayName))

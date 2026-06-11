@@ -3,21 +3,56 @@ import XCTest
 
 @MainActor
 final class TemplateViewModelSearchTests: XCTestCase {
-    func testSearchPrompt_teachesPushPullSplitsAlongsideRepPlansAndInstructionCues() {
+    func testSearchPrompt_teachesCustomMovesAlongsidePushPullSplitsAndRepPlans() {
         XCTAssertEqual(
             TemplateViewModel.searchPrompt,
-            "Search templates, notes, exercises, muscle groups, push/pull splits, set/rep plans, instruction cues, body regions, or movement types"
+            "Search templates, notes, exercises, custom moves, muscle groups, push/pull splits, set/rep plans, instruction cues, body regions, or movement types"
         )
     }
 
-    func testNoMatchesDescription_teachesPushPullSplitsAlongsideRepPlansAndInstructionCues() {
+    func testNoMatchesDescription_teachesCustomExercisesAlongsidePushPullSplitsAndRepPlans() {
         let viewModel = TemplateViewModel()
         viewModel.searchText = "legs"
 
         XCTAssertEqual(
             viewModel.noMatchesDescription(),
-            "No template matches “legs”. Search by name, notes, exercise, muscle group, push/pull split, set/rep plan, instruction cue, body region, or movement type."
+            "No template matches “legs”. Search by name, notes, exercise, custom exercise, muscle group, push/pull split, set/rep plan, instruction cue, body region, or movement type."
         )
+    }
+
+    func testFilteredTemplates_matchesCustomExerciseAliases() throws {
+        let context = DataManager.shared.getModelContext()
+        let customExercise = Exercise(
+            name: "Template Custom Cable Fly \(UUID().uuidString)",
+            category: .isolation,
+            primaryMuscleGroups: [.chest],
+            isCustom: true
+        )
+        let standardExercise = Exercise(
+            name: "Template Standard Bench \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest]
+        )
+        context.insert(customExercise)
+        context.insert(standardExercise)
+        try context.save()
+        defer {
+            context.delete(customExercise)
+            context.delete(standardExercise)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            WorkoutTemplate(name: "Custom Accessories", exercises: [TemplateExercise(exerciseName: customExercise.name)]),
+            WorkoutTemplate(name: "Press Day", exercises: [TemplateExercise(exerciseName: standardExercise.name)])
+        ]
+
+        viewModel.searchText = "custom"
+        XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Custom Accessories"])
+
+        viewModel.searchText = "my exercise"
+        XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Custom Accessories"])
     }
 
     func testFilteredTemplates_matchesExerciseCategoryAliases() throws {
