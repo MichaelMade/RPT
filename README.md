@@ -6,7 +6,7 @@ Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All d
 
 ## Features
 
-- **Template search now understands richer coaching queries** — template results can now match instruction cues from the exercise library and split multi-term intent like `bench chest`, alongside category/body-region queries such as `bodyweight`, `isolation`, `upper body`, `legs`, or `core`, and the Templates screen teaches those cues directly in the search prompt and no-match helper.
+- **Template search now understands richer coaching queries** — template results can now match instruction cues from the exercise library, set/rep-plan queries like `5x5`, `3x8-10`, or `3 sets`, and split multi-term intent like `bench chest`, alongside category/body-region queries such as `bodyweight`, `isolation`, `upper body`, `legs`, or `core`, and the Templates screen teaches those cues directly in the search prompt and no-match helper.
 
 ### Training
 - **Live workout logging** — fast steppers, tap-to-type set editing, RPE tracking, and per-exercise completion check-offs.

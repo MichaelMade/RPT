@@ -3,20 +3,20 @@ import XCTest
 
 @MainActor
 final class TemplateViewModelSearchTests: XCTestCase {
-    func testSearchPrompt_teachesInstructionCuesAlongsideBodyRegionsAndMovementTypes() {
+    func testSearchPrompt_teachesRepPlansAlongsideInstructionCuesAndBodyRegions() {
         XCTAssertEqual(
             TemplateViewModel.searchPrompt,
-            "Search templates, notes, exercises, muscle groups, instruction cues, body regions, or movement types"
+            "Search templates, notes, exercises, muscle groups, set/rep plans, instruction cues, body regions, or movement types"
         )
     }
 
-    func testNoMatchesDescription_teachesInstructionCuesAlongsideBodyRegionsAndMovementTypes() {
+    func testNoMatchesDescription_teachesRepPlansAlongsideInstructionCuesAndBodyRegions() {
         let viewModel = TemplateViewModel()
         viewModel.searchText = "legs"
 
         XCTAssertEqual(
             viewModel.noMatchesDescription(),
-            "No template matches “legs”. Search by name, notes, exercise, muscle group, instruction cue, body region, or movement type."
+            "No template matches “legs”. Search by name, notes, exercise, muscle group, set/rep plan, instruction cue, body region, or movement type."
         )
     }
 
@@ -149,5 +149,72 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
         viewModel.searchText = "legs squat"
         XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Leg Focus"])
+    }
+
+    func testFilteredTemplates_matchesSetAndRepPlanAliases() throws {
+        let context = DataManager.shared.getModelContext()
+        let bench = Exercise(
+            name: "Search Rep Plan Bench \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [.triceps]
+        )
+        let row = Exercise(
+            name: "Search Rep Plan Row \(UUID().uuidString)",
+            category: .compound,
+            primaryMuscleGroups: [.back],
+            secondaryMuscleGroups: [.biceps]
+        )
+        context.insert(bench)
+        context.insert(row)
+        try context.save()
+        defer {
+            context.delete(bench)
+            context.delete(row)
+            try? context.save()
+        }
+
+        let viewModel = TemplateViewModel()
+        viewModel.templates = [
+            WorkoutTemplate(
+                name: "Strength Focus",
+                exercises: [
+                    TemplateExercise(
+                        exerciseName: bench.name,
+                        suggestedSets: 5,
+                        repRanges: [
+                            TemplateRepRange(setNumber: 1, minReps: 5, maxReps: 5),
+                            TemplateRepRange(setNumber: 2, minReps: 5, maxReps: 5),
+                            TemplateRepRange(setNumber: 3, minReps: 5, maxReps: 5),
+                            TemplateRepRange(setNumber: 4, minReps: 5, maxReps: 5),
+                            TemplateRepRange(setNumber: 5, minReps: 5, maxReps: 5)
+                        ]
+                    )
+                ]
+            ),
+            WorkoutTemplate(
+                name: "Hypertrophy Focus",
+                exercises: [
+                    TemplateExercise(
+                        exerciseName: row.name,
+                        suggestedSets: 3,
+                        repRanges: [
+                            TemplateRepRange(setNumber: 1, minReps: 8, maxReps: 10),
+                            TemplateRepRange(setNumber: 2, minReps: 10, maxReps: 12),
+                            TemplateRepRange(setNumber: 3, minReps: 12, maxReps: 15)
+                        ]
+                    )
+                ]
+            )
+        ]
+
+        viewModel.searchText = "5x5"
+        XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Strength Focus"])
+
+        viewModel.searchText = "3x8-10"
+        XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Hypertrophy Focus"])
+
+        viewModel.searchText = "3 sets"
+        XCTAssertEqual(viewModel.filteredTemplates.map(\.name), ["Hypertrophy Focus"])
     }
 }

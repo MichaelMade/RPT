@@ -14,7 +14,7 @@ class TemplateViewModel: ObservableObject {
     @Published var templates: [WorkoutTemplate] = []
     @Published var searchText: String = ""
 
-    static let searchPrompt = "Search templates, notes, exercises, muscle groups, instruction cues, body regions, or movement types"
+    static let searchPrompt = "Search templates, notes, exercises, muscle groups, set/rep plans, instruction cues, body regions, or movement types"
 
     private let templateManager: TemplateManager
     private let exerciseManager: ExerciseManager
@@ -40,7 +40,7 @@ class TemplateViewModel: ObservableObject {
     }
 
     func noMatchesDescription() -> String {
-        "No template matches “\(searchText)”. Search by name, notes, exercise, muscle group, instruction cue, body region, or movement type."
+        "No template matches “\(searchText)”. Search by name, notes, exercise, muscle group, set/rep plan, instruction cue, body region, or movement type."
     }
 
     func refreshTemplates() {
@@ -123,6 +123,7 @@ class TemplateViewModel: ObservableObject {
         for templateExercise in template.exercises {
             terms.append(templateExercise.exerciseName)
             terms.append(templateExercise.notes)
+            terms.append(contentsOf: Self.repPlanSearchTerms(for: templateExercise))
 
             guard let exercise = exerciseManager.fetchExercise(withName: templateExercise.exerciseName) else {
                 continue
@@ -140,6 +141,61 @@ class TemplateViewModel: ObservableObject {
             .map(normalized)
             .filter { !$0.isEmpty }
             .joined(separator: " ")
+    }
+
+    private static func repPlanSearchTerms(for templateExercise: TemplateExercise) -> [String] {
+        let setCount = max(0, templateExercise.suggestedSets)
+        guard setCount > 0 else {
+            return []
+        }
+
+        var terms: Set<String> = [
+            "\(setCount) set",
+            "\(setCount) sets",
+            "set count \(setCount)"
+        ]
+
+        let repRanges = templateExercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber })
+        if let firstRange = repRanges.first {
+            terms.formUnion(repRangeSearchTerms(minReps: firstRange.minReps, maxReps: firstRange.maxReps).map { "top set \($0)" })
+
+            for compactRange in compactRepRangeAliases(minReps: firstRange.minReps, maxReps: firstRange.maxReps) {
+                terms.insert("\(setCount)x\(compactRange)")
+                terms.insert("\(setCount) x \(compactRange)")
+            }
+        }
+
+        for range in repRanges {
+            let rangeTerms = repRangeSearchTerms(minReps: range.minReps, maxReps: range.maxReps)
+            terms.formUnion(rangeTerms)
+            terms.formUnion(rangeTerms.map { "set \(range.setNumber) \($0)" })
+        }
+
+        return terms.sorted()
+    }
+
+    private static func repRangeSearchTerms(minReps: Int, maxReps: Int) -> [String] {
+        guard minReps > 0, maxReps >= minReps else {
+            return []
+        }
+
+        if minReps == maxReps {
+            return ["\(minReps) reps"]
+        }
+
+        return compactRepRangeAliases(minReps: minReps, maxReps: maxReps).map { "\($0) reps" }
+    }
+
+    private static func compactRepRangeAliases(minReps: Int, maxReps: Int) -> [String] {
+        guard minReps > 0, maxReps >= minReps else {
+            return []
+        }
+
+        if minReps == maxReps {
+            return ["\(minReps)"]
+        }
+
+        return ["\(minReps)-\(maxReps)", "\(minReps)–\(maxReps)"]
     }
 
     private func queryTerms(from query: String) -> [String] {
