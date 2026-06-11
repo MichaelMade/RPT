@@ -41,14 +41,25 @@ class ExerciseLibraryViewModel: ObservableObject {
         let query = normalized(searchText)
         guard !query.isEmpty else { return result }
 
-        return result.filter { exercise in
-            let searchableText = searchableText(for: exercise)
-            if searchableText.contains(query) {
-                return true
-            }
+        let queryTerms = queryTerms(from: query)
 
-            return queryTerms(from: query).allSatisfy { searchableText.contains($0) }
-        }
+        return result
+            .compactMap { exercise -> (exercise: Exercise, score: Int)? in
+                let index = searchIndex(for: exercise)
+                guard index.searchableText.contains(query) || queryTerms.allSatisfy({ index.searchableText.contains($0) }) else {
+                    return nil
+                }
+
+                return (exercise, matchScore(for: exercise, index: index, query: query, queryTerms: queryTerms))
+            }
+            .sorted { lhs, rhs in
+                if lhs.score != rhs.score {
+                    return lhs.score > rhs.score
+                }
+
+                return lhs.exercise.displayName.localizedCaseInsensitiveCompare(rhs.exercise.displayName) == .orderedAscending
+            }
+            .map(\.exercise)
     }
 
     var hasActiveFilters: Bool {
@@ -86,22 +97,104 @@ class ExerciseLibraryViewModel: ObservableObject {
 
     // MARK: - Matching
 
-    private func searchableText(for exercise: Exercise) -> String {
-        let muscles = exercise.primaryMuscleGroups + exercise.secondaryMuscleGroups
+    private struct SearchIndex {
+        let searchableText: String
+        let normalizedName: String
+        let normalizedInstructions: String
+        let normalizedCategory: String
+        let normalizedMuscles: String
+        let normalizedAliases: String
+        let compactNameTerms: [String]
+        let compactInstructionTerms: [String]
+    }
 
-        return [
-            exercise.name,
-            exercise.category.rawValue,
-            exercise.instructions,
-            muscles.map(\.displayName).joined(separator: " "),
+    private func searchIndex(for exercise: Exercise) -> SearchIndex {
+        let muscles = exercise.primaryMuscleGroups + exercise.secondaryMuscleGroups
+        let compactNameTerms = ExerciseSearchAliases.compactSearchTerms(for: exercise.name).map(normalized)
+        let compactInstructionTerms = ExerciseSearchAliases.compactSearchTerms(for: exercise.instructions).map(normalized)
+        let normalizedName = normalized(exercise.name)
+        let normalizedInstructions = normalized(exercise.instructions)
+        let normalizedCategory = normalized(exercise.category.rawValue)
+        let normalizedMuscles = normalized(muscles.map(\.displayName).joined(separator: " "))
+        let normalizedAliases = normalized([
             ExerciseSearchAliases.bodyRegionTerms(for: muscles).joined(separator: " "),
-            ExerciseSearchAliases.customTerms(isCustom: exercise.isCustom).joined(separator: " "),
-            ExerciseSearchAliases.compactSearchTerms(for: exercise.name).joined(separator: " "),
-            ExerciseSearchAliases.compactSearchTerms(for: exercise.instructions).joined(separator: " ")
+            ExerciseSearchAliases.customTerms(isCustom: exercise.isCustom).joined(separator: " ")
+        ].joined(separator: " "))
+
+        let searchableText = [
+            normalizedName,
+            normalizedCategory,
+            normalizedInstructions,
+            normalizedMuscles,
+            normalizedAliases,
+            compactNameTerms.joined(separator: " "),
+            compactInstructionTerms.joined(separator: " ")
         ]
-        .map(normalized)
         .filter { !$0.isEmpty }
         .joined(separator: " ")
+
+        return SearchIndex(
+            searchableText: searchableText,
+            normalizedName: normalizedName,
+            normalizedInstructions: normalizedInstructions,
+            normalizedCategory: normalizedCategory,
+            normalizedMuscles: normalizedMuscles,
+            normalizedAliases: normalizedAliases,
+            compactNameTerms: compactNameTerms,
+            compactInstructionTerms: compactInstructionTerms
+        )
+    }
+
+    private func matchScore(for exercise: Exercise, index: SearchIndex, query: String, queryTerms: [String]) -> Int {
+        var score = 0
+
+        if index.normalizedName == query {
+            score += 500
+        } else if index.normalizedName.contains(query) {
+            score += 300
+        }
+
+        if index.compactNameTerms.contains(where: { $0 == query || $0.contains(query) }) {
+            score += 220
+        }
+
+        if index.normalizedInstructions.contains(query) {
+            score += 140
+        }
+
+        if index.normalizedMuscles.contains(query) {
+            score += 120
+        }
+
+        if index.normalizedAliases.contains(query) {
+            score += 100
+        }
+
+        if index.normalizedCategory.contains(query) {
+            score += 90
+        }
+
+        if index.compactInstructionTerms.contains(where: { $0 == query || $0.contains(query) }) {
+            score += 80
+        }
+
+        score += queryTerms.reduce(into: 0) { partialResult, term in
+            if index.normalizedName.contains(term) {
+                partialResult += 35
+            } else if index.normalizedMuscles.contains(term) {
+                partialResult += 20
+            } else if index.normalizedInstructions.contains(term) {
+                partialResult += 18
+            } else if index.normalizedAliases.contains(term) || index.normalizedCategory.contains(term) {
+                partialResult += 15
+            }
+        }
+
+        if exercise.isCustom {
+            score += 5
+        }
+
+        return score
     }
 
     private func queryTerms(from query: String) -> [String] {

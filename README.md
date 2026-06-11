@@ -6,7 +6,7 @@ Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All d
 
 ## Features
 
-- **Template and exercise search now understands custom-move + split-style intent** — exercises and templates can now match custom-move queries like `custom`, `my exercise`, or `custom movement` alongside push/pull queries, instruction cues, set/rep-plan searches like `5x5` or `3x8-10`, split multi-term intent like `bench chest`, hyphenless/collapsed name lookups like `pullup` or `bodyweight squat`, and category/body-region queries such as `bodyweight`, `isolation`, `upper body`, `legs`, or `core`, and both search surfaces teach those cues directly in their prompt and no-match helper.
+- **Template and exercise search now understands custom-move + split-style intent** — exercises and templates can now match custom-move queries like `custom`, `my exercise`, or `custom movement` alongside push/pull queries, instruction cues, set/rep-plan searches like `5x5` or `3x8-10`, split multi-term intent like `bench chest`, hyphenless/collapsed name lookups like `pullup` or `bodyweight squat`, and category/body-region queries such as `bodyweight`, `isolation`, `upper body`, `legs`, or `core`; exercise results also prioritize direct name matches above broader metadata hits so the library and add-exercise picker surface the most obvious lift first.
 
 ### Training
 - **Live workout logging** — fast steppers, tap-to-type set editing, RPE tracking, and per-exercise completion check-offs.

@@ -137,4 +137,36 @@ final class ExerciseLibraryViewModelSearchTests: XCTestCase {
         viewModel.searchText = "bodyweight squat"
         XCTAssertEqual(viewModel.filteredExercises.map(\.displayName), ["Body Weight Squat"])
     }
+
+    func testFilteredExercises_prioritizesExactNameMatchesOverBroadMetadataMatches() {
+        let viewModel = ExerciseLibraryViewModel()
+        viewModel.exercises = [
+            Exercise(
+                name: "Bench Press",
+                category: .compound,
+                primaryMuscleGroups: [.chest],
+                secondaryMuscleGroups: [.triceps]
+            ),
+            Exercise(
+                name: "Incline Dumbbell Press",
+                category: .compound,
+                primaryMuscleGroups: [.chest],
+                secondaryMuscleGroups: [.shoulders],
+                instructions: "Use a bench and press through a full range of motion."
+            ),
+            Exercise(
+                name: "Chest Fly",
+                category: .isolation,
+                primaryMuscleGroups: [.chest],
+                instructions: "Focus on squeezing the bench-side setup without shrugging."
+            )
+        ]
+
+        viewModel.searchText = "bench"
+
+        XCTAssertEqual(
+            viewModel.filteredExercises.map(\.displayName),
+            ["Bench Press", "Chest Fly", "Incline Dumbbell Press"]
+        )
+    }
 }
