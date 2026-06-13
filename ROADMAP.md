@@ -1,0 +1,63 @@
+# RPT Roadmap
+
+Last updated: 2026-06-13
+
+RPT already has solid training depth: templates, exercise library, live workout logging, progression guidance, stats, export, and a basic three-screen onboarding flow. The biggest gaps are not more calculators or search polish; they are the release and revenue blockers that still stand between a good training app and a shippable product.
+
+Audit summary:
+- Core flows look substantially complete on paper: first launch, template browsing, workout start/resume, exercise library, stats, settings, and CSV export all exist, with meaningful unit-test coverage around data integrity and workout math.
+- Crash-safety looks better than average for this stage because the app centralizes persistence through shared managers and already has rollback/error-path tests, but UI-flow correctness is still largely unverified in this Linux runner.
+- Onboarding exists, but it is still educational rather than activating: it explains RPT well without pushing the user into a first successful workout or a monetizable upgrade moment.
+- Monetization is not implemented yet. There is no StoreKit/paywall/subscription code, and the paid tier is not defined in product terms.
+- Release assets/compliance are incomplete: the project generates a launch screen and has an app icon, but there is no privacy manifest, no explicit App Store metadata/screenshots plan, and UI tests are still placeholder-level.
+
+## Now (release/revenue-critical)
+
+- [ ] Define the paid tier and shipping business model.
+  Decide whether RPT launches as free with a premium upgrade, subscription, or paid up front. Also define exactly what the free tier includes versus what triggers payment, so future StoreKit/paywall work has a stable target.
+
+- [ ] Add a release-grade monetization entry path.
+  Implement StoreKit-backed monetization once the business model is set, including a paywall/upgrade surface tied to a real value moment such as advanced stats, unlimited templates, or export/history depth.
+
+- [ ] Ship App Store compliance essentials.
+  Add `PrivacyInfo.xcprivacy`, verify the App Privacy answers against actual data flows, and confirm every generated Info.plist value and permission string is correct for the shipped build. Even if RPT uses no sensitive permissions today, the manifest itself is now part of release hygiene.
+
+- [ ] Upgrade onboarding from explanation to activation.
+  First-run should end with a clear path into a starter template, first custom template, or first workout. The goal is to get a new user to logged training value on day one, not just finish a slideshow.
+
+- [ ] Build the App Store packaging plan.
+  Create the first-pass metadata set: subtitle, promo copy, keyword direction, screenshot list, and feature positioning that matches the eventual paid tier.
+
+## Next
+
+- [ ] Replace placeholder UI tests with one real smoke path.
+  Cover first launch, onboarding completion, template/workout entry, and resume of an in-progress workout so the most important user journey has at least one regression net.
+
+- [ ] Add productized premium hooks before the paywall lands.
+  Identify premium-worthy surfaces in code and UX so monetization does not feel bolted on. Good candidates are deeper analytics, richer export/history, or advanced progression tooling.
+
+- [ ] Tighten empty-state and no-data experiences across Home, Stats, and Templates.
+  The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
+
+- [ ] Prepare support/legal surfaces for a public launch.
+  Add an in-app support/contact path, Terms link if monetization requires it, and a cleaner About/Privacy presentation.
+
+## Later
+
+- [ ] Expand retention features after the release path is stable.
+  Consider reminders, streak coaching, saved goal presets, or richer training insights only after release and monetization fundamentals are in place.
+
+- [ ] Explore broader platform fit.
+  iPad is enabled today; revisit whether that experience is intentionally designed enough to market, and whether Apple Watch/widgets are worth the cost later.
+
+- [ ] Refine brand and merchandising polish.
+  App icon variants, screenshot styling, and visual brand upgrades matter, but they should follow the business model and core release package rather than lead it.
+
+## Verify on Mac (needs Xcode/device)
+
+- Validate the full first-run path: onboarding completion, app relaunch behavior, and whether users land in the right place after onboarding.
+- Run the core workout journey on device/simulator: start workout, edit sets, rest timer, save/discard handoff, complete workout, and follow-up workout flow.
+- Confirm Stats, CSV export share sheet, and Settings mutations behave correctly in a real build.
+- Inspect the generated launch screen, app icon rendering, tab bar layout, and iPad presentation in Xcode/simulator.
+- Replace placeholder `RPTUITests` coverage with an actual smoke test and run it in Xcode.
+- When monetization is chosen and implemented, verify StoreKit products, purchase restore flow, and paywall behavior with StoreKit testing.
