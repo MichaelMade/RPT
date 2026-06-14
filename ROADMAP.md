@@ -1,6 +1,6 @@
 # RPT Roadmap
 
-Last updated: 2026-06-13
+Last updated: 2026-06-14
 
 RPT already has solid training depth: templates, exercise library, live workout logging, progression guidance, stats, export, and a basic three-screen onboarding flow. The biggest gaps are not more calculators or search polish; they are the release and revenue blockers that still stand between a good training app and a shippable product.
 
@@ -19,8 +19,8 @@ Audit summary:
 - [ ] Add a release-grade monetization entry path.
   Implement StoreKit-backed monetization once the business model is set, including a paywall/upgrade surface tied to a real value moment such as advanced stats, unlimited templates, or export/history depth.
 
-- [ ] Ship App Store compliance essentials.
-  Add `PrivacyInfo.xcprivacy`, verify the App Privacy answers against actual data flows, and confirm every generated Info.plist value and permission string is correct for the shipped build. Even if RPT uses no sensitive permissions today, the manifest itself is now part of release hygiene.
+- [ ] Define the App Store privacy answers and release disclosures.
+  `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. The next compliance pass should generate the Xcode privacy report, answer App Store Connect's data-collection questions from the built binary, and confirm the generated Info.plist still ships with no unexpected permission strings.
 
 - [ ] Upgrade onboarding from explanation to activation.
   First-run should end with a clear path into a starter template, first custom template, or first workout. The goal is to get a new user to logged training value on day one, not just finish a slideshow.
@@ -29,6 +29,9 @@ Audit summary:
   Create the first-pass metadata set: subtitle, promo copy, keyword direction, screenshot list, and feature positioning that matches the eventual paid tier.
 
 ## Next
+
+- [ ] Validate the bundled privacy manifest in a real archive.
+  Confirm `PrivacyInfo.xcprivacy` is copied into the app bundle/archive, inspect the generated privacy report in Xcode, and make sure App Store Connect accepts the manifest without additional required-reason entries from future code or SDK changes.
 
 - [ ] Replace placeholder UI tests with one real smoke path.
   Cover first launch, onboarding completion, template/workout entry, and resume of an in-progress workout so the most important user journey has at least one regression net.
@@ -55,6 +58,7 @@ Audit summary:
 
 ## Verify on Mac (needs Xcode/device)
 
+- Confirm `PrivacyInfo.xcprivacy` is bundled in the archive and that the Xcode privacy report matches the manifest's "no data collected, no tracking, UserDefaults only" expectation.
 - Validate the full first-run path: onboarding completion, app relaunch behavior, and whether users land in the right place after onboarding.
 - Run the core workout journey on device/simulator: start workout, edit sets, rest timer, save/discard handoff, complete workout, and follow-up workout flow.
 - Confirm Stats, CSV export share sheet, and Settings mutations behave correctly in a real build.

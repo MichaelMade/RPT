@@ -53,4 +53,8 @@ RPT/
 
 ## Privacy
 
-No accounts, no analytics, no network calls. Training data never leaves the device except through the export you trigger yourself. See `Privacy Policy`.
+No accounts, no analytics, no network calls. Training data never leaves the device except through the export you trigger yourself.
+
+RPT ships a privacy manifest that declares on-device UserDefaults access for onboarding, workout-state recovery, and settings toggles.
+
+The current app binary does not declare camera, photo library, contacts, location, notifications, or tracking permissions. See `Privacy Policy`.
