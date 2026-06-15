@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TemplatesListView: View {
     @EnvironmentObject private var session: WorkoutSession
+    @AppStorage("showCreateTemplateAfterOnboarding") private var showCreateTemplateAfterOnboarding = false
     @StateObject private var viewModel = TemplateViewModel()
 
     @State private var showingCreateTemplate = false
@@ -64,6 +65,11 @@ struct TemplatesListView: View {
             .onAppear {
                 viewModel.refreshTemplates()
                 session.restoreResumableWorkout()
+
+                if showCreateTemplateAfterOnboarding {
+                    showCreateTemplateAfterOnboarding = false
+                    showingCreateTemplate = true
+                }
             }
             .alert(item: $templateToDelete) { template in
                 Alert(

@@ -17,6 +17,7 @@ Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All d
 - **Follow-up workouts** — re-run any completed session at +2.5% load with one tap.
 
 ### Planning
+- **Activation-focused onboarding** — first run now ends with a concrete next step: launch the starter template, open template creation, or begin an empty first workout instead of dumping new users into a generic shell.
 - **Templates** — reusable routines with per-exercise set counts and rep ranges, duplicate/edit/start in one tap, and automatic weight pre-fill from your last session.
 - **Exercise library** — seeded with common barbell/bodyweight movements, fully searchable across names, muscles, push/pull split intent, instruction cues, body-region intent, and movement types, and extensible with custom exercises.
 - **Plate calculator** — visual bar-loading math for lb/kg with multiple bar types.

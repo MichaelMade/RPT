@@ -1,13 +1,13 @@
 # RPT Roadmap
 
-Last updated: 2026-06-14
+Last updated: 2026-06-15
 
 RPT already has solid training depth: templates, exercise library, live workout logging, progression guidance, stats, export, and a basic three-screen onboarding flow. The biggest gaps are not more calculators or search polish; they are the release and revenue blockers that still stand between a good training app and a shippable product.
 
 Audit summary:
 - Core flows look substantially complete on paper: first launch, template browsing, workout start/resume, exercise library, stats, settings, and CSV export all exist, with meaningful unit-test coverage around data integrity and workout math.
 - Crash-safety looks better than average for this stage because the app centralizes persistence through shared managers and already has rollback/error-path tests, but UI-flow correctness is still largely unverified in this Linux runner.
-- Onboarding exists, but it is still educational rather than activating: it explains RPT well without pushing the user into a first successful workout or a monetizable upgrade moment.
+- Onboarding now gets users into action faster via a starter-template, custom-template, or empty-workout handoff, but the post-first-workout retention and monetization path is still undefined.
 - Monetization is not implemented yet. There is no StoreKit/paywall/subscription code, and the paid tier is not defined in product terms.
 - Release assets/compliance are incomplete: the project generates a launch screen and has an app icon, but there is no privacy manifest, no explicit App Store metadata/screenshots plan, and UI tests are still placeholder-level.
 
@@ -22,11 +22,14 @@ Audit summary:
 - [ ] Define the App Store privacy answers and release disclosures.
   `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. The next compliance pass should generate the Xcode privacy report, answer App Store Connect's data-collection questions from the built binary, and confirm the generated Info.plist still ships with no unexpected permission strings.
 
-- [ ] Upgrade onboarding from explanation to activation.
-  First-run should end with a clear path into a starter template, first custom template, or first workout. The goal is to get a new user to logged training value on day one, not just finish a slideshow.
+- [x] Upgrade onboarding from explanation to activation.
+  First-run now ends with a concrete handoff: start the built-in `Upper Body RPT` template, open template creation, or launch an empty first workout. The remaining release risk is UI validation in a real build to confirm the handoff, tab routing, and workout presentation feel correct on device.
 
 - [ ] Build the App Store packaging plan.
   Create the first-pass metadata set: subtitle, promo copy, keyword direction, screenshot list, and feature positioning that matches the eventual paid tier.
+
+- [ ] Define the starter-template growth path after first workout.
+  The current first-run flow gets users into action faster, but the next monetizable retention pass should decide what happens immediately after that first logged session: save-as-template prompts, follow-up workout nudges, or premium upgrade education.
 
 ## Next
 
@@ -60,6 +63,7 @@ Audit summary:
 
 - Confirm `PrivacyInfo.xcprivacy` is bundled in the archive and that the Xcode privacy report matches the manifest's "no data collected, no tracking, UserDefaults only" expectation.
 - Validate the full first-run path: onboarding completion, app relaunch behavior, and whether users land in the right place after onboarding.
+- Validate the new onboarding activation choices in simulator/device: starter-template launch, empty-workout launch, and one-time template-composer deep link.
 - Run the core workout journey on device/simulator: start workout, edit sets, rest timer, save/discard handoff, complete workout, and follow-up workout flow.
 - Confirm Stats, CSV export share sheet, and Settings mutations behave correctly in a real build.
 - Inspect the generated launch screen, app icon rendering, tab bar layout, and iPad presentation in Xcode/simulator.
