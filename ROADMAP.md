@@ -1,6 +1,6 @@
 # RPT Roadmap
 
-Last updated: 2026-06-15
+Last updated: 2026-06-16
 
 RPT already has solid training depth: templates, exercise library, live workout logging, progression guidance, stats, export, and a basic three-screen onboarding flow. The biggest gaps are not more calculators or search polish; they are the release and revenue blockers that still stand between a good training app and a shippable product.
 
@@ -13,11 +13,11 @@ Audit summary:
 
 ## Now (release/revenue-critical)
 
-- [ ] Define the paid tier and shipping business model.
-  Decide whether RPT launches as free with a premium upgrade, subscription, or paid up front. Also define exactly what the free tier includes versus what triggers payment, so future StoreKit/paywall work has a stable target.
+- [x] Define the paid tier and shipping business model.
+  RPT is now defined as freemium in code and product copy: `RPT Free` keeps workout logging, the starter template, and basic stats free, while `RPT Pro` is planned as a one-time `$9.99` lifetime unlock for advanced analytics, unlimited custom templates, and CSV export. This gives StoreKit/paywall work a concrete target instead of a moving product question.
 
 - [ ] Add a release-grade monetization entry path.
-  Implement StoreKit-backed monetization once the business model is set, including a paywall/upgrade surface tied to a real value moment such as advanced stats, unlimited templates, or export/history depth.
+  Ship StoreKit-backed monetization against the new `RPT Pro` offer, including purchase, restore, and locked/unlocked state handling for the in-app upgrade surfaces now exposed from Stats and Settings.
 
 - [ ] Define the App Store privacy answers and release disclosures.
   `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. The next compliance pass should generate the Xcode privacy report, answer App Store Connect's data-collection questions from the built binary, and confirm the generated Info.plist still ships with no unexpected permission strings.
@@ -40,7 +40,7 @@ Audit summary:
   Cover first launch, onboarding completion, template/workout entry, and resume of an in-progress workout so the most important user journey has at least one regression net.
 
 - [ ] Add productized premium hooks before the paywall lands.
-  Identify premium-worthy surfaces in code and UX so monetization does not feel bolted on. Good candidates are deeper analytics, richer export/history, or advanced progression tooling.
+  Extend the newly-added `RPT Pro` entry points into feature-level upgrade affordances so monetization does not feel bolted on. Good candidates are deeper analytics, richer export/history, or advanced progression tooling.
 
 - [ ] Tighten empty-state and no-data experiences across Home, Stats, and Templates.
   The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
@@ -69,3 +69,4 @@ Audit summary:
 - Inspect the generated launch screen, app icon rendering, tab bar layout, and iPad presentation in Xcode/simulator.
 - Replace placeholder `RPTUITests` coverage with an actual smoke test and run it in Xcode.
 - When monetization is chosen and implemented, verify StoreKit products, purchase restore flow, and paywall behavior with StoreKit testing.
+- Validate the new `RPT Pro` upgrade screen, Stats promo card, and Settings entry point in simulator/device so copy, navigation, and pricing presentation feel intentional before App Store screenshots are captured.

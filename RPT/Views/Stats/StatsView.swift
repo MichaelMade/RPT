@@ -25,6 +25,7 @@ struct StatsView: View {
                         )
                     } else {
                         summaryTiles
+                        premiumPreviewCard
                         heatmapSection
                         volumeSection
 
@@ -105,6 +106,37 @@ struct StatsView: View {
                 )
             }
         }
+    }
+
+    private var premiumPreviewCard: some View {
+        NavigationLink {
+            UpgradeView()
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    PillTag(text: MonetizationPlan.proTier.name, tint: Theme.amber, icon: "crown.fill")
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+
+                Text("Upgrade when you're ready to go beyond basic tracking.")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Text(MonetizationPlan.upgradeCTA)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Text("\(MonetizationPlan.launchOfferTitle) • \(MonetizationPlan.launchPrice)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .rptCard()
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Heatmap

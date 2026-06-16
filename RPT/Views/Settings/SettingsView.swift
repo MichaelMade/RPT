@@ -28,6 +28,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                premiumSection
                 trainingSection
                 restTimerSection
                 appearanceSection
@@ -60,6 +61,26 @@ struct SettingsView: View {
     }
 
     // MARK: - Training
+
+    private var premiumSection: some View {
+        Section("RPT Pro") {
+            NavigationLink {
+                UpgradeView()
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(MonetizationPlan.launchOfferTitle)
+                        .font(.subheadline.weight(.semibold))
+
+                    Text("\(MonetizationPlan.launchPrice) one time • Advanced analytics, unlimited templates, and CSV export.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 2)
+            }
+        } footer: {
+            Text(MonetizationPlan.storeKitNote)
+        }
+    }
 
     private var trainingSection: some View {
         Section {

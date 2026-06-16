@@ -59,3 +59,9 @@ No accounts, no analytics, no network calls. Training data never leaves the devi
 RPT ships a privacy manifest that declares on-device UserDefaults access for onboarding, workout-state recovery, and settings toggles.
 
 The current app binary does not declare camera, photo library, contacts, location, notifications, or tracking permissions. See `Privacy Policy`.
+
+## Monetization Direction
+
+RPT is now scoped as a freemium app. `RPT Free` keeps the core training loop free: workout logging, the starter template, and basic stats with no signup.
+
+`RPT Pro` is the paid tier planned for the first App Store release at a one-time `Lifetime unlock` launch price of `$9.99`. The upgrade package is defined in code and surfaced in-app; it is aimed at advanced analytics, unlimited custom templates, and CSV export. StoreKit purchase wiring and restore-flow validation still need Mac/Xcode verification before release.
