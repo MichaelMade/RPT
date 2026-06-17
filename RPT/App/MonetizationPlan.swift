@@ -15,6 +15,9 @@ struct MonetizationTier: Equatable {
 }
 
 enum MonetizationPlan {
+    static let proProductID = "rpt.pro.lifetime"
+    static let proProductIDs = [proProductID]
+
     static let freeTier = MonetizationTier(
         name: "RPT Free",
         summary: "Log workouts, follow the starter template, and build momentum without a signup.",
@@ -40,4 +43,42 @@ enum MonetizationPlan {
     static let launchOfferSummary = "One-time purchase planned for the first App Store release."
     static let upgradeCTA = "RPT Pro unlocks advanced analytics, unlimited templates, and CSV export."
     static let storeKitNote = "StoreKit purchase flow will be verified on Mac before the App Store build ships."
+}
+
+enum MonetizationPurchaseState: Equatable {
+    case loadingStore
+    case ready
+    case purchasing
+    case restoring
+    case pendingApproval
+    case unlocked
+    case unavailable
+
+    var isBusy: Bool {
+        switch self {
+        case .loadingStore, .purchasing, .restoring:
+            return true
+        case .ready, .pendingApproval, .unlocked, .unavailable:
+            return false
+        }
+    }
+
+    var displayMessage: String {
+        switch self {
+        case .loadingStore:
+            return "Loading the RPT Pro upgrade from the App Store."
+        case .ready:
+            return "StoreKit is ready for the lifetime RPT Pro upgrade."
+        case .purchasing:
+            return "Opening the App Store purchase sheet."
+        case .restoring:
+            return "Checking your App Store purchases."
+        case .pendingApproval:
+            return "Purchase is pending App Store approval."
+        case .unlocked:
+            return "RPT Pro is unlocked on this device."
+        case .unavailable:
+            return "RPT Pro is not available from the App Store yet."
+        }
+    }
 }

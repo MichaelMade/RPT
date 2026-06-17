@@ -6,6 +6,8 @@
 import SwiftUI
 
 struct UpgradeView: View {
+    @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
+
     var body: some View {
         ScrollView {
             VStack(spacing: Theme.sectionSpacing) {
@@ -18,6 +20,14 @@ struct UpgradeView: View {
         .background(Theme.screenBackground)
         .navigationTitle("RPT Pro")
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await purchaseManager.start()
+        }
+        .alert("RPT Pro", isPresented: alertBinding) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(purchaseManager.alertMessage ?? "Please try again.")
+        }
     }
 
     private var heroCard: some View {
@@ -25,7 +35,7 @@ struct UpgradeView: View {
             HStack {
                 PillTag(text: MonetizationPlan.launchOfferTitle, tint: Theme.amber, icon: "bolt.fill")
                 Spacer()
-                Text(MonetizationPlan.launchPrice)
+                Text(purchaseManager.displayPrice)
                     .font(Theme.statFont(size: 28))
                     .foregroundStyle(Theme.brandGradient)
             }
@@ -40,6 +50,36 @@ struct UpgradeView: View {
             Text(MonetizationPlan.launchOfferSummary)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+            VStack(spacing: 10) {
+                Button {
+                    Task {
+                        await purchaseManager.purchasePro()
+                    }
+                } label: {
+                    Label(purchaseManager.purchaseButtonTitle, systemImage: purchaseManager.isUnlocked ? "checkmark.seal.fill" : "crown.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(BrandButtonStyle())
+                .disabled(!purchaseManager.canPurchase)
+
+                Button {
+                    Task {
+                        await purchaseManager.restorePurchases()
+                    }
+                } label: {
+                    Label("Restore Purchases", systemImage: "arrow.clockwise")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(SecondaryCapsuleButtonStyle())
+                .disabled(purchaseManager.state.isBusy)
+
+                Text(purchaseManager.state.displayMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.top, 4)
         }
         .rptCard()
     }
@@ -100,5 +140,12 @@ struct UpgradeView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .rptCard()
+    }
+
+    private var alertBinding: Binding<Bool> {
+        Binding(
+            get: { purchaseManager.alertMessage != nil },
+            set: { if !$0 { purchaseManager.alertMessage = nil } }
+        )
     }
 }

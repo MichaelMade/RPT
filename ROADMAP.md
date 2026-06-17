@@ -1,6 +1,6 @@
 # RPT Roadmap
 
-Last updated: 2026-06-16
+Last updated: 2026-06-17
 
 RPT already has solid training depth: templates, exercise library, live workout logging, progression guidance, stats, export, and a basic three-screen onboarding flow. The biggest gaps are not more calculators or search polish; they are the release and revenue blockers that still stand between a good training app and a shippable product.
 
@@ -17,10 +17,10 @@ Audit summary:
   RPT is now defined as freemium in code and product copy: `RPT Free` keeps workout logging, the starter template, and basic stats free, while `RPT Pro` is planned as a one-time `$9.99` lifetime unlock for advanced analytics, unlimited custom templates, and CSV export. This gives StoreKit/paywall work a concrete target instead of a moving product question.
 
 - [ ] Add a release-grade monetization entry path.
-  Ship StoreKit-backed monetization against the new `RPT Pro` offer, including purchase, restore, and locked/unlocked state handling for the in-app upgrade surfaces now exposed from Stats and Settings.
+  The first StoreKit 2 slice is now wired against App Store Connect product ID `rpt.pro.lifetime`: RPT loads the lifetime product, listens for transaction updates, purchases/restores the unlock, refreshes entitlement state, and gates CSV export behind `RPT Pro`. The remaining release work is Mac/Xcode validation with a real StoreKit configuration and then extending entitlement checks to unlimited templates and advanced analytics.
 
 - [ ] Define the App Store privacy answers and release disclosures.
-  `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. The next compliance pass should generate the Xcode privacy report, answer App Store Connect's data-collection questions from the built binary, and confirm the generated Info.plist still ships with no unexpected permission strings.
+  `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. The next compliance pass should generate the Xcode privacy report, answer App Store Connect's data-collection questions from the built binary, confirm the generated Info.plist still ships with no unexpected permission strings, and confirm StoreKit-only purchase traffic does not require additional privacy disclosures.
 
 - [x] Upgrade onboarding from explanation to activation.
   First-run now ends with a concrete handoff: start the built-in `Upper Body RPT` template, open template creation, or launch an empty first workout. The remaining release risk is UI validation in a real build to confirm the handoff, tab routing, and workout presentation feel correct on device.
@@ -40,7 +40,7 @@ Audit summary:
   Cover first launch, onboarding completion, template/workout entry, and resume of an in-progress workout so the most important user journey has at least one regression net.
 
 - [ ] Add productized premium hooks before the paywall lands.
-  Extend the newly-added `RPT Pro` entry points into feature-level upgrade affordances so monetization does not feel bolted on. Good candidates are deeper analytics, richer export/history, or advanced progression tooling.
+  CSV export now has the first feature-level upgrade affordance and unlock gate. Next candidates are unlimited custom templates and advanced analytics/progression views so the paid tier matches its launch promise.
 
 - [ ] Tighten empty-state and no-data experiences across Home, Stats, and Templates.
   The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
@@ -68,5 +68,5 @@ Audit summary:
 - Confirm Stats, CSV export share sheet, and Settings mutations behave correctly in a real build.
 - Inspect the generated launch screen, app icon rendering, tab bar layout, and iPad presentation in Xcode/simulator.
 - Replace placeholder `RPTUITests` coverage with an actual smoke test and run it in Xcode.
-- When monetization is chosen and implemented, verify StoreKit products, purchase restore flow, and paywall behavior with StoreKit testing.
+- Validate the `rpt.pro.lifetime` StoreKit 2 flow in Xcode: product loading, purchase sheet, pending state, transaction updates, restore purchases, CSV export unlocked state, and entitlement persistence after relaunch.
 - Validate the new `RPT Pro` upgrade screen, Stats promo card, and Settings entry point in simulator/device so copy, navigation, and pricing presentation feel intentional before App Store screenshots are captured.

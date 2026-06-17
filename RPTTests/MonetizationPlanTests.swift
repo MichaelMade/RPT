@@ -10,6 +10,8 @@ final class MonetizationPlanTests: XCTestCase {
 
     func testProTierDefinesPaidValueForLaunch() {
         XCTAssertEqual(MonetizationPlan.proTier.name, "RPT Pro")
+        XCTAssertEqual(MonetizationPlan.proProductID, "rpt.pro.lifetime")
+        XCTAssertEqual(MonetizationPlan.proProductIDs, ["rpt.pro.lifetime"])
         XCTAssertEqual(MonetizationPlan.launchPrice, "$9.99")
         XCTAssertEqual(MonetizationPlan.launchOfferTitle, "Lifetime unlock")
         XCTAssertTrue(MonetizationPlan.proTier.features.contains("Advanced analytics and personal-record trends"))
@@ -21,6 +23,21 @@ final class MonetizationPlanTests: XCTestCase {
         XCTAssertEqual(
             MonetizationPlan.upgradeCTA,
             "RPT Pro unlocks advanced analytics, unlimited templates, and CSV export."
+        )
+    }
+
+    func testPurchaseStateMessagesSupportStoreKitSurfaces() {
+        XCTAssertEqual(
+            MonetizationPurchaseState.ready.displayMessage,
+            "StoreKit is ready for the lifetime RPT Pro upgrade."
+        )
+        XCTAssertEqual(
+            MonetizationPurchaseState.unlocked.displayMessage,
+            "RPT Pro is unlocked on this device."
+        )
+        XCTAssertEqual(
+            MonetizationPurchaseState.unavailable.displayMessage,
+            "RPT Pro is not available from the App Store yet."
         )
     }
 }

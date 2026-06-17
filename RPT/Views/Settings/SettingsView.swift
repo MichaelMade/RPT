@@ -10,6 +10,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @StateObject private var settingsManager = SettingsManager.shared
+    @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
 
     @State private var soundEnabled = SoundManager.shared.isSoundEnabled()
     @State private var showingResetConfirmation = false
@@ -57,6 +58,9 @@ struct SettingsView: View {
             } message: {
                 Text(errorMessage ?? "Please try again.")
             }
+            .task {
+                await purchaseManager.start()
+            }
         }
     }
 
@@ -71,14 +75,14 @@ struct SettingsView: View {
                     Text(MonetizationPlan.launchOfferTitle)
                         .font(.subheadline.weight(.semibold))
 
-                    Text("\(MonetizationPlan.launchPrice) one time • Advanced analytics, unlimited templates, and CSV export.")
+                    Text(premiumStatusSummary)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 2)
             }
         } footer: {
-            Text(MonetizationPlan.storeKitNote)
+            Text(purchaseManager.state.displayMessage)
         }
     }
 
@@ -163,25 +167,33 @@ struct SettingsView: View {
 
     private var dataSection: some View {
         Section {
-            if let exportURL {
-                ShareLink(item: exportURL) {
-                    Label("Share Exported CSV", systemImage: "square.and.arrow.up")
+            if purchaseManager.isUnlocked {
+                if let exportURL {
+                    ShareLink(item: exportURL) {
+                        Label("Share Exported CSV", systemImage: "square.and.arrow.up")
+                    }
+                } else {
+                    Button {
+                        let workouts = WorkoutManager.shared.getWorkouts(from: .distantPast, to: Date())
+                        exportURL = WorkoutCSVExporter.exportFile(for: workouts)
+                        if exportURL == nil {
+                            errorMessage = "Couldn’t create the export file. Please try again."
+                        }
+                    } label: {
+                        Label("Export History as CSV", systemImage: "tablecells")
+                    }
                 }
             } else {
-                Button {
-                    let workouts = WorkoutManager.shared.getWorkouts(from: .distantPast, to: Date())
-                    exportURL = WorkoutCSVExporter.exportFile(for: workouts)
-                    if exportURL == nil {
-                        errorMessage = "Couldn’t create the export file. Please try again."
-                    }
+                NavigationLink {
+                    UpgradeView()
                 } label: {
-                    Label("Export History as CSV", systemImage: "tablecells")
+                    Label("Unlock CSV Export", systemImage: "crown.fill")
                 }
             }
         } header: {
             Text("Data")
         } footer: {
-            Text("All data stays on this device. CSV export includes every logged set from completed workouts.")
+            Text("CSV export is part of RPT Pro. Workout logging and basic stats stay free.")
         }
     }
 
@@ -284,6 +296,14 @@ struct SettingsView: View {
             get: { errorMessage != nil },
             set: { if !$0 { errorMessage = nil } }
         )
+    }
+
+    private var premiumStatusSummary: String {
+        if purchaseManager.isUnlocked {
+            return "Unlocked • Advanced analytics, unlimited templates, and CSV export."
+        }
+
+        return "\(purchaseManager.displayPrice) one time • Advanced analytics, unlimited templates, and CSV export."
     }
 
     private func formattedDuration(_ seconds: Int) -> String {

@@ -61,6 +61,9 @@ struct ContentView: View {
         .onAppear {
             session.restoreResumableWorkout()
         }
+        .task {
+            await StoreKitPurchaseManager.shared.start()
+        }
         .preferredColorScheme(colorScheme(for: settingsManager.settings.darkModePreference))
     }
 

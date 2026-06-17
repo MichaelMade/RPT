@@ -11,6 +11,7 @@ import Charts
 
 struct StatsView: View {
     @StateObject private var viewModel = StatsViewModel()
+    @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
     @State private var exportURL: URL?
 
     var body: some View {
@@ -46,17 +47,33 @@ struct StatsView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     if viewModel.completedWorkoutCount > 0 {
-                        exportButton
+                        exportToolbarItem
                     }
                 }
             }
             .onAppear {
                 viewModel.refresh()
             }
+            .task {
+                await purchaseManager.start()
+            }
         }
     }
 
     // MARK: - Export
+
+    @ViewBuilder
+    private var exportToolbarItem: some View {
+        if purchaseManager.isUnlocked {
+            exportButton
+        } else {
+            NavigationLink {
+                UpgradeView()
+            } label: {
+                Image(systemName: "crown.fill")
+            }
+        }
+    }
 
     @ViewBuilder
     private var exportButton: some View {
@@ -129,9 +146,15 @@ struct StatsView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
-                Text("\(MonetizationPlan.launchOfferTitle) • \(MonetizationPlan.launchPrice)")
+                Text("\(MonetizationPlan.launchOfferTitle) • \(purchaseManager.displayPrice)")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.accent)
+
+                if purchaseManager.isUnlocked {
+                    Text("RPT Pro is unlocked on this device.")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Theme.success)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .rptCard()

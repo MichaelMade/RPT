@@ -54,7 +54,7 @@ RPT/
 
 ## Privacy
 
-No accounts, no analytics, no network calls. Training data never leaves the device except through the export you trigger yourself.
+No accounts and no analytics. Training data never leaves the device except through the export you trigger yourself. RPT Pro purchase and restore actions use StoreKit/App Store purchase services only.
 
 RPT ships a privacy manifest that declares on-device UserDefaults access for onboarding, workout-state recovery, and settings toggles.
 
@@ -64,4 +64,4 @@ The current app binary does not declare camera, photo library, contacts, locatio
 
 RPT is now scoped as a freemium app. `RPT Free` keeps the core training loop free: workout logging, the starter template, and basic stats with no signup.
 
-`RPT Pro` is the paid tier planned for the first App Store release at a one-time `Lifetime unlock` launch price of `$9.99`. The upgrade package is defined in code and surfaced in-app; it is aimed at advanced analytics, unlimited custom templates, and CSV export. StoreKit purchase wiring and restore-flow validation still need Mac/Xcode verification before release.
+`RPT Pro` is the paid tier planned for the first App Store release at a one-time `Lifetime unlock` launch price of `$9.99` with App Store Connect product ID `rpt.pro.lifetime`. The upgrade package is defined in code and surfaced in-app; purchase, restore, entitlement refresh, and CSV export gating are wired through StoreKit 2. StoreKit product configuration, purchase sheets, restore behavior, and entitlement persistence still need Mac/Xcode verification before release.
