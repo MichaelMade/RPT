@@ -49,6 +49,26 @@ struct AboutView: View {
                     )
                 }
                 .rptCard()
+
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("Support & Privacy")
+                        .font(.headline)
+
+                    linkRow(
+                        icon: "questionmark.circle.fill",
+                        title: "Get Support",
+                        text: "Questions, bug reports, and launch feedback.",
+                        url: AppStoreReleasePlan.supportURL
+                    )
+
+                    linkRow(
+                        icon: "hand.raised.fill",
+                        title: "Privacy Policy",
+                        text: "Review RPT's no-account, on-device data policy.",
+                        url: AppStoreReleasePlan.privacyURL
+                    )
+                }
+                .rptCard()
             }
             .padding(Theme.screenPadding)
         }
@@ -72,5 +92,33 @@ struct AboutView: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+
+    private func linkRow(icon: String, title: String, text: String, url: URL) -> some View {
+        Link(destination: url) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundStyle(Theme.brandGradient)
+                    .frame(width: 30)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.subheadline.weight(.semibold))
+                    Text(text)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "arrow.up.right")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens in Safari")
     }
 }
