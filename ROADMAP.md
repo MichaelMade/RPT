@@ -33,6 +33,9 @@ Audit summary:
 
 ## Next
 
+- [x] Add GitHub-backed release automation.
+  The repo now has a shared `RPT` scheme, `iOS CI` workflow, manual `App Store Release Candidate` workflow, Fastlane `ci/archive/beta` lanes, signing-secret validation, archive export options, and an App Store submission packet. Publishing is blocked only on Apple signing/App Store Connect secrets from Michael's Apple account.
+
 - [ ] Validate the bundled privacy manifest in a real archive.
   Confirm `PrivacyInfo.xcprivacy` is copied into the app bundle/archive, inspect the generated privacy report in Xcode, and make sure App Store Connect accepts the manifest without additional required-reason entries from future code or SDK changes.
 

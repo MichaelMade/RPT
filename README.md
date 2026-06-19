@@ -53,6 +53,14 @@ RPT/
 
 `RPTTests/` covers manager logic, persistence/rollback behavior, model invariants, RPT back-off math (including the top-set anchoring regression test), warm-up planning, progression suggestions, plate math, CSV export, and name normalization. Run with **⌘U** in Xcode.
 
+The repo now includes a shared `RPT` Xcode scheme plus GitHub Actions release automation:
+
+- `.github/workflows/ios-ci.yml` builds and tests the app on GitHub-hosted macOS with code signing disabled.
+- `.github/workflows/app-store-release.yml` creates a signed App Store release-candidate archive/IPA and can upload it to TestFlight once Apple signing/App Store Connect secrets are added.
+- `fastlane/` contains `ci`, `archive`, and `beta` lanes.
+- `docs/GitHubReleaseSetup.md` lists the exact repository secrets and Mac-side setup steps.
+- `release/AppStoreSubmission.md` is the App Store Connect metadata/privacy/reviewer-notes packet.
+
 ## Privacy
 
 No accounts and no analytics. Training data never leaves the device except through the export you trigger yourself. RPT Pro purchase and restore actions use StoreKit/App Store purchase services only.
