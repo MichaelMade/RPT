@@ -25,8 +25,8 @@ Audit summary:
 - [x] Upgrade onboarding from explanation to activation.
   First-run now ends with a concrete handoff: start the built-in `Upper Body RPT` template, open template creation, or launch an empty first workout. The remaining release risk is UI validation in a real build to confirm the handoff, tab routing, and workout presentation feel correct on device.
 
-- [ ] Build the App Store packaging plan.
-  Create the first-pass metadata set: subtitle, promo copy, keyword direction, screenshot list, and feature positioning that matches the eventual paid tier.
+- [x] Build the App Store packaging plan.
+  First-pass launch metadata now lives in `AppStoreReleasePlan`: subtitle, promo copy, keyword phrases capped under App Store Connect's 100-character limit, a five-shot screenshot story, support URL, and privacy URL. `AboutView` also exposes Support and Privacy links so the app has a real launch-facing help/legal surface instead of burying those assets outside the product.
 
 - [ ] Define the starter-template growth path after first workout.
   The current first-run flow gets users into action faster, but the next monetizable retention pass should decide what happens immediately after that first logged session: save-as-template prompts, follow-up workout nudges, or premium upgrade education.
@@ -46,7 +46,7 @@ Audit summary:
   The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
 
 - [ ] Prepare support/legal surfaces for a public launch.
-  Add an in-app support/contact path, Terms link if monetization requires it, and a cleaner About/Privacy presentation.
+  About now links to live support and privacy URLs from `AppStoreReleasePlan`. Next pass should add Terms if App Store review/payment setup requires it and verify the external pages match the in-app privacy copy.
 
 ## Later
 
