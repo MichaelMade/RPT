@@ -13,6 +13,7 @@ import SwiftUI
 class TemplateViewModel: ObservableObject {
     @Published var templates: [WorkoutTemplate] = []
     @Published var searchText: String = ""
+    @Published private(set) var customTemplateCount = 0
 
     static let searchPrompt = "Search templates, notes, exercises, custom moves, muscle groups, push/pull splits, set/rep plans, instruction cues, body regions, or movement types"
 
@@ -46,6 +47,31 @@ class TemplateViewModel: ObservableObject {
     func refreshTemplates() {
         templates = templateManager.fetchAllTemplates()
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        customTemplateCount = templates.filter(Self.isCustomTemplate).count
+    }
+
+    var remainingFreeCustomTemplates: Int {
+        max(0, MonetizationPlan.freeCustomTemplateLimit - customTemplateCount)
+    }
+
+    func canCreateTemplate(isProUnlocked: Bool) -> Bool {
+        isProUnlocked || remainingFreeCustomTemplates > 0
+    }
+
+    func templateLimitStatus(isProUnlocked: Bool) -> String {
+        if isProUnlocked {
+            return "RPT Pro unlocked: create as many custom routines as you need."
+        }
+
+        if remainingFreeCustomTemplates > 0 {
+            return "RPT Free includes \(remainingFreeCustomTemplates) more custom \(remainingFreeCustomTemplates == 1 ? "template" : "templates") before RPT Pro is required."
+        }
+
+        return MonetizationPlan.templateLimitSummary
+    }
+
+    private static func isCustomTemplate(_ template: WorkoutTemplate) -> Bool {
+        !TemplateManager.namesCollide(template.name, MonetizationPlan.starterTemplateName)
     }
 
     // MARK: - Template Actions

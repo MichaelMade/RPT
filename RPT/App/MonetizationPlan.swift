@@ -43,6 +43,11 @@ enum MonetizationPlan {
     static let launchOfferSummary = "One-time purchase planned for the first App Store release."
     static let upgradeCTA = "RPT Pro unlocks advanced analytics, unlimited templates, and CSV export."
     static let storeKitNote = "StoreKit purchase flow will be verified on Mac before the App Store build ships."
+
+    static let freeCustomTemplateLimit = 1
+    static let starterTemplateName = "Upper Body RPT"
+    static let templateLimitTitle = "Unlock Unlimited Templates"
+    static let templateLimitSummary = "RPT Free includes the starter template plus one custom routine. RPT Pro unlocks unlimited custom templates for every split you run."
 }
 
 enum MonetizationPurchaseState: Equatable {

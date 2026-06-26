@@ -11,8 +11,10 @@ struct TemplatesListView: View {
     @EnvironmentObject private var session: WorkoutSession
     @AppStorage("showCreateTemplateAfterOnboarding") private var showCreateTemplateAfterOnboarding = false
     @StateObject private var viewModel = TemplateViewModel()
+    @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
 
     @State private var showingCreateTemplate = false
+    @State private var showingUpgrade = false
     @State private var templateToDelete: WorkoutTemplate?
     @State private var pendingStartTemplate: WorkoutTemplate?
     @State private var errorMessage: String?
@@ -21,14 +23,18 @@ struct TemplatesListView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
+                    if !viewModel.canCreateTemplate(isProUnlocked: purchaseManager.isUnlocked), !viewModel.templates.isEmpty {
+                        templateLimitCard
+                    }
+
                     if viewModel.templates.isEmpty {
                         EmptyStateCard(
                             icon: "square.grid.2x2",
                             title: "No Templates Yet",
-                            message: "Save your favorite routines as templates and start them with one tap.",
+                            message: "Save your favorite routines as templates and start them with one tap. RPT Free includes one custom routine before RPT Pro unlocks unlimited templates.",
                             actionTitle: "Create Template"
                         ) {
-                            showingCreateTemplate = true
+                            requestCreateTemplate()
                         }
                     } else if viewModel.filteredTemplates.isEmpty {
                         EmptyStateCard(
@@ -51,7 +57,7 @@ struct TemplatesListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showingCreateTemplate = true
+                        requestCreateTemplate()
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -62,14 +68,22 @@ struct TemplatesListView: View {
                     viewModel.refreshTemplates()
                 }
             }
+            .sheet(isPresented: $showingUpgrade) {
+                NavigationStack {
+                    UpgradeView()
+                }
+            }
             .onAppear {
                 viewModel.refreshTemplates()
                 session.restoreResumableWorkout()
 
                 if showCreateTemplateAfterOnboarding {
                     showCreateTemplateAfterOnboarding = false
-                    showingCreateTemplate = true
+                    requestCreateTemplate()
                 }
+            }
+            .task {
+                await purchaseManager.start()
             }
             .alert(item: $templateToDelete) { template in
                 Alert(
@@ -105,6 +119,43 @@ struct TemplatesListView: View {
             } message: {
                 Text(errorMessage ?? "Please try again.")
             }
+        }
+    }
+
+    // MARK: - Monetization
+
+    private var templateLimitCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "crown.fill")
+                    .foregroundStyle(Theme.amber)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(MonetizationPlan.templateLimitTitle)
+                        .font(.headline)
+
+                    Text(viewModel.templateLimitStatus(isProUnlocked: purchaseManager.isUnlocked))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Button {
+                showingUpgrade = true
+            } label: {
+                Label("View RPT Pro", systemImage: "arrow.up.circle.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(SecondaryCapsuleButtonStyle())
+        }
+        .rptCard()
+    }
+
+    private func requestCreateTemplate() {
+        if viewModel.canCreateTemplate(isProUnlocked: purchaseManager.isUnlocked) {
+            showingCreateTemplate = true
+        } else {
+            showingUpgrade = true
         }
     }
 
@@ -156,6 +207,11 @@ struct TemplatesListView: View {
 
                 Menu {
                     Button {
+                        guard viewModel.canCreateTemplate(isProUnlocked: purchaseManager.isUnlocked) else {
+                            showingUpgrade = true
+                            return
+                        }
+
                         if !viewModel.duplicateTemplate(template) {
                             errorMessage = "Couldn’t duplicate this template. Please try again."
                         }

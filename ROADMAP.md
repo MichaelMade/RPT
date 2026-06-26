@@ -17,7 +17,7 @@ Audit summary:
   RPT is now defined as freemium in code and product copy: `RPT Free` keeps workout logging, the starter template, and basic stats free, while `RPT Pro` is planned as a one-time `$9.99` lifetime unlock for advanced analytics, unlimited custom templates, and CSV export. This gives StoreKit/paywall work a concrete target instead of a moving product question.
 
 - [ ] Add a release-grade monetization entry path.
-  The first StoreKit 2 slice is now wired against App Store Connect product ID `rpt.pro.lifetime`: RPT loads the lifetime product, listens for transaction updates, purchases/restores the unlock, refreshes entitlement state, and gates CSV export behind `RPT Pro`. The remaining release work is Mac/Xcode validation with a real StoreKit configuration and then extending entitlement checks to unlimited templates and advanced analytics.
+  The first StoreKit 2 slice is now wired against App Store Connect product ID `rpt.pro.lifetime`: RPT loads the lifetime product, listens for transaction updates, purchases/restores the unlock, refreshes entitlement state, gates CSV export behind `RPT Pro`, and now routes the second custom-template action into the RPT Pro upgrade screen. The remaining release work is Mac/Xcode validation with a real StoreKit configuration and then extending entitlement checks to advanced analytics.
 
 - [ ] Define the App Store privacy answers and release disclosures.
   `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. The next compliance pass should generate the Xcode privacy report, answer App Store Connect's data-collection questions from the built binary, confirm the generated Info.plist still ships with no unexpected permission strings, and confirm StoreKit-only purchase traffic does not require additional privacy disclosures.
@@ -40,7 +40,7 @@ Audit summary:
   Cover first launch, onboarding completion, template/workout entry, and resume of an in-progress workout so the most important user journey has at least one regression net.
 
 - [ ] Add productized premium hooks before the paywall lands.
-  CSV export now has the first feature-level upgrade affordance and unlock gate. Next candidates are unlimited custom templates and advanced analytics/progression views so the paid tier matches its launch promise.
+  CSV export now has the first feature-level upgrade affordance and unlock gate, and custom-template creation now has a launch-ready RPT Free limit with an RPT Pro upgrade route. The remaining candidate is advanced analytics/progression views so the paid tier fully matches its launch promise.
 
 - [ ] Tighten empty-state and no-data experiences across Home, Stats, and Templates.
   The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
