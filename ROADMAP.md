@@ -20,7 +20,7 @@ Audit summary:
   The first StoreKit 2 slice is now wired against App Store Connect product ID `rpt.pro.lifetime`: RPT loads the lifetime product, listens for transaction updates, purchases/restores the unlock, refreshes entitlement state, and gates CSV export behind `RPT Pro`. The remaining release work is Mac/Xcode validation with a real StoreKit configuration and then extending entitlement checks to unlimited templates and advanced analytics.
 
 - [ ] Define the App Store privacy answers and release disclosures.
-  `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. The next compliance pass should generate the Xcode privacy report, answer App Store Connect's data-collection questions from the built binary, confirm the generated Info.plist still ships with no unexpected permission strings, and confirm StoreKit-only purchase traffic does not require additional privacy disclosures.
+  `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. `docs/app-store-privacy-answers.md` captures the current App Store Connect stance: no developer-collected data, no tracking, no analytics, user-initiated CSV export, and Apple-handled StoreKit purchases. The remaining compliance pass should generate the Xcode privacy report from the archived binary, confirm the generated Info.plist still ships with no unexpected permission strings, and verify App Store Connect accepts the answers.
 
 - [x] Upgrade onboarding from explanation to activation.
   First-run now ends with a concrete handoff: start the built-in `Upper Body RPT` template, open template creation, or launch an empty first workout. The remaining release risk is UI validation in a real build to confirm the handoff, tab routing, and workout presentation feel correct on device.
@@ -45,8 +45,8 @@ Audit summary:
 - [ ] Tighten empty-state and no-data experiences across Home, Stats, and Templates.
   The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
 
-- [ ] Prepare support/legal surfaces for a public launch.
-  Add an in-app support/contact path, Terms link if monetization requires it, and a cleaner About/Privacy presentation.
+- [x] Prepare support/legal surfaces for a public launch.
+  About now includes an in-app support email action, a public privacy-policy link, and a plain-language privacy summary that matches the release disclosures: no accounts, analytics, ads, tracking SDKs, or developer-run workout-data servers. Re-check final public support URL/Terms requirements before paid App Store submission.
 
 ## Later
 

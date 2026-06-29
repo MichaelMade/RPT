@@ -56,6 +56,8 @@ RPT/
 
 No accounts and no analytics. Training data never leaves the device except through the export you trigger yourself. RPT Pro purchase and restore actions use StoreKit/App Store purchase services only.
 
+The About screen now exposes a support email action and a public privacy-policy link so App Store reviewers and users can reach the release disclosures from inside the app.
+
 RPT ships a privacy manifest that declares on-device UserDefaults access for onboarding, workout-state recovery, and settings toggles.
 
 The current app binary does not declare camera, photo library, contacts, location, notifications, or tracking permissions. See `Privacy Policy`.

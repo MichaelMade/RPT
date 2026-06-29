@@ -6,6 +6,9 @@
 import SwiftUI
 
 struct AboutView: View {
+    private let supportURL = URL(string: "mailto:moore.m@me.com?subject=RPT%20Support")!
+    private let privacyPolicyURL = URL(string: "https://github.com/MichaelMade/RPT/blob/master/Privacy%20Policy")!
+
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     }
@@ -45,9 +48,28 @@ struct AboutView: View {
                     aboutRow(
                         icon: "lock.fill",
                         title: "Private by design",
-                        text: "Your training data lives on your device. Export it to CSV anytime."
+                        text: "Your training data stays on device. CSV export is user-initiated through the iOS share sheet when RPT Pro is unlocked."
                     )
                 }
+                .rptCard()
+
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("Support & Privacy")
+                        .font(.headline)
+
+                    Link(destination: supportURL) {
+                        Label("Contact Support", systemImage: "envelope.fill")
+                    }
+
+                    Link(destination: privacyPolicyURL) {
+                        Label("Read Privacy Policy", systemImage: "hand.raised.fill")
+                    }
+
+                    Text("RPT has no accounts, analytics, ads, tracking SDKs, or developer-run workout-data servers. StoreKit handles RPT Pro purchases through Apple.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .rptCard()
             }
             .padding(Theme.screenPadding)
