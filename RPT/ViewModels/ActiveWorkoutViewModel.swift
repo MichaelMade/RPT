@@ -195,6 +195,20 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
     }
 
+    func updateNotesSafely(_ notes: String) -> Bool {
+        let originalNotes = workout.notes
+        workout.notes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        do {
+            try saveWorkout()
+            return true
+        } catch {
+            workout.notes = originalNotes
+            setError(title: "Couldn’t Save Notes", message: WorkoutError.saveFailure.description)
+            return false
+        }
+    }
+
     func saveWorkout() throws {
         do {
             try workoutManager.saveWorkout(workout)

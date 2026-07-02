@@ -11,11 +11,25 @@ struct TemplatesListView: View {
     @EnvironmentObject private var session: WorkoutSession
     @AppStorage("showCreateTemplateAfterOnboarding") private var showCreateTemplateAfterOnboarding = false
     @StateObject private var viewModel = TemplateViewModel()
+    @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
 
     @State private var showingCreateTemplate = false
+    @State private var showingUpgrade = false
     @State private var templateToDelete: WorkoutTemplate?
     @State private var pendingStartTemplate: WorkoutTemplate?
     @State private var errorMessage: String?
+
+    /// Route every new-template entry point through the free-tier limit.
+    private func requestCreateTemplate() {
+        if MonetizationPlan.canCreateTemplate(
+            existingCount: viewModel.templates.count,
+            isUnlocked: purchaseManager.isUnlocked
+        ) {
+            showingCreateTemplate = true
+        } else {
+            showingUpgrade = true
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -28,7 +42,7 @@ struct TemplatesListView: View {
                             message: "Save your favorite routines as templates and start them with one tap.",
                             actionTitle: "Create Template"
                         ) {
-                            showingCreateTemplate = true
+                            requestCreateTemplate()
                         }
                     } else if viewModel.filteredTemplates.isEmpty {
                         EmptyStateCard(
@@ -51,7 +65,7 @@ struct TemplatesListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showingCreateTemplate = true
+                        requestCreateTemplate()
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -62,13 +76,23 @@ struct TemplatesListView: View {
                     viewModel.refreshTemplates()
                 }
             }
+            .sheet(isPresented: $showingUpgrade) {
+                NavigationStack {
+                    UpgradeView()
+                        .toolbar {
+                            ToolbarItem(placement: .topBarLeading) {
+                                Button("Close") { showingUpgrade = false }
+                            }
+                        }
+                }
+            }
             .onAppear {
                 viewModel.refreshTemplates()
                 session.restoreResumableWorkout()
 
                 if showCreateTemplateAfterOnboarding {
                     showCreateTemplateAfterOnboarding = false
-                    showingCreateTemplate = true
+                    requestCreateTemplate()
                 }
             }
             .alert(item: $templateToDelete) { template in
@@ -156,9 +180,7 @@ struct TemplatesListView: View {
 
                 Menu {
                     Button {
-                        if !viewModel.duplicateTemplate(template) {
-                            errorMessage = "Couldn’t duplicate this template. Please try again."
-                        }
+                        duplicateTemplate(template)
                     } label: {
                         Label("Duplicate", systemImage: "plus.square.on.square")
                     }
@@ -189,6 +211,22 @@ struct TemplatesListView: View {
         let preview = names.prefix(3).joined(separator: ", ")
         let extra = names.count - 3
         return extra > 0 ? "\(preview) +\(extra) more" : preview
+    }
+
+    // MARK: - Duplicate Flow
+
+    private func duplicateTemplate(_ template: WorkoutTemplate) {
+        guard MonetizationPlan.canCreateTemplate(
+            existingCount: viewModel.templates.count,
+            isUnlocked: purchaseManager.isUnlocked
+        ) else {
+            showingUpgrade = true
+            return
+        }
+
+        if !viewModel.duplicateTemplate(template) {
+            errorMessage = "Couldn’t duplicate this template. Please try again."
+        }
     }
 
     // MARK: - Start Flow
