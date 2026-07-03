@@ -49,6 +49,24 @@ struct AboutView: View {
                     )
                 }
                 .rptCard()
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Support")
+                        .font(.headline)
+
+                    Text("Questions, bugs, or feature ideas? Email goes straight to the developer.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    if let supportURL = URL(string: "mailto:moorem88@gmail.com?subject=RPT%20Support") {
+                        Link(destination: supportURL) {
+                            Label("Contact Support", systemImage: "envelope.fill")
+                        }
+                        .buttonStyle(SecondaryCapsuleButtonStyle())
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .rptCard()
             }
             .padding(Theme.screenPadding)
         }
