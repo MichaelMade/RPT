@@ -73,4 +73,6 @@ The current app binary does not declare camera, photo library, contacts, locatio
 
 RPT is now scoped as a freemium app. `RPT Free` keeps the core training loop free: workout logging, the starter template, and basic stats with no signup.
 
-`RPT Pro` is the paid tier planned for the first App Store release at a one-time `Lifetime unlock` launch price of `$9.99` with App Store Connect product ID `rpt.pro.lifetime`. The upgrade package is defined in code and surfaced in-app; purchase, restore, entitlement refresh, and CSV export gating are wired through StoreKit 2. StoreKit product configuration, purchase sheets, restore behavior, and entitlement persistence still need Mac/Xcode verification before release.
+`RPT Pro` is the paid tier planned for the first App Store release at a one-time `Lifetime unlock` launch price of `$9.99` with App Store Connect product ID `rpt.pro.lifetime`. The upgrade package is defined in code and surfaced in-app; purchase, restore, entitlement refresh, and CSV export gating are wired through StoreKit 2.
+
+A local StoreKit test product now lives at `RPT/Configuration/RPTPro.storekit`, with the Mac/Xcode smoke path documented in `docs/storekit-validation.md`. StoreKit purchase sheets, restore behavior, and entitlement persistence still need Mac/Xcode verification before release.
