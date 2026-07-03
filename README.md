@@ -18,6 +18,7 @@ Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All d
 
 ### Planning
 - **Activation-focused onboarding** — first run now ends with a concrete next step: launch the starter template, open template creation, or begin an empty first workout instead of dumping new users into a generic shell.
+- **Release packaging plan** — App Store subtitle, promo copy, keyword set, screenshot story, support URL, and privacy URL now live in `AppStoreReleasePlan` with regression tests so launch metadata stays aligned with the freemium product promise.
 - **Templates** — reusable routines with per-exercise set counts and rep ranges, duplicate/edit/start in one tap, and automatic weight pre-fill from your last session.
 - **Exercise library** — seeded with common barbell/bodyweight movements, fully searchable across names, muscles, push/pull split intent, instruction cues, body-region intent, and movement types, and extensible with custom exercises.
 - **Plate calculator** — visual bar-loading math for lb/kg with multiple bar types.
@@ -51,6 +52,14 @@ RPT/
 ## Testing
 
 `RPTTests/` covers manager logic, persistence/rollback behavior, model invariants, RPT back-off math (including the top-set anchoring regression test), warm-up planning, progression suggestions, plate math, CSV export, and name normalization. Run with **⌘U** in Xcode.
+
+The repo now includes a shared `RPT` Xcode scheme plus GitHub Actions release automation:
+
+- `.github/workflows/ios-ci.yml` builds and tests the app on GitHub-hosted macOS with code signing disabled.
+- `.github/workflows/app-store-release.yml` creates a signed App Store release-candidate archive/IPA and can upload it to TestFlight once Apple signing/App Store Connect secrets are added.
+- `fastlane/` contains `ci`, `archive`, and `beta` lanes.
+- `docs/GitHubReleaseSetup.md` lists the exact repository secrets and Mac-side setup steps.
+- `release/AppStoreSubmission.md` is the App Store Connect metadata/privacy/reviewer-notes packet.
 
 ## Privacy
 

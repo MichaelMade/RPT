@@ -213,7 +213,20 @@ struct HomeView: View {
 
     private var recentSection: some View {
         VStack(spacing: 12) {
-            SectionHeader(title: "Recent Workouts")
+            HStack(alignment: .firstTextBaseline) {
+                Text("Recent Workouts")
+                    .font(.title3.weight(.bold))
+
+                Spacer()
+
+                NavigationLink {
+                    HistoryListView()
+                } label: {
+                    Text("See All")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Theme.accent)
+                }
+            }
 
             ForEach(viewModel.recentWorkouts) { workout in
                 NavigationLink {

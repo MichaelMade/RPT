@@ -227,6 +227,25 @@ class TemplateManager {
         return fetchTemplateByName(sourceTemplateName)
     }
 
+    /// First template name not already taken: "Push Day", "Push Day 2", ...
+    func availableTemplateName(basedOn rawName: String) -> String {
+        let baseName = Self.sanitizeTemplateName(rawName)
+        let takenNames = Set(fetchAllTemplates().map { Self.normalizedNameLookupKey($0.name) })
+
+        if !takenNames.contains(Self.normalizedNameLookupKey(baseName)) {
+            return baseName
+        }
+
+        for index in 2...999 {
+            let candidate = "\(baseName) \(index)"
+            if !takenNames.contains(Self.normalizedNameLookupKey(candidate)) {
+                return candidate
+            }
+        }
+
+        return baseName
+    }
+
     func unavailableExerciseNames(in template: WorkoutTemplate) -> [String] {
         var seenMissingExercises = Set<String>()
 

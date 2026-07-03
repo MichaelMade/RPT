@@ -224,6 +224,23 @@ final class Workout {
         isCompleted = true
 
         let rawElapsedDuration = now.timeIntervalSince(date)
+
+        // Drafts can sit for days before being completed; wall-clock elapsed
+        // time would poison duration stats. Past a plausibility threshold,
+        // fall back to the actual span of logged sets.
+        let maxPlausibleSessionDuration: TimeInterval = 12 * 60 * 60
+        if rawElapsedDuration > maxPlausibleSessionDuration {
+            let loggedTimestamps = sets
+                .filter(\.isCompletedLoggedSet)
+                .map(\.completedAt)
+                .filter { $0 > .distantPast }
+
+            if let first = loggedTimestamps.min(), let last = loggedTimestamps.max(), last > first {
+                duration = last.timeIntervalSince(first)
+                return
+            }
+        }
+
         if rawElapsedDuration.isFinite, rawElapsedDuration > 0 {
             duration = rawElapsedDuration
             return

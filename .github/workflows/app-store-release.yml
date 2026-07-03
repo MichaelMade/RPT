@@ -1,0 +1,74 @@
+name: App Store Release Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_to_testflight:
+        description: Upload the exported IPA to TestFlight after archive/export
+        type: boolean
+        default: false
+      build_number:
+        description: Optional CFBundleVersion override. Leave blank to use the GitHub run number.
+        required: false
+        type: string
+
+concurrency:
+  group: app-store-release-candidate
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    name: Archive signed release candidate
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      APP_IDENTIFIER: com.MichaelMade.RPT
+      APPLE_TEAM_ID: 4ANQ3N3WT4
+      SCHEME: RPT
+      PROJECT: RPT.xcodeproj
+      ARCHIVE_PATH: build/RPT.xcarchive
+      EXPORT_PATH: build/export
+      BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
+      ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+      IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+      IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+      IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+      KEYCHAIN_PASSWORD: ${{ secrets.IOS_CI_KEYCHAIN_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          set -euo pipefail
+          sudo xcode-select -s /Applications/Xcode_16.4.app || sudo xcode-select -s /Applications/Xcode.app
+          xcodebuild -version
+
+      - name: Validate required signing secrets
+        run: ci/validate-release-secrets.sh
+
+      - name: Install signing assets
+        run: ci/install-signing-assets.sh
+
+      - name: Install Ruby dependencies
+        run: bundle install
+
+      - name: Archive and export IPA
+        run: bundle exec fastlane archive
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: RPT-release-candidate-${{ env.BUILD_NUMBER }}
+          path: |
+            build/export/*.ipa
+            build/export/*.plist
+            build/RPT.xcarchive/dSYMs
+          if-no-files-found: error
+
+      - name: Upload to TestFlight
+        if: ${{ inputs.upload_to_testflight }}
+        run: bundle exec fastlane beta

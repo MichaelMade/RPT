@@ -15,6 +15,7 @@ struct ActiveWorkoutView: View {
     @State private var showingExercisePicker = false
     @State private var showingFinishDialog = false
     @State private var showingDiscardConfirmation = false
+    @State private var showingNotesEditor = false
     @State private var isEditingName = false
 
     init(workout: Workout) {
@@ -73,6 +74,12 @@ struct ActiveWorkoutView: View {
                             Label("Rest Timer", systemImage: "timer")
                         }
 
+                        Button {
+                            showingNotesEditor = true
+                        } label: {
+                            Label("Workout Notes", systemImage: "note.text")
+                        }
+
                         Button(role: .destructive) {
                             showingDiscardConfirmation = true
                         } label: {
@@ -99,6 +106,12 @@ struct ActiveWorkoutView: View {
             .sheet(isPresented: $viewModel.showingRestTimer) {
                 RestTimerView(duration: viewModel.currentRestDuration)
                     .presentationDetents([.medium])
+            }
+            .sheet(isPresented: $showingNotesEditor) {
+                WorkoutNotesEditorSheet(initialNotes: viewModel.workout.notes) { notes in
+                    _ = viewModel.updateNotesSafely(notes)
+                }
+                .presentationDetents([.medium])
             }
             .confirmationDialog(
                 "Finish Workout?",
@@ -281,5 +294,56 @@ struct ActiveWorkoutView: View {
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.clearError() } }
         )
+    }
+}
+
+// MARK: - Notes Editor
+
+struct WorkoutNotesEditorSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let initialNotes: String
+    let onSave: (String) -> Void
+
+    @State private var notes: String = ""
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                TextField(
+                    "How did the session feel? Sleep, energy, tweaks…",
+                    text: $notes,
+                    axis: .vertical
+                )
+                .lineLimit(4...10)
+                .padding(12)
+                .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .focused($isFocused)
+
+                Spacer()
+            }
+            .padding(Theme.screenPadding)
+            .background(Theme.screenBackground)
+            .navigationTitle("Workout Notes")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Save") {
+                        onSave(notes)
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+            .onAppear {
+                notes = initialNotes
+                isFocused = true
+            }
+        }
     }
 }
