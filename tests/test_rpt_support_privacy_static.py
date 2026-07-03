@@ -14,10 +14,11 @@ class RPTSupportPrivacyStaticTests(unittest.TestCase):
         about = ABOUT_VIEW.read_text()
 
         self.assertIn('Text("Support & Privacy")', about)
-        self.assertIn('mailto:moore.m@me.com?subject=RPT%20Support', about)
-        self.assertIn('Label("Contact Support", systemImage: "envelope.fill")', about)
-        self.assertIn('https://github.com/MichaelMade/RPT/blob/master/Privacy%20Policy', about)
-        self.assertIn('Label("Read Privacy Policy", systemImage: "hand.raised.fill")', about)
+        self.assertIn('mailto:moorem88@gmail.com?subject=RPT%20Support', about)
+        self.assertIn('title: "Email the Developer"', about)
+        self.assertIn('AppStoreReleasePlan.supportURL', about)
+        self.assertIn('AppStoreReleasePlan.privacyURL', about)
+        self.assertIn('title: "Privacy Policy"', about)
         self.assertIn('no accounts, analytics, ads, tracking SDKs', about)
         self.assertIn('StoreKit handles RPT Pro purchases through Apple', about)
 
@@ -64,7 +65,7 @@ class RPTSupportPrivacyStaticTests(unittest.TestCase):
                 self.assertIn(claim, answers)
 
         self.assertIn("docs/app-store-privacy-answers.md", roadmap)
-        self.assertIn("About now includes an in-app support email action", roadmap)
+        self.assertIn("a direct developer email path", roadmap)
 
     def test_about_view_has_balanced_delimiters_after_support_card_change(self):
         swift = ABOUT_VIEW.read_text()

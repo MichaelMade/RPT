@@ -1,0 +1,40 @@
+{
+  "identifier" : "RPTProLocalStoreKitConfiguration",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "rpt-pro-lifetime-local",
+      "localizations" : [
+        {
+          "description" : "Unlock advanced analytics, unlimited custom templates, and CSV export for your complete training history.",
+          "displayName" : "RPT Pro Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "rpt.pro.lifetime",
+      "referenceName" : "RPT Pro Lifetime Unlock",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "rpt-local-storekit",
+    "_developerTeamID" : "RPTLOCAL",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "subscriptionBillingGracePeriodDuration" : 0,
+    "subscriptionBillingGracePeriodEnabled" : false,
+    "subscriptionBillingRetryEnabled" : false
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

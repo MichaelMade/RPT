@@ -17,7 +17,7 @@ Audit summary:
   RPT is now defined as freemium in code and product copy: `RPT Free` keeps workout logging, the starter template, and basic stats free, while `RPT Pro` is planned as a one-time `$9.99` lifetime unlock for advanced analytics, unlimited custom templates, and CSV export. This gives StoreKit/paywall work a concrete target instead of a moving product question.
 
 - [ ] Add a release-grade monetization entry path.
-  The first StoreKit 2 slice is now wired against App Store Connect product ID `rpt.pro.lifetime`: RPT loads the lifetime product, listens for transaction updates, purchases/restores the unlock, refreshes entitlement state, and gates CSV export behind `RPT Pro`. The remaining release work is Mac/Xcode validation with a real StoreKit configuration and then extending entitlement checks to unlimited templates and advanced analytics.
+  The first StoreKit 2 slice is now wired against App Store Connect product ID `rpt.pro.lifetime`: RPT loads the lifetime product, listens for transaction updates, purchases/restores the unlock, refreshes entitlement state, and gates CSV export behind `RPT Pro`. A local Mac validation product now exists at `RPT/Configuration/RPTPro.storekit`, and `docs/storekit-validation.md` defines the purchase, restore, revoke, and relaunch smoke path. The remaining release work is Mac/Xcode validation with that local configuration, then App Store Connect product validation, and then extending entitlement checks to unlimited templates and advanced analytics.
 
 - [ ] Define the App Store privacy answers and release disclosures.
   `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. `docs/app-store-privacy-answers.md` captures the current App Store Connect stance: no developer-collected data, no tracking, no analytics, user-initiated CSV export, and Apple-handled StoreKit purchases. The remaining compliance pass should generate the Xcode privacy report from the archived binary, confirm the generated Info.plist still ships with no unexpected permission strings, and verify App Store Connect accepts the answers.
@@ -25,28 +25,34 @@ Audit summary:
 - [x] Upgrade onboarding from explanation to activation.
   First-run now ends with a concrete handoff: start the built-in `Upper Body RPT` template, open template creation, or launch an empty first workout. The remaining release risk is UI validation in a real build to confirm the handoff, tab routing, and workout presentation feel correct on device.
 
-- [ ] Build the App Store packaging plan.
-  Create the first-pass metadata set: subtitle, promo copy, keyword direction, screenshot list, and feature positioning that matches the eventual paid tier.
+- [x] Build the App Store packaging plan.
+  First-pass launch metadata now lives in `AppStoreReleasePlan`: subtitle, promo copy, keyword phrases capped under App Store Connect's 100-character limit, a five-shot screenshot story, support URL, and privacy URL. `AboutView` also exposes Support and Privacy links so the app has a real launch-facing help/legal surface instead of burying those assets outside the product.
 
 - [ ] Define the starter-template growth path after first workout.
   The current first-run flow gets users into action faster, but the next monetizable retention pass should decide what happens immediately after that first logged session: save-as-template prompts, follow-up workout nudges, or premium upgrade education.
+  Progress: completed workouts now offer `Save as Template` (rep ranges and back-off percentages seeded from the logged sets, name de-duplicated automatically), joining the existing follow-up workout card. Remaining: decide whether to surface a proactive post-completion prompt versus the current pull-based menu action.
 
 ## Next
+
+- [x] Add GitHub-backed release automation.
+  The repo now has a shared `RPT` scheme, `iOS CI` workflow, manual `App Store Release Candidate` workflow, Fastlane `ci/archive/beta` lanes, signing-secret validation, archive export options, and an App Store submission packet. Publishing is blocked only on Apple signing/App Store Connect secrets from Michael's Apple account.
 
 - [ ] Validate the bundled privacy manifest in a real archive.
   Confirm `PrivacyInfo.xcprivacy` is copied into the app bundle/archive, inspect the generated privacy report in Xcode, and make sure App Store Connect accepts the manifest without additional required-reason entries from future code or SDK changes.
 
 - [ ] Replace placeholder UI tests with one real smoke path.
   Cover first launch, onboarding completion, template/workout entry, and resume of an in-progress workout so the most important user journey has at least one regression net.
+  Progress: `RPTUITests` now covers first launch → onboarding → empty-workout activation → save-for-later → resume-from-Home, plus a returning-user tab-bar check. Needs a first run on a Mac/simulator to confirm the element queries.
 
 - [ ] Add productized premium hooks before the paywall lands.
   CSV export now has the first feature-level upgrade affordance and unlock gate. Next candidates are unlimited custom templates and advanced analytics/progression views so the paid tier matches its launch promise.
+  Progress: template creation and duplication now enforce a free-tier limit (`MonetizationPlan.freeTemplateLimit`, currently 3) with an upgrade sheet at every entry point, matching the "unlimited custom templates" Pro promise. Remaining: gate advanced analytics, and revisit the limit value before launch.
 
 - [ ] Tighten empty-state and no-data experiences across Home, Stats, and Templates.
   The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
 
 - [x] Prepare support/legal surfaces for a public launch.
-  About now includes an in-app support email action, a public privacy-policy link, and a plain-language privacy summary that matches the release disclosures: no accounts, analytics, ads, tracking SDKs, or developer-run workout-data servers. Re-check final public support URL/Terms requirements before paid App Store submission.
+  About now links to the live support and privacy URLs from `AppStoreReleasePlan`, a direct developer email path, and a plain-language privacy summary matching the release disclosures: no accounts, analytics, ads, tracking SDKs, or developer-run workout-data servers. Re-check final public support URL and Terms/EULA requirements before paid App Store submission.
 
 ## Later
 

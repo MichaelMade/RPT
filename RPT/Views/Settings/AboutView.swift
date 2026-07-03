@@ -6,9 +6,6 @@
 import SwiftUI
 
 struct AboutView: View {
-    private let supportURL = URL(string: "mailto:moore.m@me.com?subject=RPT%20Support")!
-    private let privacyPolicyURL = URL(string: "https://github.com/MichaelMade/RPT/blob/master/Privacy%20Policy")!
-
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     }
@@ -57,13 +54,28 @@ struct AboutView: View {
                     Text("Support & Privacy")
                         .font(.headline)
 
-                    Link(destination: supportURL) {
-                        Label("Contact Support", systemImage: "envelope.fill")
+                    linkRow(
+                        icon: "questionmark.circle.fill",
+                        title: "Get Support",
+                        text: "Questions, bug reports, and launch feedback.",
+                        url: AppStoreReleasePlan.supportURL
+                    )
+
+                    if let emailURL = URL(string: "mailto:moorem88@gmail.com?subject=RPT%20Support") {
+                        linkRow(
+                            icon: "envelope.fill",
+                            title: "Email the Developer",
+                            text: "Bugs and feature ideas go straight to the developer.",
+                            url: emailURL
+                        )
                     }
 
-                    Link(destination: privacyPolicyURL) {
-                        Label("Read Privacy Policy", systemImage: "hand.raised.fill")
-                    }
+                    linkRow(
+                        icon: "hand.raised.fill",
+                        title: "Privacy Policy",
+                        text: "Review RPT's no-account, on-device data policy.",
+                        url: AppStoreReleasePlan.privacyURL
+                    )
 
                     Text("RPT has no accounts, analytics, ads, tracking SDKs, or developer-run workout-data servers. StoreKit handles RPT Pro purchases through Apple.")
                         .font(.caption)
@@ -94,5 +106,33 @@ struct AboutView: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+
+    private func linkRow(icon: String, title: String, text: String, url: URL) -> some View {
+        Link(destination: url) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundStyle(Theme.brandGradient)
+                    .frame(width: 30)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.subheadline.weight(.semibold))
+                    Text(text)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "arrow.up.right")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens in Safari")
     }
 }

@@ -1,0 +1,60 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and test the simulator target without code signing"
+  lane :ci do
+    scan(
+      project: "RPT.xcodeproj",
+      scheme: "RPT",
+      device: "iPhone 16 Pro",
+      clean: true,
+      code_coverage: false,
+      xcargs: "CODE_SIGNING_ALLOWED=NO"
+    )
+  end
+
+  desc "Archive a signed App Store Connect release candidate"
+  lane :archive do
+    build_number = ENV.fetch("BUILD_NUMBER", Time.now.utc.strftime("%Y%m%d%H%M"))
+
+    increment_build_number(
+      xcodeproj: "RPT.xcodeproj",
+      build_number: build_number
+    )
+
+    gym(
+      project: "RPT.xcodeproj",
+      scheme: "RPT",
+      configuration: "Release",
+      clean: true,
+      archive_path: ENV.fetch("ARCHIVE_PATH", "build/RPT.xcarchive"),
+      output_directory: ENV.fetch("EXPORT_PATH", "build/export"),
+      output_name: "RPT-#{build_number}.ipa",
+      export_options: "ci/ExportOptions.plist"
+    )
+  end
+
+  desc "Upload the already-exported IPA to TestFlight"
+  lane :beta do
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_content: ENV.fetch("ASC_KEY_P8"),
+      is_key_content_base64: false,
+      in_house: false
+    )
+
+    pilot(
+      api_key: api_key,
+      ipa: Dir[File.join(ENV.fetch("EXPORT_PATH", "build/export"), "*.ipa")].sort.last,
+      skip_waiting_for_build_processing: true,
+      distribute_external: false,
+      changelog: "RPT release candidate: freemium launch package, RPT Pro lifetime unlock, privacy manifest, and App Store metadata plan."
+    )
+  end
+
+  desc "Print the App Store metadata packet path for manual App Store Connect entry"
+  lane :metadata_packet do
+    UI.message("Use release/AppStoreSubmission.md plus fastlane/metadata/en-US for App Store Connect copy.")
+  end
+end

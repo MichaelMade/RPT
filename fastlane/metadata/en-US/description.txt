@@ -1,0 +1,22 @@
+A focused strength-training log for lifters who train heavy first.
+
+RPT is built around reverse pyramid training: hit your heaviest set while you're fresh, then reduce the weight and chase strong back-off sets. It keeps the workout flow fast, private, and focused on progressive overload instead of generic fitness noise.
+
+Training tools:
+- Log live workouts with set editing, RPE, rest timer, and completion check-offs
+- Get RPT back-off weight suggestions from your top set
+- Generate low-fatigue warm-up ramps before heavy work
+- Re-run completed sessions as follow-up workouts
+- Plan templates, plate math, and 1RM estimates without spreadsheets
+
+Progress tracking:
+- Lifetime workouts, streak, volume, and average duration
+- 16-week consistency heatmap
+- Weekly volume trends and muscle-balance views
+- Personal records and estimated 1RM trends
+- CSV export for your full training history with RPT Pro
+
+Private by design:
+No account. No tracking. No ads. Your training data stays on device unless you export it yourself.
+
+RPT Free includes the core training loop: workout logging, starter template, and basic stats. RPT Pro is a one-time lifetime upgrade for advanced analytics, unlimited custom templates, and full CSV export.
