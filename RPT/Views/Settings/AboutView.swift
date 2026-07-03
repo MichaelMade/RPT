@@ -45,7 +45,7 @@ struct AboutView: View {
                     aboutRow(
                         icon: "lock.fill",
                         title: "Private by design",
-                        text: "Your training data lives on your device. Export it to CSV anytime."
+                        text: "Your training data stays on device. CSV export is user-initiated through the iOS share sheet when RPT Pro is unlocked."
                     )
                 }
                 .rptCard()
@@ -76,6 +76,10 @@ struct AboutView: View {
                         text: "Review RPT's no-account, on-device data policy.",
                         url: AppStoreReleasePlan.privacyURL
                     )
+
+                    Text("RPT has no accounts, analytics, ads, tracking SDKs, or developer-run workout-data servers. StoreKit handles RPT Pro purchases through Apple.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .rptCard()
