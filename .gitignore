@@ -86,6 +86,7 @@ iOSInjectionProject/
 Packages
 xcuserdata
 *.xcodeproj
+!*.xcodeproj
 
 
 ### Xcode ###
@@ -100,6 +101,8 @@ xcuserdata
 !*.xcworkspace/contents.xcworkspacedata
 /*.gcno
 **/xcshareddata/WorkspaceSettings.xcsettings
+!*.xcodeproj/xcshareddata/xcschemes/
+!*.xcodeproj/xcshareddata/xcschemes/*.xcscheme
 **/.claude/settings.local.json
 
 # Local AppIcon experiment backups (keep out of repo history)

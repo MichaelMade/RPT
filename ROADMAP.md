@@ -25,14 +25,17 @@ Audit summary:
 - [x] Upgrade onboarding from explanation to activation.
   First-run now ends with a concrete handoff: start the built-in `Upper Body RPT` template, open template creation, or launch an empty first workout. The remaining release risk is UI validation in a real build to confirm the handoff, tab routing, and workout presentation feel correct on device.
 
-- [ ] Build the App Store packaging plan.
-  Create the first-pass metadata set: subtitle, promo copy, keyword direction, screenshot list, and feature positioning that matches the eventual paid tier.
+- [x] Build the App Store packaging plan.
+  First-pass launch metadata now lives in `AppStoreReleasePlan`: subtitle, promo copy, keyword phrases capped under App Store Connect's 100-character limit, a five-shot screenshot story, support URL, and privacy URL. `AboutView` also exposes Support and Privacy links so the app has a real launch-facing help/legal surface instead of burying those assets outside the product.
 
 - [ ] Define the starter-template growth path after first workout.
   The current first-run flow gets users into action faster, but the next monetizable retention pass should decide what happens immediately after that first logged session: save-as-template prompts, follow-up workout nudges, or premium upgrade education.
   Progress: completed workouts now offer `Save as Template` (rep ranges and back-off percentages seeded from the logged sets, name de-duplicated automatically), joining the existing follow-up workout card. Remaining: decide whether to surface a proactive post-completion prompt versus the current pull-based menu action.
 
 ## Next
+
+- [x] Add GitHub-backed release automation.
+  The repo now has a shared `RPT` scheme, `iOS CI` workflow, manual `App Store Release Candidate` workflow, Fastlane `ci/archive/beta` lanes, signing-secret validation, archive export options, and an App Store submission packet. Publishing is blocked only on Apple signing/App Store Connect secrets from Michael's Apple account.
 
 - [ ] Validate the bundled privacy manifest in a real archive.
   Confirm `PrivacyInfo.xcprivacy` is copied into the app bundle/archive, inspect the generated privacy report in Xcode, and make sure App Store Connect accepts the manifest without additional required-reason entries from future code or SDK changes.
@@ -49,8 +52,7 @@ Audit summary:
   The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
 
 - [ ] Prepare support/legal surfaces for a public launch.
-  Add an in-app support/contact path, Terms link if monetization requires it, and a cleaner About/Privacy presentation.
-  Progress: About now has a Contact Support mailto path. Remaining: Terms/EULA link for the paid unlock and a hosted privacy policy URL for App Store Connect.
+  About now links to live support and privacy URLs from `AppStoreReleasePlan`, plus a direct Contact Support email path. Remaining: add Terms/EULA if App Store review or the paid unlock requires it, and verify the external pages match the in-app privacy copy.
 
 ## Later
 

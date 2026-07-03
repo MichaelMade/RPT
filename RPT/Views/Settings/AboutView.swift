@@ -50,20 +50,32 @@ struct AboutView: View {
                 }
                 .rptCard()
 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Support")
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("Support & Privacy")
                         .font(.headline)
 
-                    Text("Questions, bugs, or feature ideas? Email goes straight to the developer.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    linkRow(
+                        icon: "questionmark.circle.fill",
+                        title: "Get Support",
+                        text: "Questions, bug reports, and launch feedback.",
+                        url: AppStoreReleasePlan.supportURL
+                    )
 
-                    if let supportURL = URL(string: "mailto:moorem88@gmail.com?subject=RPT%20Support") {
-                        Link(destination: supportURL) {
-                            Label("Contact Support", systemImage: "envelope.fill")
-                        }
-                        .buttonStyle(SecondaryCapsuleButtonStyle())
+                    if let emailURL = URL(string: "mailto:moorem88@gmail.com?subject=RPT%20Support") {
+                        linkRow(
+                            icon: "envelope.fill",
+                            title: "Email the Developer",
+                            text: "Bugs and feature ideas go straight to the developer.",
+                            url: emailURL
+                        )
                     }
+
+                    linkRow(
+                        icon: "hand.raised.fill",
+                        title: "Privacy Policy",
+                        text: "Review RPT's no-account, on-device data policy.",
+                        url: AppStoreReleasePlan.privacyURL
+                    )
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .rptCard()
@@ -90,5 +102,33 @@ struct AboutView: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+
+    private func linkRow(icon: String, title: String, text: String, url: URL) -> some View {
+        Link(destination: url) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundStyle(Theme.brandGradient)
+                    .frame(width: 30)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.subheadline.weight(.semibold))
+                    Text(text)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "arrow.up.right")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens in Safari")
     }
 }
