@@ -30,6 +30,7 @@ Audit summary:
 
 - [ ] Define the starter-template growth path after first workout.
   The current first-run flow gets users into action faster, but the next monetizable retention pass should decide what happens immediately after that first logged session: save-as-template prompts, follow-up workout nudges, or premium upgrade education.
+  Progress: completed workouts now offer `Save as Template` (rep ranges and back-off percentages seeded from the logged sets, name de-duplicated automatically), joining the existing follow-up workout card. Remaining: decide whether to surface a proactive post-completion prompt versus the current pull-based menu action.
 
 ## Next
 
@@ -41,15 +42,17 @@ Audit summary:
 
 - [ ] Replace placeholder UI tests with one real smoke path.
   Cover first launch, onboarding completion, template/workout entry, and resume of an in-progress workout so the most important user journey has at least one regression net.
+  Progress: `RPTUITests` now covers first launch → onboarding → empty-workout activation → save-for-later → resume-from-Home, plus a returning-user tab-bar check. Needs a first run on a Mac/simulator to confirm the element queries.
 
 - [ ] Add productized premium hooks before the paywall lands.
   CSV export now has the first feature-level upgrade affordance and unlock gate. Next candidates are unlimited custom templates and advanced analytics/progression views so the paid tier matches its launch promise.
+  Progress: template creation and duplication now enforce a free-tier limit (`MonetizationPlan.freeTemplateLimit`, currently 3) with an upgrade sheet at every entry point, matching the "unlimited custom templates" Pro promise. Remaining: gate advanced analytics, and revisit the limit value before launch.
 
 - [ ] Tighten empty-state and no-data experiences across Home, Stats, and Templates.
   The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
 
 - [ ] Prepare support/legal surfaces for a public launch.
-  About now links to live support and privacy URLs from `AppStoreReleasePlan`. Next pass should add Terms if App Store review/payment setup requires it and verify the external pages match the in-app privacy copy.
+  About now links to live support and privacy URLs from `AppStoreReleasePlan`, plus a direct Contact Support email path. Remaining: add Terms/EULA if App Store review or the paid unlock requires it, and verify the external pages match the in-app privacy copy.
 
 ## Later
 

@@ -61,6 +61,15 @@ struct AboutView: View {
                         url: AppStoreReleasePlan.supportURL
                     )
 
+                    if let emailURL = URL(string: "mailto:moorem88@gmail.com?subject=RPT%20Support") {
+                        linkRow(
+                            icon: "envelope.fill",
+                            title: "Email the Developer",
+                            text: "Bugs and feature ideas go straight to the developer.",
+                            url: emailURL
+                        )
+                    }
+
                     linkRow(
                         icon: "hand.raised.fill",
                         title: "Privacy Policy",
@@ -68,6 +77,7 @@ struct AboutView: View {
                         url: AppStoreReleasePlan.privacyURL
                     )
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .rptCard()
             }
             .padding(Theme.screenPadding)

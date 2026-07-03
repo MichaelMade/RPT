@@ -38,6 +38,14 @@ enum MonetizationPlan {
         ]
     )
 
+    /// Free tier keeps the starter template plus room to build a small
+    /// rotation; unlimited templates are part of RPT Pro.
+    static let freeTemplateLimit = 3
+
+    static func canCreateTemplate(existingCount: Int, isUnlocked: Bool) -> Bool {
+        isUnlocked || existingCount < freeTemplateLimit
+    }
+
     static let launchPrice = "$9.99"
     static let launchOfferTitle = "Lifetime unlock"
     static let launchOfferSummary = "One-time purchase planned for the first App Store release."
