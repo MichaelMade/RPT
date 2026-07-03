@@ -28,15 +28,7 @@ struct StatsView: View {
                         summaryTiles
                         premiumPreviewCard
                         heatmapSection
-                        volumeSection
-
-                        if !viewModel.muscleGroupShares.isEmpty {
-                            muscleSection
-                        }
-
-                        if !viewModel.personalRecords.isEmpty {
-                            recordsSection
-                        }
+                        advancedAnalyticsContent
                     }
                 }
                 .padding(.horizontal, Theme.screenPadding)
@@ -155,6 +147,56 @@ struct StatsView: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Theme.success)
                 }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .rptCard()
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Advanced Analytics Gate
+
+    @ViewBuilder
+    private var advancedAnalyticsContent: some View {
+        if purchaseManager.isUnlocked {
+            volumeSection
+
+            if !viewModel.muscleGroupShares.isEmpty {
+                muscleSection
+            }
+
+            if !viewModel.personalRecords.isEmpty {
+                recordsSection
+            }
+        } else {
+            advancedAnalyticsLockedCard
+        }
+    }
+
+    private var advancedAnalyticsLockedCard: some View {
+        NavigationLink {
+            UpgradeView()
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    PillTag(text: "Advanced Analytics", tint: Theme.amber, icon: "chart.line.uptrend.xyaxis")
+                    Spacer()
+                    Image(systemName: "lock.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Theme.amber)
+                }
+
+                Text("Unlock deeper training trends")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Text("Weekly volume charts, muscle-balance breakdowns, and personal-record leaderboards are part of RPT Pro.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Text("Unlock RPT Pro for \(purchaseManager.displayPrice)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .rptCard()

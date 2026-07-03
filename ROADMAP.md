@@ -46,7 +46,7 @@ Audit summary:
 
 - [ ] Add productized premium hooks before the paywall lands.
   CSV export now has the first feature-level upgrade affordance and unlock gate. Next candidates are unlimited custom templates and advanced analytics/progression views so the paid tier matches its launch promise.
-  Progress: template creation and duplication now enforce a free-tier limit (`MonetizationPlan.freeTemplateLimit`, currently 3) with an upgrade sheet at every entry point, matching the "unlimited custom templates" Pro promise. Remaining: gate advanced analytics, and revisit the limit value before launch.
+  Progress: template creation and duplication now enforce a free-tier limit (`MonetizationPlan.freeTemplateLimit`, currently 3) with an upgrade sheet at every entry point, matching the "unlimited custom templates" Pro promise. Stats now also reserves weekly volume charts, muscle-balance breakdowns, and personal-record leaderboards for unlocked RPT Pro users while keeping summary stats and consistency visible in the free tier. Remaining: revisit the template limit value before launch.
 
 - [ ] Tighten empty-state and no-data experiences across Home, Stats, and Templates.
   The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
