@@ -30,7 +30,7 @@ Audit summary:
 
 - [ ] Define the starter-template growth path after first workout.
   The current first-run flow gets users into action faster, but the next monetizable retention pass should decide what happens immediately after that first logged session: save-as-template prompts, follow-up workout nudges, or premium upgrade education.
-  Progress: completed workouts now offer `Save as Template` (rep ranges and back-off percentages seeded from the logged sets, name de-duplicated automatically), joining the existing follow-up workout card. Remaining: decide whether to surface a proactive post-completion prompt versus the current pull-based menu action.
+  Progress: completed workouts now offer `Save as Template` (rep ranges and back-off percentages seeded from the logged sets, name de-duplicated automatically), joining the existing follow-up workout card. That action now respects the free-tier template limit and routes over-limit users to the RPT Pro upgrade, closing a bypass of the "unlimited custom templates" paid promise. Remaining: decide whether to surface a proactive post-completion prompt versus the current pull-based menu action.
 
 ## Next
 
