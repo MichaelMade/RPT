@@ -536,7 +536,7 @@ final class WorkoutManagerLogicTests: XCTestCase {
         let zeroDurationWorkout = Workout(date: Date(), name: "Zero", duration: 0, isCompleted: true)
         let corruptedWorkout = Workout(date: Date(), name: "Corrupted", duration: -.infinity, isCompleted: true)
 
-        XCTAssertEqual(manager.sanitizedCompletedWorkoutDuration(completedWorkout), 125, accuracy: 0.0001)
+        XCTAssertEqual(manager.sanitizedCompletedWorkoutDuration(completedWorkout) ?? 0, 125, accuracy: 0.0001)
         XCTAssertNil(manager.sanitizedCompletedWorkoutDuration(incompleteWorkout))
         XCTAssertNil(manager.sanitizedCompletedWorkoutDuration(zeroDurationWorkout))
         XCTAssertNil(manager.sanitizedCompletedWorkoutDuration(corruptedWorkout))
