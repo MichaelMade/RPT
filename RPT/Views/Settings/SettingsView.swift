@@ -67,7 +67,7 @@ struct SettingsView: View {
     // MARK: - Training
 
     private var premiumSection: some View {
-        Section("RPT Pro") {
+        Section {
             NavigationLink {
                 UpgradeView()
             } label: {
@@ -81,6 +81,8 @@ struct SettingsView: View {
                 }
                 .padding(.vertical, 2)
             }
+        } header: {
+            Text("RPT Pro")
         } footer: {
             Text(purchaseManager.state.displayMessage)
         }
