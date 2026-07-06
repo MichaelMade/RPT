@@ -35,7 +35,14 @@ class TemplateViewModel: ObservableObject {
                 return true
             }
 
-            return queryTerms(from: query).allSatisfy { searchableText.contains($0) }
+            let searchableTokens = self.searchableTokens(from: searchableText)
+            return queryTerms(from: query).allSatisfy { term in
+                if term.allSatisfy(\.isNumber) {
+                    return searchableTokens.contains(term)
+                }
+
+                return searchableText.contains(term)
+            }
         }
     }
 
@@ -209,6 +216,14 @@ class TemplateViewModel: ObservableObject {
             .split(whereSeparator: { $0.isWhitespace })
             .map(String.init)
             .filter { !$0.isEmpty }
+    }
+
+    private func searchableTokens(from text: String) -> Set<String> {
+        Set(
+            text.split { !$0.isLetter && !$0.isNumber }
+                .map(String.init)
+                .filter { !$0.isEmpty }
+        )
     }
 
     private func normalized(_ text: String) -> String {

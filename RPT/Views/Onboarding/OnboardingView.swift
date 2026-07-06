@@ -214,7 +214,9 @@ struct OnboardingView: View {
             }
 
             hasCompletedOnboarding = true
-            session.start(workout)
+            DispatchQueue.main.async {
+                session.start(workout)
+            }
             return
         }
 
