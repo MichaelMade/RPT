@@ -443,7 +443,7 @@ class TemplateManager {
             try dataManager.saveChanges()
             return .success
         } catch {
-            modelContext.insert(template)
+            modelContext.rollback()
             return .persistenceFailure
         }
     }

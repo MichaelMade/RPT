@@ -38,7 +38,7 @@ final class ExerciseManagerTests: XCTestCase {
 
     func testValidateDraft_rejectsDuplicateNormalizedName() {
         let result = ExerciseManager.shared.validateDraft(
-            name: "  Ｂｅｎｃｈ   Ｐｒｅｓｓ  ",
+            name: "  Ｂａｒｂｅｌｌ   Ｂｅｎｃｈ   Ｐｒｅｓｓ  ",
             primaryMuscleGroups: [.chest]
         )
 

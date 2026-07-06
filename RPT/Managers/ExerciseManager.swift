@@ -304,7 +304,7 @@ class ExerciseManager {
             try dataManager.saveChanges()
             return .success
         } catch {
-            modelContext.insert(exercise)
+            modelContext.rollback()
             return .persistenceFailure
         }
     }

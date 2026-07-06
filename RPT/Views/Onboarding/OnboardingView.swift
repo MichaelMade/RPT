@@ -18,6 +18,7 @@ struct OnboardingView: View {
     @ObservedObject private var session = WorkoutSession.shared
 
     private let templateManager = TemplateManager.shared
+    private let workoutManager = WorkoutManager.shared
 
     private let pages: [(icon: String, title: String, message: String)] = [
         (
@@ -207,10 +208,14 @@ struct OnboardingView: View {
         }
 
         if let workoutName = plan.emptyWorkoutName {
-            guard session.startEmptyWorkout(named: workoutName) else {
+            guard let workout = workoutManager.createWorkoutSafely(name: workoutName) else {
                 errorMessage = "Couldn’t create your first workout. Please try again."
                 return
             }
+
+            hasCompletedOnboarding = true
+            session.start(workout)
+            return
         }
 
         hasCompletedOnboarding = true
