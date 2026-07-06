@@ -11,11 +11,13 @@ import SwiftUI
 struct WorkoutDetailView: View {
     @EnvironmentObject private var session: WorkoutSession
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
 
     let workout: Workout
 
     @State private var showingDeleteConfirmation = false
     @State private var showingFollowUpBlockedDialog = false
+    @State private var showingUpgrade = false
     @State private var errorMessage: String?
     @State private var savedTemplateName: String?
 
@@ -112,6 +114,19 @@ struct WorkoutDetailView: View {
         } message: {
             Text("“\(savedTemplateName ?? "Template")” is in your Templates tab, seeded with this session's sets and reps.")
         }
+        .sheet(isPresented: $showingUpgrade) {
+            NavigationStack {
+                UpgradeView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("Close") { showingUpgrade = false }
+                        }
+                    }
+            }
+        }
+        .task {
+            await purchaseManager.start()
+        }
     }
 
     // MARK: - Save as Template
@@ -120,6 +135,14 @@ struct WorkoutDetailView: View {
         let exercises = WorkoutTemplateBuilder.templateExercises(from: workout)
         guard !exercises.isEmpty else {
             errorMessage = "This workout has no sets to turn into a template."
+            return
+        }
+
+        guard MonetizationPlan.canCreateTemplate(
+            existingCount: templateManager.fetchAllTemplates().count,
+            isUnlocked: purchaseManager.isUnlocked
+        ) else {
+            showingUpgrade = true
             return
         }
 

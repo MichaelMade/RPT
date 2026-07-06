@@ -15,7 +15,7 @@ protocol DataManaging {
 }
 
 @MainActor
-class DataManager {
+class DataManager: DataManaging {
     private let modelContainer: ModelContainer
     private let modelContext: ModelContext
     

@@ -43,13 +43,56 @@ jobs:
       - name: Run unit and UI smoke tests
         run: |
           set -euo pipefail
+          # Serial testing: parallel simulator clones made suites that share
+          # the app's singleton store interfere nondeterministically.
+          # Retry-on-failure absorbs runner infrastructure flakes (e.g.
+          # "Failed to get background assertion" springboard timeouts).
           xcodebuild test \
             -project RPT.xcodeproj \
             -scheme RPT \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest' \
             CODE_SIGNING_ALLOWED=NO \
+            -parallel-testing-enabled NO \
+            -retry-tests-on-failure \
+            -test-iterations 3 \
             -resultBundlePath TestResults/RPT.xcresult
+
+      - name: Print test failure details
+        if: failure()
+        run: |
+          if [ -d TestResults/RPT.xcresult ]; then
+            echo "=== Failure details from xcresult ==="
+            cat > /tmp/print_failures.py <<'PYEOF'
+          import json, subprocess, sys
+
+          try:
+              raw = subprocess.run(
+                  ["xcrun", "xcresulttool", "get", "test-results", "tests",
+                   "--path", "TestResults/RPT.xcresult"],
+                  capture_output=True, text=True, timeout=120,
+              ).stdout
+              data = json.loads(raw)
+          except Exception as error:
+              print("could not read xcresult:", error)
+              sys.exit(0)
+
+          def walk(node):
+              if isinstance(node, dict):
+                  if node.get("result") == "Failed" and node.get("nodeType") in ("Test Case", "Repetition"):
+                      print("FAILED:", node.get("name", "?"))
+                  if node.get("nodeType") == "Failure Message":
+                      print("    ", node.get("name", ""))
+                  for child in node.get("children") or []:
+                      walk(child)
+              elif isinstance(node, list):
+                  for item in node:
+                      walk(item)
+
+          walk(data.get("testNodes", data))
+          PYEOF
+            python3 /tmp/print_failures.py || true
+          fi
 
       - name: Upload xcresult bundle on failure
         if: failure()

@@ -304,7 +304,9 @@ class ExerciseManager {
             try dataManager.saveChanges()
             return .success
         } catch {
-            modelContext.insert(exercise)
+            // Re-inserting a pending-deleted model doesn't reliably
+            // resurrect it; discarding the unsaved delete does.
+            modelContext.rollback()
             return .persistenceFailure
         }
     }

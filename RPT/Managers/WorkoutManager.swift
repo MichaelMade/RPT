@@ -202,9 +202,10 @@ class WorkoutManager: ObservableObject {
             reps: 8,
             exercise: exercise,
             workout: workout,
-            completedAt: .distantPast
+            completedAt: .distantPast,
+            sortOrder: workout.nextSetSortOrder()
         )
-        
+
         workout.sets.append(newSet)
         try? modelContext.save()
         
@@ -228,9 +229,10 @@ class WorkoutManager: ObservableObject {
             workout: workout,
             completedAt: isComplete ? Date() : .distantPast,
             isWarmup: isWarmup,
-            rpe: sanitized.rpe
+            rpe: sanitized.rpe,
+            sortOrder: workout.nextSetSortOrder()
         )
-        
+
         workout.sets.append(newSet)
         try? modelContext.save()
         

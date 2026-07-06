@@ -90,7 +90,7 @@ struct TemplateExercise: Codable, Hashable, Identifiable {
     }
 
     // Custom initializer to ensure suggestedSets and repRanges are in sync
-    init(id: UUID = UUID(), exerciseName: String, suggestedSets: Int, repRanges: [TemplateRepRange], notes: String = "") {
+    init(id: UUID = UUID(), exerciseName: String, suggestedSets: Int = 3, repRanges: [TemplateRepRange] = [], notes: String = "") {
         let normalizedSets = max(0, suggestedSets)
         self.id = id
         self.exerciseName = Self.normalizedDisplayName(exerciseName)
