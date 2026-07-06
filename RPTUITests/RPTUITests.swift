@@ -19,8 +19,10 @@ final class RPTUITests: XCTestCase {
     @MainActor
     func testFirstRunOnboardingIntoFirstWorkout() throws {
         let app = XCUIApplication()
-        // Registration-domain override forces the first-run experience.
-        app.launchArguments += ["-hasCompletedOnboarding", "NO"]
+        // Dedicated reset flag: the app clears first-run state in the
+        // persistent domain. (A `-hasCompletedOnboarding NO` argument would
+        // pin the value process-wide and block the onboarding handoff.)
+        app.launchArguments += ["--uiTestFreshOnboarding"]
         app.launch()
 
         // Onboarding pager.
@@ -45,10 +47,15 @@ final class RPTUITests: XCTestCase {
 
         // Live workout screen. Generous timeout: CI simulators are slow and
         // the cover presents just after the onboarding → tabs root swap.
-        XCTAssertTrue(
-            app.staticTexts["No Exercises Yet"].waitForExistence(timeout: 30),
-            "Empty-workout activation should land on the live workout screen"
-        )
+        let workoutVisible = app.staticTexts["No Exercises Yet"].waitForExistence(timeout: 30)
+        if !workoutVisible {
+            let tabsVisible = app.tabBars.buttons["Home"].exists
+            XCTFail(
+                "Empty-workout activation should land on the live workout screen. "
+                    + "Tab bar visible: \(tabsVisible) — true means the workout cover failed to present; "
+                    + "false means onboarding never handed off to the tab shell."
+            )
+        }
 
         // Keep the draft and return to the app.
         app.buttons["Save for Later"].tap()
