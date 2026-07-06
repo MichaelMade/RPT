@@ -43,9 +43,10 @@ final class RPTUITests: XCTestCase {
         )
         emptyWorkoutChoice.tap()
 
-        // Live workout screen.
+        // Live workout screen. Generous timeout: CI simulators are slow and
+        // the cover presents just after the onboarding → tabs root swap.
         XCTAssertTrue(
-            app.staticTexts["No Exercises Yet"].waitForExistence(timeout: 10),
+            app.staticTexts["No Exercises Yet"].waitForExistence(timeout: 30),
             "Empty-workout activation should land on the live workout screen"
         )
 
