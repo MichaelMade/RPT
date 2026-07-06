@@ -652,18 +652,23 @@ class ActiveWorkoutViewModel: ObservableObject {
                 return lhs.isWarmup
             }
 
-            let lhsOrder = setOrderIndex(lhs)
-            let rhsOrder = setOrderIndex(rhs)
-
-            if lhsOrder != rhsOrder {
-                return lhsOrder < rhsOrder
+            // Stable persisted position first — SwiftData relationship
+            // arrays don't guarantee order across saves.
+            if lhs.sortOrder != rhs.sortOrder {
+                return lhs.sortOrder < rhs.sortOrder
             }
 
-            return lhs.completedAt < rhs.completedAt
+            if lhs.completedAt != rhs.completedAt {
+                return lhs.completedAt < rhs.completedAt
+            }
+
+            // Legacy data (all sortOrder == 0, same timestamps): fall back
+            // to current array position.
+            return setArrayIndex(lhs) < setArrayIndex(rhs)
         }
     }
 
-    private func setOrderIndex(_ set: ExerciseSet) -> Int {
+    private func setArrayIndex(_ set: ExerciseSet) -> Int {
         set.workout?.sets.firstIndex(where: { $0.id == set.id }) ?? Int.max
     }
 

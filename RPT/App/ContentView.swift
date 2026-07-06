@@ -60,6 +60,7 @@ struct ContentView: View {
         }
         .onAppear {
             session.restoreResumableWorkout()
+            session.rearmPresentationAfterRootSwap()
         }
         .task {
             await StoreKitPurchaseManager.shared.start()

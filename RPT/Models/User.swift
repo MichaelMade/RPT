@@ -103,16 +103,25 @@ final class User {
             return false
         }
 
+        // Capture registration state BEFORE linking the inverse: assigning
+        // workout.user can make SwiftData auto-insert the workout into
+        // `workouts`, which would otherwise read as "already registered"
+        // and silently skip the stats update.
+        let isAlreadyRegistered = workouts.contains { $0.id == workout.id }
+
         if workout.user?.id != id {
             workout.user = self
         }
 
-        let isAlreadyRegistered = workouts.contains { $0.id == workout.id }
         guard !isAlreadyRegistered else {
             return false
         }
 
-        workouts.append(workout)
+        // The inverse assignment above may have already appended it.
+        if !workouts.contains(where: { $0.id == workout.id }) {
+            workouts.append(workout)
+        }
+
         updateStats(with: workout)
         return true
     }

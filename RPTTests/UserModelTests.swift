@@ -234,7 +234,7 @@ final class UserModelTests: XCTestCase {
 
     func testCreateFollowUpWorkout_nonFinitePercentageIncreaseDefaultsSafely() {
         let workout = Workout(name: "Base Workout")
-        let exercise = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quads])
+        let exercise = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
 
         _ = workout.addSet(exercise: exercise, weight: 200, reps: 5)
 

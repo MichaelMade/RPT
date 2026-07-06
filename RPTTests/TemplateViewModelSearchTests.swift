@@ -224,14 +224,17 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
     func testFilteredTemplates_matchesSetAndRepPlanAliases() throws {
         let context = DataManager.shared.getModelContext()
+        // Letters-only suffixes: digits in a raw UUID (e.g. "3", "10") can
+        // satisfy per-term fallback matching for queries like "3 sets" and
+        // make the wrong template match.
         let bench = Exercise(
-            name: "Search Rep Plan Bench \(UUID().uuidString)",
+            name: "Search Rep Plan Bench \(UUID().uuidString.filter(\.isLetter))",
             category: .compound,
             primaryMuscleGroups: [.chest],
             secondaryMuscleGroups: [.triceps]
         )
         let row = Exercise(
-            name: "Search Rep Plan Row \(UUID().uuidString)",
+            name: "Search Rep Plan Row \(UUID().uuidString.filter(\.isLetter))",
             category: .compound,
             primaryMuscleGroups: [.back],
             secondaryMuscleGroups: [.biceps]

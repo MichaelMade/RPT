@@ -72,6 +72,20 @@ final class WorkoutSession: ObservableObject {
         isPresentingWorkout = true
     }
 
+    /// Presenting the workout cover in the same transaction that swaps the
+    /// root view (onboarding → tab shell) can silently no-op in SwiftUI.
+    /// Call this when the tab shell first appears: it re-arms the pending
+    /// presentation one runloop tick later. A no-op in every other case,
+    /// since `isPresentingWorkout` is only true here during that handoff.
+    func rearmPresentationAfterRootSwap() {
+        guard isPresentingWorkout, resumableWorkout != nil else { return }
+
+        isPresentingWorkout = false
+        Task { @MainActor in
+            self.isPresentingWorkout = true
+        }
+    }
+
     /// Hides the workout screen but keeps the draft resumable.
     func dismissKeepingDraft() {
         isPresentingWorkout = false
