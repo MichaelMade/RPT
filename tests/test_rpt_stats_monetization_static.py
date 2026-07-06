@@ -14,9 +14,12 @@ class RPTStatsMonetizationStaticTests(unittest.TestCase):
         self.stats_view = STATS_VIEW.read_text()
 
     def test_stats_body_routes_advanced_sections_through_monetization_gate(self):
+        # premiumPreviewCard is itself gated to unlocked users so locked
+        # users see exactly one upgrade pitch (the analytics locked card).
         body_completed_branch = re.search(
-            r"summaryTiles\s+premiumPreviewCard\s+heatmapSection\s+advancedAnalyticsContent",
+            r"summaryTiles.*?if purchaseManager\.isUnlocked \{\s+premiumPreviewCard\s+\}.*?heatmapSection\s+advancedAnalyticsContent",
             self.stats_view,
+            re.DOTALL,
         )
         self.assertIsNotNone(body_completed_branch)
 

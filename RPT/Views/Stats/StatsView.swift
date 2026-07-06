@@ -26,7 +26,14 @@ struct StatsView: View {
                         )
                     } else {
                         summaryTiles
-                        premiumPreviewCard
+
+                        // One upgrade pitch per state: locked users get the
+                        // analytics-specific card below instead of stacking
+                        // two upsell cards on the same screen.
+                        if purchaseManager.isUnlocked {
+                            premiumPreviewCard
+                        }
+
                         heatmapSection
                         advancedAnalyticsContent
                     }
