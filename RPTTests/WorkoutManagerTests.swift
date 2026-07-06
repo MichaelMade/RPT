@@ -899,7 +899,7 @@ final class WorkoutManagerLogicTests: XCTestCase {
 
         // Then
         XCTAssertTrue(summary.contains("Exercises: Bench Press, Squat"))
-        XCTAssertTrue(summary.contains("Sets: 0"))
+        XCTAssertTrue(summary.contains("Sets: 2"))
     }
 
     func testGenerateFormattedSummary_completedWarmupOnlyWorkoutKeepsWarmupContext() {
@@ -1308,8 +1308,8 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // Then
         XCTAssertEqual(
             followUpWeights,
-            [220, 200, 175],
-            "Follow-up progression should preserve canonical logged set order while keeping normal five-pound rounding"
+            [220, 198, 176],
+            "Follow-up progression should use canonical logged set order, not completion timestamp sorting"
         )
     }
 

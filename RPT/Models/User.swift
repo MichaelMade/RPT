@@ -103,15 +103,16 @@ final class User {
             return false
         }
 
-        let isAlreadyRegistered = workouts.contains { $0.id == workout.id } || workout.user?.id == id
+        if workout.user?.id != id {
+            workout.user = self
+        }
+
+        let isAlreadyRegistered = workouts.contains { $0.id == workout.id }
         guard !isAlreadyRegistered else {
             return false
         }
 
         workouts.append(workout)
-        if workout.user?.id != id {
-            workout.user = self
-        }
         updateStats(with: workout)
         return true
     }
