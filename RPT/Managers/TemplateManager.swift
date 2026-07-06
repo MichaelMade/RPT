@@ -443,7 +443,9 @@ class TemplateManager {
             try dataManager.saveChanges()
             return .success
         } catch {
-            modelContext.insert(template)
+            // Re-inserting a pending-deleted model doesn't reliably
+            // resurrect it; discarding the unsaved delete does.
+            modelContext.rollback()
             return .persistenceFailure
         }
     }

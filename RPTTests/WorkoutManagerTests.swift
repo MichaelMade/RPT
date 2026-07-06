@@ -899,7 +899,9 @@ final class WorkoutManagerLogicTests: XCTestCase {
 
         // Then
         XCTAssertTrue(summary.contains("Exercises: Bench Press, Squat"))
-        XCTAssertTrue(summary.contains("Sets: 2"))
+        // Placeholder sets (reps 0) are never logged, and visibleSetCount
+        // reports logged sets for completed workouts.
+        XCTAssertTrue(summary.contains("Sets: 0"))
     }
 
     func testGenerateFormattedSummary_completedWarmupOnlyWorkoutKeepsWarmupContext() {
