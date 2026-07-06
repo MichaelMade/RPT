@@ -165,9 +165,9 @@ final class Workout {
         return sets.count
     }
     
-    // Group sets by exercise
+    // Group sets by exercise (values in canonical set order)
     var exerciseGroups: [Exercise: [ExerciseSet]] {
-        let setsWithExercise = sets.compactMap { set -> (Exercise, ExerciseSet)? in
+        let setsWithExercise = canonicallyOrderedSets().compactMap { set -> (Exercise, ExerciseSet)? in
             guard let exercise = set.exercise else { return nil }
             return (exercise, set)
         }
@@ -473,7 +473,9 @@ final class Workout {
     private func summaryExerciseNamesInOrder() -> [String] {
         var seenExerciseNames: Set<String> = []
 
-        let completedExerciseNamesInOrder = sets.compactMap { set -> String? in
+        let orderedSets = canonicallyOrderedSets()
+
+        let completedExerciseNamesInOrder = orderedSets.compactMap { set -> String? in
             guard set.isCompletedWorkingSet,
                   let exerciseName = set.exercise?.name,
                   let normalizedName = normalizedSummaryExerciseName(exerciseName)
@@ -490,7 +492,7 @@ final class Workout {
             return completedExerciseNamesInOrder
         }
 
-        let loggedExerciseNamesInOrder = sets.compactMap { set -> String? in
+        let loggedExerciseNamesInOrder = orderedSets.compactMap { set -> String? in
             guard set.isCompletedLoggedSet,
                   let exerciseName = set.exercise?.name,
                   let normalizedName = normalizedSummaryExerciseName(exerciseName)
@@ -509,10 +511,10 @@ final class Workout {
 
         let fallbackSets: [ExerciseSet]
         if isCompleted {
-            fallbackSets = sets.filter { !$0.isWarmup }
+            fallbackSets = orderedSets.filter { !$0.isWarmup }
         } else {
-            let plannedNonWarmupSets = sets.filter { !$0.isWarmup }
-            fallbackSets = plannedNonWarmupSets.isEmpty ? sets : plannedNonWarmupSets
+            let plannedNonWarmupSets = orderedSets.filter { !$0.isWarmup }
+            fallbackSets = plannedNonWarmupSets.isEmpty ? orderedSets : plannedNonWarmupSets
         }
 
         return fallbackSets.compactMap { set -> String? in

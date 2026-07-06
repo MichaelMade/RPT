@@ -43,12 +43,19 @@ jobs:
       - name: Run unit and UI smoke tests
         run: |
           set -euo pipefail
+          # Serial testing: parallel simulator clones made suites that share
+          # the app's singleton store interfere nondeterministically.
+          # Retry-on-failure absorbs runner infrastructure flakes (e.g.
+          # "Failed to get background assertion" springboard timeouts).
           xcodebuild test \
             -project RPT.xcodeproj \
             -scheme RPT \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest' \
             CODE_SIGNING_ALLOWED=NO \
+            -parallel-testing-enabled NO \
+            -retry-tests-on-failure \
+            -test-iterations 3 \
             -resultBundlePath TestResults/RPT.xcresult
 
       - name: Print test failure details
