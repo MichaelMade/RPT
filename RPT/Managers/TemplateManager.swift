@@ -488,7 +488,8 @@ class TemplateManager {
                         weight: initialWeight,
                         reps: targetReps,
                         fallbackDate: completionTime
-                    )
+                    ),
+                    sortOrder: createdSetCount
                 )
 
                 workout.sets.append(newSet)

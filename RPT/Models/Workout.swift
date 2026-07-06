@@ -175,13 +175,13 @@ final class Workout {
     }
 
     // Group sets by exercise while preserving canonical logged order.
-    // - Exercise order: first appearance in workout.sets.
-    // - Set order: insertion order inside each exercise.
+    // - Exercise order: first appearance in canonical set order.
+    // - Set order: sortOrder (with legacy completedAt/array fallback).
     var orderedExerciseGroups: [(exercise: Exercise, sets: [ExerciseSet])] {
         var grouped: [Exercise: [ExerciseSet]] = [:]
         var exerciseOrder: [Exercise] = []
 
-        for set in sets {
+        for set in canonicallyOrderedSets() {
             guard let exercise = set.exercise else { continue }
 
             if grouped[exercise] == nil {
@@ -265,11 +265,35 @@ final class Workout {
             workout: self,
             completedAt: isComplete ? Date() : .distantPast,
             isWarmup: isWarmup,
-            rpe: rpe
+            rpe: rpe,
+            sortOrder: nextSetSortOrder()
         )
-        
+
         sets.append(newSet)
         return newSet
+    }
+
+    /// Next stable position for a new set, independent of array order.
+    func nextSetSortOrder() -> Int {
+        (sets.map(\.sortOrder).max() ?? -1) + 1
+    }
+
+    /// Canonical set sequence: explicit sortOrder first, then completion
+    /// time for legacy data (which predates sortOrder), then array position
+    /// as the final stable tiebreak.
+    func canonicallyOrderedSets() -> [ExerciseSet] {
+        sets.enumerated().sorted { lhs, rhs in
+            if lhs.element.sortOrder != rhs.element.sortOrder {
+                return lhs.element.sortOrder < rhs.element.sortOrder
+            }
+
+            if lhs.element.completedAt != rhs.element.completedAt {
+                return lhs.element.completedAt < rhs.element.completedAt
+            }
+
+            return lhs.offset < rhs.offset
+        }
+        .map(\.element)
     }
     
     // Create a follow-up workout with the same exercises but increased weights

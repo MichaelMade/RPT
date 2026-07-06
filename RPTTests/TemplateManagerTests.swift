@@ -15,11 +15,25 @@ final class TemplateManagerTests: XCTestCase {
     private var createdTemplateNames: [String] = []
     private var createdWorkouts: [Workout] = []
 
+    // Self-contained library exercise: depending on the seeded defaults
+    // couples these tests to whatever other suites do to the shared store.
+    // Letters-only suffix so digit queries can't accidentally match it.
+    private var testExerciseName: String = ""
+
     override func setUp() {
         super.setUp()
         manager = TemplateManager.shared
         createdTemplateNames = []
         createdWorkouts = []
+
+        testExerciseName = "Template Suite Bench \(UUID().uuidString.filter(\.isLetter))"
+        _ = ExerciseManager.shared.addExercise(
+            name: testExerciseName,
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            secondaryMuscleGroups: [],
+            instructions: ""
+        )
     }
 
     override func tearDown() {
@@ -30,6 +44,9 @@ final class TemplateManagerTests: XCTestCase {
         }
         for workout in createdWorkouts {
             _ = WorkoutManager.shared.deleteWorkoutSafely(workout)
+        }
+        if let exercise = ExerciseManager.shared.fetchExercise(withName: testExerciseName) {
+            _ = ExerciseManager.shared.deleteExercise(exercise)
         }
         manager = nil
         super.tearDown()
@@ -43,7 +60,7 @@ final class TemplateManagerTests: XCTestCase {
 
     private func benchExercise() -> TemplateExercise {
         TemplateExercise(
-            exerciseName: "Barbell Bench Press",
+            exerciseName: testExerciseName,
             suggestedSets: 3,
             repRanges: [
                 TemplateRepRange(setNumber: 1, minReps: 4, maxReps: 6, percentageOfFirstSet: 1.0),
@@ -146,8 +163,10 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(workout.startedFromTemplateID, template.id)
         XCTAssertEqual(workout.sets.count, 3, "One set per rep range")
 
-        // Target reps default to the middle of each range.
-        XCTAssertEqual(workout.sets.map(\.reps), [5, 7, 9])
+        // Target reps default to the middle of each range. Assert through
+        // the canonical ordering — raw relationship array order is not
+        // guaranteed by SwiftData after a save.
+        XCTAssertEqual(workout.canonicallyOrderedSets().map(\.reps), [5, 7, 9])
 
         // Template-created sets start unlogged.
         XCTAssertTrue(workout.sets.allSatisfy { !$0.isCompletedLoggedSet })
@@ -180,7 +199,7 @@ final class TemplateManagerTests: XCTestCase {
         createdWorkouts.append(workout)
 
         XCTAssertEqual(workout.sets.count, 3, "Only the available exercise contributes sets")
-        XCTAssertTrue(workout.sets.allSatisfy { $0.exercise?.name == "Barbell Bench Press" })
+        XCTAssertTrue(workout.sets.allSatisfy { $0.exercise?.name == testExerciseName })
     }
 
     func testDuplicateExerciseNamesDetection() {

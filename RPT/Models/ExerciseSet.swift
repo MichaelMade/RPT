@@ -16,13 +16,19 @@ final class ExerciseSet {
     var isWarmup: Bool
     var rpe: Int? // Rate of Perceived Exertion (1-10)
     var notes: String
-    
+
+    // Stable position within the workout. SwiftData to-many relationship
+    // arrays do not guarantee order across saves, so set sequencing (top
+    // set first!) must not rely on array order. Inline default keeps
+    // lightweight migration working for pre-existing stores.
+    var sortOrder: Int = 0
+
     @Relationship(deleteRule: .nullify)
     var exercise: Exercise?
-    
+
     @Relationship(deleteRule: .nullify)
     var workout: Workout?
-    
+
     init(weight: Int,
          reps: Int,
          exercise: Exercise,
@@ -30,7 +36,8 @@ final class ExerciseSet {
          completedAt: Date = Date(),
          isWarmup: Bool = false,
          rpe: Int? = nil,
-         notes: String = "") {
+         notes: String = "",
+         sortOrder: Int = 0) {
         self.weight = weight
         self.reps = reps
         self.exercise = exercise
@@ -39,6 +46,7 @@ final class ExerciseSet {
         self.isWarmup = isWarmup
         self.rpe = rpe
         self.notes = notes
+        self.sortOrder = sortOrder
     }
 
     static func hasCompletedValues(weight: Int, reps: Int, exerciseCategory: ExerciseCategory? = nil) -> Bool {

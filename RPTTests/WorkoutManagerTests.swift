@@ -1305,10 +1305,11 @@ final class WorkoutManagerLogicTests: XCTestCase {
             .exerciseGroups[squat]?
             .map(\.weight)
 
-        // Then
+        // Then: 200 -> +10% = 220 top set; back-offs re-derive the 10%/20%
+        // drops from the top set and round to the nearest 5 lb.
         XCTAssertEqual(
             followUpWeights,
-            [220, 198, 176],
+            [220, 200, 175],
             "Follow-up progression should use canonical logged set order, not completion timestamp sorting"
         )
     }
