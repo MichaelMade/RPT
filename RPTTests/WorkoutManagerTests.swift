@@ -652,7 +652,7 @@ final class WorkoutManagerLogicTests: XCTestCase {
         let workout = Workout(name: "Corrupted Duration", duration: -45, isCompleted: false)
 
         // When
-        workout.complete(now: workout.date)
+        workout.complete()
 
         // Then
         XCTAssertTrue(workout.isCompleted)
