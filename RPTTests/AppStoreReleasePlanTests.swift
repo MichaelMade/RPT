@@ -38,6 +38,6 @@ final class AppStoreReleasePlanTests: XCTestCase {
         XCTAssertEqual(AppStoreReleasePlan.privacyURL.host, "github.com")
         XCTAssertTrue(AppStoreReleasePlan.privacyURL.path.contains("Privacy Policy"))
         XCTAssertEqual(AppStoreReleasePlan.standardEULAURL.host, "www.apple.com")
-        XCTAssertTrue(AppStoreReleasePlan.standardEULAURL.path.hasSuffix("/legal/internet-services/itunes/dev/stdeula/"))
+        XCTAssertEqual(AppStoreReleasePlan.standardEULAURL.absoluteString, "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
     }
 }
