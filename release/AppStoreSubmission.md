@@ -24,6 +24,7 @@ This packet is the manual App Store Connect entry source of truth for the first 
 | Keywords | `rpt,strength log,workout tracker,progressive overload,weight lifting,gym planner,rest timer,1rm` |
 | Support URL | https://github.com/MichaelMade/RPT/issues |
 | Privacy URL | https://github.com/MichaelMade/RPT/blob/master/Privacy%20Policy |
+| Terms of Use (EULA) | Apple's Standard EULA — https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ |
 
 ## Long description
 
@@ -82,12 +83,15 @@ RPT is a private on-device workout log. The app has no account system, no tracki
 
 RPT Pro is a one-time lifetime in-app purchase (`rpt.pro.lifetime`) that unlocks advanced analytics, unlimited custom templates, and CSV export. The core logging flow remains usable without purchase.
 
+RPT uses Apple's Standard EULA for App Store purchases: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/.
+
 ## Release gates before pressing Submit
 
 - [ ] Build archive on Mac/Xcode and confirm `PrivacyInfo.xcprivacy` is present in the archive.
 - [ ] Generate and inspect the Xcode privacy report.
 - [ ] Create App Store Connect app record for bundle ID `com.MichaelMade.RPT`.
 - [ ] Create non-consumable IAP `rpt.pro.lifetime`, attach review screenshot, and set launch price.
+- [ ] Confirm App Store Connect is set to Apple's Standard EULA.
 - [ ] Add GitHub Actions signing secrets listed in `docs/GitHubReleaseSetup.md`.
 - [ ] Run GitHub `iOS CI` workflow green.
 - [ ] Run `App Store Release Candidate` workflow with `upload_to_testflight=false` and inspect artifact.

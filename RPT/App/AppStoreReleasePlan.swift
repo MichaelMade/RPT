@@ -68,6 +68,7 @@ enum AppStoreReleasePlan {
 
     static let supportURL = URL(string: "https://github.com/MichaelMade/RPT/issues")!
     static let privacyURL = URL(string: "https://github.com/MichaelMade/RPT/blob/master/Privacy%20Policy")!
+    static let standardEULAURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 
     static var keywordCharacterCount: Int {
         keywordPhrases.joined(separator: ",").count
