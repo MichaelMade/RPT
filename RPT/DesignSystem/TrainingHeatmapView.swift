@@ -30,6 +30,10 @@ struct TrainingHeatmapView: View {
         return calendar.date(byAdding: .day, value: -7 * (weekCount - 1), to: currentWeekStart) ?? currentWeekStart
     }
 
+    private var trainedDayCount: Int {
+        dailyIntensity.values.filter { $0 > 0 }.count
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ScrollView(.horizontal, showsIndicators: false) {
@@ -59,6 +63,10 @@ struct TrainingHeatmapView: View {
                     .foregroundStyle(.secondary)
             }
         }
+        // The cell grid is unreadable element-by-element; expose a summary.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Training consistency heatmap")
+        .accessibilityValue("\(trainedDayCount) training days in the last \(weekCount) weeks")
     }
 
     @ViewBuilder

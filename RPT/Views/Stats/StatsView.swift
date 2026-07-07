@@ -12,6 +12,7 @@ import Charts
 struct StatsView: View {
     @StateObject private var viewModel = StatsViewModel()
     @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
+    @AppStorage("selectedRootTab") private var selectedRootTabRawValue = RootTab.home.rawValue
     @State private var exportURL: URL?
 
     var body: some View {
@@ -22,8 +23,11 @@ struct StatsView: View {
                         EmptyStateCard(
                             icon: "chart.bar.xaxis",
                             title: "No Stats Yet",
-                            message: "Complete your first workout and your volume trends, muscle balance, and personal records will show up here."
-                        )
+                            message: "Complete your first workout and your volume trends, muscle balance, and personal records will show up here.",
+                            actionTitle: "Go Train"
+                        ) {
+                            selectedRootTabRawValue = RootTab.home.rawValue
+                        }
                     } else {
                         summaryTiles
 

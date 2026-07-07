@@ -11,6 +11,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject private var session: WorkoutSession
     @StateObject private var viewModel = HomeViewModel()
+    @AppStorage("selectedRootTab") private var selectedRootTabRawValue = RootTab.home.rawValue
 
     @State private var showingReplaceDialog = false
     @State private var showingRPTCalculator = false
@@ -138,6 +139,13 @@ struct HomeView: View {
                     Label("Start Workout", systemImage: "plus")
                 }
                 .buttonStyle(BrandButtonStyle())
+
+                Button {
+                    selectedRootTabRawValue = RootTab.templates.rawValue
+                } label: {
+                    Label("Browse Templates", systemImage: "square.grid.2x2")
+                }
+                .buttonStyle(SecondaryCapsuleButtonStyle(fullWidth: true))
             }
             .frame(maxWidth: .infinity)
             .rptCard()

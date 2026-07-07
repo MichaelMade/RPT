@@ -88,6 +88,7 @@ struct ActiveWorkoutView: View {
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
+                    .accessibilityLabel("Workout options")
                 }
             }
             .safeAreaInset(edge: .bottom) {
@@ -207,6 +208,7 @@ struct ActiveWorkoutView: View {
                         }
                     }
                     .frame(height: 8)
+                    .accessibilityHidden(true)
                 }
             }
         }

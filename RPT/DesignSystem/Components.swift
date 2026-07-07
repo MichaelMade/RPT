@@ -68,6 +68,7 @@ struct StatTile: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .rptCard(padding: 14)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -172,6 +173,8 @@ struct ProgressRing: View {
                 .rotationEffect(.degrees(-90))
                 .animation(.easeOut(duration: 0.5), value: progress)
         }
+        // Decorative — hosts overlay the meaningful numbers as text.
+        .accessibilityHidden(true)
     }
 }
 
@@ -214,6 +217,7 @@ struct ValueStepperControl: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(Theme.accent)
+            .accessibilityLabel("Decrease \(unit ?? "value")")
 
             VStack(spacing: 0) {
                 Text(value)
@@ -228,6 +232,7 @@ struct ValueStepperControl: View {
                 }
             }
             .frame(minWidth: 44)
+            .accessibilityElement(children: .combine)
 
             Button(action: onIncrement) {
                 Image(systemName: "plus")
@@ -237,6 +242,7 @@ struct ValueStepperControl: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(Theme.accent)
+            .accessibilityLabel("Increase \(unit ?? "value")")
         }
         .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }

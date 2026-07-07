@@ -62,6 +62,7 @@ struct TemplateDetailView: View {
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
+                .accessibilityLabel("Template options")
             }
         }
         .safeAreaInset(edge: .bottom) {

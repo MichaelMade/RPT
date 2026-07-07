@@ -50,6 +50,7 @@ Audit summary:
 
 - [ ] Tighten empty-state and no-data experiences across Home, Stats, and Templates.
   The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
+  Progress: Home's first-run hero now offers a Browse Templates path beside Start Workout, and the Stats zero state routes back to training with a Go Train action. The app also has a first VoiceOver pass: labeled set/exercise controls, steppers, overflow menus, and a summarized consistency heatmap. Remaining: a VoiceOver walkthrough on device and Dynamic Type spot checks.
 
 - [x] Prepare support/legal surfaces for a public launch.
   About now links to the live support and privacy URLs from `AppStoreReleasePlan`, a direct developer email path, and a plain-language privacy summary matching the release disclosures: no accounts, analytics, ads, tracking SDKs, or developer-run workout-data servers. Re-check final public support URL and Terms/EULA requirements before paid App Store submission.
