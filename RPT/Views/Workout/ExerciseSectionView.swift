@@ -137,6 +137,7 @@ struct ExerciseSectionView: View {
                     .foregroundStyle(isCompleted ? Theme.success : Color.secondary)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(isCompleted ? "Mark \(exercise.displayName) as not done" : "Mark \(exercise.displayName) as done")
 
             ExerciseIconView(category: exercise.category, size: 30)
 
@@ -167,6 +168,7 @@ struct ExerciseSectionView: View {
                     .frame(width: 28, height: 28)
                     .contentShape(Rectangle())
             }
+            .accessibilityLabel("\(exercise.displayName) options")
 
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -181,6 +183,7 @@ struct ExerciseSectionView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(isExpanded ? "Collapse \(exercise.displayName)" : "Expand \(exercise.displayName)")
         }
     }
 
@@ -306,6 +309,7 @@ struct SetRowView: View {
                     .foregroundStyle(set.isWarmup ? Theme.amber : Theme.accent)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(set.isWarmup ? "Edit warm-up set" : "Edit set \(setLabel)")
 
             ValueStepperControl(
                 value: weightText,
@@ -347,6 +351,8 @@ struct SetRowView: View {
                     .foregroundStyle(isLogged ? Theme.success : Color.secondary.opacity(0.5))
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(isLogged ? "Set logged" : "Set not logged")
+            .accessibilityHint(isLogged ? "Starts the rest timer" : "Enter weight and reps to log this set")
         }
         .contextMenu {
             Button(action: onEdit) {

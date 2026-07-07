@@ -27,7 +27,7 @@ enum WorkoutCSVExporter {
             let dateField = dateFormatter.string(from: workout.date)
             let workoutField = escape(WorkoutNameFormatter.displayName(for: workout))
 
-            for set in workout.sets where set.isCompletedLoggedSet {
+            for set in workout.canonicallyOrderedSets() where set.isCompletedLoggedSet {
                 guard let exercise = set.exercise else { continue }
 
                 let setType = set.isWarmup ? "warmup" : "working"

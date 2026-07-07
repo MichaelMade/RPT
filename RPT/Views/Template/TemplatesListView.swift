@@ -197,6 +197,7 @@ struct TemplatesListView: View {
                         .frame(width: 32, height: 32)
                         .contentShape(Rectangle())
                 }
+                .accessibilityLabel("Template options")
             }
         }
         .rptCard()
