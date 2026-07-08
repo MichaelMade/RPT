@@ -51,7 +51,7 @@ struct AboutView: View {
                 .rptCard()
 
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Support & Privacy")
+                    Text("Support, Privacy & Terms")
                         .font(.headline)
 
                     linkRow(
@@ -75,6 +75,13 @@ struct AboutView: View {
                         title: "Privacy Policy",
                         text: "Review RPT's no-account, on-device data policy.",
                         url: AppStoreReleasePlan.privacyURL
+                    )
+
+                    linkRow(
+                        icon: "doc.text.fill",
+                        title: "Terms of Use (EULA)",
+                        text: "RPT uses Apple's standard terms for App Store purchases.",
+                        url: AppStoreReleasePlan.standardEULAURL
                     )
 
                     Text("RPT has no accounts, analytics, ads, tracking SDKs, or developer-run workout-data servers. StoreKit handles RPT Pro purchases through Apple.")

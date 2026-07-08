@@ -32,10 +32,12 @@ final class AppStoreReleasePlanTests: XCTestCase {
         XCTAssertTrue(AppStoreReleasePlan.releasePositioningBullets.contains { $0.contains("Private by design") })
     }
 
-    func testSupportAndPrivacyLinksUseReleaseUrls() {
+    func testSupportPrivacyAndTermsLinksUseReleaseUrls() {
         XCTAssertEqual(AppStoreReleasePlan.supportURL.host, "github.com")
         XCTAssertTrue(AppStoreReleasePlan.supportURL.path.hasSuffix("/issues"))
         XCTAssertEqual(AppStoreReleasePlan.privacyURL.host, "github.com")
         XCTAssertTrue(AppStoreReleasePlan.privacyURL.path.contains("Privacy Policy"))
+        XCTAssertEqual(AppStoreReleasePlan.standardEULAURL.host, "www.apple.com")
+        XCTAssertEqual(AppStoreReleasePlan.standardEULAURL.absoluteString, "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
     }
 }

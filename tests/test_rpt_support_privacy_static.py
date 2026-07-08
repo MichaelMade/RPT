@@ -13,12 +13,15 @@ class RPTSupportPrivacyStaticTests(unittest.TestCase):
     def test_about_screen_exposes_support_and_privacy_surface(self):
         about = ABOUT_VIEW.read_text()
 
-        self.assertIn('Text("Support & Privacy")', about)
+        self.assertIn('Text("Support, Privacy & Terms")', about)
         self.assertIn('mailto:moorem88@gmail.com?subject=RPT%20Support', about)
         self.assertIn('title: "Email the Developer"', about)
         self.assertIn('AppStoreReleasePlan.supportURL', about)
         self.assertIn('AppStoreReleasePlan.privacyURL', about)
         self.assertIn('title: "Privacy Policy"', about)
+        self.assertIn('title: "Terms of Use (EULA)"', about)
+        self.assertIn('AppStoreReleasePlan.standardEULAURL', about)
+        self.assertIn("Apple's standard terms for App Store purchases", about)
         self.assertIn('no accounts, analytics, ads, tracking SDKs', about)
         self.assertIn('StoreKit handles RPT Pro purchases through Apple', about)
 

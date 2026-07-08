@@ -53,7 +53,7 @@ Audit summary:
   Progress: Home's first-run hero now offers a Browse Templates path beside Start Workout, and the Stats zero state routes back to training with a Go Train action. The app also has a first VoiceOver pass: labeled set/exercise controls, steppers, overflow menus, and a summarized consistency heatmap. Remaining: a VoiceOver walkthrough on device and Dynamic Type spot checks.
 
 - [x] Prepare support/legal surfaces for a public launch.
-  About now links to the live support and privacy URLs from `AppStoreReleasePlan`, a direct developer email path, and a plain-language privacy summary matching the release disclosures: no accounts, analytics, ads, tracking SDKs, or developer-run workout-data servers. Re-check final public support URL and Terms/EULA requirements before paid App Store submission.
+  About now links to the live support, privacy, and Apple Standard EULA URLs from `AppStoreReleasePlan`, a direct developer email path, and a plain-language privacy summary matching the release disclosures: no accounts, analytics, ads, tracking SDKs, or developer-run workout-data servers. Re-check final public support URL and App Store Connect's EULA setting before paid App Store submission.
 
 ## Later
 
