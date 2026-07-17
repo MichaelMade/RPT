@@ -308,4 +308,24 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.toggleSetLoggedSafely(set), .logged)
         XCTAssertTrue(set.isCompletedLoggedSet)
     }
+
+    func testCompleteWorkoutRefusesWhenNothingLogged() {
+        let exercise = makeExercise()
+        let workout = Workout(name: "Test")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertTrue(viewModel.addExerciseToWorkoutSafely(exercise))
+        let set = viewModel.orderedSetsForDisplay(in: exercise)[0]
+        XCTAssertTrue(viewModel.updateSetSafely(set, weight: 200, reps: 5, rpe: nil))
+
+        // Values alone aren't enough — nothing is checked off yet.
+        XCTAssertFalse(viewModel.completeWorkoutSafely())
+        XCTAssertFalse(viewModel.workout.isCompleted)
+        XCTAssertEqual(viewModel.errorAlertTitle, "Nothing Logged Yet")
+
+        viewModel.clearError()
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(set), .logged)
+        XCTAssertTrue(viewModel.completeWorkoutSafely())
+        XCTAssertTrue(viewModel.workout.isCompleted)
+    }
 }

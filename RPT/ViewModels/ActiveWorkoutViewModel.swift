@@ -16,6 +16,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     enum WorkoutError: Error, Equatable {
         case saveFailure
         case completeFailure
+        case nothingLogged
         case deleteFailure
         case exerciseNotFound
         case invalidExerciseData
@@ -27,6 +28,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             switch self {
             case .saveFailure: return "Couldn’t save this workout. Keep it open, then try again."
             case .completeFailure: return "Couldn’t complete this workout. Keep it open, then try again."
+            case .nothingLogged: return "No sets are logged yet. Check off at least one set, or save this workout for later or discard it."
             case .deleteFailure: return "Couldn’t discard this workout. Keep it open, then try again."
             case .exerciseNotFound: return "Exercise not found in workout."
             case .invalidExerciseData: return "Invalid exercise data."
@@ -241,6 +243,8 @@ class ActiveWorkoutViewModel: ObservableObject {
     func completeWorkout() throws {
         do {
             try workoutManager.completeWorkout(workout)
+        } catch WorkoutManager.CompletionError.noLoggedSets {
+            throw WorkoutError.nothingLogged
         } catch {
             throw WorkoutError.completeFailure
         }
@@ -250,6 +254,9 @@ class ActiveWorkoutViewModel: ObservableObject {
         do {
             try completeWorkout()
             return true
+        } catch WorkoutError.nothingLogged {
+            setError(title: "Nothing Logged Yet", message: WorkoutError.nothingLogged.description)
+            return false
         } catch {
             setError(title: "Couldn’t Complete Workout", message: WorkoutError.completeFailure.description)
             return false

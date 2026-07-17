@@ -259,6 +259,10 @@ struct ActiveWorkoutView: View {
     }
 
     private var finishDialogMessage: String {
+        if !viewModel.workout.sets.contains(where: \.isCompletedLoggedSet) {
+            return "No sets are logged yet, so this session can’t be completed. Log a set first, or save it for later or discard it."
+        }
+
         if viewModel.allExercisesCompleted {
             return "Nice work — everything is checked off. Save this session to your history?"
         }

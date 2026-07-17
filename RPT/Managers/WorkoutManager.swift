@@ -117,8 +117,20 @@ class WorkoutManager: ObservableObject {
         }
     }
     
+    enum CompletionError: Error {
+        case noLoggedSets
+    }
+
     // Complete a workout
     func completeWorkout(_ workout: Workout) throws {
+        // Completing means the session happened. A workout with nothing
+        // logged has no performed work to put in history or count toward
+        // streak and lifetime stats — save-for-later and discard cover
+        // the other exits.
+        guard workout.sets.contains(where: \.isCompletedLoggedSet) else {
+            throw CompletionError.noLoggedSets
+        }
+
         let originalIsCompleted = workout.isCompleted
         let originalDuration = workout.duration
         let originalUser = workout.user
@@ -209,6 +221,8 @@ class WorkoutManager: ObservableObject {
             isWarmup: isWarmup,
             rpe: sanitized.rpe
         )
+        // Adding a set never logs it — logging is an explicit user action.
+        newSet.completedAt = .distantPast
 
         do {
             try dataManager.saveChanges()

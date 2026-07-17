@@ -303,6 +303,29 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(set.completedAt, .distantPast)
     }
 
+    func testAddSet_withCompleteValuesStillStartsUnlogged() {
+        // Given
+        let workout = Workout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+
+        // When
+        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
+
+        // Then
+        XCTAssertEqual(set.completedAt, .distantPast, "Adding a set never logs it; logging is explicit")
+    }
+
+    func testCompleteWorkout_refusesWorkoutWithNoLoggedSets() {
+        // Given
+        let workout = Workout(name: "Test Workout")
+        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        _ = manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
+
+        // When / Then
+        XCTAssertThrowsError(try manager.completeWorkout(workout))
+        XCTAssertFalse(workout.isCompleted, "A workout with nothing logged must stay in progress")
+    }
+
     func testWorkoutAddSet_withZeroRepsStartsIncomplete() {
         // Given
         let workout = Workout(name: "Test Workout")
