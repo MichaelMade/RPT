@@ -47,7 +47,7 @@ struct ContentView: View {
                 }
         }
         .environmentObject(session)
-        .tint(Theme.accent)
+        .tint(Theme.primary)
         .fullScreenCover(isPresented: $session.isPresentingWorkout) {
             if let workout = session.activeWorkout {
                 ActiveWorkoutView(workout: workout)

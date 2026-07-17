@@ -112,15 +112,16 @@ struct TemplateDetailView: View {
     private var missingExercisesCard: some View {
         VStack(alignment: .leading, spacing: 6) {
             Label("Some exercises are missing", systemImage: "exclamationmark.triangle.fill")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Theme.amber)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Theme.dropOne)
 
             Text("Not in your library: \(missingExercises.joined(separator: ", ")). Starting this template will skip them.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .rptCard(padding: 14)
+        .accessibilityElement(children: .combine)
     }
 
     private var exercisesSection: some View {
@@ -143,43 +144,48 @@ struct TemplateDetailView: View {
 
     private func exerciseCard(_ templateExercise: TemplateExercise) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
+            HStack(alignment: .firstTextBaseline) {
                 Text(templateExercise.exerciseName)
-                    .font(.subheadline.weight(.semibold))
+                    .font(Theme.titleFont(size: 15))
+                    .foregroundStyle(Theme.textPrimary)
 
                 Spacer()
 
                 Text("\(templateExercise.suggestedSets) \(templateExercise.suggestedSets == 1 ? "set" : "sets")")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 12, weight: .medium))
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.textSecondary)
             }
 
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
                 ForEach(templateExercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber }), id: \.setNumber) { range in
                     HStack {
                         Text(range.setNumber == 1 ? "Top set" : "Back-off \(range.setNumber - 1)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.textSecondary)
 
                         Spacer()
 
                         if range.setNumber > 1, let percentage = range.percentageOfFirstSet {
                             Text("\(Int(percentage * 100))% of top")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
+                                .font(.system(size: 11))
+                                .monospacedDigit()
+                                .foregroundStyle(Theme.textTertiary)
                         }
 
                         Text("\(range.minReps)–\(range.maxReps) reps")
-                            .font(.caption.weight(.medium))
+                            .font(.system(size: 12, weight: .medium))
                             .monospacedDigit()
+                            .foregroundStyle(Theme.textPrimary)
                     }
+                    .accessibilityElement(children: .combine)
                 }
             }
 
             if !templateExercise.notes.isEmpty {
                 Text(templateExercise.notes)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.textSecondary)
                     .italic()
             }
         }
@@ -191,8 +197,8 @@ struct TemplateDetailView: View {
             SectionHeader(title: "Notes")
 
             Text(template.notes)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .rptCard()
         }
@@ -211,7 +217,12 @@ struct TemplateDetailView: View {
         .disabled(!templateManager.canStartWorkout(for: template))
         .padding(.horizontal, Theme.screenPadding)
         .padding(.vertical, 10)
-        .background(.bar)
+        .background(Theme.cardBackground)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(Theme.hairline)
+                .frame(height: 1)
+        }
     }
 
     // MARK: - Actions

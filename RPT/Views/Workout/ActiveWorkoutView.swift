@@ -2,8 +2,8 @@
 //  ActiveWorkoutView.swift
 //  RPT
 //
-//  The live training screen: exercise sections with RPT set suggestions,
-//  rest timer, and finish/save/discard lifecycle.
+//  The live training screen: exercise cards with RPT set tables,
+//  a docked rest timer, and finish/save/discard lifecycle.
 //
 
 import SwiftUI
@@ -24,75 +24,44 @@ struct ActiveWorkoutView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: Theme.sectionSpacing) {
-                    headerCard
+            VStack(spacing: 0) {
+                header
 
-                    if viewModel.exerciseOrder.isEmpty {
-                        EmptyStateCard(
-                            icon: "dumbbell",
-                            title: "No Exercises Yet",
-                            message: "Add your first movement to start logging sets.",
-                            actionTitle: "Add Exercise"
-                        ) {
-                            showingExercisePicker = true
-                        }
-                    } else {
-                        ForEach(viewModel.exerciseOrder) { exercise in
-                            ExerciseSectionView(viewModel: viewModel, exercise: exercise)
-                        }
+                ScrollView {
+                    VStack(spacing: Theme.sectionSpacing) {
+                        if viewModel.exerciseOrder.isEmpty {
+                            EmptyStateCard(
+                                icon: "dumbbell",
+                                title: "No Exercises Yet",
+                                message: "Add your first movement to start logging sets.",
+                                actionTitle: "Add Exercise"
+                            ) {
+                                showingExercisePicker = true
+                            }
+                        } else {
+                            ForEach(viewModel.exerciseOrder) { exercise in
+                                ExerciseSectionView(viewModel: viewModel, exercise: exercise)
+                            }
 
-                        Button {
-                            showingExercisePicker = true
-                        } label: {
-                            Label("Add Exercise", systemImage: "plus")
+                            Button {
+                                showingExercisePicker = true
+                            } label: {
+                                Label("Add Exercise", systemImage: "plus")
+                            }
+                            .buttonStyle(SecondaryCapsuleButtonStyle(fullWidth: true))
                         }
-                        .buttonStyle(SecondaryCapsuleButtonStyle(fullWidth: true))
                     }
+                    .padding(.horizontal, Theme.screenPadding)
+                    .padding(.top, Theme.sectionSpacing)
+                    .padding(.bottom, 24)
                 }
-                .padding(.horizontal, Theme.screenPadding)
-                .padding(.bottom, 100)
+                .background(Theme.screenBackground)
             }
-            .background(Theme.screenBackground)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Save for Later") {
-                        if viewModel.saveWorkoutForLaterSafely() {
-                            session.dismissKeepingDraft()
-                        }
-                    }
-                    .font(.subheadline)
-                }
-
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button {
-                            viewModel.startRestTimer()
-                        } label: {
-                            Label("Rest Timer", systemImage: "timer")
-                        }
-
-                        Button {
-                            showingNotesEditor = true
-                        } label: {
-                            Label("Workout Notes", systemImage: "note.text")
-                        }
-
-                        Button(role: .destructive) {
-                            showingDiscardConfirmation = true
-                        } label: {
-                            Label("Discard Workout", systemImage: "trash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                    }
-                    .accessibilityLabel("Workout options")
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .bottom) {
-                bottomBar
+                bottomDock
             }
             .sheet(isPresented: $showingExercisePicker) {
                 ExercisePickerView(
@@ -103,10 +72,6 @@ struct ActiveWorkoutView: View {
                         HapticFeedbackManager.shared.light()
                     }
                 }
-            }
-            .sheet(isPresented: $viewModel.showingRestTimer) {
-                RestTimerView(duration: viewModel.currentRestDuration)
-                    .presentationDetents([.medium])
             }
             .sheet(isPresented: $showingNotesEditor) {
                 WorkoutNotesEditorSheet(initialNotes: viewModel.workout.notes) { notes in
@@ -153,100 +118,199 @@ struct ActiveWorkoutView: View {
 
     // MARK: - Header
 
-    private var headerCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
                 if isEditingName {
                     TextField("Workout name", text: $viewModel.workoutName)
-                        .font(.title3.weight(.bold))
+                        .font(Theme.titleFont(size: 18))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .background(Theme.surfaceMuted, in: RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous))
                         .submitLabel(.done)
                         .onSubmit { commitNameEdit() }
 
                     Button("Done") { commitNameEdit() }
-                        .font(.subheadline.weight(.semibold))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Theme.primary)
                 } else {
-                    Text(viewModel.workoutName)
-                        .font(.title3.weight(.bold))
-                        .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 1) {
+                        HStack(spacing: 6) {
+                            Text(viewModel.workoutName)
+                                .font(Theme.titleFont(size: 18))
+                                .foregroundStyle(Theme.textPrimary)
+                                .lineLimit(1)
+
+                            Button {
+                                isEditingName = true
+                            } label: {
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(Theme.textSecondary)
+                            }
+                            .accessibilityLabel("Rename workout")
+                        }
+
+                        TimelineView(.periodic(from: .now, by: 1)) { context in
+                            Text(headerSubline(now: context.date))
+                                .font(.system(size: 12))
+                                .monospacedDigit()
+                                .foregroundStyle(Theme.textSecondary)
+                        }
+                    }
+
+                    Spacer(minLength: 8)
 
                     Button {
-                        isEditingName = true
+                        if viewModel.saveWorkoutForLaterSafely() {
+                            session.dismissKeepingDraft()
+                        }
                     } label: {
-                        Image(systemName: "pencil")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        Text("Save for later")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Theme.primary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous)
+                                    .strokeBorder(Theme.border, lineWidth: 1)
+                            )
                     }
-                    .accessibilityLabel("Rename workout")
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Save for Later")
 
-                    Spacer()
+                    Menu {
+                        Button {
+                            viewModel.startRestTimer()
+                        } label: {
+                            Label("Rest Timer", systemImage: "timer")
+                        }
 
-                    Text(viewModel.workout.date, style: .time)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        Button {
+                            showingNotesEditor = true
+                        } label: {
+                            Label("Workout Notes", systemImage: "note.text")
+                        }
+
+                        Button(role: .destructive) {
+                            showingDiscardConfirmation = true
+                        } label: {
+                            Label("Discard Workout", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundStyle(Theme.textSecondary)
+                            .frame(width: 28, height: 32)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel("Workout options")
                 }
             }
 
             if !viewModel.exerciseOrder.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text("\(viewModel.completedExercisesCount) of \(viewModel.totalExercisesCount) exercises done")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Text(viewModel.workout.hasPreferredWorkMetric ? viewModel.workout.preferredWorkMetricValue : "")
-                            .font(.caption.weight(.semibold))
-                            .monospacedDigit()
-                    }
-
-                    GeometryReader { proxy in
-                        ZStack(alignment: .leading) {
-                            Capsule()
-                                .fill(Color.primary.opacity(0.08))
-
-                            Capsule()
-                                .fill(Theme.brandGradient)
-                                .frame(width: proxy.size.width * progressFraction)
-                                .animation(.easeOut(duration: 0.3), value: progressFraction)
-                        }
-                    }
-                    .frame(height: 8)
-                    .accessibilityHidden(true)
-                }
+                exerciseProgressBar
             }
         }
-        .rptCard()
+        .padding(.horizontal, Theme.screenPadding)
+        .padding(.top, 8)
+        .padding(.bottom, 10)
+        .background(Theme.cardBackground)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Theme.border)
+                .frame(height: 1)
+        }
     }
 
-    private var progressFraction: Double {
-        guard viewModel.totalExercisesCount > 0 else { return 0 }
-        return Double(viewModel.completedExercisesCount) / Double(viewModel.totalExercisesCount)
-    }
-
-    // MARK: - Bottom Bar
-
-    private var bottomBar: some View {
-        HStack(spacing: 12) {
-            Button {
-                viewModel.startRestTimer()
-            } label: {
-                Label("Rest", systemImage: "timer")
+    /// One 4pt segment per exercise: done → green, active → blue, upcoming → muted.
+    private var exerciseProgressBar: some View {
+        HStack(spacing: 4) {
+            ForEach(viewModel.exerciseOrder) { exercise in
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(segmentColor(for: exercise))
+                    .frame(height: 4)
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(SecondaryCapsuleButtonStyle())
+        }
+        .animation(.easeOut(duration: 0.3), value: viewModel.completedExercisesCount)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(viewModel.completedExercisesCount) of \(viewModel.totalExercisesCount) exercises done")
+    }
+
+    private func segmentColor(for exercise: Exercise) -> Color {
+        if viewModel.isExerciseCompleted(exercise) {
+            return Theme.done
+        }
+        if isActiveExercise(exercise) {
+            return Theme.primary
+        }
+        return Theme.surfaceMuted
+    }
+
+    private func isActiveExercise(_ exercise: Exercise) -> Bool {
+        viewModel.exerciseOrder.first(where: { !viewModel.isExerciseCompleted($0) })?.id == exercise.id
+    }
+
+    private func headerSubline(now: Date) -> String {
+        // A draft resumed days later would show a nonsense day-scale elapsed
+        // time; past a plausible session length, show only the logged work.
+        let seconds = max(0, Int(now.timeIntervalSince(viewModel.workout.date)))
+        if seconds >= 12 * 60 * 60 {
+            if viewModel.workout.hasPreferredWorkMetric {
+                return "\(viewModel.workout.preferredWorkMetricValue) logged"
+            }
+            return "In progress"
+        }
+
+        let elapsed = elapsedString(now: now)
+        if viewModel.workout.hasPreferredWorkMetric {
+            return "\(elapsed) · \(viewModel.workout.preferredWorkMetricValue) logged"
+        }
+        return "\(elapsed) elapsed"
+    }
+
+    private func elapsedString(now: Date) -> String {
+        let seconds = max(0, Int(now.timeIntervalSince(viewModel.workout.date)))
+        if seconds >= 3600 {
+            return String(format: "%d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, seconds % 60)
+        }
+        return String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+
+    // MARK: - Bottom Dock
+
+    private var bottomDock: some View {
+        VStack(spacing: 10) {
+            if viewModel.showingRestTimer {
+                RestTimerView(duration: viewModel.currentRestDuration) {
+                    viewModel.cancelRestTimer()
+                }
+                // Fresh identity per start: logging the next set mid-rest
+                // must restart the countdown, not keep the stale one.
+                .id(viewModel.restTimerStartedAt)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
 
             Button {
                 requestFinish()
             } label: {
-                Label("Finish", systemImage: "checkmark")
+                Label("Finish workout", systemImage: "checkmark")
             }
             .buttonStyle(BrandButtonStyle())
+            .accessibilityIdentifier("Finish")
             .disabled(!viewModel.hasSets)
         }
         .padding(.horizontal, Theme.screenPadding)
-        .padding(.vertical, 10)
-        .background(.bar)
+        .padding(.top, 10)
+        .padding(.bottom, 8)
+        .background(Theme.cardBackground)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(Theme.border)
+                .frame(height: 1)
+        }
+        .animation(.easeInOut(duration: 0.2), value: viewModel.showingRestTimer)
     }
 
     // MARK: - Actions
@@ -329,7 +393,7 @@ struct WorkoutNotesEditorSheet: View {
                 )
                 .lineLimit(4...10)
                 .padding(12)
-                .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .background(Theme.surfaceMuted, in: RoundedRectangle(cornerRadius: Theme.cardCornerRadius, style: .continuous))
                 .focused($isFocused)
 
                 Spacer()
