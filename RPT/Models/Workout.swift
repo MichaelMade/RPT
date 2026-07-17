@@ -277,6 +277,13 @@ final class Workout {
     }
     
     // Add a new set to the workout
+    /// Low-level set factory. Complete values are stamped with a
+    /// completion timestamp so performed/historical workouts (imports,
+    /// tests, follow-up math inputs) can be built directly.
+    ///
+    /// Live-workout paths must reset `completedAt = .distantPast` after
+    /// calling — logging is an explicit user action there, never a side
+    /// effect of entering values. Every current production caller does.
     func addSet(exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
         let isComplete = ExerciseSet.hasCompletedValues(
             weight: weight,
