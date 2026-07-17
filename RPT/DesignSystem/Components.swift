@@ -18,14 +18,15 @@ struct SectionHeader: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(title)
-                .font(.title3.weight(.bold))
+                .font(Theme.titleFont(size: 16))
+                .foregroundStyle(Theme.textPrimary)
 
             Spacer()
 
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Theme.accent)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Theme.primary)
             }
         }
     }
@@ -38,10 +39,10 @@ struct StatTile: View {
     let value: String
     var caption: String? = nil
     var icon: String? = nil
-    var tint: Color = Theme.accent
+    var tint: Color = Theme.primary
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
                 if let icon {
                     Image(systemName: icon)
@@ -49,20 +50,22 @@ struct StatTile: View {
                         .foregroundStyle(tint)
                 }
                 Text(title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Theme.textSecondary)
                     .lineLimit(1)
             }
 
             Text(value)
-                .font(Theme.statFont(size: 24))
+                .font(Theme.statFont(size: 22))
+                .monospacedDigit()
+                .foregroundStyle(Theme.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
 
             if let caption {
                 Text(caption)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.textSecondary)
                     .lineLimit(1)
             }
         }
@@ -76,7 +79,7 @@ struct StatTile: View {
 
 struct PillTag: View {
     let text: String
-    var tint: Color = .secondary
+    var tint: Color = Theme.textSecondary
     var icon: String? = nil
 
     var body: some View {
@@ -86,11 +89,14 @@ struct PillTag: View {
                     .font(.system(size: 10, weight: .semibold))
             }
             Text(text)
-                .font(.caption.weight(.medium))
+                .font(.system(size: 11.5, weight: .medium))
         }
-        .padding(.horizontal, 9)
+        .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(tint.opacity(0.13), in: Capsule())
+        .background(
+            tint.opacity(0.12),
+            in: RoundedRectangle(cornerRadius: 5, style: .continuous)
+        )
         .foregroundStyle(tint)
     }
 }
@@ -105,14 +111,20 @@ struct FilterChip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.subheadline.weight(isSelected ? .semibold : .regular))
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
+                .font(.system(size: 12.5, weight: isSelected ? .semibold : .regular))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
                 .background(
-                    isSelected ? AnyShapeStyle(Theme.brandGradient) : AnyShapeStyle(Theme.cardBackground),
+                    isSelected ? Theme.primary : Theme.cardBackground,
                     in: Capsule()
                 )
-                .foregroundStyle(isSelected ? .white : .primary)
+                .overlay(
+                    Capsule().strokeBorder(
+                        isSelected ? Color.clear : Theme.border,
+                        lineWidth: 1
+                    )
+                )
+                .foregroundStyle(isSelected ? .white : Theme.textPrimary)
         }
         .buttonStyle(.plain)
     }
@@ -130,21 +142,22 @@ struct EmptyStateCard: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 36, weight: .medium))
-                .foregroundStyle(Theme.brandGradient)
+                .font(.system(size: 34, weight: .medium))
+                .foregroundStyle(Theme.primary)
 
             Text(title)
-                .font(.headline)
+                .font(Theme.titleFont(size: 16))
+                .foregroundStyle(Theme.textPrimary)
                 .multilineTextAlignment(.center)
 
             Text(message)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.textSecondary)
                 .multilineTextAlignment(.center)
 
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
-                    .buttonStyle(SecondaryCapsuleButtonStyle())
+                    .buttonStyle(SecondaryCapsuleButtonStyle(tint: Theme.primary))
                     .padding(.top, 4)
             }
         }
@@ -160,12 +173,12 @@ struct ProgressRing: View {
     /// 0...1
     let progress: Double
     var lineWidth: CGFloat = 8
-    var tint: AnyShapeStyle = AnyShapeStyle(Theme.brandGradient)
+    var tint: AnyShapeStyle = AnyShapeStyle(Theme.primary)
 
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.primary.opacity(0.08), lineWidth: lineWidth)
+                .stroke(Theme.surfaceMuted, lineWidth: lineWidth)
 
             Circle()
                 .trim(from: 0, to: max(0, min(1, progress)))
@@ -183,18 +196,19 @@ struct ProgressRing: View {
 struct LabeledValueRow: View {
     let label: String
     let value: String
-    var valueTint: Color = .primary
+    var valueTint: Color = Theme.textPrimary
 
     var body: some View {
         HStack {
             Text(label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.textSecondary)
             Spacer()
             Text(value)
                 .fontWeight(.medium)
+                .monospacedDigit()
                 .foregroundStyle(valueTint)
         }
-        .font(.subheadline)
+        .font(.system(size: 14))
     }
 }
 
@@ -222,20 +236,21 @@ struct ValueStepperControl: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .foregroundStyle(Theme.accent)
+            .foregroundStyle(Theme.primary)
             .accessibilityLabel("Decrease \(spokenName)")
             .accessibilityValue(value)
 
             VStack(spacing: 0) {
                 Text(value)
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(.system(size: 16, weight: .semibold))
                     .monospacedDigit()
+                    .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 if let unit {
                     Text(unit)
                         .font(.system(size: 9, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.textSecondary)
                 }
             }
             .frame(minWidth: 44)
@@ -248,10 +263,10 @@ struct ValueStepperControl: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .foregroundStyle(Theme.accent)
+            .foregroundStyle(Theme.primary)
             .accessibilityLabel("Increase \(spokenName)")
             .accessibilityValue(value)
         }
-        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(Theme.surfaceMuted, in: RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous))
     }
 }
