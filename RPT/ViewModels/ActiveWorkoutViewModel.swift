@@ -728,7 +728,10 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     private func updateExerciseGroupsAndOrder(maintainOrder: Bool = false) {
-        let setsWithExercise = workout.sets.compactMap { set -> (Exercise, ExerciseSet)? in
+        // Walk the persisted canonical order — the raw relationship array is
+        // unordered across saves, and first-appearance order derived from it
+        // would shuffle exercise sections when a draft is reopened.
+        let setsWithExercise = workout.setsInLoggedOrder.compactMap { set -> (Exercise, ExerciseSet)? in
             guard let exercise = set.exercise else { return nil }
             return (exercise, set)
         }
