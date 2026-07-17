@@ -254,7 +254,8 @@ struct ExercisesView: View {
             .map { (workout: $0.workout, sets: $0.sets.filter(\.isCompletedWorkingSet)) }
             .filter { !$0.sets.isEmpty }
 
-        guard let lastSession = sessions.first, let topSet = lastSession.sets.first else {
+        guard let lastSession = sessions.first,
+              let topSet = lastSession.sets.max(by: { ($0.weight, $0.reps) < ($1.weight, $1.reps) }) else {
             return RecentExerciseEntry(exercise: exercise, topSetText: nil, e1RMValue: nil, isPR: false)
         }
 
@@ -266,7 +267,10 @@ struct ExercisesView: View {
         }
 
         let lastBest = OneRepMax.bestEstimate(in: lastSession.sets)
-        let allTimeBest = sessions.map { OneRepMax.bestEstimate(in: $0.sets) }.max() ?? 0
+        // A PR means strictly beating the prior best — a first-ever session
+        // sets the baseline, and ties don't count (same rule as Home's PR
+        // counter).
+        let priorBest = sessions.dropFirst().map { OneRepMax.bestEstimate(in: $0.sets) }.max() ?? 0
 
         guard lastBest > 0 else {
             return RecentExerciseEntry(exercise: exercise, topSetText: topSetText, e1RMValue: nil, isPR: false)
@@ -276,7 +280,7 @@ struct ExercisesView: View {
             exercise: exercise,
             topSetText: topSetText,
             e1RMValue: Int(lastBest.rounded()),
-            isPR: lastBest >= allTimeBest
+            isPR: priorBest > 0 && lastBest > priorBest
         )
     }
 }

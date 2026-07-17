@@ -302,7 +302,7 @@ struct StatsView: View {
             if let insight = consistencyInsight {
                 (Text("You train most on ")
                     + Text(insight.dayNames).fontWeight(.semibold).foregroundStyle(Theme.textPrimary)
-                    + Text(" — \(insight.sessionsPerWeek) sessions per week on average."))
+                    + Text(" — \(insight.sessionsPerWeek) training days per week on average."))
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)

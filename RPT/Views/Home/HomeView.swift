@@ -24,6 +24,8 @@ struct HomeView: View {
     // Derived dashboard data, recomputed on appear.
     @State private var weekCells: [WeekDayCell] = []
     @State private var weekDeltaPercent: Int?
+    @State private var workoutsThisWeek = 0
+    @State private var volumeThisWeek: Double = 0
     @State private var prCounts: [PersistentIdentifier: Int] = [:]
     @State private var nextTemplate: WorkoutTemplate?
     @State private var nextTemplateLastRun: Workout?
@@ -61,6 +63,15 @@ struct HomeView: View {
                 session.restoreResumableWorkout()
                 viewModel.refresh()
                 refreshDerivedData()
+            }
+            .onChange(of: session.isPresentingWorkout) { _, presenting in
+                // The Home tab stays mounted while the full-screen logger is
+                // up; refresh when it comes down so a just-finished workout
+                // shows immediately.
+                if !presenting {
+                    viewModel.refresh()
+                    refreshDerivedData()
+                }
             }
             .confirmationDialog(
                 "Workout in Progress",
@@ -292,7 +303,7 @@ struct HomeView: View {
                 Spacer()
 
                 if viewModel.weeklyGoal > 0 {
-                    Text("\(viewModel.workoutsThisWeek) of \(viewModel.weeklyGoal) workouts")
+                    Text("\(workoutsThisWeek) of \(viewModel.weeklyGoal) workouts")
                         .font(.system(size: 13))
                         .monospacedDigit()
                         .foregroundStyle(Theme.textSecondary)
@@ -310,7 +321,7 @@ struct HomeView: View {
                 .frame(height: 1)
 
             HStack(spacing: 16) {
-                weekStat(value: volumeText(viewModel.volumeThisWeek), label: "Volume this week")
+                weekStat(value: volumeText(volumeThisWeek), label: "Volume this week")
 
                 if let delta = weekDeltaPercent {
                     weekStat(value: delta >= 0 ? "+\(delta)%" : "\(delta)%", label: "vs last week")
@@ -503,6 +514,11 @@ struct HomeView: View {
         let thisWeek = completedAscending.filter { $0.date >= weekStart }
         let trainedDays = Set(thisWeek.map { calendar.startOfDay(for: $0.date) })
 
+        // Header count, volume, day strip, and delta all come from this one
+        // full-history pass so the card can never disagree with itself.
+        workoutsThisWeek = thisWeek.count
+        volumeThisWeek = thisWeek.reduce(0.0) { $0 + safeVolume($1) }
+
         let symbols = calendar.shortWeekdaySymbols
         weekCells = (0..<7).compactMap { offset in
             guard let day = calendar.date(byAdding: .day, value: offset, to: weekStart) else {
@@ -522,10 +538,9 @@ struct HomeView: View {
             let lastWeekVolume = completedAscending
                 .filter { $0.date >= lastWeekStart && $0.date < weekStart }
                 .reduce(0.0) { $0 + safeVolume($1) }
-            let thisWeekVolume = thisWeek.reduce(0.0) { $0 + safeVolume($1) }
 
             weekDeltaPercent = lastWeekVolume > 0
-                ? Int((((thisWeekVolume - lastWeekVolume) / lastWeekVolume) * 100).rounded())
+                ? Int((((volumeThisWeek - lastWeekVolume) / lastWeekVolume) * 100).rounded())
                 : nil
         } else {
             weekDeltaPercent = nil
@@ -546,7 +561,9 @@ struct HomeView: View {
         var pickDate = Date.distantFuture
         for template in templates {
             let lastRun = latestRunByTemplateID[template.id]?.date ?? .distantPast
-            if lastRun < pickDate {
+            // Name tiebreak keeps ties (e.g. several never-run templates)
+            // deterministic and rotating in a sensible order.
+            if lastRun < pickDate || (lastRun == pickDate && template.name < (pick?.name ?? "")) {
                 pick = template
                 pickDate = lastRun
             }
