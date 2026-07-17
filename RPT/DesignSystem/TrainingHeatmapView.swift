@@ -30,8 +30,12 @@ struct TrainingHeatmapView: View {
         return calendar.date(byAdding: .day, value: -7 * (weekCount - 1), to: currentWeekStart) ?? currentWeekStart
     }
 
-    private var trainedDayCount: Int {
-        dailyIntensity.values.filter { $0 > 0 }.count
+    /// Days inside the visible grid window that have logged training.
+    private var activeDayCount: Int {
+        let today = calendar.startOfDay(for: Date())
+        return dailyIntensity.filter { day, intensity in
+            intensity > 0 && day >= gridStartDay && day <= today
+        }.count
     }
 
     var body: some View {
@@ -48,6 +52,8 @@ struct TrainingHeatmapView: View {
                 }
             }
             .defaultScrollAnchor(.trailing)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Training consistency: \(activeDayCount) training \(activeDayCount == 1 ? "day" : "days") in the last \(weekCount) weeks")
 
             HStack(spacing: 4) {
                 Text("Less")
@@ -63,10 +69,6 @@ struct TrainingHeatmapView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        // The cell grid is unreadable element-by-element; expose a summary.
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Training consistency heatmap")
-        .accessibilityValue("\(trainedDayCount) training days in the last \(weekCount) weeks")
     }
 
     @ViewBuilder

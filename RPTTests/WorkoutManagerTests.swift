@@ -264,13 +264,13 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertNil(sanitized.rpe)
     }
 
-    func testAddSet_sanitizesNegativeValuesBeforePersisting() {
+    func testAddSet_sanitizesNegativeValuesBeforePersisting() throws {
         // Given
         let workout = Workout(name: "Test Workout")
         let exercise = Exercise(name: "Deadlift", category: .compound, primaryMuscleGroups: [.lowerBack])
 
         // When
-        let createdSet = manager.addSet(to: workout, for: exercise, weight: -225, reps: -5, rpe: 0)
+        let createdSet = try manager.addSet(to: workout, for: exercise, weight: -225, reps: -5, rpe: 0)
 
         // Then
         XCTAssertEqual(createdSet.weight, 0)
@@ -278,83 +278,52 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertNil(createdSet.rpe)
     }
 
-    func testAddExercise_createsIncompleteSetWithDistantPastCompletionDate() {
+    func testAddExercise_createsIncompleteSetWithDistantPastCompletionDate() throws {
         // Given
         let workout = Workout(name: "Test Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
 
         // When
-        let set = manager.addExercise(to: workout, exercise: exercise)
+        let set = try manager.addExercise(to: workout, exercise: exercise)
 
         // Then
         XCTAssertEqual(set.weight, 0)
         XCTAssertEqual(set.completedAt, .distantPast)
     }
 
-    func testAddSet_withZeroRepsStartsIncomplete() {
+    func testAddSet_withZeroRepsStartsIncomplete() throws {
         // Given
         let workout = Workout(name: "Test Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
 
         // When
-        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 0)
+        let set = try manager.addSet(to: workout, for: exercise, weight: 185, reps: 0)
 
         // Then
         XCTAssertEqual(set.completedAt, .distantPast)
     }
 
-    func testUpdateSet_clearingWeightResetsCompletionDate() {
+    func testAddSet_withCompleteValuesStillStartsUnlogged() throws {
         // Given
         let workout = Workout(name: "Test Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
-        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
 
         // When
-        manager.updateSet(set, weight: 0, reps: 5, rpe: nil)
+        let set = try manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
 
         // Then
-        XCTAssertEqual(set.completedAt, .distantPast)
+        XCTAssertEqual(set.completedAt, .distantPast, "Adding a set never logs it; logging is explicit")
     }
 
-    func testUpdateSet_clearingRepsResetsCompletionDate() {
+    func testCompleteWorkout_refusesWorkoutWithNoLoggedSets() throws {
         // Given
         let workout = Workout(name: "Test Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
-        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
+        _ = try manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
 
-        // When
-        manager.updateSet(set, weight: 185, reps: 0, rpe: nil)
-
-        // Then
-        XCTAssertEqual(set.completedAt, .distantPast)
-    }
-
-    func testUpdateSet_marksNonZeroSetCompleteWhenTimestampWasIncomplete() {
-        // Given
-        let workout = Workout(name: "Test Workout")
-        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
-        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 8)
-        set.completedAt = .distantPast
-
-        // When
-        manager.updateSet(set, weight: 185, reps: 8, rpe: nil)
-
-        // Then
-        XCTAssertNotEqual(set.completedAt, .distantPast)
-    }
-
-    func testUpdateSet_bodyweightSetWithZeroWeightAndRepsMarksComplete() {
-        // Given
-        let workout = Workout(name: "Test Workout")
-        let exercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
-        let set = manager.addSet(to: workout, for: exercise, weight: 0, reps: 0)
-
-        // When
-        manager.updateSet(set, weight: 0, reps: 8, rpe: nil)
-
-        // Then
-        XCTAssertNotEqual(set.completedAt, .distantPast)
-        XCTAssertTrue(set.isCompletedWorkingSet)
+        // When / Then
+        XCTAssertThrowsError(try manager.completeWorkout(workout))
+        XCTAssertFalse(workout.isCompleted, "A workout with nothing logged must stay in progress")
     }
 
     func testWorkoutAddSet_withZeroRepsStartsIncomplete() {
@@ -536,7 +505,7 @@ final class WorkoutManagerLogicTests: XCTestCase {
         let zeroDurationWorkout = Workout(date: Date(), name: "Zero", duration: 0, isCompleted: true)
         let corruptedWorkout = Workout(date: Date(), name: "Corrupted", duration: -.infinity, isCompleted: true)
 
-        XCTAssertEqual(manager.sanitizedCompletedWorkoutDuration(completedWorkout) ?? 0, 125, accuracy: 0.0001)
+        XCTAssertEqual(manager.sanitizedCompletedWorkoutDuration(completedWorkout) ?? -1, 125, accuracy: 0.0001)
         XCTAssertNil(manager.sanitizedCompletedWorkoutDuration(incompleteWorkout))
         XCTAssertNil(manager.sanitizedCompletedWorkoutDuration(zeroDurationWorkout))
         XCTAssertNil(manager.sanitizedCompletedWorkoutDuration(corruptedWorkout))
@@ -897,7 +866,8 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // When
         let summary = workout.generateFormattedSummary()
 
-        // Then
+        // Then — names fall back to planned exercises, but unperformed
+        // placeholder sets are not counted as work.
         XCTAssertTrue(summary.contains("Exercises: Bench Press, Squat"))
         // Placeholder sets (reps 0) are never logged, and visibleSetCount
         // reports logged sets for completed workouts.
@@ -1303,12 +1273,10 @@ final class WorkoutManagerLogicTests: XCTestCase {
 
         // When
         let followUp = workout.createFollowUpWorkout(percentageIncrease: 0.10)
-        let followUpWeights = followUp
-            .exerciseGroups[squat]?
-            .map(\.weight)
+        let followUpWeights = followUp.orderedSets(for: squat).map(\.weight)
 
-        // Then: 200 -> +10% = 220 top set; back-offs re-derive the 10%/20%
-        // drops from the top set and round to the nearest 5 lb.
+        // Then — drops anchor on the 200 lb first set (+10% → 220), with
+        // back-off percentages preserved and rounded to the nearest 5 lb.
         XCTAssertEqual(
             followUpWeights,
             [220, 200, 175],

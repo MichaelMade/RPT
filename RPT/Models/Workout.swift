@@ -165,9 +165,35 @@ final class Workout {
         return sets.count
     }
     
-    // Group sets by exercise (values in canonical set order)
+    /// All sets in canonical logged order. SwiftData's to-many array is
+    /// unordered, so this sorts by the persisted `orderIndex`, falling back
+    /// to `completedAt` for legacy rows that predate the index.
+    var setsInLoggedOrder: [ExerciseSet] {
+        // Workouts saved before `orderIndex` existed have 0 on every row;
+        // ordering them purely by timestamp preserves their original behavior.
+        let allLegacy = sets.allSatisfy { $0.orderIndex == 0 }
+
+        return sets.enumerated().sorted { lhs, rhs in
+            if !allLegacy, lhs.element.orderIndex != rhs.element.orderIndex {
+                return lhs.element.orderIndex < rhs.element.orderIndex
+            }
+            if lhs.element.completedAt != rhs.element.completedAt {
+                return lhs.element.completedAt < rhs.element.completedAt
+            }
+            // Timestamp ties (several unlogged rows all at .distantPast)
+            // keep their array position so the order stays deterministic.
+            return lhs.offset < rhs.offset
+        }.map(\.element)
+    }
+
+    /// The next free position for a newly added set.
+    private var nextSetOrderIndex: Int {
+        (sets.map(\.orderIndex).max() ?? -1) + 1
+    }
+
+    // Group sets by exercise (values in logged order)
     var exerciseGroups: [Exercise: [ExerciseSet]] {
-        let setsWithExercise = canonicallyOrderedSets().compactMap { set -> (Exercise, ExerciseSet)? in
+        let setsWithExercise = setsInLoggedOrder.compactMap { set -> (Exercise, ExerciseSet)? in
             guard let exercise = set.exercise else { return nil }
             return (exercise, set)
         }
@@ -175,13 +201,13 @@ final class Workout {
     }
 
     // Group sets by exercise while preserving canonical logged order.
-    // - Exercise order: first appearance in canonical set order.
-    // - Set order: sortOrder (with legacy completedAt/array fallback).
+    // - Exercise order: first appearance in logged order.
+    // - Set order: logged order inside each exercise.
     var orderedExerciseGroups: [(exercise: Exercise, sets: [ExerciseSet])] {
         var grouped: [Exercise: [ExerciseSet]] = [:]
         var exerciseOrder: [Exercise] = []
 
-        for set in canonicallyOrderedSets() {
+        for set in setsInLoggedOrder {
             guard let exercise = set.exercise else { continue }
 
             if grouped[exercise] == nil {
@@ -251,6 +277,13 @@ final class Workout {
     }
     
     // Add a new set to the workout
+    /// Low-level set factory. Complete values are stamped with a
+    /// completion timestamp so performed/historical workouts (imports,
+    /// tests, follow-up math inputs) can be built directly.
+    ///
+    /// Live-workout paths must reset `completedAt = .distantPast` after
+    /// calling — logging is an explicit user action there, never a side
+    /// effect of entering values. Every current production caller does.
     func addSet(exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
         let isComplete = ExerciseSet.hasCompletedValues(
             weight: weight,
@@ -266,36 +299,15 @@ final class Workout {
             completedAt: isComplete ? Date() : .distantPast,
             isWarmup: isWarmup,
             rpe: rpe,
-            sortOrder: nextSetSortOrder()
+            orderIndex: nextSetOrderIndex
         )
 
-        sets.append(newSet)
+        if !sets.contains(where: { $0.id == newSet.id }) {
+            sets.append(newSet)
+        }
         return newSet
     }
 
-    /// Next stable position for a new set, independent of array order.
-    func nextSetSortOrder() -> Int {
-        (sets.map(\.sortOrder).max() ?? -1) + 1
-    }
-
-    /// Canonical set sequence: explicit sortOrder first, then completion
-    /// time for legacy data (which predates sortOrder), then array position
-    /// as the final stable tiebreak.
-    func canonicallyOrderedSets() -> [ExerciseSet] {
-        sets.enumerated().sorted { lhs, rhs in
-            if lhs.element.sortOrder != rhs.element.sortOrder {
-                return lhs.element.sortOrder < rhs.element.sortOrder
-            }
-
-            if lhs.element.completedAt != rhs.element.completedAt {
-                return lhs.element.completedAt < rhs.element.completedAt
-            }
-
-            return lhs.offset < rhs.offset
-        }
-        .map(\.element)
-    }
-    
     // Create a follow-up workout with the same exercises but increased weights
     func createFollowUpWorkout(percentageIncrease: Double = 0.025) -> Workout {
         let followUp = Workout(
@@ -472,8 +484,7 @@ final class Workout {
 
     private func summaryExerciseNamesInOrder() -> [String] {
         var seenExerciseNames: Set<String> = []
-
-        let orderedSets = canonicallyOrderedSets()
+        let orderedSets = setsInLoggedOrder
 
         let completedExerciseNamesInOrder = orderedSets.compactMap { set -> String? in
             guard set.isCompletedWorkingSet,

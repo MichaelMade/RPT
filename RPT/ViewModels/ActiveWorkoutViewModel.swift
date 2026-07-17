@@ -16,6 +16,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     enum WorkoutError: Error, Equatable {
         case saveFailure
         case completeFailure
+        case nothingLogged
         case deleteFailure
         case exerciseNotFound
         case invalidExerciseData
@@ -27,6 +28,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             switch self {
             case .saveFailure: return "Couldn’t save this workout. Keep it open, then try again."
             case .completeFailure: return "Couldn’t complete this workout. Keep it open, then try again."
+            case .nothingLogged: return "No sets are logged yet. Check off at least one set, or save this workout for later or discard it."
             case .deleteFailure: return "Couldn’t discard this workout. Keep it open, then try again."
             case .exerciseNotFound: return "Exercise not found in workout."
             case .invalidExerciseData: return "Invalid exercise data."
@@ -39,7 +41,9 @@ class ActiveWorkoutViewModel: ObservableObject {
 
     @Published var workout: Workout
     @Published var workoutName: String
-    @Published var exerciseGroups: [Exercise: [ExerciseSet]] = [:]
+    /// Sets grouped by their exercise's persistent identifier. Keyed by ID
+    /// rather than the model object so mutable models never act as hash keys.
+    @Published var exerciseGroups: [PersistentIdentifier: [ExerciseSet]] = [:]
     @Published var exerciseOrder: [Exercise] = []
     @Published var showingRestTimer = false
     @Published var currentRestDuration: Int = 180
@@ -132,7 +136,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             guard let mostRecent = recentWorkouts.first else { continue }
 
             let previousSets = orderSetsForDisplay(mostRecent.sets.filter(\.isCompletedWorkingSet))
-            guard let currentSets = exerciseGroups[exercise].map(orderSetsForDisplay) else { continue }
+            guard let currentSets = exerciseGroups[exercise.id].map(orderSetsForDisplay) else { continue }
 
             for (index, currentSet) in currentSets.enumerated() {
                 guard let previousSet = previousSets[safe: index] else { continue }
@@ -239,6 +243,8 @@ class ActiveWorkoutViewModel: ObservableObject {
     func completeWorkout() throws {
         do {
             try workoutManager.completeWorkout(workout)
+        } catch WorkoutManager.CompletionError.noLoggedSets {
+            throw WorkoutError.nothingLogged
         } catch {
             throw WorkoutError.completeFailure
         }
@@ -248,6 +254,9 @@ class ActiveWorkoutViewModel: ObservableObject {
         do {
             try completeWorkout()
             return true
+        } catch WorkoutError.nothingLogged {
+            setError(title: "Nothing Logged Yet", message: WorkoutError.nothingLogged.description)
+            return false
         } catch {
             setError(title: "Couldn’t Complete Workout", message: WorkoutError.completeFailure.description)
             return false
@@ -300,10 +309,10 @@ class ActiveWorkoutViewModel: ObservableObject {
         let newSet = workout.addSet(exercise: exercise, weight: 0, reps: 8)
         newSet.completedAt = .distantPast
 
-        if exerciseGroups[exercise] != nil {
-            exerciseGroups[exercise]?.append(newSet)
+        if exerciseGroups[exercise.id] != nil {
+            exerciseGroups[exercise.id]?.append(newSet)
         } else {
-            exerciseGroups[exercise] = [newSet]
+            exerciseGroups[exercise.id] = [newSet]
             exerciseOrder.append(exercise)
         }
 
@@ -331,7 +340,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     func deleteExerciseFromWorkout(_ exercise: Exercise) throws {
-        guard exerciseGroups.keys.contains(where: { $0.id == exercise.id }) else {
+        guard exerciseGroups[exercise.id] != nil else {
             throw WorkoutError.exerciseNotFound
         }
 
@@ -388,10 +397,10 @@ class ActiveWorkoutViewModel: ObservableObject {
         let newSet = workout.addSet(exercise: exercise, weight: newWeight, reps: newReps)
         newSet.completedAt = .distantPast
 
-        if exerciseGroups[exercise] != nil {
-            exerciseGroups[exercise]?.append(newSet)
+        if exerciseGroups[exercise.id] != nil {
+            exerciseGroups[exercise.id]?.append(newSet)
         } else {
-            exerciseGroups[exercise] = [newSet]
+            exerciseGroups[exercise.id] = [newSet]
             if !exerciseOrder.contains(where: { $0.id == exercise.id }) {
                 exerciseOrder.append(exercise)
             }
@@ -426,10 +435,10 @@ class ActiveWorkoutViewModel: ObservableObject {
         )
         newSet.completedAt = .distantPast
 
-        if exerciseGroups[exercise] != nil {
-            exerciseGroups[exercise]?.append(newSet)
+        if exerciseGroups[exercise.id] != nil {
+            exerciseGroups[exercise.id]?.append(newSet)
         } else {
-            exerciseGroups[exercise] = [newSet]
+            exerciseGroups[exercise.id] = [newSet]
             if !exerciseOrder.contains(where: { $0.id == exercise.id }) {
                 exerciseOrder.append(exercise)
             }
@@ -465,11 +474,13 @@ class ActiveWorkoutViewModel: ObservableObject {
         let originalReps = set.reps
         let originalRPE = set.rpe
         let originalCompletedAt = set.completedAt
-        let wasIncomplete = !set.hasCompletedValues || set.completedAt == .distantPast
         set.weight = weight
         set.reps = reps
         set.rpe = rpe
 
+        // Logging is an explicit action (`toggleSetLogged`); editing values
+        // never logs a set. It can only UN-log one whose values are no
+        // longer complete, since a logged set must stay valid.
         let isComplete = ExerciseSet.hasCompletedValues(
             weight: weight,
             reps: reps,
@@ -477,8 +488,6 @@ class ActiveWorkoutViewModel: ObservableObject {
         )
         if !isComplete {
             set.completedAt = .distantPast
-        } else if wasIncomplete {
-            set.completedAt = Date()
         }
 
         do {
@@ -514,7 +523,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         try workoutManager.deleteSet(set)
         updateExerciseGroupsAndOrder(maintainOrder: true)
 
-        if !exerciseGroups.keys.contains(where: { $0.id == exercise.id }) {
+        if exerciseGroups[exercise.id] == nil {
             expandedExercises.remove(exercise.id)
             completedExercises.remove(exercise.id)
         }
@@ -527,6 +536,51 @@ class ActiveWorkoutViewModel: ObservableObject {
         } catch {
             setError(title: "Couldn’t Delete Set", message: WorkoutError.deleteFailure.description)
             return false
+        }
+    }
+
+    enum SetLogResult: Equatable {
+        /// The set is now logged (counts toward volume, PRs, and back-off math).
+        case logged
+        /// The set is now unlogged; its values are preserved.
+        case unlogged
+        /// The set can't be logged yet because weight/reps are incomplete.
+        case needsValues
+        case failed
+    }
+
+    /// Explicitly logs or unlogs a set — the tap target on every set row.
+    /// Logging stamps the completion time without touching the set's values,
+    /// so template-pre-filled sets can be checked off as planned.
+    func toggleSetLogged(_ set: ExerciseSet) throws -> SetLogResult {
+        let originalCompletedAt = set.completedAt
+
+        if set.isCompletedLoggedSet {
+            set.completedAt = .distantPast
+        } else {
+            guard set.hasCompletedValues else {
+                return .needsValues
+            }
+            set.completedAt = Date()
+        }
+
+        do {
+            try saveWorkout()
+        } catch {
+            set.completedAt = originalCompletedAt
+            throw error
+        }
+
+        updateExerciseGroupsAndOrder(maintainOrder: true)
+        return set.isCompletedLoggedSet ? .logged : .unlogged
+    }
+
+    func toggleSetLoggedSafely(_ set: ExerciseSet) -> SetLogResult {
+        do {
+            return try toggleSetLogged(set)
+        } catch {
+            setError(title: "Couldn’t Update Set", message: WorkoutError.saveFailure.description)
+            return .failed
         }
     }
 
@@ -555,10 +609,13 @@ class ActiveWorkoutViewModel: ObservableObject {
             let calculatedWeight = Double(firstSetWeight) * (1.0 - dropPercentage)
             let roundedWeight = max(0, workoutManager.roundToNearest5(calculatedWeight))
             let set = sets[index]
-            let wasIncomplete = !set.hasCompletedValues || set.completedAt == .distantPast
 
             set.weight = roundedWeight
 
+            // Suggestions only adjust the planned load — they must never log
+            // a set the user hasn't performed. Logging happens via the
+            // explicit check-off or the user's own value edits. A set whose
+            // values become incomplete does get unlogged.
             let isComplete = ExerciseSet.hasCompletedValues(
                 weight: roundedWeight,
                 reps: set.reps,
@@ -566,8 +623,6 @@ class ActiveWorkoutViewModel: ObservableObject {
             )
             if !isComplete {
                 set.completedAt = .distantPast
-            } else if wasIncomplete {
-                set.completedAt = Date()
             }
         }
 
@@ -642,7 +697,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     // MARK: - Ordering Helpers
 
     func orderedSetsForDisplay(in exercise: Exercise) -> [ExerciseSet] {
-        orderSetsForDisplay(exerciseGroups[exercise] ?? [])
+        orderSetsForDisplay(exerciseGroups[exercise.id] ?? [])
     }
 
     private func orderSetsForDisplay(_ sets: [ExerciseSet]) -> [ExerciseSet] {
@@ -652,17 +707,17 @@ class ActiveWorkoutViewModel: ObservableObject {
                 return lhs.isWarmup
             }
 
-            // Stable persisted position first — SwiftData relationship
-            // arrays don't guarantee order across saves.
-            if lhs.sortOrder != rhs.sortOrder {
-                return lhs.sortOrder < rhs.sortOrder
+            // Persisted logged position first — the relationship array
+            // itself is unordered across saves.
+            if lhs.orderIndex != rhs.orderIndex {
+                return lhs.orderIndex < rhs.orderIndex
             }
 
             if lhs.completedAt != rhs.completedAt {
                 return lhs.completedAt < rhs.completedAt
             }
 
-            // Legacy data (all sortOrder == 0, same timestamps): fall back
+            // Legacy data (all orderIndex == 0, same timestamps): fall back
             // to current array position.
             return setArrayIndex(lhs) < setArrayIndex(rhs)
         }
@@ -673,54 +728,54 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     private func updateExerciseGroupsAndOrder(maintainOrder: Bool = false) {
-        let setsWithExercise = workout.sets.compactMap { set -> (Exercise, ExerciseSet)? in
+        // Walk the persisted canonical order — the raw relationship array is
+        // unordered across saves, and first-appearance order derived from it
+        // would shuffle exercise sections when a draft is reopened.
+        let setsWithExercise = workout.setsInLoggedOrder.compactMap { set -> (Exercise, ExerciseSet)? in
             guard let exercise = set.exercise else { return nil }
             return (exercise, set)
         }
-        let groups = Dictionary(grouping: setsWithExercise, by: { $0.0 }).mapValues { $0.map { $0.1 } }
-        self.exerciseGroups = groups
+        exerciseGroups = Dictionary(grouping: setsWithExercise, by: { $0.0.id }).mapValues { $0.map { $0.1 } }
+
+        // Exercises present in the workout, deduplicated in first-appearance order.
+        var groupedExercises: [Exercise] = []
+        for (exercise, _) in setsWithExercise where !groupedExercises.contains(where: { $0.id == exercise.id }) {
+            groupedExercises.append(exercise)
+        }
 
         if maintainOrder {
-            let groupKeyIds = Set(groups.keys.map { $0.id })
+            let groupKeyIds = Set(exerciseGroups.keys)
             exerciseOrder.removeAll(where: { !groupKeyIds.contains($0.id) })
 
-            for exercise in groups.keys where !exerciseOrder.contains(where: { $0.id == exercise.id }) {
+            for exercise in groupedExercises where !exerciseOrder.contains(where: { $0.id == exercise.id }) {
                 exerciseOrder.append(exercise)
             }
         } else {
             // Canonical insertion order avoids unstable ordering when several
             // sets share `.distantPast` completion timestamps.
-            var orderedExercises: [Exercise] = []
-
-            for set in workout.sets {
-                guard let exercise = set.exercise else { continue }
-                if !orderedExercises.contains(where: { $0.id == exercise.id }) {
-                    orderedExercises.append(exercise)
-                }
-            }
-
-            for exercise in groups.keys where !orderedExercises.contains(where: { $0.id == exercise.id }) {
-                orderedExercises.append(exercise)
-            }
-
-            exerciseOrder = orderedExercises
+            exerciseOrder = groupedExercises
         }
     }
 
     private func rollbackInsertedSet(_ set: ExerciseSet, for exercise: Exercise) {
-        exerciseGroups[exercise]?.removeAll { $0.id == set.id }
+        exerciseGroups[exercise.id]?.removeAll { $0.id == set.id }
 
-        if exerciseGroups[exercise]?.isEmpty == true {
-            exerciseGroups.removeValue(forKey: exercise)
+        if exerciseGroups[exercise.id]?.isEmpty == true {
+            exerciseGroups.removeValue(forKey: exercise.id)
             exerciseOrder.removeAll { $0.id == exercise.id }
             expandedExercises.remove(exercise.id)
             completedExercises.remove(exercise.id)
         }
 
+        // Linking the set to a persisted workout auto-inserted it into the
+        // context, so it must also be deleted there — detaching alone would
+        // let the next successful save persist an orphaned row.
+        let context = set.modelContext
         workout.sets.removeAll { $0.id == set.id }
         exercise.sets.removeAll { $0.id == set.id }
         set.workout = nil
         set.exercise = nil
+        context?.delete(set)
     }
 
     private func reductionPercentage(forSetIndex setIndex: Int) -> Double {

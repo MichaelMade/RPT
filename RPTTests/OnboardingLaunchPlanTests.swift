@@ -4,7 +4,7 @@ import XCTest
 final class OnboardingLaunchPlanTests: XCTestCase {
     func testStarterTemplateTargetsHomeWithoutComposer() {
         XCTAssertEqual(OnboardingLaunchPlan.starterTemplate.rootTab, .home)
-        XCTAssertEqual(OnboardingLaunchPlan.starterTemplate.starterTemplateName, "Upper Body RPT")
+        XCTAssertEqual(OnboardingLaunchPlan.starterTemplate.starterTemplateName, "RPT Day 1 - Deadlift")
         XCTAssertFalse(OnboardingLaunchPlan.starterTemplate.shouldShowTemplateComposer)
         XCTAssertNil(OnboardingLaunchPlan.starterTemplate.emptyWorkoutName)
     }

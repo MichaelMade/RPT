@@ -108,7 +108,7 @@ class ExerciseManager {
     private let dataManager: DataManaging
     private let modelContext: ModelContext
     static let shared = ExerciseManager()
-    private static let stableComparisonLocale = Locale(identifier: "en_US_POSIX")
+    nonisolated private static let stableComparisonLocale = Locale(identifier: "en_US_POSIX")
 
     static func sanitizeExerciseName(_ name: String) -> String {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -304,8 +304,8 @@ class ExerciseManager {
             try dataManager.saveChanges()
             return .success
         } catch {
-            // Re-inserting a pending-deleted model doesn't reliably
-            // resurrect it; discarding the unsaved delete does.
+            // Re-inserting a pending-delete object doesn't reliably resurrect
+            // it; discarding the uncommitted delete does.
             modelContext.rollback()
             return .persistenceFailure
         }

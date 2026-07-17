@@ -27,7 +27,7 @@ enum WorkoutCSVExporter {
             let dateField = dateFormatter.string(from: workout.date)
             let workoutField = escape(WorkoutNameFormatter.displayName(for: workout))
 
-            for set in workout.canonicallyOrderedSets() where set.isCompletedLoggedSet {
+            for set in workout.setsInLoggedOrder where set.isCompletedLoggedSet {
                 guard let exercise = set.exercise else { continue }
 
                 let setType = set.isWarmup ? "warmup" : "working"
@@ -70,7 +70,7 @@ enum WorkoutCSVExporter {
 
     /// Escapes a CSV field per RFC 4180.
     static func escape(_ field: String) -> String {
-        guard field.contains(",") || field.contains("\"") || field.contains("\n") else {
+        guard field.contains(",") || field.contains("\"") || field.contains("\n") || field.contains("\r") else {
             return field
         }
 

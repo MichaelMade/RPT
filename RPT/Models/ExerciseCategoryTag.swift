@@ -13,17 +13,15 @@ struct ExerciseCategoryTag: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: category.style.icon)
-                .font(.system(size: 12))
-            
+                .font(.system(size: 10, weight: .semibold))
+
             Text(category.rawValue.capitalized)
-                .font(.caption)
-                .fontWeight(.medium)
+                .font(.caption.weight(.medium))
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 9)
         .padding(.vertical, 4)
-        .background(category.style.color.opacity(0.15))
-        .foregroundColor(category.style.color)
-        .cornerRadius(8)
+        .background(category.style.color.opacity(0.15), in: Capsule())
+        .foregroundStyle(category.style.color)
     }
 }
 

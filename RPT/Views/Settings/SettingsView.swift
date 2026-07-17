@@ -58,6 +58,11 @@ struct SettingsView: View {
             } message: {
                 Text(errorMessage ?? "Please try again.")
             }
+            .onDisappear {
+                // Drop any generated CSV so the next visit exports fresh data
+                // instead of re-sharing a stale file.
+                exportURL = nil
+            }
             .task {
                 await purchaseManager.start()
             }
@@ -101,6 +106,9 @@ struct SettingsView: View {
                         onDecrement: { adjustDrop(at: index, by: -5) }
                     )
                     .font(.subheadline)
+                    // The stepper control is taller than the label-driven row,
+                    // so without a min height it overflows and eats the spacing.
+                    .frame(minHeight: 32)
                 }
 
                 Text("Example: 100 lb top set → \(settingsManager.calculateRPTExample(firstSetWeight: 100))")

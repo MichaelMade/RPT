@@ -23,19 +23,8 @@ class WorkoutManager: ObservableObject {
     
     // MARK: - Workout CRUD Operations
     
-    // Create a new workout
-    func createWorkout(name: String = "Workout", fromTemplate templateName: String? = nil) -> Workout {
-        let workout = Workout(
-            name: sanitizedWorkoutName(name),
-            startedFromTemplate: templateName
-        )
-        
-        modelContext.insert(workout)
-        try? modelContext.save()
-        
-        return workout
-    }
-
+    // Create a new workout. Returns nil when persistence fails — the
+    // rolled-back model must never leak to callers as if it were saved.
     func createWorkoutSafely(name: String = "Workout", fromTemplate templateName: String? = nil) -> Workout? {
         let workout = Workout(
             name: sanitizedWorkoutName(name),
@@ -128,8 +117,20 @@ class WorkoutManager: ObservableObject {
         }
     }
     
+    enum CompletionError: Error {
+        case noLoggedSets
+    }
+
     // Complete a workout
     func completeWorkout(_ workout: Workout) throws {
+        // Completing means the session happened. A workout with nothing
+        // logged has no performed work to put in history or count toward
+        // streak and lifetime stats — save-for-later and discard cover
+        // the other exits.
+        guard workout.sets.contains(where: \.isCompletedLoggedSet) else {
+            throw CompletionError.noLoggedSets
+        }
+
         let originalIsCompleted = workout.isCompleted
         let originalDuration = workout.duration
         let originalUser = workout.user
@@ -196,73 +197,55 @@ class WorkoutManager: ObservableObject {
     // MARK: - Workout Exercise & Set Management
     
     // Add an exercise to a workout
-    func addExercise(to workout: Workout, exercise: Exercise) -> ExerciseSet {
-        let newSet = ExerciseSet(
-            weight: 0,
-            reps: 8,
-            exercise: exercise,
-            workout: workout,
-            completedAt: .distantPast,
-            sortOrder: workout.nextSetSortOrder()
-        )
+    @discardableResult
+    func addExercise(to workout: Workout, exercise: Exercise) throws -> ExerciseSet {
+        let newSet = workout.addSet(exercise: exercise, weight: 0, reps: 8)
+        newSet.completedAt = .distantPast
 
-        workout.sets.append(newSet)
-        try? modelContext.save()
-        
-        return newSet
-    }
-    
-    // Add a set to an exercise in a workout
-    func addSet(to workout: Workout, for exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
-        let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
-
-        let isComplete = ExerciseSet.hasCompletedValues(
-            weight: sanitized.weight,
-            reps: sanitized.reps,
-            exerciseCategory: exercise.category
-        )
-
-        let newSet = ExerciseSet(
-            weight: sanitized.weight,
-            reps: sanitized.reps,
-            exercise: exercise,
-            workout: workout,
-            completedAt: isComplete ? Date() : .distantPast,
-            isWarmup: isWarmup,
-            rpe: sanitized.rpe,
-            sortOrder: workout.nextSetSortOrder()
-        )
-
-        workout.sets.append(newSet)
-        try? modelContext.save()
-        
-        return newSet
-    }
-    
-    // Update a set
-    func updateSet(_ set: ExerciseSet, weight: Int, reps: Int, rpe: Int?) {
-        let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
-        let wasIncomplete = !set.hasCompletedValues || set.completedAt == .distantPast
-
-        set.weight = sanitized.weight
-        set.reps = sanitized.reps
-        set.rpe = sanitized.rpe
-
-        // Keep completion timestamps aligned with completion state
-        let isComplete = ExerciseSet.hasCompletedValues(
-            weight: sanitized.weight,
-            reps: sanitized.reps,
-            exerciseCategory: set.exercise?.category
-        )
-        if !isComplete {
-            set.completedAt = .distantPast
-        } else if wasIncomplete {
-            set.completedAt = Date()
+        do {
+            try dataManager.saveChanges()
+        } catch {
+            rollbackInsertedSet(newSet, workout: workout, exercise: exercise)
+            throw error
         }
 
-        try? modelContext.save()
+        return newSet
     }
 
+    // Add a set to an exercise in a workout
+    @discardableResult
+    func addSet(to workout: Workout, for exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) throws -> ExerciseSet {
+        let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
+
+        let newSet = workout.addSet(
+            exercise: exercise,
+            weight: sanitized.weight,
+            reps: sanitized.reps,
+            isWarmup: isWarmup,
+            rpe: sanitized.rpe
+        )
+        // Adding a set never logs it — logging is an explicit user action.
+        newSet.completedAt = .distantPast
+
+        do {
+            try dataManager.saveChanges()
+        } catch {
+            // A rolled-back set must never reach the caller.
+            rollbackInsertedSet(newSet, workout: workout, exercise: exercise)
+            throw error
+        }
+
+        return newSet
+    }
+
+    private func rollbackInsertedSet(_ set: ExerciseSet, workout: Workout, exercise: Exercise) {
+        workout.sets.removeAll { $0.id == set.id }
+        exercise.sets.removeAll { $0.id == set.id }
+        set.workout = nil
+        set.exercise = nil
+        modelContext.delete(set)
+    }
+    
     func sanitizedSetInput(weight: Int, reps: Int, rpe: Int?) -> (weight: Int, reps: Int, rpe: Int?) {
         let safeWeight = max(0, weight)
         let safeReps = max(0, reps)
@@ -279,17 +262,14 @@ class WorkoutManager: ObservableObject {
     
     // Delete a set
     func deleteSet(_ set: ExerciseSet) throws {
-        let originalWorkout = set.workout
-        let originalExercise = set.exercise
-
         modelContext.delete(set)
 
         do {
             try dataManager.saveChanges()
         } catch {
-            modelContext.insert(set)
-            set.workout = originalWorkout
-            set.exercise = originalExercise
+            // Re-inserting a deleted model doesn't reliably restore it in
+            // SwiftData; discarding the pending delete does.
+            modelContext.rollback()
             throw error
         }
     }
@@ -308,7 +288,6 @@ class WorkoutManager: ObservableObject {
     func removeExercise(_ exercise: Exercise, from workout: Workout) throws {
         let exerciseId = exercise.id
         let setsToRemove = workout.sets.filter { $0.exercise?.id == exerciseId }
-        let originalWorkoutSets = workout.sets
 
         for set in setsToRemove {
             modelContext.delete(set)
@@ -318,12 +297,10 @@ class WorkoutManager: ObservableObject {
         do {
             try dataManager.saveChanges()
         } catch {
-            for set in setsToRemove {
-                modelContext.insert(set)
-                set.workout = workout
-                set.exercise = exercise
-            }
-            workout.sets = originalWorkoutSets
+            // Re-inserting deleted models doesn't reliably restore them in
+            // SwiftData; discarding the pending deletes restores the
+            // relationship state as well.
+            modelContext.rollback()
             throw error
         }
     }
@@ -451,26 +428,6 @@ class WorkoutManager: ObservableObject {
     }
     
     // MARK: - Workout Statistics
-    
-    // Calculate workout statistics by timeframe
-    func calculateWorkoutStats(timeframe: TimeFrame) -> (count: Int, totalVolume: Double, averageDuration: TimeInterval) {
-        let now = Date()
-        var startDate: Date
-        
-        switch timeframe {
-        case .week:
-            startDate = Calendar.current.date(byAdding: .day, value: -7, to: now) ?? Date.distantPast
-        case .month:
-            startDate = Calendar.current.date(byAdding: .month, value: -1, to: now) ?? Date.distantPast
-        case .year:
-            startDate = Calendar.current.date(byAdding: .year, value: -1, to: now) ?? Date.distantPast
-        case .allTime:
-            startDate = Date.distantPast
-        }
-        
-        let workouts = getWorkouts(from: startDate, to: now)
-        return aggregateCompletedWorkoutStats(from: workouts)
-    }
 
     // Aggregate statistics from workouts, excluding in-progress sessions
     func aggregateCompletedWorkoutStats(from workouts: [Workout]) -> (count: Int, totalVolume: Double, averageDuration: TimeInterval) {
@@ -564,24 +521,4 @@ class WorkoutManager: ObservableObject {
         return "\(seconds)s"
     }
 
-    // Calculate workout statistics with proper formatting
-    func calculateWorkoutStatsFormatted(timeframe: TimeFrame) -> (count: Int, totalVolume: String, averageDuration: String) {
-        let stats = calculateWorkoutStats(timeframe: timeframe)
-
-        // Format duration
-        let formattedDuration = formatDuration(stats.averageDuration)
-
-        // Format volume
-        let formattedVolume = formatVolume(stats.totalVolume)
-
-        return (stats.count, formattedVolume, formattedDuration)
-    }
-    
-    // Time frame enum for statistics
-    enum TimeFrame {
-        case week
-        case month
-        case year
-        case allTime
-    }
 }

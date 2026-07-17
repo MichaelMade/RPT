@@ -10,9 +10,13 @@ import SwiftUI
 
 struct RestTimerView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
 
     let duration: Int
 
+    /// Wall-clock deadline the countdown runs toward. Ticks only repaint;
+    /// time keeps passing while the app is suspended or the phone is locked.
+    @State private var endDate: Date = .distantFuture
     @State private var remainingSeconds: Int = 0
     @State private var totalSeconds: Int = 0
     @State private var isPaused = false
@@ -63,13 +67,14 @@ struct RestTimerView: View {
                 .disabled(didComplete)
 
                 Button {
-                    isPaused.toggle()
+                    togglePause()
                 } label: {
                     Image(systemName: isPaused ? "play.fill" : "pause.fill")
                         .frame(width: 24)
                 }
                 .buttonStyle(SecondaryCapsuleButtonStyle())
                 .disabled(didComplete)
+                .accessibilityLabel(isPaused ? "Resume rest timer" : "Pause rest timer")
 
                 Button {
                     adjust(by: 15)
@@ -93,10 +98,18 @@ struct RestTimerView: View {
         .padding(.horizontal, Theme.screenPadding)
         .onAppear {
             totalSeconds = max(1, duration)
-            remainingSeconds = max(1, duration)
+            remainingSeconds = totalSeconds
+            endDate = Date().addingTimeInterval(TimeInterval(totalSeconds))
         }
         .onReceive(timer) { _ in
-            tick()
+            syncRemaining()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // Catch up immediately after returning from the background so
+            // the countdown reflects the rest actually taken.
+            if phase == .active {
+                syncRemaining()
+            }
         }
     }
 
@@ -114,28 +127,41 @@ struct RestTimerView: View {
         return String(format: "%d:%02d", safe / 60, safe % 60)
     }
 
-    private func tick() {
+    private func syncRemaining(now: Date = Date()) {
         guard !isPaused, !didComplete else { return }
 
-        if remainingSeconds <= 4 && remainingSeconds > 1 {
+        let newRemaining = max(0, Int(endDate.timeIntervalSince(now).rounded(.up)))
+        guard newRemaining != remainingSeconds else { return }
+
+        withAnimation {
+            remainingSeconds = newRemaining
+        }
+
+        if (1...3).contains(newRemaining) {
             HapticFeedbackManager.shared.timerCountdown()
         }
 
-        if remainingSeconds > 0 {
-            withAnimation {
-                remainingSeconds -= 1
-            }
-        }
-
-        if remainingSeconds <= 0 {
+        if newRemaining <= 0 {
             didComplete = true
-            HapticFeedbackManager.shared.timerComplete()
+            // playTimerComplete() owns both the chime and the completion haptic.
             SoundManager.shared.playTimerComplete()
+        }
+    }
+
+    private func togglePause() {
+        if isPaused {
+            endDate = Date().addingTimeInterval(TimeInterval(remainingSeconds))
+            isPaused = false
+        } else {
+            isPaused = true
         }
     }
 
     private func adjust(by delta: Int) {
         remainingSeconds = max(1, remainingSeconds + delta)
         totalSeconds = max(totalSeconds, remainingSeconds)
+        if !isPaused {
+            endDate = Date().addingTimeInterval(TimeInterval(remainingSeconds))
+        }
     }
 }

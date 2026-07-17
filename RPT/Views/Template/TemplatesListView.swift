@@ -69,6 +69,7 @@ struct TemplatesListView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Create template")
                 }
             }
             .sheet(isPresented: $showingCreateTemplate) {

@@ -74,6 +74,7 @@ struct ExercisePickerView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Create custom exercise")
                 }
             }
             .sheet(isPresented: $showingCreateExercise) {

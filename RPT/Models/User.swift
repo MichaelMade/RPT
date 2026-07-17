@@ -103,9 +103,9 @@ final class User {
             return false
         }
 
-        // Capture registration state BEFORE linking the inverse: assigning
-        // workout.user can make SwiftData auto-insert the workout into
-        // `workouts`, which would otherwise read as "already registered"
+        // Check registration BEFORE touching the relationship: setting
+        // `workout.user` makes SwiftData's inverse maintenance append the
+        // workout to `workouts`, which would make this guard always trip
         // and silently skip the stats update.
         let isAlreadyRegistered = workouts.contains { $0.id == workout.id }
 
@@ -117,11 +117,9 @@ final class User {
             return false
         }
 
-        // The inverse assignment above may have already appended it.
         if !workouts.contains(where: { $0.id == workout.id }) {
             workouts.append(workout)
         }
-
         updateStats(with: workout)
         return true
     }
@@ -145,6 +143,25 @@ final class User {
         } else {
             workoutStreak = 1
         }
+    }
+
+    /// The streak as the user should see it right now. The stored
+    /// `workoutStreak` is the chain length as of the last registered workout;
+    /// it only counts as current while it can still be extended — that is,
+    /// while the most recent training day is today or yesterday.
+    func currentWorkoutStreak(asOf now: Date = Date()) -> Int {
+        guard workoutStreak > 0 else { return 0 }
+        guard let latestWorkoutDate = workouts.map(\.date).max() else { return 0 }
+
+        let calendar = Calendar.current
+        let latestDay = calendar.startOfDay(for: latestWorkoutDate)
+        let today = calendar.startOfDay(for: now)
+        guard let dayGap = calendar.dateComponents([.day], from: latestDay, to: today).day,
+              dayGap <= 1 else {
+            return 0
+        }
+
+        return workoutStreak
     }
 
     // Update personal bests based on the workout (working sets only)

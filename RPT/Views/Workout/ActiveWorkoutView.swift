@@ -119,8 +119,10 @@ struct ActiveWorkoutView: View {
                 isPresented: $showingFinishDialog,
                 titleVisibility: .visible
             ) {
-                Button("Complete & Save") {
-                    completeWorkout()
+                if viewModel.workout.sets.contains(where: \.isCompletedLoggedSet) {
+                    Button("Complete & Save") {
+                        completeWorkout()
+                    }
                 }
                 Button("Keep Training", role: .cancel) {}
             } message: {
@@ -157,7 +159,9 @@ struct ActiveWorkoutView: View {
                 if isEditingName {
                     TextField("Workout name", text: $viewModel.workoutName)
                         .font(.title3.weight(.bold))
-                        .textFieldStyle(.roundedBorder)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .submitLabel(.done)
                         .onSubmit { commitNameEdit() }
 
@@ -175,6 +179,7 @@ struct ActiveWorkoutView: View {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
+                    .accessibilityLabel("Rename workout")
 
                     Spacer()
 
@@ -256,6 +261,10 @@ struct ActiveWorkoutView: View {
     }
 
     private var finishDialogMessage: String {
+        if !viewModel.workout.sets.contains(where: \.isCompletedLoggedSet) {
+            return "No sets are logged yet, so this session can’t be completed. Log a set first, or save it for later or discard it."
+        }
+
         if viewModel.allExercisesCompleted {
             return "Nice work — everything is checked off. Save this session to your history?"
         }

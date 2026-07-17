@@ -13,6 +13,9 @@ struct ExerciseSectionView: View {
     let exercise: Exercise
 
     @State private var editingSet: ExerciseSet?
+    /// True when the editor was opened by a log tap on an empty set, so a
+    /// successful save finishes the check-off (haptic + auto rest timer).
+    @State private var editorOpenedForLogging = false
     @State private var setToDelete: ExerciseSet?
     @State private var showingDeleteExercise = false
     @State private var showingWarmupPlan = false
@@ -53,7 +56,10 @@ struct ExerciseSectionView: View {
                             setLabel: label(for: set),
                             onAdjustWeight: { delta in adjustWeight(of: set, by: delta) },
                             onAdjustReps: { delta in adjustReps(of: set, by: delta) },
-                            onEdit: { editingSet = set },
+                            onEdit: {
+                                editorOpenedForLogging = false
+                                editingSet = set
+                            },
                             onDelete: { setToDelete = set },
                             onLogTapped: { handleLogTap(for: set) },
                             onSetRPE: { rpe in
@@ -90,7 +96,7 @@ struct ExerciseSectionView: View {
             SetValueEditorSheet(set: set) { weight, reps in
                 applyEditedValues(to: set, weight: weight, reps: reps)
             }
-            .presentationDetents([.height(280)])
+            .presentationDetents([.height(320), .medium])
         }
         .sheet(isPresented: $showingWarmupPlan) {
             WarmupPlanView(topSetWeight: topWorkingSet?.weight ?? 0) { steps in
@@ -137,7 +143,7 @@ struct ExerciseSectionView: View {
                     .foregroundStyle(isCompleted ? Theme.success : Color.secondary)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(isCompleted ? "Mark \(exercise.displayName) as not done" : "Mark \(exercise.displayName) as done")
+            .accessibilityLabel(isCompleted ? "Mark \(exercise.displayName) incomplete" : "Mark \(exercise.displayName) complete")
 
             ExerciseIconView(category: exercise.category, size: 30)
 
@@ -168,7 +174,7 @@ struct ExerciseSectionView: View {
                     .frame(width: 28, height: 28)
                     .contentShape(Rectangle())
             }
-            .accessibilityLabel("\(exercise.displayName) options")
+            .accessibilityLabel("Options for \(exercise.displayName)")
 
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -228,6 +234,18 @@ struct ExerciseSectionView: View {
     private func applyEditedValues(to set: ExerciseSet, weight: Int, reps: Int) {
         guard viewModel.updateSetSafely(set, weight: weight, reps: reps, rpe: set.rpe) else { return }
         propagateTopSetChangeIfNeeded(for: set, newWeight: weight)
+
+        // Saving values from a log tap completes the check-off. Value edits
+        // never log implicitly, so finish the intent with an explicit toggle.
+        if editorOpenedForLogging,
+           !set.isCompletedLoggedSet,
+           viewModel.toggleSetLoggedSafely(set) == .logged {
+            HapticFeedbackManager.shared.medium()
+            if viewModel.autoStartRestTimerEnabled {
+                viewModel.startRestTimer()
+            }
+        }
+        editorOpenedForLogging = false
     }
 
     /// Editing the top working set recalculates all back-off set suggestions.
@@ -237,9 +255,20 @@ struct ExerciseSectionView: View {
     }
 
     private func handleLogTap(for set: ExerciseSet) {
-        HapticFeedbackManager.shared.medium()
-        if set.isCompletedLoggedSet, viewModel.autoStartRestTimerEnabled {
-            viewModel.startRestTimer()
+        switch viewModel.toggleSetLoggedSafely(set) {
+        case .logged:
+            HapticFeedbackManager.shared.medium()
+            if viewModel.autoStartRestTimerEnabled {
+                viewModel.startRestTimer()
+            }
+        case .unlogged:
+            HapticFeedbackManager.shared.light()
+        case .needsValues:
+            // Nothing to log yet — open the editor so the user can enter values.
+            editorOpenedForLogging = true
+            editingSet = set
+        case .failed:
+            break // The view model surfaces the error alert.
         }
     }
 
@@ -314,6 +343,7 @@ struct SetRowView: View {
             ValueStepperControl(
                 value: weightText,
                 unit: "lb",
+                accessibilityName: "weight",
                 onDecrement: { onAdjustWeight(-5) },
                 onIncrement: { onAdjustWeight(5) }
             )
@@ -321,6 +351,7 @@ struct SetRowView: View {
             ValueStepperControl(
                 value: "\(max(0, set.reps))",
                 unit: "reps",
+                accessibilityName: "reps",
                 onDecrement: { onAdjustReps(-1) },
                 onIncrement: { onAdjustReps(1) }
             )
@@ -351,8 +382,7 @@ struct SetRowView: View {
                     .foregroundStyle(isLogged ? Theme.success : Color.secondary.opacity(0.5))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(isLogged ? "Set logged" : "Set not logged")
-            .accessibilityHint(isLogged ? "Starts the rest timer" : "Enter weight and reps to log this set")
+            .accessibilityLabel(isLogged ? "Unlog set" : "Log set")
         }
         .contextMenu {
             Button(action: onEdit) {
@@ -434,6 +464,11 @@ struct SetValueEditorSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { focusedField = nil }
                 }
             }
             .onAppear {

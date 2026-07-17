@@ -172,8 +172,9 @@ class TemplateViewModel: ObservableObject {
         }
 
         for range in repRanges {
-            // No per-set-number aliases ("set 3 5 reps"): the set index digit
-            // makes numeric queries like "3 sets" match unrelated templates.
+            // Plain range terms only ("8-10 reps"). Positional variants like
+            // "set 3 8-10 reps" would leak bare set numbers into the search
+            // text and make a "3 sets" query match any template with a third set.
             terms.formUnion(repRangeSearchTerms(minReps: range.minReps, maxReps: range.maxReps))
         }
 

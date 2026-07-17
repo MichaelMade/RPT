@@ -99,6 +99,72 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(TemplateManager.initialCompletedAt(weight: 100, reps: 0, fallbackDate: fallback), .distantPast)
     }
 
+    // MARK: - Default Templates
+
+    func testMakeDefaultTemplatesMatchesClassicThreeDaySplit() {
+        let templates = TemplateManager.makeDefaultTemplates()
+
+        XCTAssertEqual(
+            templates.map(\.name),
+            ["RPT Day 1 - Deadlift", "RPT Day 2 - Bench", "RPT Day 3 - Squat"]
+        )
+
+        guard templates.count == 3 else {
+            return XCTFail("Expected the classic three-day split")
+        }
+
+        let deadliftDay = templates[0]
+        XCTAssertEqual(
+            deadliftDay.exercises.map(\.exerciseName),
+            ["Deadlift", "Barbell Row", "Bicep Curl"]
+        )
+        XCTAssertEqual(deadliftDay.exercises.map(\.suggestedSets), [2, 3, 2])
+        XCTAssertEqual(
+            deadliftDay.exercises.first?.repRanges.map(\.percentageOfFirstSet),
+            [1.0, 0.9]
+        )
+
+        let benchDay = templates[1]
+        XCTAssertEqual(
+            benchDay.exercises.map(\.exerciseName),
+            ["Barbell Bench Press", "Overhead Press", "Tricep Extension"]
+        )
+        XCTAssertEqual(benchDay.exercises.map(\.suggestedSets), [3, 3, 2])
+        XCTAssertEqual(
+            benchDay.exercises.first?.repRanges.map(\.percentageOfFirstSet),
+            [1.0, 0.95, 0.9]
+        )
+
+        let squatDay = templates[2]
+        XCTAssertEqual(
+            squatDay.exercises.map(\.exerciseName),
+            ["Barbell Squat", "Pull-up", "Calf Raise"]
+        )
+        XCTAssertEqual(squatDay.exercises.map(\.suggestedSets), [3, 3, 2])
+        XCTAssertEqual(
+            squatDay.exercises.first?.repRanges.map(\.percentageOfFirstSet),
+            [1.0, 0.9, 0.8]
+        )
+
+        for template in templates {
+            XCTAssertFalse(TemplateManager.hasDuplicateExerciseNames(template.exercises))
+            for exercise in template.exercises {
+                XCTAssertEqual(exercise.repRanges.count, exercise.suggestedSets)
+            }
+        }
+    }
+
+    func testDefaultTemplateExercisesResolveInExerciseLibrary() {
+        for template in TemplateManager.makeDefaultTemplates() {
+            for templateExercise in template.exercises {
+                XCTAssertNotNil(
+                    ExerciseManager.shared.fetchExercise(withName: templateExercise.exerciseName),
+                    "\(template.name) references \(templateExercise.exerciseName), which is missing from the default library"
+                )
+            }
+        }
+    }
+
     // MARK: - Validation
 
     func testValidateDraftRequiresNameAndExercises() {
@@ -163,10 +229,8 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertEqual(workout.startedFromTemplateID, template.id)
         XCTAssertEqual(workout.sets.count, 3, "One set per rep range")
 
-        // Target reps default to the middle of each range. Assert through
-        // the canonical ordering — raw relationship array order is not
-        // guaranteed by SwiftData after a save.
-        XCTAssertEqual(workout.canonicallyOrderedSets().map(\.reps), [5, 7, 9])
+        // Target reps default to the middle of each range, in logged order.
+        XCTAssertEqual(workout.setsInLoggedOrder.map(\.reps), [5, 7, 9])
 
         // Template-created sets start unlogged.
         XCTAssertTrue(workout.sets.allSatisfy { !$0.isCompletedLoggedSet })

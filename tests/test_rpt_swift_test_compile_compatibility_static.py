@@ -15,7 +15,7 @@ class RPTSwiftTestCompileCompatibilityStaticTests(unittest.TestCase):
     def test_optional_duration_assertion_is_unwrapped_for_accuracy_overload(self):
         source = WORKOUT_MANAGER_TESTS.read_text()
         self.assertIn(
-            "XCTAssertEqual(manager.sanitizedCompletedWorkoutDuration(completedWorkout) ?? 0, 125, accuracy: 0.0001)",
+            "XCTAssertEqual(manager.sanitizedCompletedWorkoutDuration(completedWorkout) ?? -1, 125, accuracy: 0.0001)",
             source,
         )
 

@@ -107,3 +107,4 @@ xcuserdata
 
 # Local AppIcon experiment backups (keep out of repo history)
 RPT/Assets.xcassets/AppIcon.appiconset/RPT.backup-*.jpg
+__pycache__/

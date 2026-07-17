@@ -13,12 +13,11 @@ struct MuscleGroupTag: View {
     
     var body: some View {
         Text(muscleGroup.displayName)
-            .font(.caption)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
-            .background(Color.gray.opacity(isPrimary ? 0.2 : 0.1))
-            .foregroundColor(isPrimary ? .primary : .secondary)
-            .cornerRadius(4)
+            .font(.caption.weight(isPrimary ? .medium : .regular))
+            .padding(.horizontal, 9)
+            .padding(.vertical, 4)
+            .background(Color.primary.opacity(isPrimary ? 0.1 : 0.05), in: Capsule())
+            .foregroundStyle(isPrimary ? .primary : .secondary)
     }
 }
 

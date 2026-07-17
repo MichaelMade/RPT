@@ -6,8 +6,6 @@ Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All d
 
 ## Features
 
-- **Template and exercise search now understands custom-move + split-style intent** — exercises and templates can now match custom-move queries like `custom`, `my exercise`, or `custom movement` alongside push/pull queries, instruction cues, set/rep-plan searches like `5x5` or `3x8-10`, split multi-term intent like `bench chest`, hyphenless/collapsed name lookups like `pullup` or `bodyweight squat`, and category/body-region queries such as `bodyweight`, `isolation`, `upper body`, `legs`, or `core`; exercise results also prioritize direct name matches above broader metadata hits so the library and add-exercise picker surface the most obvious lift first.
-
 ### Training
 - **Live workout logging** — fast steppers, tap-to-type set editing, RPE tracking, and per-exercise completion check-offs.
 - **RPT back-off suggestions** — log your top set and the app calculates every back-off weight from your configured percentage drops (default −10% / −15%), always anchored to the top set.
@@ -20,7 +18,8 @@ Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All d
 - **Activation-focused onboarding** — first run now ends with a concrete next step: launch the starter template, open template creation, or begin an empty first workout instead of dumping new users into a generic shell.
 - **Release packaging plan** — App Store subtitle, promo copy, keyword set, screenshot story, support URL, and privacy URL now live in `AppStoreReleasePlan` with regression tests so launch metadata stays aligned with the freemium product promise.
 - **Templates** — reusable routines with per-exercise set counts and rep ranges, duplicate/edit/start in one tap, and automatic weight pre-fill from your last session.
-- **Exercise library** — seeded with common barbell/bodyweight movements, fully searchable across names, muscles, push/pull split intent, instruction cues, body-region intent, and movement types, and extensible with custom exercises.
+- **Exercise library** — seeded with common barbell/bodyweight movements and extensible with custom exercises.
+- **Smart search** — exercises and templates match on names (including hyphenless forms like `pullup`), muscles, push/pull split intent, instruction cues, body regions (`upper body`, `legs`, `core`), categories (`bodyweight`, `isolation`), custom-move queries (`custom`, `my exercise`), and rep plans like `5x5` or `3x8-10` — with direct name matches ranked first.
 - **Plate calculator** — visual bar-loading math for lb/kg with multiple bar types.
 - **RPT calculator** — plan a session from any top-set weight.
 

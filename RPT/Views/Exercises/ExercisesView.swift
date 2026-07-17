@@ -54,6 +54,7 @@ struct ExercisesView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Create exercise")
                 }
             }
             .sheet(isPresented: $showingCreateExercise) {
