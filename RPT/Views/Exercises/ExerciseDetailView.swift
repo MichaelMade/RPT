@@ -106,13 +106,13 @@ struct ExerciseDetailView: View {
     private var headerCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
-                ExerciseIconView(category: exercise.category, size: 44)
+                ExerciseMonogramTile(name: exercise.displayName, size: 44)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    ExerciseCategoryTag(category: exercise.category)
+                    PillTag(text: exercise.category.rawValue.capitalized, tint: Theme.textSecondary)
 
                     if exercise.isCustom {
-                        PillTag(text: "Custom Exercise", tint: Theme.info)
+                        PillTag(text: "Custom Exercise", tint: Theme.primary)
                     }
                 }
 
@@ -123,9 +123,11 @@ struct ExerciseDetailView: View {
                     VStack(alignment: .trailing, spacing: 2) {
                         Text(OneRepMax.formatted(best))
                             .font(Theme.statFont(size: 22))
+                            .monospacedDigit()
+                            .foregroundStyle(Theme.textPrimary)
                         Text("Best e1RM")
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.textSecondary)
                     }
                 }
             }
@@ -144,7 +146,7 @@ struct ExerciseDetailView: View {
             if !exercise.instructions.isEmpty {
                 Text(exercise.instructions)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.textSecondary)
             }
         }
         .rptCard()
@@ -154,7 +156,7 @@ struct ExerciseDetailView: View {
         HStack(alignment: .top, spacing: 8) {
             Text(title)
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.textSecondary)
                 .frame(width: 70, alignment: .leading)
 
             FlowingTags(muscles: muscles, isPrimary: isPrimary)
@@ -183,9 +185,10 @@ struct ExerciseDetailView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Next Session Target")
                     .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.textPrimary)
                 Text(suggestion.note)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.textSecondary)
             }
 
             Spacer(minLength: 0)
@@ -241,7 +244,7 @@ struct ExerciseDetailView: View {
 
                 Text("Estimated one-rep max from your best working set each session.")
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.textSecondary)
             }
             .rptCard()
         }
@@ -272,7 +275,8 @@ struct ExerciseDetailView: View {
                             if best > 0 {
                                 Text("e1RM \(OneRepMax.formatted(best))")
                                     .font(.caption.weight(.medium))
-                                    .foregroundStyle(.secondary)
+                                    .monospacedDigit()
+                                    .foregroundStyle(Theme.textSecondary)
                             }
                         }
 
@@ -285,7 +289,7 @@ struct ExerciseDetailView: View {
                                 Spacer()
 
                                 if let rpe = set.displayRPE {
-                                    PillTag(text: "RPE \(rpe)", tint: .secondary)
+                                    PillTag(text: "RPE \(rpe)", tint: Theme.textSecondary)
                                 }
                             }
                         }
@@ -346,7 +350,7 @@ private struct FlowingTags: View {
     var body: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 84), spacing: 6, alignment: .leading)], alignment: .leading, spacing: 6) {
             ForEach(muscles, id: \.self) { muscle in
-                PillTag(text: muscle.displayName, tint: isPrimary ? Theme.accent : .secondary)
+                PillTag(text: muscle.displayName, tint: isPrimary ? Theme.accent : Theme.textSecondary)
             }
         }
     }

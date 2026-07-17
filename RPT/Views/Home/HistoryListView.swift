@@ -2,13 +2,15 @@
 //  HistoryListView.swift
 //  RPT
 //
-//  Complete workout history grouped by month, with swipe-to-delete.
+//  Complete workout history grouped by month, with delete via context menu.
 //
 
+import SwiftData
 import SwiftUI
 
 struct HistoryListView: View {
     @State private var completedWorkouts: [Workout] = []
+    @State private var prCounts: [PersistentIdentifier: Int] = [:]
     @State private var workoutToDelete: Workout?
     @State private var errorMessage: String?
 
@@ -35,7 +37,7 @@ struct HistoryListView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: Theme.sectionSpacing) {
+            VStack(spacing: 16) {
                 if completedWorkouts.isEmpty {
                     EmptyStateCard(
                         icon: "clock",
@@ -44,31 +46,45 @@ struct HistoryListView: View {
                     )
                 } else {
                     ForEach(monthGroups) { group in
-                        VStack(spacing: 12) {
-                            HStack {
+                        VStack(spacing: 10) {
+                            HStack(alignment: .firstTextBaseline) {
                                 Text(group.monthStart, format: .dateTime.month(.wide).year())
-                                    .font(.headline)
-                                Spacer()
-                                Text(monthSummary(for: group))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
+                                    .font(Theme.titleFont(size: 16))
+                                    .foregroundStyle(Theme.textPrimary)
 
-                            ForEach(group.workouts) { workout in
-                                NavigationLink {
-                                    WorkoutDetailView(workout: workout)
-                                } label: {
-                                    WorkoutCard(workout: workout)
-                                }
-                                .buttonStyle(.plain)
-                                .contextMenu {
-                                    Button(role: .destructive) {
-                                        workoutToDelete = workout
+                                Spacer()
+
+                                Text(monthSummary(for: group))
+                                    .font(.system(size: 13))
+                                    .monospacedDigit()
+                                    .foregroundStyle(Theme.textSecondary)
+                            }
+                            .padding(.horizontal, 2)
+
+                            VStack(spacing: 0) {
+                                ForEach(Array(group.workouts.enumerated()), id: \.element.id) { index, workout in
+                                    NavigationLink {
+                                        WorkoutDetailView(workout: workout)
                                     } label: {
-                                        Label("Delete Workout", systemImage: "trash")
+                                        WorkoutCard(workout: workout, prCount: prCounts[workout.id] ?? 0)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .contextMenu {
+                                        Button(role: .destructive) {
+                                            workoutToDelete = workout
+                                        } label: {
+                                            Label("Delete Workout", systemImage: "trash")
+                                        }
+                                    }
+
+                                    if index < group.workouts.count - 1 {
+                                        Rectangle()
+                                            .fill(Theme.hairline)
+                                            .frame(height: 1)
                                     }
                                 }
                             }
+                            .rptCard(padding: 0)
                         }
                     }
                 }
@@ -104,10 +120,12 @@ struct HistoryListView: View {
     }
 
     private func refresh() {
-        completedWorkouts = workoutManager
+        let completedAscending = workoutManager
             .getWorkouts(from: .distantPast, to: Date())
             .filter(\.isCompleted)
-            .sorted { $0.date > $1.date }
+
+        prCounts = WorkoutPRCounter.counts(forCompletedWorkoutsAscending: completedAscending)
+        completedWorkouts = completedAscending.sorted { $0.date > $1.date }
     }
 
     private func monthSummary(for group: MonthGroup) -> String {

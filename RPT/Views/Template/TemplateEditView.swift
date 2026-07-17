@@ -72,16 +72,17 @@ struct TemplateEditView: View {
 
                     if let helperText = validation.helperText {
                         Text(helperText)
-                            .font(.caption)
-                            .foregroundStyle(Theme.amber)
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.dropOne)
                     }
                 }
+                .listRowBackground(Theme.cardBackground)
 
                 Section("Exercises") {
                     if exercises.isEmpty {
                         Text("Add at least one exercise.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.textSecondary)
                     }
 
                     ForEach(exercises) { exercise in
@@ -91,19 +92,20 @@ struct TemplateEditView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(exercise.exerciseName)
-                                        .font(.subheadline.weight(.medium))
-                                        .foregroundStyle(.primary)
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundStyle(Theme.textPrimary)
 
                                     Text(prescriptionSummary(for: exercise))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .font(.system(size: 12))
+                                        .monospacedDigit()
+                                        .foregroundStyle(Theme.textSecondary)
                                 }
 
                                 Spacer()
 
                                 Image(systemName: "pencil")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(Theme.textSecondary)
                             }
                         }
                     }
@@ -118,15 +120,19 @@ struct TemplateEditView: View {
                         showingExercisePicker = true
                     } label: {
                         Label("Add Exercise", systemImage: "plus")
-                            .foregroundStyle(Theme.accent)
+                            .foregroundStyle(Theme.primary)
                     }
                 }
+                .listRowBackground(Theme.cardBackground)
 
                 Section("Notes") {
                     TextField("Rest 2–3 minutes between sets…", text: $notes, axis: .vertical)
                         .lineLimit(2...5)
                 }
+                .listRowBackground(Theme.cardBackground)
             }
+            .scrollContentBackground(.hidden)
+            .background(Theme.screenBackground)
             .navigationTitle(editedTemplate == nil ? "New Template" : "Edit Template")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -278,37 +284,45 @@ struct TemplateExerciseEditorSheet: View {
             Form {
                 Section("Sets") {
                     Stepper("Working sets: \(setCount)", value: $setCount, in: 1...6)
+                        .monospacedDigit()
                         .onChange(of: setCount) { _, newValue in
                             repRanges = TemplateExercise.normalizedRepRanges(for: newValue, from: repRanges)
                         }
                 }
+                .listRowBackground(Theme.cardBackground)
 
                 Section("Rep Ranges") {
                     ForEach($repRanges, id: \.setNumber) { $range in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(range.setNumber == 1 ? "Top set" : "Back-off \(range.setNumber - 1)")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.secondary)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(Theme.textSecondary)
 
                             HStack {
                                 Stepper("Min \(range.minReps)", value: $range.minReps, in: 1...30)
-                                    .font(.subheadline)
+                                    .font(.system(size: 14))
+                                    .monospacedDigit()
                             }
 
                             HStack {
                                 Stepper("Max \(range.maxReps)", value: $range.maxReps, in: range.minReps...30)
-                                    .font(.subheadline)
+                                    .font(.system(size: 14))
+                                    .monospacedDigit()
                             }
                         }
                         .padding(.vertical, 2)
                     }
                 }
+                .listRowBackground(Theme.cardBackground)
 
                 Section("Notes") {
                     TextField("Form cues for this movement…", text: $notes, axis: .vertical)
                         .lineLimit(2...4)
                 }
+                .listRowBackground(Theme.cardBackground)
             }
+            .scrollContentBackground(.hidden)
+            .background(Theme.screenBackground)
             .navigationTitle(templateExercise.exerciseName)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

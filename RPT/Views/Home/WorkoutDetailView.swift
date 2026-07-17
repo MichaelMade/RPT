@@ -178,19 +178,20 @@ struct WorkoutDetailView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(workout.date, format: .dateTime.weekday(.wide).month().day().year())
-                        .font(.subheadline.weight(.semibold))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Theme.textPrimary)
 
                     if let templateName = templateOriginName {
-                        PillTag(text: templateName, tint: Theme.info, icon: "square.grid.2x2")
+                        PillTag(text: templateName, tint: Theme.primary, icon: "square.grid.2x2")
                     }
                 }
 
                 Spacer()
 
                 if workout.isCompleted {
-                    PillTag(text: "Completed", tint: Theme.success, icon: "checkmark")
+                    PillTag(text: "Completed", tint: Theme.done, icon: "checkmark")
                 } else {
-                    PillTag(text: "Draft", tint: Theme.amber, icon: "pencil")
+                    PillTag(text: "Draft", tint: Theme.dropTwo, icon: "pencil")
                 }
             }
 
@@ -221,15 +222,17 @@ struct WorkoutDetailView: View {
     private func summaryMetric(value: String, label: String) -> some View {
         VStack(spacing: 2) {
             Text(value)
-                .font(.subheadline.weight(.bold))
+                .font(Theme.titleFont(size: 16))
                 .monospacedDigit()
+                .foregroundStyle(Theme.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
             Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.textSecondary)
         }
         .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
     }
 
     private var templateOriginName: String? {
@@ -268,13 +271,15 @@ struct WorkoutDetailView: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(exercise.displayName)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Theme.textPrimary)
 
                     let best = OneRepMax.bestEstimate(in: sets)
                     if best > 0 {
                         Text("Best e1RM: \(OneRepMax.formatted(best))")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 11))
+                            .monospacedDigit()
+                            .foregroundStyle(Theme.textSecondary)
                     }
                 }
 
@@ -285,30 +290,33 @@ struct WorkoutDetailView: View {
                 ForEach(Array(sets.enumerated()), id: \.element.id) { index, set in
                     HStack {
                         Text(set.isWarmup ? "W" : "\(workingSetNumber(for: index, in: sets))")
-                            .font(.caption.weight(.bold))
+                            .font(.system(size: 12, weight: .bold))
+                            .monospacedDigit()
                             .frame(width: 24, height: 24)
                             .background(
-                                set.isWarmup ? Theme.amber.opacity(0.15) : Theme.accent.opacity(0.12),
+                                set.isWarmup ? Theme.amberTint : Theme.primaryTint,
                                 in: Circle()
                             )
-                            .foregroundStyle(set.isWarmup ? Theme.amber : Theme.accent)
+                            .foregroundStyle(set.isWarmup ? Theme.dropTwo : Theme.primary)
 
                         Text(set.formattedWeightReps)
-                            .font(.subheadline)
+                            .font(.system(size: 14))
                             .monospacedDigit()
+                            .foregroundStyle(Theme.textPrimary)
 
                         Spacer()
 
                         if let rpe = set.displayRPE {
-                            PillTag(text: "RPE \(rpe)", tint: .secondary)
+                            PillTag(text: "RPE \(rpe)", tint: Theme.textSecondary)
                         }
 
                         if set.isCompletedLoggedSet {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.subheadline)
-                                .foregroundStyle(Theme.success)
+                                .foregroundStyle(Theme.done)
                         }
                     }
+                    .accessibilityElement(children: .combine)
                 }
             }
         }
@@ -334,8 +342,8 @@ struct WorkoutDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             SectionHeader(title: "Notes")
             Text(workout.notes)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .rptCard()
         }
@@ -346,11 +354,12 @@ struct WorkoutDetailView: View {
     private var followUpCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Progress From Here", systemImage: "arrow.up.right")
-                .font(.headline)
+                .font(Theme.titleFont(size: 16))
+                .foregroundStyle(Theme.textPrimary)
 
             Text("Start a follow-up session with the same exercises at roughly 2.5% more weight — classic RPT progression.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.textSecondary)
 
             Button {
                 requestFollowUp()

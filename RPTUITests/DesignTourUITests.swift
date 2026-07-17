@@ -104,7 +104,8 @@ final class DesignTourUITests: XCTestCase {
         app.tabBars.buttons["Exercises"].tap()
         snap(app, "08-exercises")
 
-        let firstRow = app.cells.firstMatch
+        // Library rows are bordered-card buttons ("exercise-row"), not List cells.
+        let firstRow = app.buttons.matching(identifier: "exercise-row").firstMatch
         if firstRow.waitForExistence(timeout: 3) {
             firstRow.tap()
             snap(app, "09-exercise-detail")

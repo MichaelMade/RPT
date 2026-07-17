@@ -47,6 +47,9 @@ class ActiveWorkoutViewModel: ObservableObject {
     @Published var exerciseOrder: [Exercise] = []
     @Published var showingRestTimer = false
     @Published var currentRestDuration: Int = 180
+    /// Changes on every start so the docked timer view gets fresh identity
+    /// (and a fresh countdown) even when it is already visible.
+    @Published var restTimerStartedAt = Date()
     @Published var completedExercises: Set<PersistentIdentifier> = []
     @Published var expandedExercises: Set<PersistentIdentifier> = Set()
     @Published var errorMessage: String?
@@ -675,6 +678,7 @@ class ActiveWorkoutViewModel: ObservableObject {
 
     func startRestTimer() {
         currentRestDuration = settingsManager.settings.restTimerDuration
+        restTimerStartedAt = Date()
         showingRestTimer = true
     }
 

@@ -270,3 +270,34 @@ struct ValueStepperControl: View {
         .background(Theme.surfaceMuted, in: RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous))
     }
 }
+
+// MARK: - Template Key Color
+
+/// Stable template → content-palette color mapping shared by workout rows
+/// and template cards. Hashes the template id deterministically (Swift's
+/// `hashValue` is randomized per launch) so a template keeps its color
+/// across launches. Done-green stays out of the palette — it is reserved
+/// for logged work and PR text rendered next to these key bars.
+enum TemplateKeyColor {
+    static let palette: [Color] = [
+        Theme.primary,
+        Theme.purple,
+        Theme.dropTwo,
+        Theme.dropOne,
+    ]
+
+    static func color(forKey key: String) -> Color {
+        var hash: UInt64 = 5381
+        for byte in key.utf8 {
+            hash = hash &* 31 &+ UInt64(byte)
+        }
+        return palette[Int(hash % UInt64(palette.count))]
+    }
+
+    static func color(for workout: Workout) -> Color {
+        let key = workout.startedFromTemplateID
+            ?? workout.startedFromTemplate
+            ?? workout.name
+        return color(forKey: key)
+    }
+}
