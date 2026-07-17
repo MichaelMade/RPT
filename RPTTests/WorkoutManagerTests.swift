@@ -303,60 +303,6 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertEqual(set.completedAt, .distantPast)
     }
 
-    func testUpdateSet_clearingWeightResetsCompletionDate() {
-        // Given
-        let workout = Workout(name: "Test Workout")
-        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
-        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
-
-        // When
-        manager.updateSet(set, weight: 0, reps: 5, rpe: nil)
-
-        // Then
-        XCTAssertEqual(set.completedAt, .distantPast)
-    }
-
-    func testUpdateSet_clearingRepsResetsCompletionDate() {
-        // Given
-        let workout = Workout(name: "Test Workout")
-        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
-        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
-
-        // When
-        manager.updateSet(set, weight: 185, reps: 0, rpe: nil)
-
-        // Then
-        XCTAssertEqual(set.completedAt, .distantPast)
-    }
-
-    func testUpdateSet_marksNonZeroSetCompleteWhenTimestampWasIncomplete() {
-        // Given
-        let workout = Workout(name: "Test Workout")
-        let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
-        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 8)
-        set.completedAt = .distantPast
-
-        // When
-        manager.updateSet(set, weight: 185, reps: 8, rpe: nil)
-
-        // Then
-        XCTAssertNotEqual(set.completedAt, .distantPast)
-    }
-
-    func testUpdateSet_bodyweightSetWithZeroWeightAndRepsMarksComplete() {
-        // Given
-        let workout = Workout(name: "Test Workout")
-        let exercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
-        let set = manager.addSet(to: workout, for: exercise, weight: 0, reps: 0)
-
-        // When
-        manager.updateSet(set, weight: 0, reps: 8, rpe: nil)
-
-        // Then
-        XCTAssertNotEqual(set.completedAt, .distantPast)
-        XCTAssertTrue(set.isCompletedWorkingSet)
-    }
-
     func testWorkoutAddSet_withZeroRepsStartsIncomplete() {
         // Given
         let workout = Workout(name: "Test Workout")

@@ -227,42 +227,6 @@ class WorkoutManager: ObservableObject {
         modelContext.delete(set)
     }
     
-    // Update a set
-    func updateSet(_ set: ExerciseSet, weight: Int, reps: Int, rpe: Int?) {
-        let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
-        let wasIncomplete = !set.hasCompletedValues || set.completedAt == .distantPast
-
-        let originalWeight = set.weight
-        let originalReps = set.reps
-        let originalRPE = set.rpe
-        let originalCompletedAt = set.completedAt
-
-        set.weight = sanitized.weight
-        set.reps = sanitized.reps
-        set.rpe = sanitized.rpe
-
-        // Keep completion timestamps aligned with completion state
-        let isComplete = ExerciseSet.hasCompletedValues(
-            weight: sanitized.weight,
-            reps: sanitized.reps,
-            exerciseCategory: set.exercise?.category
-        )
-        if !isComplete {
-            set.completedAt = .distantPast
-        } else if wasIncomplete {
-            set.completedAt = Date()
-        }
-
-        do {
-            try dataManager.saveChanges()
-        } catch {
-            set.weight = originalWeight
-            set.reps = originalReps
-            set.rpe = originalRPE
-            set.completedAt = originalCompletedAt
-        }
-    }
-
     func sanitizedSetInput(weight: Int, reps: Int, rpe: Int?) -> (weight: Int, reps: Int, rpe: Int?) {
         let safeWeight = max(0, weight)
         let safeReps = max(0, reps)
@@ -279,17 +243,14 @@ class WorkoutManager: ObservableObject {
     
     // Delete a set
     func deleteSet(_ set: ExerciseSet) throws {
-        let originalWorkout = set.workout
-        let originalExercise = set.exercise
-
         modelContext.delete(set)
 
         do {
             try dataManager.saveChanges()
         } catch {
-            modelContext.insert(set)
-            set.workout = originalWorkout
-            set.exercise = originalExercise
+            // Re-inserting a deleted model doesn't reliably restore it in
+            // SwiftData; discarding the pending delete does.
+            modelContext.rollback()
             throw error
         }
     }
@@ -308,7 +269,6 @@ class WorkoutManager: ObservableObject {
     func removeExercise(_ exercise: Exercise, from workout: Workout) throws {
         let exerciseId = exercise.id
         let setsToRemove = workout.sets.filter { $0.exercise?.id == exerciseId }
-        let originalWorkoutSets = workout.sets
 
         for set in setsToRemove {
             modelContext.delete(set)
@@ -318,12 +278,10 @@ class WorkoutManager: ObservableObject {
         do {
             try dataManager.saveChanges()
         } catch {
-            for set in setsToRemove {
-                modelContext.insert(set)
-                set.workout = workout
-                set.exercise = exercise
-            }
-            workout.sets = originalWorkoutSets
+            // Re-inserting deleted models doesn't reliably restore them in
+            // SwiftData; discarding the pending deletes restores the
+            // relationship state as well.
+            modelContext.rollback()
             throw error
         }
     }
