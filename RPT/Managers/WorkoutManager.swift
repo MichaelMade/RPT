@@ -23,25 +23,8 @@ class WorkoutManager: ObservableObject {
     
     // MARK: - Workout CRUD Operations
     
-    // Create a new workout
-    func createWorkout(name: String = "Workout", fromTemplate templateName: String? = nil) -> Workout {
-        let workout = Workout(
-            name: sanitizedWorkoutName(name),
-            startedFromTemplate: templateName
-        )
-
-        modelContext.insert(workout)
-
-        do {
-            try dataManager.saveChanges()
-        } catch {
-            // Roll the insert back so a failed save can't leave a ghost draft.
-            modelContext.delete(workout)
-        }
-
-        return workout
-    }
-
+    // Create a new workout. Returns nil when persistence fails — the
+    // rolled-back model must never leak to callers as if it were saved.
     func createWorkoutSafely(name: String = "Workout", fromTemplate templateName: String? = nil) -> Workout? {
         let workout = Workout(
             name: sanitizedWorkoutName(name),

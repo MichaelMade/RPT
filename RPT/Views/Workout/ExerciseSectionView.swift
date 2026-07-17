@@ -235,8 +235,11 @@ struct ExerciseSectionView: View {
         guard viewModel.updateSetSafely(set, weight: weight, reps: reps, rpe: set.rpe) else { return }
         propagateTopSetChangeIfNeeded(for: set, newWeight: weight)
 
-        // Saving values from a log tap completes the check-off.
-        if editorOpenedForLogging, set.isCompletedLoggedSet {
+        // Saving values from a log tap completes the check-off. Value edits
+        // never log implicitly, so finish the intent with an explicit toggle.
+        if editorOpenedForLogging,
+           !set.isCompletedLoggedSet,
+           viewModel.toggleSetLoggedSafely(set) == .logged {
             HapticFeedbackManager.shared.medium()
             if viewModel.autoStartRestTimerEnabled {
                 viewModel.startRestTimer()

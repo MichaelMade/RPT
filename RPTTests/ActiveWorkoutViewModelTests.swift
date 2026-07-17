@@ -41,9 +41,10 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         XCTAssertTrue(viewModel.addExerciseToWorkoutSafely(exercise))
 
-        // Log the top set: 200 x 5.
+        // Log the top set: 200 x 5 (logging is explicit).
         let topSet = viewModel.orderedSetsForDisplay(in: exercise)[0]
         XCTAssertTrue(viewModel.updateSetSafely(topSet, weight: 200, reps: 5, rpe: nil))
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(topSet), .logged)
 
         XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
 
@@ -64,12 +65,14 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         let topSet = viewModel.orderedSetsForDisplay(in: exercise)[0]
         XCTAssertTrue(viewModel.updateSetSafely(topSet, weight: 200, reps: 5, rpe: nil))
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(topSet), .logged)
 
         // Log a deliberately light second set; the third suggestion must
         // still anchor on the 200 lb top set, not compound off 100 lb.
         XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
         let secondSet = viewModel.orderedSetsForDisplay(in: exercise)[1]
         XCTAssertTrue(viewModel.updateSetSafely(secondSet, weight: 100, reps: 8, rpe: nil))
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(secondSet), .logged)
 
         XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
 
@@ -161,6 +164,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let topSet = viewModel.orderedSetsForDisplay(in: exercise).first { !$0.isWarmup }
         XCTAssertNotNil(topSet)
         XCTAssertTrue(viewModel.updateSetSafely(topSet!, weight: 200, reps: 5, rpe: nil))
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(topSet!), .logged)
 
         XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
 
@@ -171,7 +175,7 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
     // MARK: - Set Completion Semantics
 
-    func testUpdateSetMarksValidValuesLogged() {
+    func testUpdateSetNeverImplicitlyLogs() {
         let exercise = makeExercise()
         let workout = Workout(name: "Test")
         let viewModel = ActiveWorkoutViewModel(workout: workout)
@@ -181,13 +185,21 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let set = viewModel.orderedSetsForDisplay(in: exercise)[0]
         XCTAssertFalse(set.isCompletedLoggedSet, "Fresh sets start unlogged")
 
+        // Entering valid values does NOT log — logging is the explicit toggle.
         XCTAssertTrue(viewModel.updateSetSafely(set, weight: 185, reps: 8, rpe: 9))
-        XCTAssertTrue(set.isCompletedLoggedSet)
+        XCTAssertFalse(set.isCompletedLoggedSet, "Value edits must not log a set")
         XCTAssertEqual(set.displayRPE, 9)
 
-        // Zeroing reps un-logs the set.
-        XCTAssertTrue(viewModel.updateSetSafely(set, weight: 185, reps: 0, rpe: nil))
-        XCTAssertFalse(set.isCompletedLoggedSet)
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(set), .logged)
+        XCTAssertTrue(set.isCompletedLoggedSet)
+
+        // Editing values on a logged set keeps it logged...
+        XCTAssertTrue(viewModel.updateSetSafely(set, weight: 190, reps: 7, rpe: 9))
+        XCTAssertTrue(set.isCompletedLoggedSet, "Valid edits keep the logged state")
+
+        // ...but invalidating its values force-unlogs it.
+        XCTAssertTrue(viewModel.updateSetSafely(set, weight: 190, reps: 0, rpe: nil))
+        XCTAssertFalse(set.isCompletedLoggedSet, "A logged set must stay valid")
     }
 
     func testRejectsInvalidRPE() {

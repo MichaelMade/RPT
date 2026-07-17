@@ -467,11 +467,13 @@ class ActiveWorkoutViewModel: ObservableObject {
         let originalReps = set.reps
         let originalRPE = set.rpe
         let originalCompletedAt = set.completedAt
-        let wasIncomplete = !set.hasCompletedValues || set.completedAt == .distantPast
         set.weight = weight
         set.reps = reps
         set.rpe = rpe
 
+        // Logging is an explicit action (`toggleSetLogged`); editing values
+        // never logs a set. It can only UN-log one whose values are no
+        // longer complete, since a logged set must stay valid.
         let isComplete = ExerciseSet.hasCompletedValues(
             weight: weight,
             reps: reps,
@@ -479,8 +481,6 @@ class ActiveWorkoutViewModel: ObservableObject {
         )
         if !isComplete {
             set.completedAt = .distantPast
-        } else if wasIncomplete {
-            set.completedAt = Date()
         }
 
         do {
