@@ -250,6 +250,9 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.addExerciseToWorkoutSafely(exercise))
         let set = viewModel.orderedSetsForDisplay(in: exercise)[0]
         XCTAssertTrue(viewModel.updateSetSafely(set, weight: 200, reps: 5, rpe: nil))
+        XCTAssertFalse(set.isCompletedLoggedSet, "Editing values must never log a set")
+
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(set), .logged)
         XCTAssertTrue(set.isCompletedLoggedSet)
 
         XCTAssertEqual(viewModel.toggleSetLoggedSafely(set), .unlogged)

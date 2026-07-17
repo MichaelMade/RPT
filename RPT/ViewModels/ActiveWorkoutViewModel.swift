@@ -757,10 +757,15 @@ class ActiveWorkoutViewModel: ObservableObject {
             completedExercises.remove(exercise.id)
         }
 
+        // Linking the set to a persisted workout auto-inserted it into the
+        // context, so it must also be deleted there — detaching alone would
+        // let the next successful save persist an orphaned row.
+        let context = set.modelContext
         workout.sets.removeAll { $0.id == set.id }
         exercise.sets.removeAll { $0.id == set.id }
         set.workout = nil
         set.exercise = nil
+        context?.delete(set)
     }
 
     private func reductionPercentage(forSetIndex setIndex: Int) -> Double {

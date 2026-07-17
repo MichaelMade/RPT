@@ -173,12 +173,17 @@ final class Workout {
         // ordering them purely by timestamp preserves their original behavior.
         let allLegacy = sets.allSatisfy { $0.orderIndex == 0 }
 
-        return sets.sorted { lhs, rhs in
-            if !allLegacy, lhs.orderIndex != rhs.orderIndex {
-                return lhs.orderIndex < rhs.orderIndex
+        return sets.enumerated().sorted { lhs, rhs in
+            if !allLegacy, lhs.element.orderIndex != rhs.element.orderIndex {
+                return lhs.element.orderIndex < rhs.element.orderIndex
             }
-            return lhs.completedAt < rhs.completedAt
-        }
+            if lhs.element.completedAt != rhs.element.completedAt {
+                return lhs.element.completedAt < rhs.element.completedAt
+            }
+            // Timestamp ties (several unlogged rows all at .distantPast)
+            // keep their array position so the order stays deterministic.
+            return lhs.offset < rhs.offset
+        }.map(\.element)
     }
 
     /// The next free position for a newly added set.
