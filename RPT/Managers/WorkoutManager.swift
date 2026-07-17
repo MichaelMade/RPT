@@ -197,7 +197,8 @@ class WorkoutManager: ObservableObject {
     // MARK: - Workout Exercise & Set Management
     
     // Add an exercise to a workout
-    func addExercise(to workout: Workout, exercise: Exercise) -> ExerciseSet {
+    @discardableResult
+    func addExercise(to workout: Workout, exercise: Exercise) throws -> ExerciseSet {
         let newSet = workout.addSet(exercise: exercise, weight: 0, reps: 8)
         newSet.completedAt = .distantPast
 
@@ -205,13 +206,15 @@ class WorkoutManager: ObservableObject {
             try dataManager.saveChanges()
         } catch {
             rollbackInsertedSet(newSet, workout: workout, exercise: exercise)
+            throw error
         }
 
         return newSet
     }
-    
+
     // Add a set to an exercise in a workout
-    func addSet(to workout: Workout, for exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
+    @discardableResult
+    func addSet(to workout: Workout, for exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) throws -> ExerciseSet {
         let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
 
         let newSet = workout.addSet(
@@ -227,7 +230,9 @@ class WorkoutManager: ObservableObject {
         do {
             try dataManager.saveChanges()
         } catch {
+            // A rolled-back set must never reach the caller.
             rollbackInsertedSet(newSet, workout: workout, exercise: exercise)
+            throw error
         }
 
         return newSet

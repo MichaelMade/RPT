@@ -119,8 +119,10 @@ struct ActiveWorkoutView: View {
                 isPresented: $showingFinishDialog,
                 titleVisibility: .visible
             ) {
-                Button("Complete & Save") {
-                    completeWorkout()
+                if viewModel.workout.sets.contains(where: \.isCompletedLoggedSet) {
+                    Button("Complete & Save") {
+                        completeWorkout()
+                    }
                 }
                 Button("Keep Training", role: .cancel) {}
             } message: {

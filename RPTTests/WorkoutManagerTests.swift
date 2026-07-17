@@ -264,13 +264,13 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertNil(sanitized.rpe)
     }
 
-    func testAddSet_sanitizesNegativeValuesBeforePersisting() {
+    func testAddSet_sanitizesNegativeValuesBeforePersisting() throws {
         // Given
         let workout = Workout(name: "Test Workout")
         let exercise = Exercise(name: "Deadlift", category: .compound, primaryMuscleGroups: [.lowerBack])
 
         // When
-        let createdSet = manager.addSet(to: workout, for: exercise, weight: -225, reps: -5, rpe: 0)
+        let createdSet = try manager.addSet(to: workout, for: exercise, weight: -225, reps: -5, rpe: 0)
 
         // Then
         XCTAssertEqual(createdSet.weight, 0)
@@ -278,48 +278,48 @@ final class WorkoutManagerLogicTests: XCTestCase {
         XCTAssertNil(createdSet.rpe)
     }
 
-    func testAddExercise_createsIncompleteSetWithDistantPastCompletionDate() {
+    func testAddExercise_createsIncompleteSetWithDistantPastCompletionDate() throws {
         // Given
         let workout = Workout(name: "Test Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
 
         // When
-        let set = manager.addExercise(to: workout, exercise: exercise)
+        let set = try manager.addExercise(to: workout, exercise: exercise)
 
         // Then
         XCTAssertEqual(set.weight, 0)
         XCTAssertEqual(set.completedAt, .distantPast)
     }
 
-    func testAddSet_withZeroRepsStartsIncomplete() {
+    func testAddSet_withZeroRepsStartsIncomplete() throws {
         // Given
         let workout = Workout(name: "Test Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
 
         // When
-        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 0)
+        let set = try manager.addSet(to: workout, for: exercise, weight: 185, reps: 0)
 
         // Then
         XCTAssertEqual(set.completedAt, .distantPast)
     }
 
-    func testAddSet_withCompleteValuesStillStartsUnlogged() {
+    func testAddSet_withCompleteValuesStillStartsUnlogged() throws {
         // Given
         let workout = Workout(name: "Test Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
 
         // When
-        let set = manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
+        let set = try manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
 
         // Then
         XCTAssertEqual(set.completedAt, .distantPast, "Adding a set never logs it; logging is explicit")
     }
 
-    func testCompleteWorkout_refusesWorkoutWithNoLoggedSets() {
+    func testCompleteWorkout_refusesWorkoutWithNoLoggedSets() throws {
         // Given
         let workout = Workout(name: "Test Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
-        _ = manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
+        _ = try manager.addSet(to: workout, for: exercise, weight: 185, reps: 5)
 
         // When / Then
         XCTAssertThrowsError(try manager.completeWorkout(workout))
