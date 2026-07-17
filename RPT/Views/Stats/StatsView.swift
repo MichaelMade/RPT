@@ -452,7 +452,7 @@ struct StatsView: View {
         let percent = Int(((recent - prior) / prior * 100).rounded())
         guard percent >= 1 else { return nil }
 
-        return "+\(percent)% this month"
+        return "+\(percent)% vs prior 4 weeks"
     }
 
     // MARK: - Muscle Balance
