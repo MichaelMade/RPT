@@ -29,10 +29,16 @@ class WorkoutManager: ObservableObject {
             name: sanitizedWorkoutName(name),
             startedFromTemplate: templateName
         )
-        
+
         modelContext.insert(workout)
-        try? modelContext.save()
-        
+
+        do {
+            try dataManager.saveChanges()
+        } catch {
+            // Roll the insert back so a failed save can't leave a ghost draft.
+            modelContext.delete(workout)
+        }
+
         return workout
     }
 
@@ -197,17 +203,15 @@ class WorkoutManager: ObservableObject {
     
     // Add an exercise to a workout
     func addExercise(to workout: Workout, exercise: Exercise) -> ExerciseSet {
-        let newSet = ExerciseSet(
-            weight: 0,
-            reps: 8,
-            exercise: exercise,
-            workout: workout,
-            completedAt: .distantPast
-        )
-        
-        workout.sets.append(newSet)
-        try? modelContext.save()
-        
+        let newSet = workout.addSet(exercise: exercise, weight: 0, reps: 8)
+        newSet.completedAt = .distantPast
+
+        do {
+            try dataManager.saveChanges()
+        } catch {
+            rollbackInsertedSet(newSet, workout: workout, exercise: exercise)
+        }
+
         return newSet
     }
     
@@ -215,32 +219,40 @@ class WorkoutManager: ObservableObject {
     func addSet(to workout: Workout, for exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) -> ExerciseSet {
         let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
 
-        let isComplete = ExerciseSet.hasCompletedValues(
-            weight: sanitized.weight,
-            reps: sanitized.reps,
-            exerciseCategory: exercise.category
-        )
-
-        let newSet = ExerciseSet(
-            weight: sanitized.weight,
-            reps: sanitized.reps,
+        let newSet = workout.addSet(
             exercise: exercise,
-            workout: workout,
-            completedAt: isComplete ? Date() : .distantPast,
+            weight: sanitized.weight,
+            reps: sanitized.reps,
             isWarmup: isWarmup,
             rpe: sanitized.rpe
         )
-        
-        workout.sets.append(newSet)
-        try? modelContext.save()
-        
+
+        do {
+            try dataManager.saveChanges()
+        } catch {
+            rollbackInsertedSet(newSet, workout: workout, exercise: exercise)
+        }
+
         return newSet
+    }
+
+    private func rollbackInsertedSet(_ set: ExerciseSet, workout: Workout, exercise: Exercise) {
+        workout.sets.removeAll { $0.id == set.id }
+        exercise.sets.removeAll { $0.id == set.id }
+        set.workout = nil
+        set.exercise = nil
+        modelContext.delete(set)
     }
     
     // Update a set
     func updateSet(_ set: ExerciseSet, weight: Int, reps: Int, rpe: Int?) {
         let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
         let wasIncomplete = !set.hasCompletedValues || set.completedAt == .distantPast
+
+        let originalWeight = set.weight
+        let originalReps = set.reps
+        let originalRPE = set.rpe
+        let originalCompletedAt = set.completedAt
 
         set.weight = sanitized.weight
         set.reps = sanitized.reps
@@ -258,7 +270,14 @@ class WorkoutManager: ObservableObject {
             set.completedAt = Date()
         }
 
-        try? modelContext.save()
+        do {
+            try dataManager.saveChanges()
+        } catch {
+            set.weight = originalWeight
+            set.reps = originalReps
+            set.rpe = originalRPE
+            set.completedAt = originalCompletedAt
+        }
     }
 
     func sanitizedSetInput(weight: Int, reps: Int, rpe: Int?) -> (weight: Int, reps: Int, rpe: Int?) {
@@ -449,26 +468,6 @@ class WorkoutManager: ObservableObject {
     }
     
     // MARK: - Workout Statistics
-    
-    // Calculate workout statistics by timeframe
-    func calculateWorkoutStats(timeframe: TimeFrame) -> (count: Int, totalVolume: Double, averageDuration: TimeInterval) {
-        let now = Date()
-        var startDate: Date
-        
-        switch timeframe {
-        case .week:
-            startDate = Calendar.current.date(byAdding: .day, value: -7, to: now) ?? Date.distantPast
-        case .month:
-            startDate = Calendar.current.date(byAdding: .month, value: -1, to: now) ?? Date.distantPast
-        case .year:
-            startDate = Calendar.current.date(byAdding: .year, value: -1, to: now) ?? Date.distantPast
-        case .allTime:
-            startDate = Date.distantPast
-        }
-        
-        let workouts = getWorkouts(from: startDate, to: now)
-        return aggregateCompletedWorkoutStats(from: workouts)
-    }
 
     // Aggregate statistics from workouts, excluding in-progress sessions
     func aggregateCompletedWorkoutStats(from workouts: [Workout]) -> (count: Int, totalVolume: Double, averageDuration: TimeInterval) {
@@ -562,24 +561,4 @@ class WorkoutManager: ObservableObject {
         return "\(seconds)s"
     }
 
-    // Calculate workout statistics with proper formatting
-    func calculateWorkoutStatsFormatted(timeframe: TimeFrame) -> (count: Int, totalVolume: String, averageDuration: String) {
-        let stats = calculateWorkoutStats(timeframe: timeframe)
-
-        // Format duration
-        let formattedDuration = formatDuration(stats.averageDuration)
-
-        // Format volume
-        let formattedVolume = formatVolume(stats.totalVolume)
-
-        return (stats.count, formattedVolume, formattedDuration)
-    }
-    
-    // Time frame enum for statistics
-    enum TimeFrame {
-        case week
-        case month
-        case year
-        case allTime
-    }
 }

@@ -172,9 +172,10 @@ class TemplateViewModel: ObservableObject {
         }
 
         for range in repRanges {
-            let rangeTerms = repRangeSearchTerms(minReps: range.minReps, maxReps: range.maxReps)
-            terms.formUnion(rangeTerms)
-            terms.formUnion(rangeTerms.map { "set \(range.setNumber) \($0)" })
+            // Plain range terms only ("8-10 reps"). Positional variants like
+            // "set 3 8-10 reps" would leak bare set numbers into the search
+            // text and make a "3 sets" query match any template with a third set.
+            terms.formUnion(repRangeSearchTerms(minReps: range.minReps, maxReps: range.maxReps))
         }
 
         return terms.sorted()

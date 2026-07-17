@@ -46,54 +46,11 @@ class UserManager {
         return try? modelContext.fetch(descriptor).first
     }
     
-    // Update user profile information
-    func updateUserProfile(username: String? = nil, email: String? = nil,
-                          height: Double? = nil, weight: Double? = nil,
-                          birthdate: Date? = nil, profileImageName: String? = nil) {
-        guard let user = getCurrentUser() else { return }
-        
-        if let username = username {
-            user.username = username
-        }
-        
-        if let email = email {
-            user.email = email
-        }
-        
-        if let height = height {
-            user.height = height
-        }
-        
-        if let weight = weight {
-            user.weight = weight
-        }
-        
-        if let birthdate = birthdate {
-            user.birthdate = birthdate
-        }
-        
-        if let profileImageName = profileImageName {
-            user.profileImageName = profileImageName
-        }
-        
-        try? modelContext.save()
-    }
-    
-    // Process a completed workout
-    func processCompletedWorkout(_ workout: Workout) {
-        guard let user = getCurrentUser() else { return }
-
-        // Idempotent registration prevents duplicate lifetime stats if completion is retriggered.
-        _ = user.registerCompletedWorkoutIfNeeded(workout)
-        
-        try? modelContext.save()
-    }
-    
     // Get user statistics
     func getUserStats() -> (totalWorkouts: Int, totalVolume: Double, workoutStreak: Int) {
         guard let user = getCurrentUser() else { return (0, 0.0, 0) }
-        
-        return (user.totalWorkouts, user.totalVolume, user.workoutStreak)
+
+        return (user.totalWorkouts, user.totalVolume, user.currentWorkoutStreak())
     }
     
     // Get personal bests for display

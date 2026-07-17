@@ -121,7 +121,7 @@ class TemplateManager {
         WorkoutTemplate.normalizedDisplayName(name)
     }
 
-    private static let stableComparisonLocale = Locale(identifier: "en_US_POSIX")
+    nonisolated private static let stableComparisonLocale = Locale(identifier: "en_US_POSIX")
 
     static func normalizedNameLookupKey(_ name: String, locale: Locale = stableComparisonLocale) -> String {
         sanitizeTemplateName(name)
@@ -424,7 +424,9 @@ class TemplateManager {
             try dataManager.saveChanges()
             return .success
         } catch {
-            modelContext.insert(template)
+            // Re-inserting a pending-delete object doesn't reliably resurrect
+            // it; discarding the uncommitted delete does.
+            modelContext.rollback()
             return .persistenceFailure
         }
     }
@@ -469,10 +471,13 @@ class TemplateManager {
                         weight: initialWeight,
                         reps: targetReps,
                         fallbackDate: completionTime
-                    )
+                    ),
+                    orderIndex: createdSetCount
                 )
 
-                workout.sets.append(newSet)
+                if !workout.sets.contains(where: { $0.id == newSet.id }) {
+                    workout.sets.append(newSet)
+                }
                 createdSetCount += 1
             }
         }
@@ -620,36 +625,125 @@ class TemplateManager {
             return // Templates already exist
         }
 
-        // Create default template
-        let upperBodyRPT = WorkoutTemplate(
-            name: "Upper Body RPT",
+        for template in Self.makeDefaultTemplates() {
+            modelContext.insert(template)
+        }
+        try? modelContext.save()
+    }
+
+    // MARK: - Default Templates
+
+    /// The classic Leangains three-day reverse pyramid split — deadlift, bench,
+    /// and squat days — per https://leangains.com/reverse-pyramid-training-guide/.
+    /// Big pulls drop 10% per set; pressing drops 5% per set.
+    static func makeDefaultTemplates() -> [WorkoutTemplate] {
+        let deadliftDay = WorkoutTemplate(
+            name: "RPT Day 1 - Deadlift",
+            exercises: [
+                TemplateExercise(
+                    exerciseName: "Deadlift",
+                    suggestedSets: 2,
+                    repRanges: [
+                        TemplateRepRange(setNumber: 1, minReps: 5, maxReps: 7, percentageOfFirstSet: 1.0),
+                        TemplateRepRange(setNumber: 2, minReps: 5, maxReps: 7, percentageOfFirstSet: 0.9)
+                    ],
+                    notes: "Stop one rep short of failure"
+                ),
+                TemplateExercise(
+                    exerciseName: "Barbell Row",
+                    suggestedSets: 3,
+                    repRanges: [
+                        TemplateRepRange(setNumber: 1, minReps: 7, maxReps: 9, percentageOfFirstSet: 1.0),
+                        TemplateRepRange(setNumber: 2, minReps: 7, maxReps: 9, percentageOfFirstSet: 0.9),
+                        TemplateRepRange(setNumber: 3, minReps: 7, maxReps: 9, percentageOfFirstSet: 0.8)
+                    ],
+                    notes: "Keep the torso angle constant"
+                ),
+                TemplateExercise(
+                    exerciseName: "Bicep Curl",
+                    suggestedSets: 2,
+                    repRanges: [
+                        TemplateRepRange(setNumber: 1, minReps: 9, maxReps: 11, percentageOfFirstSet: 1.0),
+                        TemplateRepRange(setNumber: 2, minReps: 9, maxReps: 11, percentageOfFirstSet: 0.9)
+                    ],
+                    notes: "Accessory work"
+                )
+            ],
+            notes: "Classic Leangains RPT deadlift day. Rest at least 3 minutes between sets, more after deadlifts."
+        )
+
+        let benchDay = WorkoutTemplate(
+            name: "RPT Day 2 - Bench",
             exercises: [
                 TemplateExercise(
                     exerciseName: "Barbell Bench Press",
                     suggestedSets: 3,
                     repRanges: [
-                        TemplateRepRange(setNumber: 1, minReps: 4, maxReps: 6, percentageOfFirstSet: 1.0),
-                        TemplateRepRange(setNumber: 2, minReps: 6, maxReps: 8, percentageOfFirstSet: 0.9),
-                        TemplateRepRange(setNumber: 3, minReps: 8, maxReps: 10, percentageOfFirstSet: 0.8)
+                        TemplateRepRange(setNumber: 1, minReps: 7, maxReps: 9, percentageOfFirstSet: 1.0),
+                        TemplateRepRange(setNumber: 2, minReps: 7, maxReps: 9, percentageOfFirstSet: 0.95),
+                        TemplateRepRange(setNumber: 3, minReps: 7, maxReps: 9, percentageOfFirstSet: 0.9)
                     ],
-                    notes: "Focus on chest contraction"
+                    notes: "Smaller 5% drops on pressing"
+                ),
+                TemplateExercise(
+                    exerciseName: "Overhead Press",
+                    suggestedSets: 3,
+                    repRanges: [
+                        TemplateRepRange(setNumber: 1, minReps: 7, maxReps: 9, percentageOfFirstSet: 1.0),
+                        TemplateRepRange(setNumber: 2, minReps: 7, maxReps: 9, percentageOfFirstSet: 0.95),
+                        TemplateRepRange(setNumber: 3, minReps: 7, maxReps: 9, percentageOfFirstSet: 0.9)
+                    ],
+                    notes: "Smaller 5% drops on pressing"
+                ),
+                TemplateExercise(
+                    exerciseName: "Tricep Extension",
+                    suggestedSets: 2,
+                    repRanges: [
+                        TemplateRepRange(setNumber: 1, minReps: 9, maxReps: 11, percentageOfFirstSet: 1.0),
+                        TemplateRepRange(setNumber: 2, minReps: 9, maxReps: 11, percentageOfFirstSet: 0.9)
+                    ],
+                    notes: "Accessory work"
+                )
+            ],
+            notes: "Classic Leangains RPT bench day. Rest at least 3 minutes between sets."
+        )
+
+        let squatDay = WorkoutTemplate(
+            name: "RPT Day 3 - Squat",
+            exercises: [
+                TemplateExercise(
+                    exerciseName: "Barbell Squat",
+                    suggestedSets: 3,
+                    repRanges: [
+                        TemplateRepRange(setNumber: 1, minReps: 9, maxReps: 11, percentageOfFirstSet: 1.0),
+                        TemplateRepRange(setNumber: 2, minReps: 9, maxReps: 11, percentageOfFirstSet: 0.9),
+                        TemplateRepRange(setNumber: 3, minReps: 9, maxReps: 11, percentageOfFirstSet: 0.8)
+                    ],
+                    notes: "Stop one rep short of failure"
                 ),
                 TemplateExercise(
                     exerciseName: "Pull-up",
                     suggestedSets: 3,
                     repRanges: [
-                        TemplateRepRange(setNumber: 1, minReps: 6, maxReps: 8, percentageOfFirstSet: 1.0),
-                        TemplateRepRange(setNumber: 2, minReps: 8, maxReps: 10, percentageOfFirstSet: 0.9),
-                        TemplateRepRange(setNumber: 3, minReps: 10, maxReps: 12, percentageOfFirstSet: 0.8)
+                        TemplateRepRange(setNumber: 1, minReps: 7, maxReps: 9, percentageOfFirstSet: 1.0),
+                        TemplateRepRange(setNumber: 2, minReps: 7, maxReps: 9, percentageOfFirstSet: 0.9),
+                        TemplateRepRange(setNumber: 3, minReps: 7, maxReps: 9, percentageOfFirstSet: 0.8)
                     ],
-                    notes: "Add weight if needed"
+                    notes: "Add weight once bodyweight reps are easy"
+                ),
+                TemplateExercise(
+                    exerciseName: "Calf Raise",
+                    suggestedSets: 2,
+                    repRanges: [
+                        TemplateRepRange(setNumber: 1, minReps: 9, maxReps: 11, percentageOfFirstSet: 1.0),
+                        TemplateRepRange(setNumber: 2, minReps: 9, maxReps: 11, percentageOfFirstSet: 0.9)
+                    ],
+                    notes: "Accessory work"
                 )
             ],
-            notes: "Rest 2-3 minutes between exercises"
+            notes: "Classic Leangains RPT squat day. Rest at least 3 minutes between sets, more after squats."
         )
 
-        // Insert template
-        modelContext.insert(upperBodyRPT)
-        try? modelContext.save()
+        return [deadliftDay, benchDay, squatDay]
     }
 }

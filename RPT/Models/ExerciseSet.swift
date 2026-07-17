@@ -16,13 +16,18 @@ final class ExerciseSet {
     var isWarmup: Bool
     var rpe: Int? // Rate of Perceived Exertion (1-10)
     var notes: String
-    
+    /// Position of this set within its workout. SwiftData to-many
+    /// relationships are unordered, so logged order must be persisted
+    /// explicitly. Legacy rows default to 0 and fall back to
+    /// `completedAt` ordering.
+    var orderIndex: Int = 0
+
     @Relationship(deleteRule: .nullify)
     var exercise: Exercise?
-    
+
     @Relationship(deleteRule: .nullify)
     var workout: Workout?
-    
+
     init(weight: Int,
          reps: Int,
          exercise: Exercise,
@@ -30,7 +35,8 @@ final class ExerciseSet {
          completedAt: Date = Date(),
          isWarmup: Bool = false,
          rpe: Int? = nil,
-         notes: String = "") {
+         notes: String = "",
+         orderIndex: Int = 0) {
         self.weight = weight
         self.reps = reps
         self.exercise = exercise
@@ -39,6 +45,7 @@ final class ExerciseSet {
         self.isWarmup = isWarmup
         self.rpe = rpe
         self.notes = notes
+        self.orderIndex = orderIndex
     }
 
     static func hasCompletedValues(weight: Int, reps: Int, exerciseCategory: ExerciseCategory? = nil) -> Bool {

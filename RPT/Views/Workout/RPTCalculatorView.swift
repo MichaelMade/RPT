@@ -13,6 +13,7 @@ struct RPTCalculatorView: View {
     @StateObject private var settingsManager = SettingsManager.shared
 
     @State private var topSetText: String = ""
+    @FocusState private var isInputFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -25,11 +26,17 @@ struct RPTCalculatorView: View {
                 .padding(Theme.screenPadding)
             }
             .background(Theme.screenBackground)
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("RPT Calculator")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Close") { dismiss() }
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { isInputFocused = false }
                 }
             }
         }
@@ -45,6 +52,7 @@ struct RPTCalculatorView: View {
                 TextField("e.g. 225", text: $topSetText)
                     .keyboardType(.numberPad)
                     .font(Theme.statFont(size: 32))
+                    .focused($isInputFocused)
 
                 Text("lb")
                     .font(.headline)

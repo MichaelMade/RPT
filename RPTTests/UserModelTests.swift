@@ -215,6 +215,45 @@ final class UserModelTests: XCTestCase {
         XCTAssertEqual(user.workoutStreak, 2, "A workout logged for the next calendar day should extend the streak even when completed later")
     }
 
+    func testCurrentWorkoutStreak_keepsStreakThroughYesterday() {
+        // Given
+        let user = User(username: "TestUser", email: "test@example.com")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let calendar = Calendar.current
+        let now = Date()
+
+        for daysAgo in [2, 1] {
+            let workout = Workout(date: calendar.date(byAdding: .day, value: -daysAgo, to: now)!, name: "Day -\(daysAgo)")
+            _ = workout.addSet(exercise: bench, weight: 185, reps: 5)
+            workout.complete()
+            XCTAssertTrue(user.registerCompletedWorkoutIfNeeded(workout))
+        }
+
+        // Then — trained yesterday, so the chain is alive and showable.
+        XCTAssertEqual(user.workoutStreak, 2)
+        XCTAssertEqual(user.currentWorkoutStreak(asOf: now), 2)
+    }
+
+    func testCurrentWorkoutStreak_zeroOnceAChainDayIsMissed() {
+        // Given — a two-day chain that ended three days ago.
+        let user = User(username: "TestUser", email: "test@example.com")
+        let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+        let calendar = Calendar.current
+        let now = Date()
+
+        for daysAgo in [4, 3] {
+            let workout = Workout(date: calendar.date(byAdding: .day, value: -daysAgo, to: now)!, name: "Day -\(daysAgo)")
+            _ = workout.addSet(exercise: bench, weight: 185, reps: 5)
+            workout.complete()
+            XCTAssertTrue(user.registerCompletedWorkoutIfNeeded(workout))
+        }
+
+        // Then — the stored chain length survives for the next registration,
+        // but the user-facing current streak is over.
+        XCTAssertEqual(user.workoutStreak, 2)
+        XCTAssertEqual(user.currentWorkoutStreak(asOf: now), 0, "A streak that can no longer be extended should display as 0")
+    }
+
     func testCreateFollowUpWorkout_usesOnlyCompletedWorkingSets() {
         let workout = Workout(name: "Corrupted Workout")
         let exercise = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
@@ -234,7 +273,7 @@ final class UserModelTests: XCTestCase {
 
     func testCreateFollowUpWorkout_nonFinitePercentageIncreaseDefaultsSafely() {
         let workout = Workout(name: "Base Workout")
-        let exercise = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quads])
+        let exercise = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
 
         _ = workout.addSet(exercise: exercise, weight: 200, reps: 5)
 

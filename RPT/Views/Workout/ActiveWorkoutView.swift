@@ -81,6 +81,7 @@ struct ActiveWorkoutView: View {
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
+                    .accessibilityLabel("Workout options")
                 }
             }
             .safeAreaInset(edge: .bottom) {
@@ -143,7 +144,9 @@ struct ActiveWorkoutView: View {
                 if isEditingName {
                     TextField("Workout name", text: $viewModel.workoutName)
                         .font(.title3.weight(.bold))
-                        .textFieldStyle(.roundedBorder)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .submitLabel(.done)
                         .onSubmit { commitNameEdit() }
 
@@ -161,6 +164,7 @@ struct ActiveWorkoutView: View {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
+                    .accessibilityLabel("Rename workout")
 
                     Spacer()
 

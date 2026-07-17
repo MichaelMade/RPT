@@ -7,12 +7,13 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ExercisePickerView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = ExerciseLibraryViewModel()
 
-    var excludedExerciseIDs: Set<Exercise.ID> = []
+    var excludedExerciseIDs: Set<PersistentIdentifier> = []
     var title: String = "Add Exercise"
     let onSelect: (Exercise) -> Void
 
@@ -70,6 +71,7 @@ struct ExercisePickerView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Create custom exercise")
                 }
             }
             .sheet(isPresented: $showingCreateExercise) {

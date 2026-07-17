@@ -30,7 +30,7 @@ struct ExerciseIconView: View {
             
             Image(systemName: category.style.icon)
                 .font(.system(size: size/2))
-                .foregroundColor(showBackground ? .white : category.style.color)
+                .foregroundStyle(showBackground ? .white : category.style.color)
         }
     }
 }

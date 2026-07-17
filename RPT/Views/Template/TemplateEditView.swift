@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct TemplateEditView: View {
     enum Mode {
@@ -149,7 +150,7 @@ struct TemplateEditView: View {
             }
             .sheet(isPresented: $showingExercisePicker) {
                 ExercisePickerView(
-                    excludedExerciseIDs: [],
+                    excludedExerciseIDs: alreadyAddedExerciseIDs,
                     title: "Add to Template"
                 ) { exercise in
                     addExercise(named: exercise.name)
@@ -198,6 +199,20 @@ struct TemplateEditView: View {
         }
 
         return "\(exercise.suggestedSets) sets • top set \(first.minReps)–\(first.maxReps) reps"
+    }
+
+    /// Library exercises already in this template, so the picker hides them
+    /// instead of silently swallowing a duplicate selection.
+    private var alreadyAddedExerciseIDs: Set<PersistentIdentifier> {
+        let templateExerciseNames = exercises.map(\.exerciseName)
+        let matchingIDs = ExerciseManager.shared.fetchAllExercises()
+            .filter { libraryExercise in
+                templateExerciseNames.contains {
+                    ExerciseManager.namesCollide($0, libraryExercise.name)
+                }
+            }
+            .map(\.id)
+        return Set(matchingIDs)
     }
 
     private func addExercise(named exerciseName: String) {

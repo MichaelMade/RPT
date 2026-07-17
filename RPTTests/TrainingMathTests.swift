@@ -185,6 +185,8 @@ final class WorkoutCSVExporterTests: XCTestCase {
         XCTAssertEqual(WorkoutCSVExporter.escape("plain"), "plain")
         XCTAssertEqual(WorkoutCSVExporter.escape("with,comma"), "\"with,comma\"")
         XCTAssertEqual(WorkoutCSVExporter.escape("say \"hi\""), "\"say \"\"hi\"\"\"")
+        XCTAssertEqual(WorkoutCSVExporter.escape("line\nbreak"), "\"line\nbreak\"")
+        XCTAssertEqual(WorkoutCSVExporter.escape("carriage\rreturn"), "\"carriage\rreturn\"")
     }
 
     @MainActor

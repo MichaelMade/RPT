@@ -55,6 +55,7 @@ struct WorkoutDetailView: View {
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
+                .accessibilityLabel("Workout options")
             }
         }
         .confirmationDialog(

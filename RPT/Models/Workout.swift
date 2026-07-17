@@ -165,6 +165,27 @@ final class Workout {
         return sets.count
     }
     
+    /// All sets in canonical logged order. SwiftData's to-many array is
+    /// unordered, so this sorts by the persisted `orderIndex`, falling back
+    /// to `completedAt` for legacy rows that predate the index.
+    var setsInLoggedOrder: [ExerciseSet] {
+        // Workouts saved before `orderIndex` existed have 0 on every row;
+        // ordering them purely by timestamp preserves their original behavior.
+        let allLegacy = sets.allSatisfy { $0.orderIndex == 0 }
+
+        return sets.sorted { lhs, rhs in
+            if !allLegacy, lhs.orderIndex != rhs.orderIndex {
+                return lhs.orderIndex < rhs.orderIndex
+            }
+            return lhs.completedAt < rhs.completedAt
+        }
+    }
+
+    /// The next free position for a newly added set.
+    private var nextSetOrderIndex: Int {
+        (sets.map(\.orderIndex).max() ?? -1) + 1
+    }
+
     // Group sets by exercise
     var exerciseGroups: [Exercise: [ExerciseSet]] {
         let setsWithExercise = sets.compactMap { set -> (Exercise, ExerciseSet)? in
@@ -175,13 +196,13 @@ final class Workout {
     }
 
     // Group sets by exercise while preserving canonical logged order.
-    // - Exercise order: first appearance in workout.sets.
-    // - Set order: insertion order inside each exercise.
+    // - Exercise order: first appearance in logged order.
+    // - Set order: logged order inside each exercise.
     var orderedExerciseGroups: [(exercise: Exercise, sets: [ExerciseSet])] {
         var grouped: [Exercise: [ExerciseSet]] = [:]
         var exerciseOrder: [Exercise] = []
 
-        for set in sets {
+        for set in setsInLoggedOrder {
             guard let exercise = set.exercise else { continue }
 
             if grouped[exercise] == nil {
@@ -248,10 +269,13 @@ final class Workout {
             workout: self,
             completedAt: isComplete ? Date() : .distantPast,
             isWarmup: isWarmup,
-            rpe: rpe
+            rpe: rpe,
+            orderIndex: nextSetOrderIndex
         )
-        
-        sets.append(newSet)
+
+        if !sets.contains(where: { $0.id == newSet.id }) {
+            sets.append(newSet)
+        }
         return newSet
     }
     
@@ -431,8 +455,9 @@ final class Workout {
 
     private func summaryExerciseNamesInOrder() -> [String] {
         var seenExerciseNames: Set<String> = []
+        let orderedSets = setsInLoggedOrder
 
-        let completedExerciseNamesInOrder = sets.compactMap { set -> String? in
+        let completedExerciseNamesInOrder = orderedSets.compactMap { set -> String? in
             guard set.isCompletedWorkingSet,
                   let exerciseName = set.exercise?.name,
                   let normalizedName = normalizedSummaryExerciseName(exerciseName)
@@ -449,7 +474,7 @@ final class Workout {
             return completedExerciseNamesInOrder
         }
 
-        let loggedExerciseNamesInOrder = sets.compactMap { set -> String? in
+        let loggedExerciseNamesInOrder = orderedSets.compactMap { set -> String? in
             guard set.isCompletedLoggedSet,
                   let exerciseName = set.exercise?.name,
                   let normalizedName = normalizedSummaryExerciseName(exerciseName)
@@ -468,10 +493,10 @@ final class Workout {
 
         let fallbackSets: [ExerciseSet]
         if isCompleted {
-            fallbackSets = sets.filter { !$0.isWarmup }
+            fallbackSets = orderedSets.filter { !$0.isWarmup }
         } else {
-            let plannedNonWarmupSets = sets.filter { !$0.isWarmup }
-            fallbackSets = plannedNonWarmupSets.isEmpty ? sets : plannedNonWarmupSets
+            let plannedNonWarmupSets = orderedSets.filter { !$0.isWarmup }
+            fallbackSets = plannedNonWarmupSets.isEmpty ? orderedSets : plannedNonWarmupSets
         }
 
         return fallbackSets.compactMap { set -> String? in

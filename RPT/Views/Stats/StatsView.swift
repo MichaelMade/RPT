@@ -52,6 +52,11 @@ struct StatsView: View {
             .onAppear {
                 viewModel.refresh()
             }
+            .onDisappear {
+                // Drop any generated CSV so the next visit exports fresh data
+                // instead of re-sharing a stale file.
+                exportURL = nil
+            }
         }
     }
 
@@ -63,12 +68,14 @@ struct StatsView: View {
             ShareLink(item: exportURL) {
                 Image(systemName: "square.and.arrow.up")
             }
+            .accessibilityLabel("Share exported training history")
         } else {
             Button {
                 exportURL = WorkoutCSVExporter.exportFile(for: viewModel.allCompletedWorkouts)
             } label: {
                 Image(systemName: "square.and.arrow.up")
             }
+            .accessibilityLabel("Export training history as CSV")
         }
     }
 

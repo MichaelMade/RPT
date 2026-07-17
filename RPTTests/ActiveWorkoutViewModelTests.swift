@@ -112,6 +112,22 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertEqual(sets[2].weight, 255, "15% drop from 300")
     }
 
+    func testUpdateDropSetSuggestionsDoesNotLogUntouchedSets() {
+        let exercise = makeExercise()
+        let workout = Workout(name: "Test")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertTrue(viewModel.addExerciseToWorkoutSafely(exercise))
+        XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
+        XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
+
+        XCTAssertTrue(viewModel.updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: 300))
+
+        let sets = viewModel.orderedSetsForDisplay(in: exercise)
+        XCTAssertFalse(sets[1].isCompletedLoggedSet, "Recalculating suggestions must not log unperformed sets")
+        XCTAssertFalse(sets[2].isCompletedLoggedSet, "Recalculating suggestions must not log unperformed sets")
+    }
+
     // MARK: - Warm-up Sets
 
     func testWarmupSetsSortAheadOfWorkingSets() {
@@ -210,5 +226,71 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
 
         viewModel.toggleExerciseCompletion(exercise)
         XCTAssertFalse(viewModel.isExerciseCompleted(exercise))
+    }
+
+    // MARK: - Explicit Set Logging
+
+    func testToggleSetLoggedLogsAndUnlogsSetWithCompleteValues() {
+        let exercise = makeExercise()
+        let workout = Workout(name: "Test")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertTrue(viewModel.addExerciseToWorkoutSafely(exercise))
+        let set = viewModel.orderedSetsForDisplay(in: exercise)[0]
+        XCTAssertTrue(viewModel.updateSetSafely(set, weight: 200, reps: 5, rpe: nil))
+        XCTAssertTrue(set.isCompletedLoggedSet)
+
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(set), .unlogged)
+        XCTAssertFalse(set.isCompletedLoggedSet)
+        XCTAssertEqual(set.weight, 200, "Unlogging must not clear the set's values")
+        XCTAssertEqual(set.reps, 5, "Unlogging must not clear the set's values")
+
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(set), .logged)
+        XCTAssertTrue(set.isCompletedLoggedSet)
+    }
+
+    func testToggleSetLoggedLogsPrefilledSetWithoutValueChanges() {
+        // Template-created sets arrive pre-filled but unlogged; a single
+        // log tap must mark them done without editing weight or reps.
+        let exercise = makeExercise()
+        let workout = Workout(name: "Test")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertTrue(viewModel.addExerciseToWorkoutSafely(exercise))
+        let set = viewModel.orderedSetsForDisplay(in: exercise)[0]
+        set.weight = 185
+        set.reps = 5
+        set.completedAt = .distantPast
+        XCTAssertFalse(set.isCompletedLoggedSet)
+
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(set), .logged)
+        XCTAssertTrue(set.isCompletedLoggedSet)
+    }
+
+    func testToggleSetLoggedRejectsEmptySet() {
+        let exercise = makeExercise()
+        let workout = Workout(name: "Test")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertTrue(viewModel.addExerciseToWorkoutSafely(exercise))
+        // Placeholder set: weight 0 on a non-bodyweight exercise is incomplete.
+        let set = viewModel.orderedSetsForDisplay(in: exercise)[0]
+
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(set), .needsValues)
+        XCTAssertFalse(set.isCompletedLoggedSet)
+    }
+
+    func testToggleSetLoggedAllowsBodyweightZeroWeight() {
+        let exercise = Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+        let workout = Workout(name: "Test")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertTrue(viewModel.addExerciseToWorkoutSafely(exercise))
+        let set = viewModel.orderedSetsForDisplay(in: exercise)[0]
+        XCTAssertEqual(set.weight, 0)
+        XCTAssertEqual(set.reps, 8)
+
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(set), .logged)
+        XCTAssertTrue(set.isCompletedLoggedSet)
     }
 }

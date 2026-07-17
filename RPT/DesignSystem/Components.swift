@@ -201,8 +201,14 @@ struct LabeledValueRow: View {
 struct ValueStepperControl: View {
     let value: String
     let unit: String?
+    /// Spoken name for the value being adjusted (e.g. "weight"); falls back to the unit.
+    var accessibilityName: String? = nil
     let onDecrement: () -> Void
     let onIncrement: () -> Void
+
+    private var spokenName: String {
+        accessibilityName ?? unit ?? "value"
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -214,6 +220,8 @@ struct ValueStepperControl: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(Theme.accent)
+            .accessibilityLabel("Decrease \(spokenName)")
+            .accessibilityValue(value)
 
             VStack(spacing: 0) {
                 Text(value)
@@ -237,6 +245,8 @@ struct ValueStepperControl: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(Theme.accent)
+            .accessibilityLabel("Increase \(spokenName)")
+            .accessibilityValue(value)
         }
         .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }

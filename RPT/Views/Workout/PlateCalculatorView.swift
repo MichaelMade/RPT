@@ -16,6 +16,7 @@ struct PlateCalculatorView: View {
     @State private var targetText: String = ""
     @State private var unit: WeightUnit = .pounds
     @State private var barbell: BarbellType = .olympic
+    @FocusState private var isInputFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -27,11 +28,17 @@ struct PlateCalculatorView: View {
                 .padding(Theme.screenPadding)
             }
             .background(Theme.screenBackground)
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Plate Math")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Close") { dismiss() }
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { isInputFocused = false }
                 }
             }
             .onAppear {
@@ -57,6 +64,7 @@ struct PlateCalculatorView: View {
                     .multilineTextAlignment(.trailing)
                     .font(Theme.statFont(size: 28))
                     .frame(maxWidth: 140)
+                    .focused($isInputFocused)
 
                 Text(unit.short)
                     .font(.headline)

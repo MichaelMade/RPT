@@ -36,9 +36,28 @@ final class ExerciseManagerTests: XCTestCase {
         XCTAssertEqual(result, .valid)
     }
 
+    @MainActor
     func testValidateDraft_rejectsDuplicateNormalizedName() {
+        // Seed a known exercise so the duplicate check doesn't depend on
+        // whatever happens to be in the shared store.
+        let context = DataManager.shared.getModelContext()
+        let baseName = "Validate Duplicate Probe \(UUID().uuidString.prefix(8))"
+        let existing = Exercise(
+            name: baseName,
+            category: .compound,
+            primaryMuscleGroups: [.chest],
+            isCustom: true
+        )
+        context.insert(existing)
+        XCTAssertNoThrow(try context.save())
+        defer {
+            context.delete(existing)
+            try? context.save()
+        }
+
+        // Case and whitespace variants normalize to the same lookup key.
         let result = ExerciseManager.shared.validateDraft(
-            name: "  Ｂｅｎｃｈ   Ｐｒｅｓｓ  ",
+            name: "  \(baseName.uppercased())  ",
             primaryMuscleGroups: [.chest]
         )
 

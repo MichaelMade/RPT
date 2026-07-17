@@ -3,6 +3,13 @@ import XCTest
 
 @MainActor
 final class TemplateViewModelSearchTests: XCTestCase {
+    /// Unique suffix with no digits, so numeric search queries can't
+    /// accidentally substring-match it.
+    private static func lettersOnlySuffix(length: Int = 10) -> String {
+        let letters = "abcdefghijklmnopqrstuvwxyz"
+        return String((0..<length).compactMap { _ in letters.randomElement() })
+    }
+
     func testSearchPrompt_teachesCustomMovesAlongsidePushPullSplitsAndRepPlans() {
         XCTAssertEqual(
             TemplateViewModel.searchPrompt,
@@ -44,8 +51,8 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
         let viewModel = TemplateViewModel()
         viewModel.templates = [
-            WorkoutTemplate(name: "Custom Accessories", exercises: [TemplateExercise(exerciseName: customExercise.name)]),
-            WorkoutTemplate(name: "Press Day", exercises: [TemplateExercise(exerciseName: standardExercise.name)])
+            WorkoutTemplate(name: "Custom Accessories", exercises: [TemplateExercise(exerciseName: customExercise.name, suggestedSets: 3, repRanges: [])]),
+            WorkoutTemplate(name: "Press Day", exercises: [TemplateExercise(exerciseName: standardExercise.name, suggestedSets: 3, repRanges: [])])
         ]
 
         viewModel.searchText = "custom"
@@ -78,8 +85,8 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
         let viewModel = TemplateViewModel()
         viewModel.templates = [
-            WorkoutTemplate(name: "Pull Day", exercises: [TemplateExercise(exerciseName: bodyweightExercise.name)]),
-            WorkoutTemplate(name: "Arm Day", exercises: [TemplateExercise(exerciseName: isolationExercise.name)])
+            WorkoutTemplate(name: "Pull Day", exercises: [TemplateExercise(exerciseName: bodyweightExercise.name, suggestedSets: 3, repRanges: [])]),
+            WorkoutTemplate(name: "Arm Day", exercises: [TemplateExercise(exerciseName: isolationExercise.name, suggestedSets: 3, repRanges: [])])
         ]
 
         viewModel.searchText = "bodyweight"
@@ -114,8 +121,8 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
         let viewModel = TemplateViewModel()
         viewModel.templates = [
-            WorkoutTemplate(name: "Push Day", exercises: [TemplateExercise(exerciseName: bench.name)]),
-            WorkoutTemplate(name: "Pull Day", exercises: [TemplateExercise(exerciseName: row.name)])
+            WorkoutTemplate(name: "Push Day", exercises: [TemplateExercise(exerciseName: bench.name, suggestedSets: 3, repRanges: [])]),
+            WorkoutTemplate(name: "Pull Day", exercises: [TemplateExercise(exerciseName: row.name, suggestedSets: 3, repRanges: [])])
         ]
 
         viewModel.searchText = "push"
@@ -150,8 +157,8 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
         let viewModel = TemplateViewModel()
         viewModel.templates = [
-            WorkoutTemplate(name: "Leg Day", exercises: [TemplateExercise(exerciseName: squat.name)]),
-            WorkoutTemplate(name: "Core Day", exercises: [TemplateExercise(exerciseName: plank.name)])
+            WorkoutTemplate(name: "Leg Day", exercises: [TemplateExercise(exerciseName: squat.name, suggestedSets: 3, repRanges: [])]),
+            WorkoutTemplate(name: "Core Day", exercises: [TemplateExercise(exerciseName: plank.name, suggestedSets: 3, repRanges: [])])
         ]
 
         viewModel.searchText = "legs"
@@ -179,7 +186,7 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
         let viewModel = TemplateViewModel()
         viewModel.templates = [
-            WorkoutTemplate(name: "Press Day", exercises: [TemplateExercise(exerciseName: bench.name)])
+            WorkoutTemplate(name: "Press Day", exercises: [TemplateExercise(exerciseName: bench.name, suggestedSets: 3, repRanges: [])])
         ]
 
         viewModel.searchText = "drive elbows back"
@@ -211,8 +218,8 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
         let viewModel = TemplateViewModel()
         viewModel.templates = [
-            WorkoutTemplate(name: "Push Focus", exercises: [TemplateExercise(exerciseName: bench.name)]),
-            WorkoutTemplate(name: "Leg Focus", exercises: [TemplateExercise(exerciseName: squat.name)])
+            WorkoutTemplate(name: "Push Focus", exercises: [TemplateExercise(exerciseName: bench.name, suggestedSets: 3, repRanges: [])]),
+            WorkoutTemplate(name: "Leg Focus", exercises: [TemplateExercise(exerciseName: squat.name, suggestedSets: 3, repRanges: [])])
         ]
 
         viewModel.searchText = "bench chest"
@@ -224,14 +231,16 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
     func testFilteredTemplates_matchesSetAndRepPlanAliases() throws {
         let context = DataManager.shared.getModelContext()
+        // Letters-only unique suffixes: numeric queries like "3 sets" must not
+        // accidentally substring-match digits inside a generated name.
         let bench = Exercise(
-            name: "Search Rep Plan Bench \(UUID().uuidString)",
+            name: "Search Rep Plan Bench \(Self.lettersOnlySuffix())",
             category: .compound,
             primaryMuscleGroups: [.chest],
             secondaryMuscleGroups: [.triceps]
         )
         let row = Exercise(
-            name: "Search Rep Plan Row \(UUID().uuidString)",
+            name: "Search Rep Plan Row \(Self.lettersOnlySuffix())",
             category: .compound,
             primaryMuscleGroups: [.back],
             secondaryMuscleGroups: [.biceps]
@@ -305,7 +314,7 @@ final class TemplateViewModelSearchTests: XCTestCase {
 
         let viewModel = TemplateViewModel()
         viewModel.templates = [
-            WorkoutTemplate(name: "Travel Pull Day", exercises: [TemplateExercise(exerciseName: pullUp.name)])
+            WorkoutTemplate(name: "Travel Pull Day", exercises: [TemplateExercise(exerciseName: pullUp.name, suggestedSets: 3, repRanges: [])])
         ]
 
         viewModel.searchText = "pullup"
