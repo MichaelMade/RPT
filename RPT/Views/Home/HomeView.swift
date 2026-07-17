@@ -560,6 +560,10 @@ struct HomeView: View {
         var pick: WorkoutTemplate?
         var pickDate = Date.distantFuture
         for template in templates {
+            // Never headline a template the Templates tab would show as
+            // broken — its Start could only fail.
+            guard templateManager.canStartWorkout(for: template) else { continue }
+
             let lastRun = latestRunByTemplateID[template.id]?.date ?? .distantPast
             // Name tiebreak keeps ties (e.g. several never-run templates)
             // deterministic and rotating in a sensible order.

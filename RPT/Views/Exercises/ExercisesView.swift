@@ -11,6 +11,7 @@ import SwiftData
 import SwiftUI
 
 struct ExercisesView: View {
+    @EnvironmentObject private var session: WorkoutSession
     @StateObject private var viewModel = ExerciseLibraryViewModel()
     @State private var showingCreateExercise = false
     @State private var recentEntries: [RecentExerciseEntry] = []
@@ -60,6 +61,13 @@ struct ExercisesView: View {
             }
             .onAppear {
                 refreshLibrary()
+            }
+            .onChange(of: session.isPresentingWorkout) { _, presenting in
+                // Refresh when the full-screen logger comes down so a
+                // just-finished workout shows in "Recently used" immediately.
+                if !presenting {
+                    refreshLibrary()
+                }
             }
         }
     }

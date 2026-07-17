@@ -11,6 +11,7 @@ import SwiftUI
 import Charts
 
 struct StatsView: View {
+    @EnvironmentObject private var session: WorkoutSession
     @StateObject private var viewModel = StatsViewModel()
     @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
     @AppStorage("selectedRootTab") private var selectedRootTabRawValue = RootTab.home.rawValue
@@ -55,6 +56,13 @@ struct StatsView: View {
             .toolbar(.hidden, for: .navigationBar)
             .onAppear {
                 viewModel.refresh()
+            }
+            .onChange(of: session.isPresentingWorkout) { _, presenting in
+                // Refresh when the full-screen logger comes down so a
+                // just-finished workout is reflected immediately.
+                if !presenting {
+                    viewModel.refresh()
+                }
             }
             .onDisappear {
                 // Drop any generated CSV so the next visit exports fresh data
