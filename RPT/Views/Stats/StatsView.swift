@@ -11,6 +11,8 @@ import Charts
 
 struct StatsView: View {
     @StateObject private var viewModel = StatsViewModel()
+    @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
+    @AppStorage("selectedRootTab") private var selectedRootTabRawValue = RootTab.home.rawValue
     @State private var exportURL: URL?
 
     var body: some View {
@@ -21,20 +23,23 @@ struct StatsView: View {
                         EmptyStateCard(
                             icon: "chart.bar.xaxis",
                             title: "No Stats Yet",
-                            message: "Complete your first workout and your volume trends, muscle balance, and personal records will show up here."
-                        )
+                            message: "Complete your first workout and your volume trends, muscle balance, and personal records will show up here.",
+                            actionTitle: "Go Train"
+                        ) {
+                            selectedRootTabRawValue = RootTab.home.rawValue
+                        }
                     } else {
                         summaryTiles
+
+                        // One upgrade pitch per state: locked users get the
+                        // analytics-specific card below instead of stacking
+                        // two upsell cards on the same screen.
+                        if purchaseManager.isUnlocked {
+                            premiumPreviewCard
+                        }
+
                         heatmapSection
-                        volumeSection
-
-                        if !viewModel.muscleGroupShares.isEmpty {
-                            muscleSection
-                        }
-
-                        if !viewModel.personalRecords.isEmpty {
-                            recordsSection
-                        }
+                        advancedAnalyticsContent
                     }
                 }
                 .padding(.horizontal, Theme.screenPadding)
@@ -45,7 +50,7 @@ struct StatsView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     if viewModel.completedWorkoutCount > 0 {
-                        exportButton
+                        exportToolbarItem
                     }
                 }
             }
@@ -57,10 +62,26 @@ struct StatsView: View {
                 // instead of re-sharing a stale file.
                 exportURL = nil
             }
+            .task {
+                await purchaseManager.start()
+            }
         }
     }
 
     // MARK: - Export
+
+    @ViewBuilder
+    private var exportToolbarItem: some View {
+        if purchaseManager.isUnlocked {
+            exportButton
+        } else {
+            NavigationLink {
+                UpgradeView()
+            } label: {
+                Image(systemName: "crown.fill")
+            }
+        }
+    }
 
     @ViewBuilder
     private var exportButton: some View {
@@ -112,6 +133,93 @@ struct StatsView: View {
                 )
             }
         }
+    }
+
+    private var premiumPreviewCard: some View {
+        NavigationLink {
+            UpgradeView()
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    PillTag(text: MonetizationPlan.proTier.name, tint: Theme.amber, icon: "crown.fill")
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+
+                Text("Upgrade when you're ready to go beyond basic tracking.")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Text(MonetizationPlan.upgradeCTA)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Text("\(MonetizationPlan.launchOfferTitle) • \(purchaseManager.displayPrice)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
+
+                if purchaseManager.isUnlocked {
+                    Text("RPT Pro is unlocked on this device.")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Theme.success)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .rptCard()
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Advanced Analytics Gate
+
+    @ViewBuilder
+    private var advancedAnalyticsContent: some View {
+        if purchaseManager.isUnlocked {
+            volumeSection
+
+            if !viewModel.muscleGroupShares.isEmpty {
+                muscleSection
+            }
+
+            if !viewModel.personalRecords.isEmpty {
+                recordsSection
+            }
+        } else {
+            advancedAnalyticsLockedCard
+        }
+    }
+
+    private var advancedAnalyticsLockedCard: some View {
+        NavigationLink {
+            UpgradeView()
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    PillTag(text: "Advanced Analytics", tint: Theme.amber, icon: "chart.line.uptrend.xyaxis")
+                    Spacer()
+                    Image(systemName: "lock.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Theme.amber)
+                }
+
+                Text("Unlock deeper training trends")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Text("Weekly volume charts, muscle-balance breakdowns, and personal-record leaderboards are part of RPT Pro.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Text("Unlock RPT Pro for \(purchaseManager.displayPrice)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .rptCard()
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Heatmap

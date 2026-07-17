@@ -186,9 +186,9 @@ final class Workout {
         (sets.map(\.orderIndex).max() ?? -1) + 1
     }
 
-    // Group sets by exercise
+    // Group sets by exercise (values in logged order)
     var exerciseGroups: [Exercise: [ExerciseSet]] {
-        let setsWithExercise = sets.compactMap { set -> (Exercise, ExerciseSet)? in
+        let setsWithExercise = setsInLoggedOrder.compactMap { set -> (Exercise, ExerciseSet)? in
             guard let exercise = set.exercise else { return nil }
             return (exercise, set)
         }
@@ -245,6 +245,23 @@ final class Workout {
         isCompleted = true
 
         let rawElapsedDuration = now.timeIntervalSince(date)
+
+        // Drafts can sit for days before being completed; wall-clock elapsed
+        // time would poison duration stats. Past a plausibility threshold,
+        // fall back to the actual span of logged sets.
+        let maxPlausibleSessionDuration: TimeInterval = 12 * 60 * 60
+        if rawElapsedDuration > maxPlausibleSessionDuration {
+            let loggedTimestamps = sets
+                .filter(\.isCompletedLoggedSet)
+                .map(\.completedAt)
+                .filter { $0 > .distantPast }
+
+            if let first = loggedTimestamps.min(), let last = loggedTimestamps.max(), last > first {
+                duration = last.timeIntervalSince(first)
+                return
+            }
+        }
+
         if rawElapsedDuration.isFinite, rawElapsedDuration > 0 {
             duration = rawElapsedDuration
             return
@@ -278,7 +295,7 @@ final class Workout {
         }
         return newSet
     }
-    
+
     // Create a follow-up workout with the same exercises but increased weights
     func createFollowUpWorkout(percentageIncrease: Double = 0.025) -> Workout {
         let followUp = Workout(

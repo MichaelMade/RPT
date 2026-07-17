@@ -45,9 +45,50 @@ struct AboutView: View {
                     aboutRow(
                         icon: "lock.fill",
                         title: "Private by design",
-                        text: "Your training data lives on your device. Export it to CSV anytime."
+                        text: "Your training data stays on device. CSV export is user-initiated through the iOS share sheet when RPT Pro is unlocked."
                     )
                 }
+                .rptCard()
+
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("Support, Privacy & Terms")
+                        .font(.headline)
+
+                    linkRow(
+                        icon: "questionmark.circle.fill",
+                        title: "Get Support",
+                        text: "Questions, bug reports, and launch feedback.",
+                        url: AppStoreReleasePlan.supportURL
+                    )
+
+                    if let emailURL = URL(string: "mailto:moorem88@gmail.com?subject=RPT%20Support") {
+                        linkRow(
+                            icon: "envelope.fill",
+                            title: "Email the Developer",
+                            text: "Bugs and feature ideas go straight to the developer.",
+                            url: emailURL
+                        )
+                    }
+
+                    linkRow(
+                        icon: "hand.raised.fill",
+                        title: "Privacy Policy",
+                        text: "Review RPT's no-account, on-device data policy.",
+                        url: AppStoreReleasePlan.privacyURL
+                    )
+
+                    linkRow(
+                        icon: "doc.text.fill",
+                        title: "Terms of Use (EULA)",
+                        text: "RPT uses Apple's standard terms for App Store purchases.",
+                        url: AppStoreReleasePlan.standardEULAURL
+                    )
+
+                    Text("RPT has no accounts, analytics, ads, tracking SDKs, or developer-run workout-data servers. StoreKit handles RPT Pro purchases through Apple.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .rptCard()
             }
             .padding(Theme.screenPadding)
@@ -72,5 +113,33 @@ struct AboutView: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+
+    private func linkRow(icon: String, title: String, text: String, url: URL) -> some View {
+        Link(destination: url) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundStyle(Theme.brandGradient)
+                    .frame(width: 30)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.subheadline.weight(.semibold))
+                    Text(text)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "arrow.up.right")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens in Safari")
     }
 }

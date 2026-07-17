@@ -1,48 +1,41 @@
-Privacy Policy for RPT Trainer
-Effective Date: June 11, 2026
+Privacy Policy for RPT
+Effective Date: June 29, 2026
+
 Introduction
-Welcome to RPT Trainer ("we," "our," or "us"). We respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how the RPT Trainer mobile application (the "App") handles your information.
-Please read this Privacy Policy carefully. By using the App, you agree to the terms of this Privacy Policy. If you do not agree with the terms of this Privacy Policy, please do not access or use the App.
-Information We Collect
-We do not collect any information. The App has no accounts, no analytics, no crash reporting, and makes no network calls. All information you input into the App, including:
+RPT is a local-first strength training app for reverse pyramid training. This policy explains what information the app handles, where it stays, and what leaves the device.
 
-Workout data
-Exercise records
-Weight and repetition information
-User preferences and settings
+No Accounts, Tracking, or Analytics
+RPT does not require an account. We do not run third-party analytics, advertising SDKs, tracking SDKs, or crash-reporting SDKs in the app binary. The app does not track you across apps or websites.
 
-is stored locally on your device and is never transmitted to us or to any third party.
-Data Storage and Security
-All your workout data is stored locally on your device. We do not operate servers and we never receive your workout information. This means:
+Information You Enter in the App
+You may enter training information such as workout logs, exercise names, weights, repetitions, RPE values, templates, timer preferences, and app settings. This information is stored locally on your device using Apple's on-device storage systems. We do not operate a server that receives or stores your workout data.
 
-Your workout data remains on your device even when offline
-Your data is protected by your device's built-in security features
-You maintain complete control over your data
+Device Storage and UserDefaults
+RPT uses on-device storage, including UserDefaults, for app preferences, onboarding state, rest-timer settings, and workout-state recovery. This data remains on your device unless you export it yourself, delete it, reset app data, or remove the app.
 
-Data Export
-The App can export your training history as a CSV file. An export happens only when you trigger it, and the resulting file is shared only through the iOS share sheet to a destination you choose. The App itself never sends this file anywhere.
+CSV Export
+If you choose to export your workout history, RPT creates a CSV file locally and opens the iOS share sheet. You control where that exported file goes. Exporting is a user-initiated action.
+
+Purchases and Restore Purchases
+RPT Pro purchase and restore actions are handled by Apple's StoreKit and the App Store. Apple may process purchase information under Apple's own terms and privacy policy. RPT uses StoreKit only to determine whether the RPT Pro entitlement is unlocked; we do not receive your payment card details.
+
+Data Collection Disclosure
+For App Store privacy purposes, RPT is designed so the developer does not collect data from the app. Training data, preferences, and exported files stay under your control on your device unless you intentionally share them outside the app.
+
 Third-Party Services
-The App does not integrate with any third-party services, SDKs, or analytics providers, and it does not connect to Apple Health.
-Your Choices
-You can delete all app data at any time by:
-
-Deleting the app from your device
-Using the "Reset All Settings" option in the app settings to restore preferences to their defaults
-Manually clearing app data through your device settings
+RPT does not integrate Apple Health, location services, contacts, camera, photo library, advertising networks, or third-party analytics SDKs in the current app binary. The App Store purchase flow is provided by Apple.
 
 Children's Privacy
-Our App is not directed to children under the age of 13. Because the App collects no information at all, it does not knowingly collect personally identifiable information from children under 13.
-Changes to This Privacy Policy
-We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Effective Date" at the top of this Privacy Policy. You are advised to review this Privacy Policy periodically for any changes.
-Contact Us
-If you have any questions about this Privacy Policy, please contact us at:
+RPT is not directed to children under 13. We do not knowingly collect personal information from children.
+
+Deleting Your Data
+You can delete RPT data by using any in-app reset options that are available, deleting exported files you created, or deleting the app from your device.
+
+Changes to This Policy
+We may update this policy as the app changes. The effective date above will be updated when the policy changes.
+
+Contact
+Questions about this policy or RPT support can be sent to:
 
 Email: moore.m@me.com
-Website: https://github.com/MichaelMade/RPT
-
-Your Rights
-Because all data stays on your device and we hold none of it, the rights to access, correct, delete, and port your data are always in your hands — directly on the device.
-Data Retention
-Since data is stored locally on your device, we do not have control over the retention of your data. Your data will remain on your device until you choose to delete it or uninstall the application.
-Consent
-By using our App, you consent to our Privacy Policy and agree to its terms.
+Repository: https://github.com/MichaelMade/RPT

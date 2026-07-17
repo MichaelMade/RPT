@@ -13,6 +13,9 @@ struct ExercisePickerView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = ExerciseLibraryViewModel()
 
+    // Concrete PersistentIdentifier rather than the nested `Exercise.ID`
+    // alias: resolution of the macro-generated alias has proven
+    // order-sensitive across builds.
     var excludedExerciseIDs: Set<PersistentIdentifier> = []
     var title: String = "Add Exercise"
     let onSelect: (Exercise) -> Void

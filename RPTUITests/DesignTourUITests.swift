@@ -14,11 +14,16 @@ final class DesignTourUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        // Onboarding appears on a fresh install — capture it, then skip.
-        let skip = app.buttons["Skip"]
-        if skip.waitForExistence(timeout: 4) {
+        // Onboarding appears on a fresh install — capture it, then exit via
+        // the activation screen's browse path.
+        let skipIntro = app.buttons["Skip Intro"]
+        if skipIntro.waitForExistence(timeout: 4) {
             snap(app, "01-onboarding")
-            skip.tap()
+            skipIntro.tap()
+
+            let browse = app.buttons["Browse the App First"]
+            XCTAssertTrue(browse.waitForExistence(timeout: 4), "Skipping the intro should land on activation choices")
+            browse.tap()
         }
 
         snap(app, "02-home-empty")

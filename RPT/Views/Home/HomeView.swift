@@ -11,6 +11,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject private var session: WorkoutSession
     @StateObject private var viewModel = HomeViewModel()
+    @AppStorage("selectedRootTab") private var selectedRootTabRawValue = RootTab.home.rawValue
 
     @State private var showingReplaceDialog = false
     @State private var showingRPTCalculator = false
@@ -138,6 +139,13 @@ struct HomeView: View {
                     Label("Start Workout", systemImage: "plus")
                 }
                 .buttonStyle(BrandButtonStyle())
+
+                Button {
+                    selectedRootTabRawValue = RootTab.templates.rawValue
+                } label: {
+                    Label("Browse Templates", systemImage: "square.grid.2x2")
+                }
+                .buttonStyle(SecondaryCapsuleButtonStyle(fullWidth: true))
             }
             .frame(maxWidth: .infinity)
             .rptCard()
@@ -213,7 +221,20 @@ struct HomeView: View {
 
     private var recentSection: some View {
         VStack(spacing: 12) {
-            SectionHeader(title: "Recent Workouts")
+            HStack(alignment: .firstTextBaseline) {
+                Text("Recent Workouts")
+                    .font(.title3.weight(.bold))
+
+                Spacer()
+
+                NavigationLink {
+                    HistoryListView()
+                } label: {
+                    Text("See All")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Theme.accent)
+                }
+            }
 
             ForEach(viewModel.recentWorkouts) { workout in
                 NavigationLink {

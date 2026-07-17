@@ -197,6 +197,20 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
     }
 
+    func updateNotesSafely(_ notes: String) -> Bool {
+        let originalNotes = workout.notes
+        workout.notes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        do {
+            try saveWorkout()
+            return true
+        } catch {
+            workout.notes = originalNotes
+            setError(title: "Couldn’t Save Notes", message: WorkoutError.saveFailure.description)
+            return false
+        }
+    }
+
     func saveWorkout() throws {
         do {
             try workoutManager.saveWorkout(workout)
@@ -686,20 +700,24 @@ class ActiveWorkoutViewModel: ObservableObject {
                 return lhs.isWarmup
             }
 
-            let lhsOrder = setOrderIndex(lhs)
-            let rhsOrder = setOrderIndex(rhs)
-
-            if lhsOrder != rhsOrder {
-                return lhsOrder < rhsOrder
+            // Persisted logged position first — the relationship array
+            // itself is unordered across saves.
+            if lhs.orderIndex != rhs.orderIndex {
+                return lhs.orderIndex < rhs.orderIndex
             }
 
-            return lhs.completedAt < rhs.completedAt
+            if lhs.completedAt != rhs.completedAt {
+                return lhs.completedAt < rhs.completedAt
+            }
+
+            // Legacy data (all orderIndex == 0, same timestamps): fall back
+            // to current array position.
+            return setArrayIndex(lhs) < setArrayIndex(rhs)
         }
     }
 
-    private func setOrderIndex(_ set: ExerciseSet) -> Int {
-        // Persisted logged position — the relationship array itself is unordered.
-        set.orderIndex
+    private func setArrayIndex(_ set: ExerciseSet) -> Int {
+        set.workout?.sets.firstIndex(where: { $0.id == set.id }) ?? Int.max
     }
 
     private func updateExerciseGroupsAndOrder(maintainOrder: Bool = false) {

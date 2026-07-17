@@ -11,14 +11,18 @@ import SwiftUI
 struct WorkoutDetailView: View {
     @EnvironmentObject private var session: WorkoutSession
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
 
     let workout: Workout
 
     @State private var showingDeleteConfirmation = false
     @State private var showingFollowUpBlockedDialog = false
+    @State private var showingUpgrade = false
     @State private var errorMessage: String?
+    @State private var savedTemplateName: String?
 
     private let workoutManager = WorkoutManager.shared
+    private let templateManager = TemplateManager.shared
 
     var body: some View {
         ScrollView {
@@ -45,6 +49,14 @@ struct WorkoutDetailView: View {
                 Menu {
                     ShareLink(item: workout.generateFormattedSummary()) {
                         Label("Share Summary", systemImage: "square.and.arrow.up")
+                    }
+
+                    if !WorkoutTemplateBuilder.templateExercises(from: workout).isEmpty {
+                        Button {
+                            saveAsTemplate()
+                        } label: {
+                            Label("Save as Template", systemImage: "square.grid.2x2")
+                        }
                     }
 
                     Button(role: .destructive) {
@@ -98,6 +110,65 @@ struct WorkoutDetailView: View {
         } message: {
             Text(errorMessage ?? "Please try again.")
         }
+        .alert("Template Saved", isPresented: savedTemplateBinding) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("“\(savedTemplateName ?? "Template")” is in your Templates tab, seeded with this session's sets and reps.")
+        }
+        .sheet(isPresented: $showingUpgrade) {
+            NavigationStack {
+                UpgradeView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("Close") { showingUpgrade = false }
+                        }
+                    }
+            }
+        }
+        .task {
+            await purchaseManager.start()
+        }
+    }
+
+    // MARK: - Save as Template
+
+    private func saveAsTemplate() {
+        let exercises = WorkoutTemplateBuilder.templateExercises(from: workout)
+        guard !exercises.isEmpty else {
+            errorMessage = "This workout has no sets to turn into a template."
+            return
+        }
+
+        guard MonetizationPlan.canCreateTemplate(
+            existingCount: templateManager.fetchAllTemplates().count,
+            isUnlocked: purchaseManager.isUnlocked
+        ) else {
+            showingUpgrade = true
+            return
+        }
+
+        let templateName = templateManager.availableTemplateName(
+            basedOn: WorkoutNameFormatter.displayName(for: workout)
+        )
+
+        let result = templateManager.createTemplate(
+            name: templateName,
+            exercises: exercises,
+            notes: workout.notes
+        )
+
+        if result == .success {
+            savedTemplateName = templateName
+        } else {
+            errorMessage = result.alertMessage
+        }
+    }
+
+    private var savedTemplateBinding: Binding<Bool> {
+        Binding(
+            get: { savedTemplateName != nil },
+            set: { if !$0 { savedTemplateName = nil } }
+        )
     }
 
     // MARK: - Summary

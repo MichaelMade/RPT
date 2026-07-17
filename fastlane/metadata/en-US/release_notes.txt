@@ -1,0 +1,9 @@
+RPT 2.0 — the full redesign.
+
+• New design system, app icon, and dark-first look
+• Smarter RPT logging: back-off weights always anchored to your top set
+• Estimated 1RM trends, personal records, and a 16-week consistency heatmap
+• Warm-up ramp generator and next-session progression targets
+• Save any finished workout as a reusable template
+• Full workout history, mid-session notes, and CSV export (RPT Pro)
+• RPT Pro lifetime unlock: advanced analytics, unlimited templates, CSV export

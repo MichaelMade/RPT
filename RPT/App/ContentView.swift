@@ -12,30 +12,36 @@ import SwiftData
 struct ContentView: View {
     @StateObject private var settingsManager = SettingsManager.shared
     @StateObject private var session = WorkoutSession.shared
+    @AppStorage("selectedRootTab") private var selectedRootTabRawValue = RootTab.home.rawValue
 
     var body: some View {
-        TabView {
+        TabView(selection: selectedRootTabBinding) {
             HomeView()
+                .tag(RootTab.home)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
 
             TemplatesListView()
+                .tag(RootTab.templates)
                 .tabItem {
                     Label("Templates", systemImage: "square.grid.2x2.fill")
                 }
 
             ExercisesView()
+                .tag(RootTab.exercises)
                 .tabItem {
                     Label("Exercises", systemImage: "figure.strengthtraining.traditional")
                 }
 
             StatsView()
+                .tag(RootTab.stats)
                 .tabItem {
                     Label("Stats", systemImage: "chart.bar.fill")
                 }
 
             SettingsView()
+                .tag(RootTab.settings)
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
@@ -54,6 +60,10 @@ struct ContentView: View {
         }
         .onAppear {
             session.restoreResumableWorkout()
+            session.rearmPresentationAfterRootSwap()
+        }
+        .task {
+            await StoreKitPurchaseManager.shared.start()
         }
         .preferredColorScheme(colorScheme(for: settingsManager.settings.darkModePreference))
     }
@@ -64,6 +74,13 @@ struct ContentView: View {
         case .dark: return .dark
         case .system: return nil
         }
+    }
+
+    private var selectedRootTabBinding: Binding<RootTab> {
+        Binding(
+            get: { RootTab(rawValue: selectedRootTabRawValue) ?? .home },
+            set: { selectedRootTabRawValue = $0.rawValue }
+        )
     }
 }
 

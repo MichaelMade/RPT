@@ -900,6 +900,8 @@ final class WorkoutManagerLogicTests: XCTestCase {
         // Then — names fall back to planned exercises, but unperformed
         // placeholder sets are not counted as work.
         XCTAssertTrue(summary.contains("Exercises: Bench Press, Squat"))
+        // Placeholder sets (reps 0) are never logged, and visibleSetCount
+        // reports logged sets for completed workouts.
         XCTAssertTrue(summary.contains("Sets: 0"))
     }
 
