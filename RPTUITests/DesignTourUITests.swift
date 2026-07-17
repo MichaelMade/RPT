@@ -36,8 +36,19 @@ final class DesignTourUITests: XCTestCase {
         XCTAssertTrue(start.waitForExistence(timeout: 4), "Seeded template should offer a Start button")
         start.tap()
 
+        // Unit tests run first on this simulator and share the app container,
+        // so a resumable draft can be left behind — Start then asks what to do
+        // with it. Discard it and continue the tour.
+        let discardAndStart = app.buttons["Discard Current & Start Template"]
+        if discardAndStart.waitForExistence(timeout: 3) {
+            discardAndStart.tap()
+        }
+
         let finish = app.buttons["Finish"]
-        XCTAssertTrue(finish.waitForExistence(timeout: 4), "Active workout should present")
+        XCTAssertTrue(
+            finish.waitForExistence(timeout: 10),
+            "Active workout should present (alert: \(app.alerts.firstMatch.exists ? app.alerts.firstMatch.label : "none"))"
+        )
         snap(app, "04-active-workout")
 
         // MARK: Log flow — empty set must route to the editor

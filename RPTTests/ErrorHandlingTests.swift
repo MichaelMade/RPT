@@ -381,6 +381,11 @@ final class ErrorHandlingTests: XCTestCase {
         XCTAssertTrue(saveForLaterResult, "Save for later should succeed for a valid workout")
         XCTAssertFalse(WorkoutStateManager.shared.wasAnyWorkoutDiscarded(), "Successful save-for-later should clear stale discard state")
 
+        // Completion requires performed work: enter values and log the set.
+        let placeholderSet = viewModel.orderedSetsForDisplay(in: exercise)[0]
+        XCTAssertTrue(viewModel.updateSetSafely(placeholderSet, weight: 135, reps: 8, rpe: nil), "Entering valid set values should succeed")
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(placeholderSet), .logged, "Logging the completed set should succeed")
+
         WorkoutStateManager.shared.clearDiscardedState()
         let completeAndSaveResult = viewModel.completeAndMarkSavedSafely()
         XCTAssertTrue(completeAndSaveResult, "Completing a valid workout should succeed")
