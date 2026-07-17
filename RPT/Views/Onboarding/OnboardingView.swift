@@ -141,7 +141,7 @@ struct OnboardingView: View {
             VStack(spacing: 12) {
                 activationButton(
                     title: "Start Starter Template",
-                    subtitle: "Launch the built-in Upper Body RPT routine"
+                    subtitle: "Launch day one of the built-in Leangains RPT split"
                 ) {
                     completeOnboarding(using: .starterTemplate)
                 }
@@ -195,7 +195,11 @@ struct OnboardingView: View {
         showCreateTemplateAfterOnboarding = plan.shouldShowTemplateComposer
 
         if let templateName = plan.starterTemplateName {
-            guard let template = templateManager.fetchTemplateByName(templateName),
+            // Fall back to the first seeded template if the named one was
+            // renamed or removed — the starter path must always launch.
+            let starter = templateManager.fetchTemplateByName(templateName)
+                ?? templateManager.fetchAllTemplates().first
+            guard let template = starter,
                   let workout = templateManager.createWorkoutFromTemplate(template) else {
                 errorMessage = "Couldn’t launch the starter template. Open Templates and try again."
                 return

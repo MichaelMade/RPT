@@ -38,6 +38,6 @@ enum OnboardingLaunchPlan: Equatable {
     }
 
     var starterTemplateName: String? {
-        self == .starterTemplate ? "Upper Body RPT" : nil
+        self == .starterTemplate ? "RPT Day 1 - Deadlift" : nil
     }
 }
