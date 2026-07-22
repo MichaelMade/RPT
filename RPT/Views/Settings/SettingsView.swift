@@ -331,12 +331,10 @@ struct SettingsView: View {
     }
 
     private var weeklyGoalRow: some View {
-        HStack {
+        VStack(alignment: .leading, spacing: 10) {
             Text("Weekly goal")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.textPrimary)
-
-            Spacer()
 
             HStack(spacing: 2) {
                 ForEach(weeklyGoalOptions, id: \.self) { goal in
@@ -363,6 +361,8 @@ struct SettingsView: View {
                 }
 
                 moreGoalsMenu
+
+                Spacer(minLength: 0)
             }
         }
         .padding(.horizontal, Theme.cardPadding)
@@ -397,12 +397,13 @@ struct SettingsView: View {
     }
 
     private var restDurationRow: some View {
-        HStack(spacing: 8) {
+        // Label above the chips: five 44pt hit targets plus the label can't
+        // share one row on a 375-402pt phone without compressing the chip
+        // text into "2:…".
+        VStack(alignment: .leading, spacing: 10) {
             Text("Rest duration")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.textPrimary)
-
-            Spacer()
 
             HStack(spacing: 2) {
                 ForEach(restDurationChips, id: \.self) { seconds in
@@ -414,6 +415,7 @@ struct SettingsView: View {
                         Text(chipDuration(seconds))
                             .font(.system(size: 12, weight: isSelected ? .bold : .regular))
                             .monospacedDigit()
+                            .fixedSize()
                             .foregroundStyle(isSelected ? .white : Theme.textSecondary)
                             .padding(.horizontal, 9)
                             .frame(height: 26)
@@ -430,6 +432,8 @@ struct SettingsView: View {
                 }
 
                 moreDurationsMenu
+
+                Spacer(minLength: 0)
             }
         }
         .padding(.horizontal, Theme.cardPadding)
@@ -453,6 +457,7 @@ struct SettingsView: View {
                     Text(chipDuration(settings.restTimerDuration))
                         .font(.system(size: 12, weight: .bold))
                         .monospacedDigit()
+                        .fixedSize()
                 } else {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 11, weight: .semibold))
