@@ -1,6 +1,5 @@
-RPT 2.0 — the full redesign.
+RPT 2.1 — stronger training tools and progress insights.
 
-• New design system, app icon, and dark-first look
 • Smarter RPT logging: back-off weights always anchored to your top set
 • Estimated 1RM trends, personal records, and a 16-week consistency heatmap
 • Warm-up ramp generator and next-session progression targets

@@ -7,6 +7,7 @@
 //  sound + haptic completion cues.
 //
 
+import Combine
 import SwiftUI
 
 struct RestTimerView: View {
@@ -31,7 +32,7 @@ struct RestTimerView: View {
         HStack(spacing: 12) {
             Image(systemName: "timer")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Theme.dropTwo)
+                .foregroundStyle(Theme.dropTwoForeground)
 
             Text(didComplete ? "Rest complete" : "Resting")
                 .font(.system(size: 12.5))
@@ -43,7 +44,7 @@ struct RestTimerView: View {
             Text(timeString)
                 .font(Theme.statFont(size: 20))
                 .monospacedDigit()
-                .foregroundStyle(didComplete ? Theme.done : .white)
+                .foregroundStyle(didComplete ? Theme.doneForeground : .white)
                 .contentTransition(.numericText())
                 .accessibilityLabel("Rest time remaining")
                 .accessibilityValue(timeString)

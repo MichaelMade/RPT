@@ -48,6 +48,8 @@ struct SettingsView: View {
                 }
                 .padding(.horizontal, Theme.screenPadding)
                 .padding(.bottom, 24)
+                .frame(maxWidth: Theme.contentMaxWidth)
+                .frame(maxWidth: .infinity)
             }
             .background(Theme.screenBackground)
             .toolbar(.hidden, for: .navigationBar)
@@ -138,8 +140,8 @@ struct SettingsView: View {
                 Image(systemName: "checkmark.seal.fill")
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(.white)
-            } else {
-                Text(purchaseManager.displayPrice)
+            } else if let displayPrice = purchaseManager.displayPrice {
+                Text(displayPrice)
                     .font(.system(size: 13, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(Theme.primary)
@@ -149,6 +151,11 @@ struct SettingsView: View {
                         .white,
                         in: RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous)
                     )
+            } else {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
             }
         }
         .padding(16)
@@ -258,7 +265,7 @@ struct SettingsView: View {
                 Text("\(weight)")
                     .font(.system(size: 12, weight: .bold))
                     .monospacedDigit()
-                    .foregroundStyle(.white)
+                    .foregroundStyle(index == 0 ? Color.white : Theme.inverted)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 5)
                     .background(
@@ -314,9 +321,11 @@ struct SettingsView: View {
             .foregroundStyle(isCustom ? .white : Theme.textSecondary)
             .frame(width: 26, height: 26)
             .background(
-                isCustom ? Theme.primary : Theme.surfaceMuted,
+                isCustom ? Theme.primaryAction : Theme.surfaceMuted,
                 in: RoundedRectangle(cornerRadius: Theme.chipCornerRadius, style: .continuous)
             )
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
         }
         .accessibilityLabel("More weekly goal choices")
     }
@@ -342,9 +351,11 @@ struct SettingsView: View {
                             .foregroundStyle(isSelected ? .white : Theme.textSecondary)
                             .frame(width: 26, height: 26)
                             .background(
-                                isSelected ? Theme.primary : Theme.surfaceMuted,
+                                isSelected ? Theme.primaryAction : Theme.surfaceMuted,
                                 in: RoundedRectangle(cornerRadius: Theme.chipCornerRadius, style: .continuous)
                             )
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("\(goal) \(goal == 1 ? "workout" : "workouts") per week")
@@ -407,9 +418,11 @@ struct SettingsView: View {
                             .padding(.horizontal, 9)
                             .frame(height: 26)
                             .background(
-                                isSelected ? Theme.primary : Theme.surfaceMuted,
+                                isSelected ? Theme.primaryAction : Theme.surfaceMuted,
                                 in: RoundedRectangle(cornerRadius: Theme.chipCornerRadius, style: .continuous)
                             )
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Rest \(formattedDuration(seconds))")
@@ -449,9 +462,11 @@ struct SettingsView: View {
             .padding(.horizontal, 9)
             .frame(height: 26)
             .background(
-                isCustom ? Theme.primary : Theme.surfaceMuted,
+                isCustom ? Theme.primaryAction : Theme.surfaceMuted,
                 in: RoundedRectangle(cornerRadius: Theme.chipCornerRadius, style: .continuous)
             )
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
         }
         .accessibilityLabel("More rest durations")
         .accessibilityValue(formattedDuration(settings.restTimerDuration))
@@ -503,6 +518,7 @@ struct SettingsView: View {
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 220)
+            .frame(minHeight: 44)
         }
         .padding(.horizontal, Theme.cardPadding)
         .padding(.vertical, 12)
@@ -524,7 +540,19 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var exportRow: some View {
-        if purchaseManager.isUnlocked {
+        if !purchaseManager.hasPreparedEntitlements {
+            HStack(spacing: 10) {
+                Text("Checking RPT Pro access…")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.textSecondary)
+                Spacer()
+                ProgressView()
+                    .controlSize(.small)
+            }
+            .padding(.horizontal, Theme.cardPadding)
+            .padding(.vertical, 12)
+            .accessibilityElement(children: .combine)
+        } else if purchaseManager.isUnlocked {
             if let exportURL {
                 ShareLink(item: exportURL) {
                     exportRowLabel(title: "Share exported CSV", icon: "square.and.arrow.up", showsProTag: false)
@@ -564,7 +592,7 @@ struct SettingsView: View {
             if showsProTag {
                 Text("PRO")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Theme.purple)
+                    .foregroundStyle(Theme.purpleForeground)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2)
                     .background(
@@ -724,7 +752,7 @@ struct SettingsView: View {
 
     private var darkModeBinding: Binding<DarkModePreference> {
         Binding(
-            get: { settings.darkModePreference },
+            get: { settingsManager.darkModePreference },
             set: { newValue in
                 if !settingsManager.updateDarkModePreferenceSafely(preference: newValue) {
                     errorMessage = "Couldn’t save the theme. Please try again."

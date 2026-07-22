@@ -5,15 +5,19 @@ final class MonetizationPlanTests: XCTestCase {
     func testFreeTierKeepsCoreTrainingValueFree() {
         XCTAssertEqual(MonetizationPlan.freeTier.name, "RPT Free")
         XCTAssertTrue(MonetizationPlan.freeTier.features.contains("Unlimited workout logging"))
-        XCTAssertTrue(MonetizationPlan.freeTier.features.contains("Starter template plus basic progress stats"))
+        XCTAssertTrue(
+            MonetizationPlan.freeTier.features.contains(
+                "Built-in three-day RPT split, three custom templates, and basic progress stats"
+            )
+        )
     }
 
-    func testProTierDefinesPaidValueForLaunch() {
+    func testProTierDefinesLifetimePaidValue() {
         XCTAssertEqual(MonetizationPlan.proTier.name, "RPT Pro")
         XCTAssertEqual(MonetizationPlan.proProductID, "rpt.pro.lifetime")
         XCTAssertEqual(MonetizationPlan.proProductIDs, ["rpt.pro.lifetime"])
-        XCTAssertEqual(MonetizationPlan.launchPrice, "$9.99")
-        XCTAssertEqual(MonetizationPlan.launchOfferTitle, "Lifetime unlock")
+        XCTAssertEqual(MonetizationPlan.purchaseOfferTitle, "Lifetime unlock")
+        XCTAssertEqual(MonetizationPlan.purchaseOfferSummary, "One-time purchase. No subscription.")
         XCTAssertTrue(MonetizationPlan.proTier.features.contains("Advanced analytics and personal-record trends"))
         XCTAssertTrue(MonetizationPlan.proTier.features.contains("Unlimited custom templates"))
         XCTAssertTrue(MonetizationPlan.proTier.features.contains("CSV export for your complete training history"))
@@ -29,7 +33,7 @@ final class MonetizationPlanTests: XCTestCase {
     func testPurchaseStateMessagesSupportStoreKitSurfaces() {
         XCTAssertEqual(
             MonetizationPurchaseState.ready.displayMessage,
-            "StoreKit is ready for the lifetime RPT Pro upgrade."
+            "One lifetime purchase. No subscription."
         )
         XCTAssertEqual(
             MonetizationPurchaseState.unlocked.displayMessage,
@@ -37,7 +41,11 @@ final class MonetizationPlanTests: XCTestCase {
         )
         XCTAssertEqual(
             MonetizationPurchaseState.unavailable.displayMessage,
-            "RPT Pro is not available from the App Store yet."
+            "RPT Pro is unavailable right now. Check your connection and try again."
         )
+    }
+
+    func testPendingApprovalPreventsDuplicatePurchaseActions() {
+        XCTAssertTrue(MonetizationPurchaseState.pendingApproval.isBusy)
     }
 }

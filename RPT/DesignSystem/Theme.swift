@@ -37,8 +37,8 @@ enum Theme {
     /// Secondary text — asphalt.
     static let textSecondary = adaptive(light: 0x676879, dark: 0x9A9CAA)
 
-    /// Disabled / placeholder values.
-    static let textTertiary = adaptive(light: 0xC3C6D4, dark: 0x565866)
+    /// Tertiary / placeholder values. Kept legible on card surfaces in both modes.
+    static let textTertiary = adaptive(light: 0x737687, dark: 0x8A8D9E)
 
     /// Dark inverted surface (docked rest timer bar).
     static let inverted = adaptive(light: 0x323338, dark: 0x101116)
@@ -46,10 +46,14 @@ enum Theme {
     // MARK: - Action color
 
     /// Vibe blue — the one action color.
-    static let primary = adaptive(light: 0x0073EA, dark: 0x2E8AF6)
+    static let primary = adaptive(light: 0x0073EA, dark: 0x2F8CF8)
 
     /// Light blue selection tint (active set row, icon tiles).
     static let primaryTint = adaptive(light: 0xE5F4FF, dark: 0x12283F)
+
+    /// Blue used behind white control text. The dark appearance is deeper
+    /// than `primary` so small white labels retain sufficient contrast.
+    static let primaryAction = adaptive(light: 0x0073EA, dark: 0x1473E6)
 
     // MARK: - Content palette (same in both modes — data does the talking)
 
@@ -67,6 +71,14 @@ enum Theme {
 
     /// Template & data accent purple.
     static let purple = Color(hex: 0xA25DDC)
+
+    /// Accessible foreground variants for content colors. The brighter raw
+    /// palette remains available for fills, bars, and other non-text data ink.
+    static let topSetForeground = adaptive(light: 0xB71632, dark: 0xFF6B7E)
+    static let dropOneForeground = adaptive(light: 0xB93B0D, dark: 0xFF8A65)
+    static let dropTwoForeground = adaptive(light: 0x805300, dark: 0xFFD166)
+    static let doneForeground = adaptive(light: 0x007A45, dark: 0x39D98A)
+    static let purpleForeground = adaptive(light: 0x7A369E, dark: 0xD19BEA)
 
     /// Tints behind content-colored icons and banners.
     static let orangeTint = adaptive(light: 0xFFF0E6, dark: 0x3A2417)
@@ -90,10 +102,10 @@ enum Theme {
 
     // MARK: - Legacy aliases (older call sites; keep values on-palette)
 
-    static let accent = dropOne
+    static let accent = dropOneForeground
     static let accentDeep = topSet
-    static let amber = dropTwo
-    static let success = done
+    static let amber = dropTwoForeground
+    static let success = doneForeground
     static let info = primary
 
     // MARK: - Gradients
@@ -125,6 +137,7 @@ enum Theme {
     static let cardPadding: CGFloat = 14
     static let screenPadding: CGFloat = 16
     static let sectionSpacing: CGFloat = 12
+    static let contentMaxWidth: CGFloat = 760
 
     // MARK: - Typography helpers
 
@@ -217,7 +230,7 @@ struct BrandButtonStyle: ButtonStyle {
             .padding(.horizontal, 18)
             .frame(maxWidth: fullWidth ? .infinity : nil)
             .background(
-                Theme.primary,
+                Theme.primaryAction,
                 in: RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous)
             )
             .opacity(configuration.isPressed ? 0.85 : 1)

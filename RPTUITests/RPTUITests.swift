@@ -85,6 +85,70 @@ final class RPTUITests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["Templates"].exists)
     }
 
+    /// Appearance selection updates the effective SwiftUI environment and
+    /// survives a relaunch. This protects the root observation path rather
+    /// than checking only whether the segmented control changed selection.
+    @MainActor
+    func testAppearanceSelectionChangesEffectiveColorScheme() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-hasCompletedOnboarding", "YES"]
+        app.launch()
+
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 10))
+        let appearanceProbe = app.descendants(matching: .any)["appearance-probe"]
+        XCTAssertTrue(appearanceProbe.waitForExistence(timeout: 5))
+
+        app.tabBars.buttons["Settings"].tap()
+        let darkSegment = app.buttons["Dark"]
+        for _ in 0..<3 where !darkSegment.isHittable {
+            app.swipeUp()
+        }
+        XCTAssertTrue(darkSegment.isHittable)
+
+        darkSegment.tap()
+        waitForAppearance("dark", using: appearanceProbe)
+
+        let lightSegment = app.buttons["Light"]
+        XCTAssertTrue(lightSegment.isHittable)
+        lightSegment.tap()
+        waitForAppearance("light", using: appearanceProbe)
+
+        app.terminate()
+        app.launch()
+
+        let relaunchedProbe = app.descendants(matching: .any)["appearance-probe"]
+        XCTAssertTrue(relaunchedProbe.waitForExistence(timeout: 10))
+        waitForAppearance("light", using: relaunchedProbe)
+
+        // Leave shared simulator state following the device preference for
+        // other UI tests that may run in the same app container.
+        app.tabBars.buttons["Settings"].tap()
+        let systemSegment = app.buttons["System"]
+        for _ in 0..<3 where !systemSegment.isHittable {
+            app.swipeUp()
+        }
+        if systemSegment.isHittable {
+            systemSegment.tap()
+        }
+    }
+
+    @MainActor
+    private func waitForAppearance(
+        _ expectedValue: String,
+        using probe: XCUIElement,
+        timeout: TimeInterval = 5
+    ) {
+        let expectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", expectedValue),
+            object: probe
+        )
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [expectation], timeout: timeout),
+            .completed,
+            "Expected effective appearance to become \(expectedValue)"
+        )
+    }
+
     @MainActor
     func testLaunchPerformance() throws {
         measure(metrics: [XCTApplicationLaunchMetric()]) {

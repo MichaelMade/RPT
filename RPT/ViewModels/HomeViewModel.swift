@@ -29,7 +29,6 @@ class HomeViewModel: ObservableObject {
         self.workoutManager = workoutManager ?? WorkoutManager.shared
         self.userManager = userManager ?? UserManager.shared
         self.settingsManager = settingsManager ?? SettingsManager.shared
-        refresh()
     }
 
     var weeklyGoal: Int {

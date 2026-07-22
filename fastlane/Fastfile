@@ -49,7 +49,7 @@ platform :ios do
       ipa: Dir[File.join(ENV.fetch("EXPORT_PATH", "build/export"), "*.ipa")].sort.last,
       skip_waiting_for_build_processing: true,
       distribute_external: false,
-      changelog: "RPT release candidate: freemium launch package, RPT Pro lifetime unlock, privacy manifest, and App Store metadata plan."
+      changelog: "RPT 2.1: stronger training tools, progress insights, and the RPT Pro lifetime unlock."
     )
   end
 

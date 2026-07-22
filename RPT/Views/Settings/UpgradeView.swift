@@ -16,6 +16,8 @@ struct UpgradeView: View {
                 faqCard
             }
             .padding(Theme.screenPadding)
+            .frame(maxWidth: Theme.contentMaxWidth)
+            .frame(maxWidth: .infinity)
         }
         .background(Theme.screenBackground)
         .navigationTitle("RPT Pro")
@@ -33,12 +35,9 @@ struct UpgradeView: View {
     private var heroCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                PillTag(text: MonetizationPlan.launchOfferTitle, tint: Theme.amber, icon: "bolt.fill")
+                PillTag(text: MonetizationPlan.purchaseOfferTitle, tint: Theme.amber, icon: "bolt.fill")
                 Spacer()
-                Text(purchaseManager.displayPrice)
-                    .font(Theme.statFont(size: 28))
-                    .monospacedDigit()
-                    .foregroundStyle(Theme.brandGradient)
+                storePriceLabel
             }
 
             Text("Train for free. Upgrade when you want deeper insight and more planning headroom.")
@@ -49,21 +48,25 @@ struct UpgradeView: View {
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.textSecondary)
 
-            Text(MonetizationPlan.launchOfferSummary)
+            Text(MonetizationPlan.purchaseOfferSummary)
                 .font(.system(size: 12))
                 .foregroundStyle(Theme.textSecondary)
 
             VStack(spacing: 10) {
                 Button {
                     Task {
-                        await purchaseManager.purchasePro()
+                        if purchaseManager.state == .unavailable {
+                            await purchaseManager.loadProducts()
+                        } else {
+                            await purchaseManager.purchasePro()
+                        }
                     }
                 } label: {
                     Label(purchaseManager.purchaseButtonTitle, systemImage: purchaseManager.isUnlocked ? "checkmark.seal.fill" : "crown.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(BrandButtonStyle())
-                .disabled(!purchaseManager.canPurchase)
+                .disabled(!purchaseManager.canActivatePurchaseButton)
 
                 Button {
                     Task {
@@ -97,11 +100,11 @@ struct UpgradeView: View {
 
     private var faqCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("What happens next?")
+            Text("One purchase. Yours for life.")
                 .font(Theme.titleFont(size: 16))
                 .foregroundStyle(Theme.textPrimary)
 
-            Text("The current Linux runner can’t validate StoreKit transactions, restore purchases, or App Store product configuration. Those checks stay on the Verify-on-Mac queue before launch.")
+            Text("RPT Free keeps workout logging and core progress tools available without an account. Upgrade once to add Pro features across devices that use the same Apple ID.")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.textSecondary)
 
@@ -122,7 +125,7 @@ struct UpgradeView: View {
                 Spacer()
 
                 if tier == MonetizationPlan.proTier {
-                    PillTag(text: "Launch plan", tint: tint)
+                    PillTag(text: "Lifetime", tint: tint)
                 }
             }
 
@@ -152,5 +155,19 @@ struct UpgradeView: View {
             get: { purchaseManager.alertMessage != nil },
             set: { if !$0 { purchaseManager.alertMessage = nil } }
         )
+    }
+
+    @ViewBuilder
+    private var storePriceLabel: some View {
+        if let displayPrice = purchaseManager.displayPrice {
+            Text(displayPrice)
+                .font(Theme.statFont(size: 28))
+                .monospacedDigit()
+                .foregroundStyle(Theme.brandGradient)
+        } else {
+            Text("One-time")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Theme.textSecondary)
+        }
     }
 }

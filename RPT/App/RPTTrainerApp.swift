@@ -11,7 +11,9 @@ import SwiftData
 @main
 struct RPTTrainerApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    
+
+    private let dataManager: DataManager
+
     init() {
         #if DEBUG
         // UI-test hook: resets first-run state via the persistent domain.
@@ -24,26 +26,21 @@ struct RPTTrainerApp: App {
         }
         #endif
 
-        // Initialize data manager first
-        _ = DataManager.shared
-        
-        // Then initialize all other managers
-        _ = UserManager.shared
-        _ = SettingsManager.shared
-        _ = ExerciseManager.shared
-        _ = TemplateManager.shared
-        _ = WorkoutManager.shared
+        // The model container is the only dependency required before the
+        // first scene. Feature managers initialize lazily with their views.
+        self.dataManager = DataManager.shared
     }
-    
+
     var body: some Scene {
         WindowGroup {
-            if hasCompletedOnboarding {
+            if dataManager.hasPersistenceFailure {
+                StorageUnavailableView()
+            } else if hasCompletedOnboarding {
                 ContentView()
             } else {
                 OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
             }
         }
-        // Use DataManager's modelContainer for the SwiftUI environment
-        .modelContainer(DataManager.shared.getSharedModelContainer())
+        .modelContainer(dataManager.getSharedModelContainer())
     }
 }

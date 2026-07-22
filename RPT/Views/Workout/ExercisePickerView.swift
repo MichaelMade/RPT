@@ -95,6 +95,9 @@ struct ExercisePickerView: View {
                     viewModel.refreshExercises()
                 }
             }
+            .onAppear {
+                viewModel.refreshExercises()
+            }
         }
     }
 

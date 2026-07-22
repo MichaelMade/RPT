@@ -15,70 +15,101 @@ protocol DataManaging {
 }
 
 @MainActor
-class DataManager: DataManaging {
+final class DataManager: DataManaging {
+    typealias ModelContainerFactory = (Schema, ModelConfiguration) throws -> ModelContainer
+    typealias DefaultDataInitializer = (ModelContext) throws -> Void
+
     private let modelContainer: ModelContainer
     private let modelContext: ModelContext
-    
-    // Shared instance for app-wide use
-    static let shared = DataManager()
-    
-    private init() {
+
+    /// True only when the on-disk store could not be opened. The temporary
+    /// container exists solely so SwiftUI can render StorageUnavailableView;
+    /// the app never exposes normal data entry while this is true.
+    private(set) var isUsingTemporaryStore: Bool
+    private(set) var persistenceFailure: PersistenceFailure?
+
+    var hasPersistenceFailure: Bool {
+        persistenceFailure != nil
+    }
+
+    static let shared = DataManager(
+        containerFactory: { schema, configuration in
+            try ModelContainer(for: schema, configurations: configuration)
+        },
+        seedDefaultData: true
+    )
+
+    init(
+        containerFactory: ModelContainerFactory,
+        seedDefaultData: Bool,
+        defaultDataInitializer: DefaultDataInitializer? = nil
+    ) {
+        let schema = Self.makeSchema()
+
         do {
-            // Step 1: Define the store URL, but don't delete it
-            // Removing this code that was deleting the database on every launch
-            // let storeURL = URL.applicationSupportDirectory.appending(path: "default.store")
-            // try? FileManager.default.removeItem(at: storeURL)
-            
-            // Step 2: Define the schema
-            let schema = Schema([
-                Exercise.self,
-                Workout.self,
-                ExerciseSet.self,
-                WorkoutTemplate.self,
-                UserSettings.self,
-                User.self
-            ])
-            
-            // Step 3: Configure the model
             let modelConfiguration = ModelConfiguration(
                 isStoredInMemoryOnly: false,
                 allowsSave: true
             )
-            
-            // Step 4: Create the container
-            self.modelContainer = try ModelContainer(for: schema, configurations: modelConfiguration)
+
+            self.modelContainer = try containerFactory(schema, modelConfiguration)
             self.modelContext = self.modelContainer.mainContext
-            
-            // Step 5: Initialize default data
-            initializeDefaultData()
+            self.isUsingTemporaryStore = false
+            self.persistenceFailure = nil
         } catch {
             print("SwiftData Error: \(error)")
-            
-            // Step 6: If we can't create the container, try with in-memory storage
+
+            // Keep the failed on-disk store untouched. An isolated temporary
+            // container lets the app render a blocking recovery screen without
+            // pretending that edits are being persisted. SwiftData cannot open
+            // an in-memory container read-only, so the app-level block is what
+            // prevents this container from receiving user writes.
             do {
-                let schema = Schema([
-                    Exercise.self,
-                    Workout.self,
-                    ExerciseSet.self,
-                    WorkoutTemplate.self,
-                    UserSettings.self,
-                    User.self
-                ])
-                
                 let memoryConfig = ModelConfiguration(
-                    isStoredInMemoryOnly: true, // Use in-memory as a fallback
+                    isStoredInMemoryOnly: true,
                     allowsSave: true
                 )
-                
-                self.modelContainer = try ModelContainer(for: schema, configurations: memoryConfig)
+
+                self.modelContainer = try containerFactory(schema, memoryConfig)
                 self.modelContext = self.modelContainer.mainContext
-                
-                // Initialize default data
-                initializeDefaultData()
-            } catch {
-                fatalError("Critical failure: Could not create ModelContainer in memory mode. Error: \(error)")
+                self.isUsingTemporaryStore = true
+                self.persistenceFailure = PersistenceFailure(
+                    technicalDescription: String(describing: error)
+                )
+            } catch let temporaryStoreError {
+                fatalError(
+                    "Critical failure: Could not create the recovery ModelContainer. "
+                        + "Error: \(temporaryStoreError)"
+                )
             }
         }
+
+        if seedDefaultData && !hasPersistenceFailure {
+            do {
+                if let defaultDataInitializer {
+                    try defaultDataInitializer(modelContext)
+                } else {
+                    try initializeDefaultData()
+                }
+            } catch {
+                // A container that opens but cannot complete its first reads
+                // or writes is not safe to expose as a working store.
+                persistenceFailure = PersistenceFailure(
+                    technicalDescription: String(describing: error)
+                )
+            }
+        }
+    }
+
+    private static func makeSchema() -> Schema {
+        Schema([
+            Exercise.self,
+            Workout.self,
+            ExerciseSet.self,
+            WorkoutTemplate.self,
+            UserSettings.self,
+            User.self
+        ])
     }
     
     // MARK: - Context Access
@@ -93,14 +124,10 @@ class DataManager: DataManaging {
     
     // MARK: - Data Initialization
     
-    private func initializeDefaultData() {
-        do {
-            try initializeSettings()
-            try initializeExercises()
-            try initializeTemplates()
-        } catch {
-            print("Error initializing default data: \(error)")
-        }
+    private func initializeDefaultData() throws {
+        try initializeSettings()
+        try initializeExercises()
+        try initializeTemplates()
     }
     
     private func initializeSettings() throws {

@@ -134,9 +134,10 @@ class ExerciseManager {
         normalizedNameLookupKey(lhs) == normalizedNameLookupKey(rhs)
     }
 
-    init(dataManager: DataManaging = DataManager.shared) {
-        self.dataManager = dataManager
-        self.modelContext = dataManager.getModelContext()
+    init(dataManager: DataManaging? = nil) {
+        let resolvedDataManager = dataManager ?? DataManager.shared
+        self.dataManager = resolvedDataManager
+        self.modelContext = resolvedDataManager.getModelContext()
         // Default exercises are seeded by DataManager at container init time.
     }
     

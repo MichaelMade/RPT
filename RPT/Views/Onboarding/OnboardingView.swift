@@ -51,6 +51,7 @@ struct OnboardingView: View {
                                 .font(.system(size: 70))
                                 .rotationEffect(page.icon == "triangle.fill" ? .degrees(180) : .degrees(0))
                                 .foregroundStyle(Theme.brandGradient)
+                                .accessibilityHidden(true)
 
                             Text(page.title)
                                 .font(.largeTitle.weight(.heavy))
@@ -125,6 +126,7 @@ struct OnboardingView: View {
             Image(systemName: "figure.strengthtraining.traditional")
                 .font(.system(size: 68))
                 .foregroundStyle(Theme.brandGradient)
+                .accessibilityHidden(true)
 
             VStack(spacing: 8) {
                 Text("Choose your first win")
@@ -141,7 +143,7 @@ struct OnboardingView: View {
             VStack(spacing: 12) {
                 activationButton(
                     title: "Start Starter Template",
-                    subtitle: "Launch day one of the built-in Leangains RPT split"
+                    subtitle: "Launch day one of the built-in three-day RPT split"
                 ) {
                     completeOnboarding(using: .starterTemplate)
                 }

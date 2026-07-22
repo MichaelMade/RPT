@@ -66,7 +66,8 @@ struct AboutView: View {
                             icon: "envelope.fill",
                             title: "Email the Developer",
                             text: "Bugs and feature ideas go straight to the developer.",
-                            url: emailURL
+                            url: emailURL,
+                            accessibilityHint: "Opens your email app"
                         )
                     }
 
@@ -115,7 +116,13 @@ struct AboutView: View {
         }
     }
 
-    private func linkRow(icon: String, title: String, text: String, url: URL) -> some View {
+    private func linkRow(
+        icon: String,
+        title: String,
+        text: String,
+        url: URL,
+        accessibilityHint: String = "Opens in Safari"
+    ) -> some View {
         Link(destination: url) {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: icon)
@@ -140,6 +147,6 @@ struct AboutView: View {
             }
         }
         .buttonStyle(.plain)
-        .accessibilityHint("Opens in Safari")
+        .accessibilityHint(accessibilityHint)
     }
 }

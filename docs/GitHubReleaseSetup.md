@@ -34,14 +34,15 @@ Paste each copied value into the matching GitHub secret.
 
 1. Push this branch and open/merge the PR.
 2. Confirm `iOS CI` passes on GitHub-hosted macOS.
-3. In App Store Connect, create/verify:
-   - App record for bundle ID `com.MichaelMade.RPT`
-   - Non-consumable IAP product ID `rpt.pro.lifetime`
+3. In App Store Connect, verify the existing app:
+   - Apple ID `6745407020`, bundle ID `com.MichaelMade.RPT`, version `2.1.0`
+   - Active Paid Apps Agreement and complete banking/tax setup
+   - Non-consumable IAP product ID `rpt.pro.lifetime`, Ready to Submit and attached to version 2.1
    - Privacy answers from `release/AppStoreSubmission.md`
 4. Run **Actions → App Store Release Candidate** with `upload_to_testflight=false`.
 5. Download and inspect the artifact: `RPT-release-candidate-<build>`.
 6. Re-run the workflow with `upload_to_testflight=true`.
-7. Test the TestFlight build on device before App Store review.
+7. Test the TestFlight build on device before submitting the 2.1 update for App Review.
 
 ## Local Mac validation commands
 
@@ -65,4 +66,6 @@ These require Michael's Apple account/Mac context, not Linux:
 - Distribution certificate export
 - App Store provisioning profile download
 - Simulator/device validation of StoreKit purchase sheets
-- Final screenshots and App Review submission click
+- App Store Connect IAP setup and attachment to version 2.1
+- Final iPhone, 13-inch iPad, and IAP review screenshots
+- Final privacy, age-rating, EULA, and App Review submission checks

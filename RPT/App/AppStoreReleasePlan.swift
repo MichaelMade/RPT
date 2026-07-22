@@ -2,7 +2,7 @@
 //  AppStoreReleasePlan.swift
 //  RPT
 //
-//  First-pass App Store packaging plan kept in code so release copy,
+//  Version 2.1 App Store packaging plan kept in code so release copy,
 //  screenshot planning, and monetization positioning do not drift.
 //
 
@@ -15,7 +15,7 @@ struct AppStoreScreenshotShot: Equatable {
 }
 
 enum AppStoreReleasePlan {
-    static let appName = "RPT"
+    static let appName = "RPT: Reverse Pyramid Training"
     static let subtitle = "Reverse pyramid training log"
     static let promotionalText = "Log heavy top sets first, get RPT back-off guidance, and track strength trends without an account."
     static let shortDescription = "A focused strength-training log for reverse pyramid training, progressive overload, and private on-device workout history."
@@ -66,7 +66,7 @@ enum AppStoreReleasePlan {
         )
     ]
 
-    static let supportURL = URL(string: "https://github.com/MichaelMade/RPT/issues")!
+    static let supportURL = URL(string: "https://github.com/MichaelMade/RPT/blob/master/SUPPORT.md")!
     static let privacyURL = URL(string: "https://github.com/MichaelMade/RPT/blob/master/Privacy%20Policy")!
     static let standardEULAURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 

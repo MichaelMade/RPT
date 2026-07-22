@@ -50,7 +50,6 @@ class StatsViewModel: ObservableObject {
     init(workoutManager: WorkoutManager? = nil, userManager: UserManager? = nil) {
         self.workoutManager = workoutManager ?? WorkoutManager.shared
         self.userManager = userManager ?? UserManager.shared
-        refresh()
     }
 
     var allCompletedWorkouts: [Workout] {

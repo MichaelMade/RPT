@@ -198,7 +198,7 @@ struct ExerciseSectionView: View {
                 Image(systemName: "ellipsis")
                     .font(.subheadline)
                     .foregroundStyle(Theme.textSecondary)
-                    .frame(width: 24, height: 28)
+                    .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
             .accessibilityLabel("Options for \(exercise.displayName)")
@@ -212,7 +212,7 @@ struct ExerciseSectionView: View {
         if let index = workingSets.firstIndex(where: { !$0.isCompletedLoggedSet }) {
             chip("SET \(index + 1) OF \(workingSets.count)", tint: Theme.primary, background: Theme.primaryTint)
         } else if !workingSets.isEmpty {
-            chip("DONE", tint: Theme.done, background: Theme.done.opacity(0.12))
+            chip("DONE", tint: Theme.doneForeground, background: Theme.done.opacity(0.12))
         }
     }
 
@@ -231,7 +231,7 @@ struct ExerciseSectionView: View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: "lightbulb.fill")
                 .font(.system(size: 12))
-                .foregroundStyle(Theme.dropTwo)
+                .foregroundStyle(Theme.dropTwoForeground)
                 .padding(.top, 1)
 
             Text(note)
@@ -282,6 +282,8 @@ struct ExerciseSectionView: View {
                     .foregroundStyle(Theme.primary)
             }
             .buttonStyle(.plain)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
 
             Spacer()
 
@@ -293,6 +295,8 @@ struct ExerciseSectionView: View {
                     .foregroundStyle(Theme.textSecondary)
             }
             .buttonStyle(.plain)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
 
             Button {
                 showingPlateCalculator = true
@@ -302,6 +306,8 @@ struct ExerciseSectionView: View {
                     .foregroundStyle(Theme.textSecondary)
             }
             .buttonStyle(.plain)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -379,7 +385,9 @@ struct ExerciseSectionView: View {
         } label: {
             Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                 .font(.system(size: 20))
-                .foregroundStyle(isCompleted ? Theme.done : Theme.textTertiary)
+                .foregroundStyle(isCompleted ? Theme.doneForeground : Theme.textTertiary)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(isCompleted ? "Mark \(exercise.displayName) incomplete" : "Mark \(exercise.displayName) complete")
@@ -395,7 +403,7 @@ struct ExerciseSectionView: View {
                 .font(.caption.weight(.bold))
                 .foregroundStyle(Theme.textSecondary)
                 .rotationEffect(.degrees(isExpanded ? 0 : -90))
-                .frame(width: 28, height: 28)
+                .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -457,14 +465,21 @@ struct ExerciseSectionView: View {
 
         let index = workingSets.firstIndex(where: { $0.id == set.id }) ?? 0
         let color: Color
+        let foregroundColor: Color
         switch index {
-        case 0: color = Theme.topSet
-        case 1: color = Theme.dropOne
-        default: color = Theme.dropTwo
+        case 0:
+            color = Theme.topSet
+            foregroundColor = Theme.topSetForeground
+        case 1:
+            color = Theme.dropOne
+            foregroundColor = Theme.dropOneForeground
+        default:
+            color = Theme.dropTwo
+            foregroundColor = Theme.dropTwoForeground
         }
 
         if index == 0 {
-            return SetLadderInfo(badgeColor: color, badgeTextColor: .white, dropText: "Top set", dropColor: color)
+            return SetLadderInfo(badgeColor: color, badgeTextColor: .white, dropText: "Top set", dropColor: foregroundColor)
         }
 
         var text = "Back-off"
@@ -472,7 +487,12 @@ struct ExerciseSectionView: View {
             let percent = Int(((1 - Double(set.weight) / Double(top.weight)) * 100).rounded())
             text = percent > 0 ? "−\(percent)% · \(set.weight) lb" : "Same load"
         }
-        return SetLadderInfo(badgeColor: color, badgeTextColor: .white, dropText: text, dropColor: color)
+        return SetLadderInfo(
+            badgeColor: color,
+            badgeTextColor: Theme.inverted,
+            dropText: text,
+            dropColor: foregroundColor
+        )
     }
 
     // MARK: - Set Mutations
@@ -604,6 +624,7 @@ struct SetTableRow: View {
                     .background(ladder.badgeColor, in: RoundedRectangle(cornerRadius: Theme.chipCornerRadius, style: .continuous))
             }
             .buttonStyle(.plain)
+            .frame(width: 44, height: 44)
             .accessibilityLabel(set.isWarmup ? "Edit warm-up set" : "Edit set \(setLabel)")
             .frame(width: SetColumn.badge, alignment: .leading)
 
@@ -627,6 +648,7 @@ struct SetTableRow: View {
             .buttonStyle(.plain)
             .accessibilityLabel(set.isWarmup ? "Edit warm-up weight" : "Edit set \(setLabel) weight")
             .accessibilityValue(weightText)
+            .frame(minHeight: 44)
 
             Button(action: onEdit) {
                 Text(repsText)
@@ -640,6 +662,7 @@ struct SetTableRow: View {
             .buttonStyle(.plain)
             .accessibilityLabel(set.isWarmup ? "Edit warm-up reps" : "Edit set \(setLabel) reps")
             .accessibilityValue(repsText)
+            .frame(minHeight: 44)
 
             doneControl
                 .frame(width: SetColumn.done, alignment: .center)
@@ -682,21 +705,21 @@ struct SetTableRow: View {
                 if isLogged {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 22))
-                        .foregroundStyle(Theme.done)
+                        .foregroundStyle(Theme.doneForeground)
                 } else if isNextUp {
                     Text("Log")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
-                        .background(Theme.primary, in: RoundedRectangle(cornerRadius: Theme.chipCornerRadius, style: .continuous))
+                        .background(Theme.primaryAction, in: RoundedRectangle(cornerRadius: Theme.chipCornerRadius, style: .continuous))
                 } else {
                     Circle()
                         .strokeBorder(Theme.textTertiary, style: StrokeStyle(lineWidth: 1.8, dash: [3, 3.5]))
                         .frame(width: 22, height: 22)
                 }
             }
-            .frame(minWidth: 32, minHeight: 28)
+            .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -732,7 +755,7 @@ struct SetTableRow: View {
 
 /// Fixed column widths shared by the set table's header and rows.
 enum SetColumn {
-    static let badge: CGFloat = 40
+    static let badge: CGFloat = 44
     static let weight: CGFloat = 64
     static let reps: CGFloat = 44
     static let done: CGFloat = 52

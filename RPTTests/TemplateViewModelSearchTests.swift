@@ -10,6 +10,12 @@ final class TemplateViewModelSearchTests: XCTestCase {
         return String((0..<length).compactMap { _ in letters.randomElement() })
     }
 
+    func testInitializationDefersTemplateFetchUntilViewAppears() {
+        let viewModel = TemplateViewModel()
+
+        XCTAssertTrue(viewModel.templates.isEmpty)
+    }
+
     func testSearchPrompt_teachesCustomMovesAlongsidePushPullSplitsAndRepPlans() {
         XCTAssertEqual(
             TemplateViewModel.searchPrompt,

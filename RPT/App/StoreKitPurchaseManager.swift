@@ -17,12 +17,16 @@ final class StoreKitPurchaseManager: ObservableObject {
     @Published private(set) var proProduct: Product?
     @Published private(set) var state: MonetizationPurchaseState = .loadingStore
     @Published private(set) var isUnlocked = false
+    @Published private(set) var hasPreparedEntitlements = false
     @Published var alertMessage: String?
 
     private var updatesTask: Task<Void, Never>?
+    private var isLoadingProducts = false
 
-    var displayPrice: String {
-        proProduct?.displayPrice ?? MonetizationPlan.launchPrice
+    /// App Store-localized price. Never substitute a hard-coded price because
+    /// storefront currency and pricing can differ by region.
+    var displayPrice: String? {
+        proProduct?.displayPrice
     }
 
     var purchaseButtonTitle: String {
@@ -39,13 +43,29 @@ final class StoreKitPurchaseManager: ObservableObject {
             return "Restoring"
         case .pendingApproval:
             return "Pending Approval"
-        case .ready, .unavailable, .unlocked:
-            return "Unlock RPT Pro for \(displayPrice)"
+        case .ready:
+            if let displayPrice {
+                return "Unlock RPT Pro for \(displayPrice)"
+            }
+            return "Unlock RPT Pro"
+        case .unavailable:
+            return "Try Again"
+        case .unlocked:
+            return "RPT Pro Unlocked"
         }
     }
 
-    var canPurchase: Bool {
-        proProduct != nil && !isUnlocked && !state.isBusy
+    var canActivatePurchaseButton: Bool {
+        guard !isUnlocked else { return false }
+
+        switch state {
+        case .ready:
+            return proProduct != nil
+        case .unavailable:
+            return true
+        case .loadingStore, .purchasing, .restoring, .pendingApproval, .unlocked:
+            return false
+        }
     }
 
     private init() {}
@@ -55,12 +75,36 @@ final class StoreKitPurchaseManager: ObservableObject {
     }
 
     func start() async {
-        observeTransactionUpdates()
-        await refreshPurchasedState()
+        await prepareEntitlements()
         await loadProducts()
     }
 
+    /// Starts transaction observation and restores the current unlock without
+    /// waiting on a product-network request. This is safe to call at launch.
+    func prepareEntitlements() async {
+        observeTransactionUpdates()
+        await refreshPurchasedState()
+    }
+
     func loadProducts() async {
+        // Product loading may begin from the initial `.loadingStore` state,
+        // but it must never replace an in-flight customer action.
+        guard state != .purchasing,
+              state != .restoring,
+              state != .pendingApproval else { return }
+
+        guard proProduct == nil else {
+            if !isUnlocked {
+                state = .ready
+            }
+            return
+        }
+        guard !isLoadingProducts else { return }
+
+        isLoadingProducts = true
+        defer { isLoadingProducts = false }
+        alertMessage = nil
+
         if !isUnlocked {
             state = .loadingStore
         }
@@ -82,13 +126,17 @@ final class StoreKitPurchaseManager: ObservableObject {
     }
 
     func purchasePro() async {
+        guard !isUnlocked, state == .ready || state == .unavailable else {
+            return
+        }
+
         if proProduct == nil {
             await loadProducts()
         }
 
         guard let proProduct else {
             state = .unavailable
-            alertMessage = "RPT Pro is not available from the App Store yet."
+            alertMessage = "RPT Pro is unavailable right now. Check your connection and try again."
             return
         }
 
@@ -100,9 +148,15 @@ final class StoreKitPurchaseManager: ObservableObject {
             switch result {
             case .success(let verification):
                 let transaction = try Self.verified(verification)
+                guard MonetizationPlan.proProductIDs.contains(transaction.productID),
+                      transaction.revocationDate == nil else {
+                    throw StoreKitPurchaseError.unexpectedTransaction
+                }
+
+                // A verified transaction is the authoritative purchase
+                // result. Deliver the entitlement before finishing it.
+                grantProEntitlement()
                 await transaction.finish()
-                isUnlocked = true
-                state = .unlocked
             case .userCancelled:
                 state = .ready
             case .pending:
@@ -117,6 +171,8 @@ final class StoreKitPurchaseManager: ObservableObject {
     }
 
     func restorePurchases() async {
+        guard !state.isBusy else { return }
+
         state = .restoring
 
         do {
@@ -135,12 +191,15 @@ final class StoreKitPurchaseManager: ObservableObject {
 
     @discardableResult
     func refreshPurchasedState() async -> Bool {
+        defer { hasPreparedEntitlements = true }
+
         for await result in Transaction.currentEntitlements {
             guard let transaction = try? Self.verified(result) else {
                 continue
             }
 
-            if MonetizationPlan.proProductIDs.contains(transaction.productID) {
+            if MonetizationPlan.proProductIDs.contains(transaction.productID),
+               transaction.revocationDate == nil {
                 isUnlocked = true
                 state = .unlocked
                 return true
@@ -148,8 +207,8 @@ final class StoreKitPurchaseManager: ObservableObject {
         }
 
         isUnlocked = false
-        if proProduct != nil {
-            state = .ready
+        if !state.isBusy {
+            state = proProduct == nil ? .unavailable : .ready
         }
         return false
     }
@@ -169,9 +228,18 @@ final class StoreKitPurchaseManager: ObservableObject {
             let transaction = try Self.verified(result)
 
             if MonetizationPlan.proProductIDs.contains(transaction.productID) {
+                if transaction.revocationDate == nil {
+                    grantProEntitlement()
+                }
                 await transaction.finish()
-                isUnlocked = true
-                state = .unlocked
+
+                // Transaction.currentEntitlements is canonical. In
+                // particular, a delayed revocation for an older transaction
+                // must not lock a newer valid repurchase.
+                let hasEntitlement = await refreshPurchasedState()
+                if !hasEntitlement {
+                    revokeProEntitlement()
+                }
             }
         } catch {
             alertMessage = "Could not verify the latest App Store purchase update."
@@ -186,8 +254,21 @@ final class StoreKitPurchaseManager: ObservableObject {
             throw StoreKitPurchaseError.failedVerification
         }
     }
+
+    private func grantProEntitlement() {
+        isUnlocked = true
+        hasPreparedEntitlements = true
+        state = .unlocked
+    }
+
+    private func revokeProEntitlement() {
+        isUnlocked = false
+        hasPreparedEntitlements = true
+        state = proProduct == nil ? .unavailable : .ready
+    }
 }
 
 private enum StoreKitPurchaseError: Error {
     case failedVerification
+    case unexpectedTransaction
 }

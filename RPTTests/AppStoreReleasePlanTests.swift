@@ -3,7 +3,7 @@ import XCTest
 
 final class AppStoreReleasePlanTests: XCTestCase {
     func testMetadataPositionsRPTForSearchAndConversion() {
-        XCTAssertEqual(AppStoreReleasePlan.appName, "RPT")
+        XCTAssertEqual(AppStoreReleasePlan.appName, "RPT: Reverse Pyramid Training")
         XCTAssertEqual(AppStoreReleasePlan.subtitle, "Reverse pyramid training log")
         XCTAssertTrue(AppStoreReleasePlan.promotionalText.contains("heavy top sets first"))
         XCTAssertTrue(AppStoreReleasePlan.shortDescription.contains("private on-device workout history"))
@@ -34,7 +34,7 @@ final class AppStoreReleasePlanTests: XCTestCase {
 
     func testSupportPrivacyAndTermsLinksUseReleaseUrls() {
         XCTAssertEqual(AppStoreReleasePlan.supportURL.host, "github.com")
-        XCTAssertTrue(AppStoreReleasePlan.supportURL.path.hasSuffix("/issues"))
+        XCTAssertTrue(AppStoreReleasePlan.supportURL.path.hasSuffix("/SUPPORT.md"))
         XCTAssertEqual(AppStoreReleasePlan.privacyURL.host, "github.com")
         XCTAssertTrue(AppStoreReleasePlan.privacyURL.path.contains("Privacy Policy"))
         XCTAssertEqual(AppStoreReleasePlan.standardEULAURL.host, "www.apple.com")

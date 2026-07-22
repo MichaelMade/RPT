@@ -51,6 +51,8 @@ struct StatsView: View {
                 }
                 .padding(.horizontal, Theme.screenPadding)
                 .padding(.bottom, 24)
+                .frame(maxWidth: Theme.contentMaxWidth)
+                .frame(maxWidth: .infinity)
             }
             .background(Theme.screenBackground)
             .toolbar(.hidden, for: .navigationBar)
@@ -96,7 +98,11 @@ struct StatsView: View {
 
     @ViewBuilder
     private var exportHeaderItem: some View {
-        if purchaseManager.isUnlocked {
+        if !purchaseManager.hasPreparedEntitlements {
+            ProgressView()
+                .controlSize(.small)
+                .accessibilityLabel("Checking RPT Pro access")
+        } else if purchaseManager.isUnlocked {
             exportButton
         } else {
             NavigationLink {
@@ -168,7 +174,7 @@ struct StatsView: View {
                 summaryCell(
                     value: streakValue,
                     caption: "Current streak",
-                    valueColor: Theme.dropOne
+                    valueColor: Theme.dropOneForeground
                 )
                 summaryCell(
                     value: viewModel.averageDuration > 0 ? viewModel.formattedDuration(viewModel.averageDuration) : "—",
@@ -214,7 +220,7 @@ struct StatsView: View {
                         .foregroundStyle(Theme.textTertiary)
                 }
 
-                Text("Upgrade when you're ready to go beyond basic tracking.")
+                Text("Your complete training view is unlocked.")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Theme.textPrimary)
 
@@ -222,14 +228,14 @@ struct StatsView: View {
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.textSecondary)
 
-                Text("\(MonetizationPlan.launchOfferTitle) • \(purchaseManager.displayPrice)")
+                Text("Lifetime purchase restored on this device")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Theme.primary)
 
                 if purchaseManager.isUnlocked {
                     Text("RPT Pro is unlocked on this device.")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Theme.done)
+                        .foregroundStyle(Theme.doneForeground)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -242,7 +248,9 @@ struct StatsView: View {
 
     @ViewBuilder
     private var advancedAnalyticsContent: some View {
-        if purchaseManager.isUnlocked {
+        if !purchaseManager.hasPreparedEntitlements {
+            entitlementLoadingCard
+        } else if purchaseManager.isUnlocked {
             volumeSection
 
             if !viewModel.personalRecords.isEmpty {
@@ -255,6 +263,18 @@ struct StatsView: View {
         } else {
             advancedAnalyticsLockedCard
         }
+    }
+
+    private var entitlementLoadingCard: some View {
+        HStack(spacing: 10) {
+            ProgressView()
+            Text("Checking RPT Pro access…")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .rptCard()
+        .accessibilityElement(children: .combine)
     }
 
     private var advancedAnalyticsLockedCard: some View {
@@ -278,7 +298,7 @@ struct StatsView: View {
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.textSecondary)
 
-                Text("Unlock RPT Pro for \(purchaseManager.displayPrice)")
+                Text(purchaseManager.displayPrice.map { "Unlock RPT Pro for \($0)" } ?? "View RPT Pro")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Theme.primary)
             }
@@ -384,7 +404,7 @@ struct StatsView: View {
                             .font(.system(size: 12, weight: .semibold))
                             .monospacedDigit()
                     }
-                    .foregroundStyle(Theme.done)
+                    .foregroundStyle(Theme.doneForeground)
                     .accessibilityElement(children: .combine)
                 }
             }
@@ -579,7 +599,7 @@ struct StatsView: View {
         HStack(spacing: 10) {
             Image(systemName: "star.fill")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Theme.dropOne)
+                .foregroundStyle(Theme.dropOneForeground)
                 .frame(width: 28, height: 28)
                 .background(
                     Theme.orangeTint,
@@ -606,7 +626,7 @@ struct StatsView: View {
                 Text("+\(delta) lb")
                     .font(.system(size: 11, weight: .bold))
                     .monospacedDigit()
-                    .foregroundStyle(Theme.done)
+                    .foregroundStyle(Theme.doneForeground)
             }
         }
         .padding(.vertical, 8)

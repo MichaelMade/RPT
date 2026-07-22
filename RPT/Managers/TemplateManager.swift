@@ -115,7 +115,9 @@ class TemplateManager {
     private let dataManager: DataManaging
     private let modelContext: ModelContext
     private let exerciseManager: ExerciseManager
-    static let shared = TemplateManager()
+    // DataManager owns production seed initialization. Keep the initializer's
+    // flag for isolated containers and tests without repeating the launch fetch.
+    static let shared = TemplateManager(seedDefaultTemplates: false)
 
     static func sanitizeTemplateName(_ name: String) -> String {
         WorkoutTemplate.normalizedDisplayName(name)
@@ -171,13 +173,14 @@ class TemplateManager {
     }
 
     init(
-        dataManager: DataManaging = DataManager.shared,
-        exerciseManager: ExerciseManager = ExerciseManager.shared,
+        dataManager: DataManaging? = nil,
+        exerciseManager: ExerciseManager? = nil,
         seedDefaultTemplates: Bool = true
     ) {
-        self.dataManager = dataManager
-        self.modelContext = dataManager.getModelContext()
-        self.exerciseManager = exerciseManager
+        let resolvedDataManager = dataManager ?? DataManager.shared
+        self.dataManager = resolvedDataManager
+        self.modelContext = resolvedDataManager.getModelContext()
+        self.exerciseManager = exerciseManager ?? ExerciseManager.shared
 
         if seedDefaultTemplates {
             createDefaultTemplatesIfNeeded()
@@ -652,8 +655,8 @@ class TemplateManager {
 
     // MARK: - Default Templates
 
-    /// The classic Leangains three-day reverse pyramid split — deadlift, bench,
-    /// and squat days — per https://leangains.com/reverse-pyramid-training-guide/.
+    /// The built-in three-day reverse pyramid split: deadlift, bench, and
+    /// squat days with descending loads and rising rep targets.
     /// Big pulls drop 10% per set; pressing drops 5% per set.
     static func makeDefaultTemplates() -> [WorkoutTemplate] {
         let deadliftDay = WorkoutTemplate(
@@ -688,7 +691,7 @@ class TemplateManager {
                     notes: "Accessory work"
                 )
             ],
-            notes: "Classic Leangains RPT deadlift day. Rest at least 3 minutes between sets, more after deadlifts."
+            notes: "Built-in RPT deadlift day. Rest at least 3 minutes between sets, more after deadlifts."
         )
 
         let benchDay = WorkoutTemplate(
@@ -724,7 +727,7 @@ class TemplateManager {
                     notes: "Accessory work"
                 )
             ],
-            notes: "Classic Leangains RPT bench day. Rest at least 3 minutes between sets."
+            notes: "Built-in RPT bench day. Rest at least 3 minutes between sets."
         )
 
         let squatDay = WorkoutTemplate(
@@ -760,7 +763,7 @@ class TemplateManager {
                     notes: "Accessory work"
                 )
             ],
-            notes: "Classic Leangains RPT squat day. Rest at least 3 minutes between sets, more after squats."
+            notes: "Built-in RPT squat day. Rest at least 3 minutes between sets, more after squats."
         )
 
         return [deadliftDay, benchDay, squatDay]

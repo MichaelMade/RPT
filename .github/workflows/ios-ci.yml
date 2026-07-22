@@ -26,6 +26,9 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_16.4.app || sudo xcode-select -s /Applications/Xcode.app
           xcodebuild -version
 
+      - name: Run static regression tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+
       - name: Show available simulators
         run: xcrun simctl list devices available
 

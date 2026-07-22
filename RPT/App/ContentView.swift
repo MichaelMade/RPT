@@ -15,6 +15,14 @@ struct ContentView: View {
     @AppStorage("selectedRootTab") private var selectedRootTabRawValue = RootTab.home.rawValue
 
     var body: some View {
+        if settingsManager.initializationFailureDescription != nil {
+            StorageUnavailableView()
+        } else {
+            tabShell
+        }
+    }
+
+    private var tabShell: some View {
         TabView(selection: selectedRootTabBinding) {
             HomeView()
                 .tag(RootTab.home)
@@ -63,9 +71,14 @@ struct ContentView: View {
             session.rearmPresentationAfterRootSwap()
         }
         .task {
-            await StoreKitPurchaseManager.shared.start()
+            await StoreKitPurchaseManager.shared.prepareEntitlements()
         }
-        .preferredColorScheme(colorScheme(for: settingsManager.settings.darkModePreference))
+        .preferredColorScheme(colorScheme(for: settingsManager.darkModePreference))
+        #if DEBUG
+        .overlay(alignment: .topLeading) {
+            AppearanceProbe()
+        }
+        #endif
     }
 
     private func colorScheme(for preference: DarkModePreference) -> ColorScheme? {

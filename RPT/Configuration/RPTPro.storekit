@@ -10,7 +10,7 @@
       "internalID" : "rpt-pro-lifetime-local",
       "localizations" : [
         {
-          "description" : "Unlock advanced analytics, unlimited custom templates, and CSV export for your complete training history.",
+          "description" : "Advanced analytics, templates & CSV export",
           "displayName" : "RPT Pro Lifetime",
           "locale" : "en_US"
         }

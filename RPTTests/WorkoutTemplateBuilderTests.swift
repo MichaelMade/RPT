@@ -104,6 +104,31 @@ final class TemplateGateTests: XCTestCase {
         XCTAssertFalse(MonetizationPlan.canCreateTemplate(existingCount: MonetizationPlan.freeTemplateLimit, isUnlocked: false))
     }
 
+    @MainActor
+    func testFreeTierLeavesRoomAfterBuiltInTemplatesAreSeeded() {
+        let seededTemplateCount = TemplateManager.makeDefaultTemplates().count
+
+        XCTAssertEqual(seededTemplateCount, 3)
+        XCTAssertTrue(
+            MonetizationPlan.canCreateTemplate(
+                existingCount: seededTemplateCount,
+                isUnlocked: false
+            )
+        )
+        XCTAssertTrue(
+            MonetizationPlan.canCreateTemplate(
+                existingCount: seededTemplateCount + 2,
+                isUnlocked: false
+            )
+        )
+        XCTAssertFalse(
+            MonetizationPlan.canCreateTemplate(
+                existingCount: seededTemplateCount + 3,
+                isUnlocked: false
+            )
+        )
+    }
+
     func testProIsUnlimited() {
         XCTAssertTrue(MonetizationPlan.canCreateTemplate(existingCount: 500, isUnlocked: true))
     }

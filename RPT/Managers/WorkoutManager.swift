@@ -15,10 +15,11 @@ class WorkoutManager: ObservableObject {
     private let userManager: UserManager
     static let shared = WorkoutManager()
     
-    init(dataManager: DataManaging = DataManager.shared, userManager: UserManager = UserManager.shared) {
-        self.dataManager = dataManager
-        self.modelContext = dataManager.getModelContext()
-        self.userManager = userManager
+    init(dataManager: DataManaging? = nil, userManager: UserManager? = nil) {
+        let resolvedDataManager = dataManager ?? DataManager.shared
+        self.dataManager = resolvedDataManager
+        self.modelContext = resolvedDataManager.getModelContext()
+        self.userManager = userManager ?? UserManager.shared
     }
     
     // MARK: - Workout CRUD Operations

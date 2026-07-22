@@ -79,7 +79,7 @@ struct WorkoutCard: View {
                 if prCount > 0 {
                     Text(prCount == 1 ? "1 PR" : "\(prCount) PRs")
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Theme.done)
+                        .foregroundStyle(Theme.doneForeground)
                 }
             }
         }

@@ -1,32 +1,32 @@
 # RPT Roadmap
 
-Last updated: 2026-06-17
+Last updated: 2026-07-22
 
 RPT already has solid training depth: templates, exercise library, live workout logging, progression guidance, stats, export, and a basic three-screen onboarding flow. The biggest gaps are not more calculators or search polish; they are the release and revenue blockers that still stand between a good training app and a shippable product.
 
 Audit summary:
-- Core flows look substantially complete on paper: first launch, template browsing, workout start/resume, exercise library, stats, settings, and CSV export all exist, with meaningful unit-test coverage around data integrity and workout math.
-- Crash-safety looks better than average for this stage because the app centralizes persistence through shared managers and already has rollback/error-path tests, but UI-flow correctness is still largely unverified in this Linux runner.
-- Onboarding now gets users into action faster via a starter-template, custom-template, or empty-workout handoff, but the post-first-workout retention and monetization path is still undefined.
-- Monetization is not implemented yet. There is no StoreKit/paywall/subscription code, and the paid tier is not defined in product terms.
-- Release assets/compliance are incomplete: the project generates a launch screen and has an app icon, but there is no privacy manifest, no explicit App Store metadata/screenshots plan, and UI tests are still placeholder-level.
+- Core flows are implemented and covered by unit, static, and simulator UI tests: first launch, onboarding, template browsing, workout start/save/resume, exercise library, stats, settings, appearance persistence, and CSV export.
+- SwiftData startup failures now block normal editing behind a recovery screen instead of silently switching to disposable storage.
+- RPT Pro is implemented as a StoreKit 2 lifetime unlock for advanced analytics, unlimited templates, and CSV export. Pricing is always sourced from the user's App Store storefront.
+- The release bundle contains the privacy manifest and encryption declaration, excludes the local StoreKit configuration, and has an App Store metadata/submission packet.
+- Remaining release blockers are external: signing and App Store Connect setup, current screenshots, a signed TestFlight candidate, and real purchase/restore/revocation validation.
 
 ## Now (release/revenue-critical)
 
 - [x] Define the paid tier and shipping business model.
   RPT is now defined as freemium in code and product copy: `RPT Free` keeps workout logging, the starter template, and basic stats free, while `RPT Pro` is planned as a one-time `$9.99` lifetime unlock for advanced analytics, unlimited custom templates, and CSV export. This gives StoreKit/paywall work a concrete target instead of a moving product question.
 
-- [ ] Add a release-grade monetization entry path.
-  The first StoreKit 2 slice is now wired against App Store Connect product ID `rpt.pro.lifetime`: RPT loads the lifetime product, listens for transaction updates, purchases/restores the unlock, refreshes entitlement state, and gates CSV export behind `RPT Pro`. A local Mac validation product now exists at `RPT/Configuration/RPTPro.storekit`, and `docs/storekit-validation.md` defines the purchase, restore, revoke, and relaunch smoke path. The remaining release work is Mac/Xcode validation with that local configuration, then App Store Connect product validation, and then extending entitlement checks to unlimited templates and advanced analytics.
+- [x] Add a release-grade monetization entry path.
+  StoreKit 2 product loading, purchase, pending, restore, revocation, relaunch entitlement hydration, localized pricing, and all three Pro gates are implemented for `rpt.pro.lifetime`. Local validation uses `RPT/Configuration/RPTPro.storekit`; `docs/storekit-validation.md` defines the smoke path. The external gate is creating and attaching the real non-consumable in App Store Connect, then validating it on TestFlight.
 
 - [ ] Define the App Store privacy answers and release disclosures.
   `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. `docs/app-store-privacy-answers.md` captures the current App Store Connect stance: no developer-collected data, no tracking, no analytics, user-initiated CSV export, and Apple-handled StoreKit purchases. The remaining compliance pass should generate the Xcode privacy report from the archived binary, confirm the generated Info.plist still ships with no unexpected permission strings, and verify App Store Connect accepts the answers.
 
 - [x] Upgrade onboarding from explanation to activation.
-  First-run now ends with a concrete handoff: start the built-in `Upper Body RPT` template, open template creation, or launch an empty first workout. The remaining release risk is UI validation in a real build to confirm the handoff, tab routing, and workout presentation feel correct on device.
+  First-run now ends with a concrete handoff: start the built-in `Upper Body RPT` template, open template creation, or launch an empty first workout. Simulator UI tests validate onboarding, tab routing, save-for-later, resume, and returning-user behavior.
 
 - [x] Build the App Store packaging plan.
-  First-pass launch metadata now lives in `AppStoreReleasePlan`: subtitle, promo copy, keyword phrases capped under App Store Connect's 100-character limit, a five-shot screenshot story, support URL, and privacy URL. `AboutView` also exposes Support and Privacy links so the app has a real launch-facing help/legal surface instead of burying those assets outside the product.
+  Version 2.1 update metadata now lives in `AppStoreReleasePlan`: subtitle, promo copy, keyword phrases capped under App Store Connect's 100-character limit, a five-shot screenshot story, support URL, and privacy URL. `AboutView` also exposes Support and Privacy links so the app has a real release-facing help/legal surface instead of burying those assets outside the product.
 
 - [ ] Define the starter-template growth path after first workout.
   The current first-run flow gets users into action faster, but the next monetizable retention pass should decide what happens immediately after that first logged session: save-as-template prompts, follow-up workout nudges, or premium upgrade education.
@@ -35,18 +35,18 @@ Audit summary:
 ## Next
 
 - [x] Add GitHub-backed release automation.
-  The repo now has a shared `RPT` scheme, `iOS CI` workflow, manual `App Store Release Candidate` workflow, Fastlane `ci/archive/beta` lanes, signing-secret validation, archive export options, and an App Store submission packet. Publishing is blocked only on Apple signing/App Store Connect secrets from Michael's Apple account.
+  The repo has a shared `RPT` scheme, `iOS CI` workflow, manual `App Store Release Candidate` workflow, Fastlane `ci/archive/beta` lanes, signing-secret validation, archive export options, and an App Store submission packet. The current candidate still needs to be committed and pushed; GitHub secrets must be configured before archive/TestFlight jobs can run.
 
 - [ ] Validate the bundled privacy manifest in a real archive.
   Confirm `PrivacyInfo.xcprivacy` is copied into the app bundle/archive, inspect the generated privacy report in Xcode, and make sure App Store Connect accepts the manifest without additional required-reason entries from future code or SDK changes.
 
-- [ ] Replace placeholder UI tests with one real smoke path.
+- [x] Replace placeholder UI tests with real smoke paths.
   Cover first launch, onboarding completion, template/workout entry, and resume of an in-progress workout so the most important user journey has at least one regression net.
-  Progress: `RPTUITests` now covers first launch → onboarding → empty-workout activation → save-for-later → resume-from-Home, plus a returning-user tab-bar check. Needs a first run on a Mac/simulator to confirm the element queries.
+  `RPTUITests` covers first launch → onboarding → empty-workout activation → save-for-later → resume-from-Home, returning-user tab navigation, Light/Dark appearance persistence, a full design tour, and launch performance. These paths pass on the iOS simulator.
 
-- [ ] Add productized premium hooks before the paywall lands.
+- [x] Add productized premium hooks before the paywall lands.
   CSV export now has the first feature-level upgrade affordance and unlock gate. Next candidates are unlimited custom templates and advanced analytics/progression views so the paid tier matches its launch promise.
-  Progress: template creation and duplication now enforce a free-tier limit (`MonetizationPlan.freeTemplateLimit`, currently 3) with an upgrade sheet at every entry point, matching the "unlimited custom templates" Pro promise. Stats now also reserves weekly volume charts, muscle-balance breakdowns, and personal-record leaderboards for unlocked RPT Pro users while keeping summary stats and consistency visible in the free tier. Remaining: revisit the template limit value before launch.
+  Template creation and duplication enforce six total free templates (three built-in plus three custom slots) with an upgrade sheet at every entry point. Stats reserves weekly volume charts, muscle-balance breakdowns, and personal-record leaderboards for Pro while keeping summary stats and consistency visible in the free tier. CSV export is also gated consistently.
 
 - [ ] Tighten empty-state and no-data experiences across Home, Stats, and Templates.
   The app has depth for active users; the next pass should make the zero-workout and zero-template state feel intentional and confidence-building.
@@ -66,7 +66,7 @@ Audit summary:
 - [ ] Refine brand and merchandising polish.
   App icon variants, screenshot styling, and visual brand upgrades matter, but they should follow the business model and core release package rather than lead it.
 
-## Verify on Mac (needs Xcode/device)
+## Final release gates (needs Apple account/device)
 
 - Confirm `PrivacyInfo.xcprivacy` is bundled in the archive and that the Xcode privacy report matches the manifest's "no data collected, no tracking, UserDefaults only" expectation.
 - Validate the full first-run path: onboarding completion, app relaunch behavior, and whether users land in the right place after onboarding.
@@ -74,6 +74,8 @@ Audit summary:
 - Run the core workout journey on device/simulator: start workout, edit sets, rest timer, save/discard handoff, complete workout, and follow-up workout flow.
 - Confirm Stats, CSV export share sheet, and Settings mutations behave correctly in a real build.
 - Inspect the generated launch screen, app icon rendering, tab bar layout, and iPad presentation in Xcode/simulator.
-- Replace placeholder `RPTUITests` coverage with an actual smoke test and run it in Xcode.
-- Validate the `rpt.pro.lifetime` StoreKit 2 flow in Xcode: product loading, purchase sheet, pending state, transaction updates, restore purchases, CSV export unlocked state, and entitlement persistence after relaunch.
-- Validate the new `RPT Pro` upgrade screen, Stats promo card, and Settings entry point in simulator/device so copy, navigation, and pricing presentation feel intentional before App Store screenshots are captured.
+- Configure the seven GitHub Actions secrets and run the current candidate through `iOS CI`, archive-only release, and TestFlight workflows.
+- Confirm the Paid Apps Agreement, banking, and tax setup; create `rpt.pro.lifetime` as a real non-consumable and attach it to version 2.1.
+- Validate the real StoreKit purchase, pending, restore, revocation, and relaunch flow on device/TestFlight.
+- Capture current iPhone and 13-inch iPad storefront screenshots plus the separate IAP review screenshot.
+- Decide whether existing 2.0 users should be grandfathered into Pro; the current implementation requires the lifetime entitlement for all users.

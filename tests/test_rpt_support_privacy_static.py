@@ -5,6 +5,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ABOUT_VIEW = ROOT / "RPT" / "Views" / "Settings" / "AboutView.swift"
 PRIVACY_POLICY = ROOT / "Privacy Policy"
+SUPPORT_DOC = ROOT / "SUPPORT.md"
 PRIVACY_ANSWERS = ROOT / "docs" / "app-store-privacy-answers.md"
 ROADMAP = ROOT / "ROADMAP.md"
 
@@ -25,8 +26,16 @@ class RPTSupportPrivacyStaticTests(unittest.TestCase):
         self.assertIn('no accounts, analytics, ads, tracking SDKs', about)
         self.assertIn('StoreKit handles RPT Pro purchases through Apple', about)
 
-    def test_privacy_policy_matches_local_first_release_claims(self):
+    def test_public_support_document_uses_in_app_contact(self):
+        support = SUPPORT_DOC.read_text()
+        self.assertIn("moorem88@gmail.com", support)
+        self.assertIn("Restore Purchases", support)
+        self.assertIn("RPT Privacy Policy", support)
+
+    def test_privacy_policy_matches_current_release_claims(self):
         policy = PRIVACY_POLICY.read_text()
+
+        self.assertIn("Email: moorem88@gmail.com", policy)
 
         required_claims = [
             "RPT does not require an account",

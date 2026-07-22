@@ -22,7 +22,6 @@ class ExerciseLibraryViewModel: ObservableObject {
 
     init(exerciseManager: ExerciseManager? = nil) {
         self.exerciseManager = exerciseManager ?? ExerciseManager.shared
-        refreshExercises()
     }
 
     var filteredExercises: [Exercise] {

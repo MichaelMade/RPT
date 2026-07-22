@@ -218,6 +218,29 @@ struct ExerciseDetailView: View {
         e1rmPoints.map(\.value).max() ?? 0
     }
 
+    private var e1rmAccessibilitySummary: String {
+        guard let first = e1rmPoints.first, let latest = e1rmPoints.last else {
+            return "No strength trend data."
+        }
+
+        let change = latest.value - first.value
+        let changeSummary: String
+        if abs(change) < 0.5 {
+            changeSummary = "unchanged from the first session"
+        } else if change > 0 {
+            changeSummary = "\(OneRepMax.formatted(change)) higher than the first session"
+        } else {
+            changeSummary = "\(OneRepMax.formatted(abs(change))) lower than the first session"
+        }
+
+        let firstDate = first.date.formatted(date: .abbreviated, time: .omitted)
+        let latestDate = latest.date.formatted(date: .abbreviated, time: .omitted)
+        return "\(e1rmPoints.count) sessions from \(firstDate) to \(latestDate). "
+            + "Started at \(OneRepMax.formatted(first.value)). "
+            + "Latest \(OneRepMax.formatted(latest.value)), \(changeSummary). "
+            + "Best \(OneRepMax.formatted(bestE1RM))."
+    }
+
     private var trendSection: some View {
         VStack(spacing: 12) {
             SectionHeader(title: "Strength Trend")
@@ -241,6 +264,9 @@ struct ExerciseDetailView: View {
                     AxisMarks(position: .leading)
                 }
                 .frame(height: 180)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Estimated one-rep max trend")
+                .accessibilityValue(e1rmAccessibilitySummary)
 
                 Text("Estimated one-rep max from your best working set each session.")
                     .font(.caption2)

@@ -52,6 +52,8 @@ struct ExercisesView: View {
                     .scrollDismissesKeyboard(.interactively)
                 }
             }
+            .frame(maxWidth: Theme.contentMaxWidth)
+            .frame(maxWidth: .infinity)
             .background(Theme.screenBackground)
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showingCreateExercise) {
@@ -357,7 +359,7 @@ private struct RecentExerciseRowLabel: View {
                         Text(e1RMText)
                             .font(.system(size: 10.5, weight: entry.isPR ? .semibold : .regular))
                             .monospacedDigit()
-                            .foregroundStyle(entry.isPR ? Theme.done : Theme.textSecondary)
+                            .foregroundStyle(entry.isPR ? Theme.doneForeground : Theme.textSecondary)
                     }
                 }
                 .accessibilityElement(children: .ignore)
@@ -383,7 +385,7 @@ private struct CompactBrandButtonStyle: ButtonStyle {
             .padding(.vertical, 8)
             .padding(.horizontal, 14)
             .background(
-                Theme.primary,
+                Theme.primaryAction,
                 in: RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous)
             )
             .opacity(configuration.isPressed ? 0.85 : 1)

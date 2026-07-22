@@ -17,7 +17,10 @@ class RPTDataManagerProtocolStaticTests(unittest.TestCase):
         source = DATA_MANAGER.read_text()
 
         self.assertIn("protocol DataManaging", source)
-        self.assertRegex(source, r"@MainActor\s+class\s+DataManager\s*:\s*DataManaging\s*{")
+        self.assertRegex(
+            source,
+            r"@MainActor\s+(?:final\s+)?class\s+DataManager\s*:\s*DataManaging\s*{",
+        )
         self.assertIn("func getModelContext() -> ModelContext", source)
         self.assertIn("func saveChanges() throws", source)
 

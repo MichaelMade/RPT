@@ -3,6 +3,12 @@ import XCTest
 
 @MainActor
 final class ExerciseLibraryViewModelSearchTests: XCTestCase {
+    func testInitializationDefersLibraryFetchUntilViewAppears() {
+        let viewModel = ExerciseLibraryViewModel()
+
+        XCTAssertTrue(viewModel.exercises.isEmpty)
+    }
+
     func testSearchPrompt_teachesCustomMovesAlongsidePushPullSplitsAndInstructionCues() {
         XCTAssertEqual(
             ExerciseLibraryViewModel.searchPrompt,

@@ -22,7 +22,6 @@ class TemplateViewModel: ObservableObject {
     init(templateManager: TemplateManager? = nil, exerciseManager: ExerciseManager? = nil) {
         self.templateManager = templateManager ?? TemplateManager.shared
         self.exerciseManager = exerciseManager ?? ExerciseManager.shared
-        refreshTemplates()
     }
 
     var filteredTemplates: [WorkoutTemplate] {

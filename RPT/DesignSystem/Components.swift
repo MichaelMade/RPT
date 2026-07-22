@@ -97,7 +97,7 @@ struct PillTag: View {
             tint.opacity(0.12),
             in: RoundedRectangle(cornerRadius: 5, style: .continuous)
         )
-        .foregroundStyle(tint)
+        .foregroundStyle(Theme.textPrimary)
     }
 }
 
@@ -115,7 +115,7 @@ struct FilterChip: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
                 .background(
-                    isSelected ? Theme.primary : Theme.cardBackground,
+                    isSelected ? Theme.primaryAction : Theme.cardBackground,
                     in: Capsule()
                 )
                 .overlay(
@@ -125,8 +125,11 @@ struct FilterChip: View {
                     )
                 )
                 .foregroundStyle(isSelected ? .white : Theme.textPrimary)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 
@@ -232,7 +235,7 @@ struct ValueStepperControl: View {
             Button(action: onDecrement) {
                 Image(systemName: "minus")
                     .font(.system(size: 13, weight: .bold))
-                    .frame(width: 32, height: 32)
+                    .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -259,7 +262,7 @@ struct ValueStepperControl: View {
             Button(action: onIncrement) {
                 Image(systemName: "plus")
                     .font(.system(size: 13, weight: .bold))
-                    .frame(width: 32, height: 32)
+                    .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)

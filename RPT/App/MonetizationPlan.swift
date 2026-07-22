@@ -20,17 +20,17 @@ enum MonetizationPlan {
 
     static let freeTier = MonetizationTier(
         name: "RPT Free",
-        summary: "Log workouts, follow the starter template, and build momentum without a signup.",
+        summary: "Log workouts, follow the built-in RPT split, and build momentum without a signup.",
         features: [
             "Unlimited workout logging",
-            "Starter template plus basic progress stats",
+            "Built-in three-day RPT split, three custom templates, and basic progress stats",
             "On-device data with no account required"
         ]
     )
 
     static let proTier = MonetizationTier(
         name: "RPT Pro",
-        summary: "Unlock advanced analytics, unlimited templates, and CSV export once the App Store upgrade goes live.",
+        summary: "Unlock advanced analytics, unlimited templates, and CSV export with one lifetime purchase.",
         features: [
             "Advanced analytics and personal-record trends",
             "Unlimited custom templates",
@@ -38,19 +38,18 @@ enum MonetizationPlan {
         ]
     )
 
-    /// Free tier keeps the starter template plus room to build a small
-    /// rotation; unlimited templates are part of RPT Pro.
-    static let freeTemplateLimit = 3
+    /// The app seeds three built-in days and lets free users add three custom
+    /// templates. Unlimited templates are part of RPT Pro.
+    static let freeTemplateLimit = 6
 
     static func canCreateTemplate(existingCount: Int, isUnlocked: Bool) -> Bool {
         isUnlocked || existingCount < freeTemplateLimit
     }
 
-    static let launchPrice = "$9.99"
-    static let launchOfferTitle = "Lifetime unlock"
-    static let launchOfferSummary = "One-time purchase planned for the first App Store release."
+    static let purchaseOfferTitle = "Lifetime unlock"
+    static let purchaseOfferSummary = "One-time purchase. No subscription."
     static let upgradeCTA = "RPT Pro unlocks advanced analytics, unlimited templates, and CSV export."
-    static let storeKitNote = "StoreKit purchase flow will be verified on Mac before the App Store build ships."
+    static let storeKitNote = "Purchases are handled securely by the App Store and can be restored anytime."
 }
 
 enum MonetizationPurchaseState: Equatable {
@@ -64,9 +63,9 @@ enum MonetizationPurchaseState: Equatable {
 
     var isBusy: Bool {
         switch self {
-        case .loadingStore, .purchasing, .restoring:
+        case .loadingStore, .purchasing, .restoring, .pendingApproval:
             return true
-        case .ready, .pendingApproval, .unlocked, .unavailable:
+        case .ready, .unlocked, .unavailable:
             return false
         }
     }
@@ -74,11 +73,11 @@ enum MonetizationPurchaseState: Equatable {
     var displayMessage: String {
         switch self {
         case .loadingStore:
-            return "Loading the RPT Pro upgrade from the App Store."
+            return "Checking App Store availability."
         case .ready:
-            return "StoreKit is ready for the lifetime RPT Pro upgrade."
+            return "One lifetime purchase. No subscription."
         case .purchasing:
-            return "Opening the App Store purchase sheet."
+            return "Completing your purchase with the App Store."
         case .restoring:
             return "Checking your App Store purchases."
         case .pendingApproval:
@@ -86,7 +85,7 @@ enum MonetizationPurchaseState: Equatable {
         case .unlocked:
             return "RPT Pro is unlocked on this device."
         case .unavailable:
-            return "RPT Pro is not available from the App Store yet."
+            return "RPT Pro is unavailable right now. Check your connection and try again."
         }
     }
 }

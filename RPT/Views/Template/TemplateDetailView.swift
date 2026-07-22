@@ -113,7 +113,7 @@ struct TemplateDetailView: View {
         VStack(alignment: .leading, spacing: 6) {
             Label("Some exercises are missing", systemImage: "exclamationmark.triangle.fill")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Theme.dropOne)
+                .foregroundStyle(Theme.dropOneForeground)
 
             Text("Not in your library: \(missingExercises.joined(separator: ", ")). Starting this template will skip them.")
                 .font(.system(size: 12))

@@ -212,8 +212,11 @@ struct MuscleGroupGrid: View {
                             in: Capsule()
                         )
                         .foregroundStyle(isSelected ? tint : .primary)
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? [.isSelected] : [])
             }
         }
         .padding(.vertical, 4)

@@ -12,6 +12,7 @@ import SwiftData
 @MainActor
 protocol SettingsManaging: AnyObject {
     var settings: UserSettings { get }
+    var darkModePreference: DarkModePreference { get }
     func updateSettings() throws
     func updateSettingsSafely() -> Bool
     func updateRestTimerDuration(seconds: Int) throws
@@ -50,13 +51,18 @@ class SettingsManager: ObservableObject, SettingsManaging {
     static let shared = SettingsManager()
     
     @Published var settings: UserSettings
+    @Published private(set) var darkModePreference: DarkModePreference
+    @Published private(set) var initializationFailureDescription: String?
     
-    init(dataManager: DataManaging = DataManager.shared) {
-        self.dataManager = dataManager
-        self.modelContext = dataManager.getModelContext()
+    init(dataManager: DataManaging? = nil) {
+        let resolvedDataManager = dataManager ?? DataManager.shared
+        self.dataManager = resolvedDataManager
+        self.modelContext = resolvedDataManager.getModelContext()
         
         // Initialize with default settings (will be replaced if we can fetch from database)
         self.settings = UserSettings()
+        self.darkModePreference = .system
+        self.initializationFailureDescription = nil
         
         // Fetch or create settings
         do {
@@ -66,7 +72,7 @@ class SettingsManager: ObservableObject, SettingsManaging {
                 // Create new settings if none found
                 let newSettings = UserSettings()
                 modelContext.insert(newSettings)
-                try dataManager.saveChanges()
+                try resolvedDataManager.saveChanges()
                 self.settings = newSettings
             }
 
@@ -76,11 +82,13 @@ class SettingsManager: ObservableObject, SettingsManaging {
             syncWithUserDefaults()
         } catch {
             print("Error initializing settings: \(error)")
-            // Keep using the default settings created above
-            
-            // Sync default settings with UserDefaults
-            syncWithUserDefaults()
+            initializationFailureDescription = String(describing: error)
         }
+
+        // Publish appearance as a first-class value. SwiftData observes the
+        // model itself, but ContentView observes this manager, so relying on a
+        // nested model mutation alone can leave the root color scheme stale.
+        self.darkModePreference = settings.darkModePreference
     }
 
     private func sanitizePersistedSettingsIfNeeded() throws {
@@ -152,6 +160,7 @@ class SettingsManager: ObservableObject, SettingsManaging {
             if syncUserDefaults {
                 syncWithUserDefaults()
             }
+            darkModePreference = settings.darkModePreference
             objectWillChange.send()
         } catch {
             print("Error updating settings: \(error)")

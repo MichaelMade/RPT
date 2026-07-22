@@ -167,6 +167,54 @@ final class ErrorHandlingTests: XCTestCase {
         XCTAssertEqual(UserDefaults.standard.bool(forKey: "showRPE"), originalShowRPE)
     }
 
+    func testSettingsManagerDarkMode_failedSaveKeepsPublishedPreferenceInSync() {
+        let failingManager = SettingsManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext())
+        )
+        let originalPreference = failingManager.darkModePreference
+        let attemptedPreference: DarkModePreference = originalPreference == .dark ? .light : .dark
+
+        XCTAssertFalse(
+            failingManager.updateDarkModePreferenceSafely(preference: attemptedPreference)
+        )
+        XCTAssertEqual(failingManager.settings.darkModePreference, originalPreference)
+        XCTAssertEqual(failingManager.darkModePreference, originalPreference)
+    }
+
+    func testSettingsManagerInitializationFailureIsExplicit() throws {
+        let schema = Schema([
+            Exercise.self,
+            Workout.self,
+            ExerciseSet.self,
+            WorkoutTemplate.self,
+            UserSettings.self,
+            User.self
+        ])
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: configuration)
+        let failingManager = SettingsManager(
+            dataManager: FailingDataManager(context: container.mainContext)
+        )
+
+        XCTAssertNotNil(failingManager.initializationFailureDescription)
+    }
+
+    func testSettingsManagerGenericCommitSynchronizesPublishedAppearance() {
+        let dataManager = DataManager(
+            containerFactory: { schema, _ in
+                let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+                return try ModelContainer(for: schema, configurations: configuration)
+            },
+            seedDefaultData: true
+        )
+        let settingsManager = SettingsManager(dataManager: dataManager)
+
+        settingsManager.settings.darkModePreference = .dark
+
+        XCTAssertNoThrow(try settingsManager.updateSettings())
+        XCTAssertEqual(settingsManager.darkModePreference, .dark)
+    }
+
     func testSettingsManagerResetToDefaults_failedSaveRestoresPriorState() {
         let sharedSettings = SettingsManager.shared.settings
         let originalRestTimer = sharedSettings.restTimerDuration
@@ -184,6 +232,7 @@ final class ErrorHandlingTests: XCTestCase {
         XCTAssertEqual(failingManager.settings.defaultRPTPercentageDrops, originalDrops)
         XCTAssertEqual(failingManager.settings.showRPE, originalShowRPE)
         XCTAssertEqual(failingManager.settings.darkModePreference, originalDarkMode)
+        XCTAssertEqual(failingManager.darkModePreference, originalDarkMode)
         XCTAssertEqual(UserDefaults.standard.bool(forKey: "showRPE"), originalShowRPE)
     }
 

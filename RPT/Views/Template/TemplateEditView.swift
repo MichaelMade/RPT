@@ -73,7 +73,7 @@ struct TemplateEditView: View {
                     if let helperText = validation.helperText {
                         Text(helperText)
                             .font(.system(size: 12))
-                            .foregroundStyle(Theme.dropOne)
+                            .foregroundStyle(Theme.dropOneForeground)
                     }
                 }
                 .listRowBackground(Theme.cardBackground)

@@ -56,6 +56,8 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, Theme.screenPadding)
                 .padding(.bottom, 24)
+                .frame(maxWidth: Theme.contentMaxWidth)
+                .frame(maxWidth: .infinity)
             }
             .background(Theme.screenBackground)
             .toolbar(.hidden, for: .navigationBar)
@@ -135,7 +137,7 @@ struct HomeView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "flame.fill")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Theme.dropOne)
+                        .foregroundStyle(Theme.dropOneForeground)
 
                     Text("\(viewModel.workoutStreak)-day streak")
                         .font(.system(size: 13, weight: .semibold))
@@ -339,7 +341,7 @@ struct HomeView: View {
                         .fill(Theme.done)
                     Image(systemName: "checkmark")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Theme.inverted)
                 } else if day.isToday {
                     RoundedRectangle(cornerRadius: Theme.chipCornerRadius, style: .continuous)
                         .fill(Theme.cardBackground)

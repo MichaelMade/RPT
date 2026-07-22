@@ -1,14 +1,16 @@
 # RPT App Store Submission Packet
 
-This packet is the manual App Store Connect entry source of truth for the first TestFlight/App Store submission. It mirrors `RPT/App/AppStoreReleasePlan.swift` and `fastlane/metadata/en-US/`.
+This packet is the manual App Store Connect source of truth for the RPT 2.1 update to the existing App Store listing (Apple ID `6745407020`). It mirrors `RPT/App/AppStoreReleasePlan.swift` and `fastlane/metadata/en-US/`.
 
 ## App identity
 
 | Field | Value |
 |---|---|
-| App name | RPT - Reverse Pyramid Training |
+| App name | RPT: Reverse Pyramid Training |
+| App Store Apple ID | `6745407020` |
 | Bundle ID | `com.MichaelMade.RPT` |
-| SKU | `rpt-ios-001` |
+| Version | `2.1.0` |
+| SKU | `rpt-ios-001` (verify against the existing App Store Connect record) |
 | Category | Health & Fitness |
 | Content rights | No third-party content |
 | Age rating baseline | 4+ if App Store Connect confirms no medical/regulated/UGC answers |
@@ -22,7 +24,7 @@ This packet is the manual App Store Connect entry source of truth for the first 
 | Subtitle | Reverse pyramid training log |
 | Promotional text | Log heavy top sets first, get RPT back-off guidance, and track strength trends without an account. |
 | Keywords | `rpt,strength log,workout tracker,progressive overload,weight lifting,gym planner,rest timer,1rm` |
-| Support URL | https://github.com/MichaelMade/RPT/issues |
+| Support URL | https://github.com/MichaelMade/RPT/blob/master/SUPPORT.md |
 | Privacy URL | https://github.com/MichaelMade/RPT/blob/master/Privacy%20Policy |
 | Terms of Use (EULA) | Apple's Standard EULA — https://www.apple.com/legal/internet-services/itunes/dev/stdeula/ |
 
@@ -89,12 +91,15 @@ RPT uses Apple's Standard EULA for App Store purchases: https://www.apple.com/le
 
 - [ ] Build archive on Mac/Xcode and confirm `PrivacyInfo.xcprivacy` is present in the archive.
 - [ ] Generate and inspect the Xcode privacy report.
-- [ ] Create App Store Connect app record for bundle ID `com.MichaelMade.RPT`.
-- [ ] Create non-consumable IAP `rpt.pro.lifetime`, attach review screenshot, and set launch price.
+- [ ] Verify the existing App Store Connect record (Apple ID `6745407020`) uses bundle ID `com.MichaelMade.RPT` and has version `2.1.0` ready for the update.
+- [ ] Verify the immutable SKU on the existing record before treating `rpt-ios-001` as authoritative.
+- [ ] Confirm the Paid Apps Agreement is active and banking/tax setup is complete.
+- [ ] Create non-consumable IAP `rpt.pro.lifetime`, add its price, territories, localization, review notes, and review screenshot, move it to Ready to Submit, and attach it to version 2.1.
 - [ ] Confirm App Store Connect is set to Apple's Standard EULA.
 - [ ] Add GitHub Actions signing secrets listed in `docs/GitHubReleaseSetup.md`.
 - [ ] Run GitHub `iOS CI` workflow green.
 - [ ] Run `App Store Release Candidate` workflow with `upload_to_testflight=false` and inspect artifact.
 - [ ] Run `App Store Release Candidate` workflow with `upload_to_testflight=true`.
 - [ ] Device-check onboarding, starter template launch, workout save/resume, StoreKit purchase/restore, entitlement persistence, and CSV export.
-- [ ] Capture final screenshots from the five-shot story.
+- [ ] Capture final iPhone and 13-inch iPad screenshots from the five-shot story, plus the separate IAP review screenshot.
+- [ ] Decide whether existing 2.0 users should be grandfathered into Pro before submission; the current implementation requires a StoreKit entitlement for everyone.

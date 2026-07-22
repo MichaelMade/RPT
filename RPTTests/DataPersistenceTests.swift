@@ -11,6 +11,11 @@ import SwiftData
 
 @MainActor
 final class DataPersistenceTests: XCTestCase {
+    private enum TestContainerError: Error {
+        case persistentStoreUnavailable
+        case defaultDataUnavailable
+    }
+
     // This test will create a separate test-only ModelContainer
     var modelContainer: ModelContainer!
     var modelContext: ModelContext!
@@ -149,23 +154,90 @@ final class DataPersistenceTests: XCTestCase {
         XCTAssertTrue(exercises.contains(where: { $0.name == "Reload Exercise" }), "Exercise name should match in new context")
     }
     
-    // MARK: - Model Container Shared Instance
-    
-    func testDataManagerSharedModelContainer() {
-        // Get shared DataManager's ModelContainer
-        let container = DataManager.shared.getSharedModelContainer()
-        
-        // Test that the container exists and is accessible
-        XCTAssertNotNil(container, "Shared model container should exist")
-        
-        // Test that the shared model container has the expected schema types
-        let modelContext = container.mainContext
-        
-        // Try to insert and fetch a sample entity
-        let testExercise = Exercise(name: "Container Test", category: .compound, primaryMuscleGroups: [.abs])
-        modelContext.insert(testExercise)
-        
-        // Should be able to save
-        XCTAssertNoThrow(try modelContext.save(), "Should be able to save to shared container")
+    // MARK: - Data Manager Storage State
+
+    func testDataManagerSharedContainerUsesPersistentStore() {
+        let manager = DataManager.shared
+
+        XCTAssertFalse(manager.isUsingTemporaryStore)
+        XCTAssertNil(manager.persistenceFailure)
+        XCTAssertNotNil(manager.getSharedModelContainer())
+    }
+
+    func testDataManagerPersistentFailureCreatesExplicitBlockedTemporaryState() throws {
+        var containerCreationAttempts = 0
+        let manager = DataManager(
+            containerFactory: { schema, configuration in
+                containerCreationAttempts += 1
+
+                if containerCreationAttempts == 1 {
+                    throw TestContainerError.persistentStoreUnavailable
+                }
+
+                return try ModelContainer(for: schema, configurations: configuration)
+            },
+            seedDefaultData: false
+        )
+
+        XCTAssertEqual(containerCreationAttempts, 2)
+        XCTAssertTrue(manager.isUsingTemporaryStore)
+        XCTAssertEqual(
+            manager.persistenceFailure?.technicalDescription,
+            String(describing: TestContainerError.persistentStoreUnavailable)
+        )
+
+        let exerciseCount = try manager.getModelContext().fetchCount(FetchDescriptor<Exercise>())
+        XCTAssertEqual(exerciseCount, 0, "The recovery store must not be seeded as a usable replacement")
+    }
+
+    func testDataManagerDefaultDataFailureCreatesExplicitBlockedState() {
+        let manager = DataManager(
+            containerFactory: { schema, _ in
+                let configuration = ModelConfiguration(
+                    isStoredInMemoryOnly: true,
+                    allowsSave: true
+                )
+                return try ModelContainer(for: schema, configurations: configuration)
+            },
+            seedDefaultData: true,
+            defaultDataInitializer: { _ in
+                throw TestContainerError.defaultDataUnavailable
+            }
+        )
+
+        XCTAssertFalse(manager.isUsingTemporaryStore)
+        XCTAssertTrue(manager.hasPersistenceFailure)
+        XCTAssertEqual(
+            manager.persistenceFailure?.technicalDescription,
+            String(describing: TestContainerError.defaultDataUnavailable)
+        )
+    }
+
+    func testTemplateManagerCanStillSeedAnInjectedTestContainer() {
+        let dataManager = DataManager(
+            containerFactory: { schema, _ in
+                let configuration = ModelConfiguration(
+                    isStoredInMemoryOnly: true,
+                    allowsSave: true
+                )
+                return try ModelContainer(for: schema, configurations: configuration)
+            },
+            seedDefaultData: false
+        )
+        let exerciseManager = ExerciseManager(dataManager: dataManager)
+
+        let unseededManager = TemplateManager(
+            dataManager: dataManager,
+            exerciseManager: exerciseManager,
+            seedDefaultTemplates: false
+        )
+        XCTAssertTrue(unseededManager.fetchAllTemplates().isEmpty)
+
+        let seededManager = TemplateManager(
+            dataManager: dataManager,
+            exerciseManager: exerciseManager,
+            seedDefaultTemplates: true
+        )
+        XCTAssertEqual(seededManager.fetchAllTemplates().count, 3)
     }
 }

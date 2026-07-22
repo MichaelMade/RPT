@@ -27,6 +27,14 @@ struct TemplatesListView: View {
 
     /// Route every new-template entry point through the free-tier limit.
     private func requestCreateTemplate() {
+        guard purchaseManager.hasPreparedEntitlements else {
+            Task { @MainActor in
+                await purchaseManager.prepareEntitlements()
+                requestCreateTemplate()
+            }
+            return
+        }
+
         if MonetizationPlan.canCreateTemplate(
             existingCount: viewModel.templates.count,
             isUnlocked: purchaseManager.isUnlocked
@@ -71,6 +79,8 @@ struct TemplatesListView: View {
                 }
                 .padding(.horizontal, Theme.screenPadding)
                 .padding(.bottom, 24)
+                .frame(maxWidth: Theme.contentMaxWidth)
+                .frame(maxWidth: .infinity)
             }
             .background(Theme.screenBackground)
             .toolbar(.hidden, for: .navigationBar)
@@ -103,6 +113,9 @@ struct TemplatesListView: View {
                     showCreateTemplateAfterOnboarding = false
                     requestCreateTemplate()
                 }
+            }
+            .task {
+                await purchaseManager.prepareEntitlements()
             }
             .alert(item: $templateToDelete) { template in
                 Alert(
@@ -321,7 +334,7 @@ struct TemplatesListView: View {
                 .font(.system(size: 11, weight: .semibold))
                 .monospacedDigit()
         }
-        .foregroundStyle(Theme.dropOne)
+        .foregroundStyle(Theme.dropOneForeground)
     }
 
     private func exerciseChips(for template: WorkoutTemplate) -> some View {
@@ -418,6 +431,14 @@ struct TemplatesListView: View {
     // MARK: - Duplicate Flow
 
     private func duplicateTemplate(_ template: WorkoutTemplate) {
+        guard purchaseManager.hasPreparedEntitlements else {
+            Task { @MainActor in
+                await purchaseManager.prepareEntitlements()
+                duplicateTemplate(template)
+            }
+            return
+        }
+
         guard MonetizationPlan.canCreateTemplate(
             existingCount: viewModel.templates.count,
             isUnlocked: purchaseManager.isUnlocked
@@ -496,7 +517,7 @@ private struct CompactBrandButtonStyle: ButtonStyle {
             .padding(.vertical, 8)
             .padding(.horizontal, 14)
             .background(
-                Theme.primary,
+                Theme.primaryAction,
                 in: RoundedRectangle(cornerRadius: Theme.smallCornerRadius, style: .continuous)
             )
             .opacity(configuration.isPressed ? 0.85 : 1)

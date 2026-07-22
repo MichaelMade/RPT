@@ -133,6 +133,14 @@ struct WorkoutDetailView: View {
     // MARK: - Save as Template
 
     private func saveAsTemplate() {
+        guard purchaseManager.hasPreparedEntitlements else {
+            Task { @MainActor in
+                await purchaseManager.prepareEntitlements()
+                saveAsTemplate()
+            }
+            return
+        }
+
         let exercises = WorkoutTemplateBuilder.templateExercises(from: workout)
         guard !exercises.isEmpty else {
             errorMessage = "This workout has no sets to turn into a template."
@@ -297,7 +305,7 @@ struct WorkoutDetailView: View {
                                 set.isWarmup ? Theme.amberTint : Theme.primaryTint,
                                 in: Circle()
                             )
-                            .foregroundStyle(set.isWarmup ? Theme.dropTwo : Theme.primary)
+                            .foregroundStyle(set.isWarmup ? Theme.dropTwoForeground : Theme.primary)
 
                         Text(set.formattedWeightReps)
                             .font(.system(size: 14))
@@ -313,7 +321,7 @@ struct WorkoutDetailView: View {
                         if set.isCompletedLoggedSet {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.subheadline)
-                                .foregroundStyle(Theme.done)
+                                .foregroundStyle(Theme.doneForeground)
                         }
                     }
                     .accessibilityElement(children: .combine)

@@ -133,6 +133,7 @@ struct ActiveWorkoutView: View {
                     Button("Done") { commitNameEdit() }
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(Theme.primary)
+                        .frame(minWidth: 44, minHeight: 44)
                 } else {
                     VStack(alignment: .leading, spacing: 1) {
                         HStack(spacing: 6) {
@@ -147,6 +148,8 @@ struct ActiveWorkoutView: View {
                                 Image(systemName: "pencil")
                                     .font(.system(size: 12, weight: .semibold))
                                     .foregroundStyle(Theme.textSecondary)
+                                    .frame(width: 44, height: 44)
+                                    .contentShape(Rectangle())
                             }
                             .accessibilityLabel("Rename workout")
                         }
@@ -177,6 +180,8 @@ struct ActiveWorkoutView: View {
                             )
                     }
                     .buttonStyle(.plain)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                     .accessibilityLabel("Save for Later")
 
                     Menu {
@@ -201,7 +206,7 @@ struct ActiveWorkoutView: View {
                         Image(systemName: "ellipsis.circle")
                             .font(.system(size: 17, weight: .medium))
                             .foregroundStyle(Theme.textSecondary)
-                            .frame(width: 28, height: 32)
+                            .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     }
                     .accessibilityLabel("Workout options")

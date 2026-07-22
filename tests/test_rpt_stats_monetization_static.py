@@ -49,7 +49,10 @@ class RPTStatsMonetizationStaticTests(unittest.TestCase):
     def test_locked_card_promotes_pro_without_hiding_basic_stats(self):
         self.assertIn('PillTag(text: "Advanced Analytics"', self.stats_view)
         self.assertIn("Weekly volume charts, muscle-balance breakdowns, and personal-record leaderboards", self.stats_view)
-        self.assertIn("Unlock RPT Pro for \\(purchaseManager.displayPrice)", self.stats_view)
+        self.assertIn(
+            'purchaseManager.displayPrice.map { "Unlock RPT Pro for \\($0)" } ?? "View RPT Pro"',
+            self.stats_view,
+        )
 
         # Free-tier users should still see the core/basic stat surface before the Pro gate.
         self.assertIn("summaryTiles", self.stats_view)

@@ -1,6 +1,6 @@
 # RPT Pro StoreKit Validation
 
-RPT includes a local StoreKit configuration at `RPT/Configuration/RPTPro.storekit` so the first paid unlock can be exercised in Xcode before the App Store Connect product is live.
+RPT includes a local StoreKit configuration at `RPT/Configuration/RPTPro.storekit` so the paid unlock can be exercised in Xcode before submitting the 2.1 update.
 
 ## Product under test
 
@@ -31,4 +31,4 @@ RPT includes a local StoreKit configuration at `RPT/Configuration/RPTPro.storeki
 
 ## Release handoff
 
-Before TestFlight/App Store release, repeat the same smoke path with the real App Store Connect product available and remove the local StoreKit configuration from the active scheme if needed for archive validation.
+Before the 2.1 TestFlight/App Store update, repeat the same smoke path with the real App Store Connect product available. The `.storekit` file is excluded from the app target and must not appear in the archived app bundle.
