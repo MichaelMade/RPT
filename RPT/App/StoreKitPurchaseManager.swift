@@ -230,15 +230,17 @@ final class StoreKitPurchaseManager: ObservableObject {
             if MonetizationPlan.proProductIDs.contains(transaction.productID) {
                 if transaction.revocationDate == nil {
                     grantProEntitlement()
-                }
-                await transaction.finish()
+                    await transaction.finish()
+                } else {
+                    await transaction.finish()
 
-                // Transaction.currentEntitlements is canonical. In
-                // particular, a delayed revocation for an older transaction
-                // must not lock a newer valid repurchase.
-                let hasEntitlement = await refreshPurchasedState()
-                if !hasEntitlement {
-                    revokeProEntitlement()
+                    // Transaction.currentEntitlements is canonical. In
+                    // particular, a delayed revocation for an older
+                    // transaction must not lock a newer valid repurchase.
+                    let hasEntitlement = await refreshPurchasedState()
+                    if !hasEntitlement {
+                        revokeProEntitlement()
+                    }
                 }
             }
         } catch {
