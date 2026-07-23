@@ -405,7 +405,9 @@ struct SettingsView: View {
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.textPrimary)
 
-            HStack(spacing: 2) {
+            // Distinct 10pt gaps keep the chips from reading like one
+            // segmented control while still fitting the narrowest phone.
+            HStack(spacing: 10) {
                 ForEach(restDurationChips, id: \.self) { seconds in
                     let isSelected = seconds == settings.restTimerDuration
 
