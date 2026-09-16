@@ -495,6 +495,26 @@ final class ErrorHandlingTests: XCTestCase {
         XCTAssertNil(workout.user, "Failed completion should not leave a dangling user link on the workout")
     }
 
+    func testCompleteWorkout_failedSaveDoesNotIncrementReviewPromptCounter() {
+        let workout = Workout(name: "Review Counter Rollback")
+        let exercise = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+        _ = workout.addSet(exercise: exercise, weight: 225, reps: 5)
+
+        let counterBefore = ReviewPromptManager.completedWorkoutCount
+
+        let failingWorkoutManager = WorkoutManager(
+            dataManager: FailingDataManager(context: DataManager.shared.getModelContext()),
+            userManager: UserManager.shared
+        )
+
+        XCTAssertThrowsError(try failingWorkoutManager.completeWorkout(workout))
+        XCTAssertEqual(
+            ReviewPromptManager.completedWorkoutCount,
+            counterBefore,
+            "Failed save must not bump the review-prompt workout counter"
+        )
+    }
+
     func testDeleteWorkout_failedSaveRestoresWorkoutAndSets() {
         let context = DataManager.shared.getModelContext()
         let workout = Workout(name: "Delete Failure Workout")

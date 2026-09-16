@@ -65,7 +65,7 @@ struct StatsView: View {
                 // just-finished workout is reflected immediately.
                 if !presenting {
                     viewModel.refresh()
-                    if ReviewPromptManager.isEligibleForPrompt() {
+                    if ReviewPromptManager.claimSoftAsk() {
                         showingReviewAsk = true
                     }
                 }
@@ -81,9 +81,11 @@ struct StatsView: View {
             .alert("Enjoying RPT?", isPresented: $showingReviewAsk) {
                 Button("Rate RPT") {
                     ReviewPromptManager.requestReviewIfEligible()
+                    ReviewPromptManager.resetSoftAskLatch()
                 }
                 Button("Not now", role: .cancel) {
                     ReviewPromptManager.snooze()
+                    ReviewPromptManager.resetSoftAskLatch()
                 }
             } message: {
                 Text("A quick rating helps other lifters find a focused reverse-pyramid log.")

@@ -23,6 +23,12 @@ enum ReviewPromptManager {
     static let cooldownDays = 90
     static let snoozeDays = 30
 
+    /// In-memory latch that prevents more than one soft-ask alert per
+    /// eligibility window. Multiple tab views (HomeView, StatsView) react
+    /// to the same `isPresentingWorkout` change; the first to call
+    /// `claimSoftAsk()` wins and the others get `false`.
+    private static var softAskClaimed = false
+
     // MARK: - Workout Counting
 
     static var completedWorkoutCount: Int {
@@ -54,6 +60,25 @@ enum ReviewPromptManager {
         }
 
         return true
+    }
+
+    // MARK: - Soft-Ask Latch
+
+    /// Atomically checks eligibility and claims the right to present the
+    /// soft-ask alert. Returns `true` exactly once per eligibility window;
+    /// all concurrent callers after the first get `false`.
+    static func claimSoftAsk() -> Bool {
+        guard !softAskClaimed else { return false }
+        guard isEligibleForPrompt() else { return false }
+        softAskClaimed = true
+        return true
+    }
+
+    /// Resets the in-memory latch. Called when the prompt is actioned
+    /// (either "Rate RPT" or "Not now") so a future eligibility window
+    /// can fire again, and also useful in tests.
+    static func resetSoftAskLatch() {
+        softAskClaimed = false
     }
 
     // MARK: - Prompt

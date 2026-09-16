@@ -139,7 +139,6 @@ class WorkoutManager: ObservableObject {
 
         workout.complete()
         userManager.getCurrentUser()?.registerCompletedWorkoutIfNeeded(workout)
-        ReviewPromptManager.recordCompletedWorkout()
 
         do {
             try dataManager.saveChanges()
@@ -150,6 +149,8 @@ class WorkoutManager: ObservableObject {
             userSnapshot?.restore()
             throw error
         }
+
+        ReviewPromptManager.recordCompletedWorkout()
     }
     
     // Non-throwing version for backward compatibility
