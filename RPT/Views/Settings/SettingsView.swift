@@ -129,7 +129,7 @@ struct SettingsView: View {
 
                 Text(purchaseManager.isUnlocked
                      ? "Thanks for supporting RPT — everything is unlocked"
-                     : "Advanced analytics, unlimited templates, CSV export")
+                     : "One-time unlock · No subscription · Restore anytime")
                     .font(.system(size: 12))
                     .foregroundStyle(.white.opacity(0.85))
                     .multilineTextAlignment(.leading)
@@ -629,6 +629,27 @@ struct SettingsView: View {
 
     private var aboutSection: some View {
         settingsGroup("About") {
+            Link(destination: ReviewPromptManager.writeReviewURL) {
+                HStack {
+                    Text("Rate RPT")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Theme.textPrimary)
+
+                    Spacer()
+
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Theme.amber)
+                }
+                .padding(.horizontal, Theme.cardPadding)
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Rate RPT on the App Store")
+
+            hairline
+
             NavigationLink {
                 AboutView()
             } label: {

@@ -20,7 +20,7 @@ enum MonetizationPlan {
 
     static let freeTier = MonetizationTier(
         name: "RPT Free",
-        summary: "Log workouts, follow the built-in RPT split, and build momentum without a signup.",
+        summary: "Keep logging free. RPT's core training loop needs no account and no payment.",
         features: [
             "Unlimited workout logging",
             "Built-in three-day RPT split, three custom templates, and basic progress stats",
@@ -30,11 +30,11 @@ enum MonetizationPlan {
 
     static let proTier = MonetizationTier(
         name: "RPT Pro",
-        summary: "Unlock advanced analytics, unlimited templates, and CSV export with one lifetime purchase.",
+        summary: "Deeper progress. Unlimited templates. Yours for life.",
         features: [
-            "Advanced analytics and personal-record trends",
+            "Advanced analytics — weekly volume, muscle balance, PR & e1RM trends",
             "Unlimited custom templates",
-            "CSV export for your complete training history"
+            "Full CSV export of every logged set"
         ]
     )
 
@@ -46,10 +46,21 @@ enum MonetizationPlan {
         isUnlocked || existingCount < freeTemplateLimit
     }
 
-    static let purchaseOfferTitle = "Lifetime unlock"
+    static let purchaseOfferTitle = "One-time · No subscription"
     static let purchaseOfferSummary = "One-time purchase. No subscription."
-    static let upgradeCTA = "RPT Pro unlocks advanced analytics, unlimited templates, and CSV export."
-    static let storeKitNote = "Purchases are handled securely by the App Store and can be restored anytime."
+    static let upgradeCTA = "RPT Pro unlocks advanced analytics, unlimited templates, and full CSV export."
+    static let storeKitNote = "No account. No ads. No tracking. Purchases are handled securely by the App Store and can be restored with your Apple ID anytime."
+    static let privacyNote = "No account. No ads. No tracking."
+
+    // MARK: - Gate Sheet Copy
+
+    static let gateTemplatesTitle = "You've used your free custom templates"
+    static let gateCSVTitle = "Export your full training history"
+    static let gateAdvancedStatsTitle = "See the trends behind your lifts"
+
+    static func gateBody(for benefit: String) -> String {
+        "\(benefit) Unlock RPT Pro once — no subscription."
+    }
 }
 
 enum MonetizationPurchaseState: Equatable {
@@ -75,7 +86,7 @@ enum MonetizationPurchaseState: Equatable {
         case .loadingStore:
             return "Checking App Store availability."
         case .ready:
-            return "One lifetime purchase. No subscription."
+            return "One purchase, yours forever. No subscription. Restore anytime with your Apple ID."
         case .purchasing:
             return "Completing your purchase with the App Store."
         case .restoring:

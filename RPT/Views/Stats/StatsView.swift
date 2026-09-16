@@ -16,6 +16,7 @@ struct StatsView: View {
     @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
     @AppStorage("selectedRootTab") private var selectedRootTabRawValue = RootTab.home.rawValue
     @State private var exportURL: URL?
+    @State private var showingReviewAsk = false
 
     /// Weeks covered by the consistency heatmap and its insight sentence.
     private let heatmapWeekCount = 16
@@ -64,6 +65,9 @@ struct StatsView: View {
                 // just-finished workout is reflected immediately.
                 if !presenting {
                     viewModel.refresh()
+                    if ReviewPromptManager.isEligibleForPrompt() {
+                        showingReviewAsk = true
+                    }
                 }
             }
             .onDisappear {
@@ -73,6 +77,16 @@ struct StatsView: View {
             }
             .task {
                 await purchaseManager.start()
+            }
+            .alert("Enjoying RPT?", isPresented: $showingReviewAsk) {
+                Button("Rate RPT") {
+                    ReviewPromptManager.requestReviewIfEligible()
+                }
+                Button("Not now", role: .cancel) {
+                    ReviewPromptManager.snooze()
+                }
+            } message: {
+                Text("A quick rating helps other lifters find a focused reverse-pyramid log.")
             }
         }
     }
@@ -228,15 +242,9 @@ struct StatsView: View {
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.textSecondary)
 
-                Text("Lifetime purchase restored on this device")
+                Text("RPT Pro is unlocked on this device.")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Theme.primary)
-
-                if purchaseManager.isUnlocked {
-                    Text("RPT Pro is unlocked on this device.")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Theme.doneForeground)
-                }
+                    .foregroundStyle(Theme.doneForeground)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .rptCard()
@@ -290,15 +298,15 @@ struct StatsView: View {
                         .foregroundStyle(Theme.amber)
                 }
 
-                Text("Unlock deeper training trends")
+                Text(MonetizationPlan.gateAdvancedStatsTitle)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Theme.textPrimary)
 
-                Text("Weekly volume charts, muscle-balance breakdowns, and personal-record leaderboards are part of RPT Pro.")
+                Text(MonetizationPlan.gateBody(for: "Weekly volume charts, muscle-balance breakdowns, and personal-record leaderboards."))
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.textSecondary)
 
-                Text(purchaseManager.displayPrice.map { "Unlock RPT Pro for \($0)" } ?? "View RPT Pro")
+                Text(purchaseManager.displayPrice.map { "Unlock RPT Pro for \($0)" } ?? "Unlock RPT Pro")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Theme.primary)
             }

@@ -1,0 +1,132 @@
+import XCTest
+@testable import RPT
+
+@MainActor
+final class ReviewPromptManagerTests: XCTestCase {
+
+    override func setUp() {
+        super.setUp()
+        clearReviewPromptState()
+    }
+
+    override func tearDown() {
+        clearReviewPromptState()
+        super.tearDown()
+    }
+
+    private func clearReviewPromptState() {
+        UserDefaults.standard.removeObject(forKey: "reviewPrompt.completedWorkoutCount")
+        UserDefaults.standard.removeObject(forKey: "reviewPrompt.lastPromptedVersion")
+        UserDefaults.standard.removeObject(forKey: "reviewPrompt.lastPromptedDate")
+        UserDefaults.standard.removeObject(forKey: "reviewPrompt.snoozedUntilDate")
+    }
+
+    // MARK: - Workout Count Gate
+
+    func testNotEligibleWithZeroWorkouts() {
+        XCTAssertEqual(ReviewPromptManager.completedWorkoutCount, 0)
+        XCTAssertFalse(ReviewPromptManager.isEligibleForPrompt())
+    }
+
+    func testNotEligibleWithFewerThanThreeWorkouts() {
+        ReviewPromptManager.completedWorkoutCount = 2
+        XCTAssertFalse(ReviewPromptManager.isEligibleForPrompt())
+    }
+
+    func testEligibleAtExactlyThreeWorkouts() {
+        ReviewPromptManager.completedWorkoutCount = 3
+        XCTAssertTrue(ReviewPromptManager.isEligibleForPrompt())
+    }
+
+    func testEligibleAboveThreeWorkouts() {
+        ReviewPromptManager.completedWorkoutCount = 10
+        XCTAssertTrue(ReviewPromptManager.isEligibleForPrompt())
+    }
+
+    // MARK: - Per-Version Gate
+
+    func testNotEligibleAfterPromptedThisVersion() {
+        ReviewPromptManager.completedWorkoutCount = 5
+
+        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0"
+        UserDefaults.standard.set(currentVersion, forKey: "reviewPrompt.lastPromptedVersion")
+        UserDefaults.standard.set(Date(), forKey: "reviewPrompt.lastPromptedDate")
+
+        XCTAssertFalse(ReviewPromptManager.isEligibleForPrompt())
+    }
+
+    func testEligibleAfterVersionChange() {
+        ReviewPromptManager.completedWorkoutCount = 5
+
+        UserDefaults.standard.set("0.0.1-old", forKey: "reviewPrompt.lastPromptedVersion")
+        UserDefaults.standard.set(
+            Calendar.current.date(byAdding: .day, value: -91, to: Date())!,
+            forKey: "reviewPrompt.lastPromptedDate"
+        )
+
+        XCTAssertTrue(ReviewPromptManager.isEligibleForPrompt())
+    }
+
+    // MARK: - Cooldown Gate
+
+    func testNotEligibleWithinCooldownPeriod() {
+        ReviewPromptManager.completedWorkoutCount = 5
+
+        UserDefaults.standard.set("0.0.1-old", forKey: "reviewPrompt.lastPromptedVersion")
+        UserDefaults.standard.set(
+            Calendar.current.date(byAdding: .day, value: -30, to: Date())!,
+            forKey: "reviewPrompt.lastPromptedDate"
+        )
+
+        XCTAssertFalse(ReviewPromptManager.isEligibleForPrompt())
+    }
+
+    // MARK: - Snooze Gate
+
+    func testNotEligibleWhileSnoozed() {
+        ReviewPromptManager.completedWorkoutCount = 5
+        ReviewPromptManager.snooze()
+
+        XCTAssertFalse(ReviewPromptManager.isEligibleForPrompt())
+    }
+
+    func testEligibleAfterSnoozeExpires() {
+        ReviewPromptManager.completedWorkoutCount = 5
+
+        let expired = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+        UserDefaults.standard.set(expired, forKey: "reviewPrompt.snoozedUntilDate")
+
+        XCTAssertTrue(ReviewPromptManager.isEligibleForPrompt())
+    }
+
+    // MARK: - Workout Counter
+
+    func testRecordCompletedWorkoutIncrements() {
+        XCTAssertEqual(ReviewPromptManager.completedWorkoutCount, 0)
+        ReviewPromptManager.recordCompletedWorkout()
+        XCTAssertEqual(ReviewPromptManager.completedWorkoutCount, 1)
+        ReviewPromptManager.recordCompletedWorkout()
+        XCTAssertEqual(ReviewPromptManager.completedWorkoutCount, 2)
+    }
+
+    // MARK: - Constants
+
+    func testMinimumWorkoutThreshold() {
+        XCTAssertEqual(ReviewPromptManager.minimumCompletedWorkouts, 3)
+    }
+
+    func testCooldownDays() {
+        XCTAssertEqual(ReviewPromptManager.cooldownDays, 90)
+    }
+
+    func testSnoozeDays() {
+        XCTAssertEqual(ReviewPromptManager.snoozeDays, 30)
+    }
+
+    func testWriteReviewURL() {
+        XCTAssertEqual(
+            ReviewPromptManager.writeReviewURL.absoluteString,
+            "https://apps.apple.com/app/id6745407020?action=write-review"
+        )
+    }
+}

@@ -139,6 +139,7 @@ class WorkoutManager: ObservableObject {
 
         workout.complete()
         userManager.getCurrentUser()?.registerCompletedWorkoutIfNeeded(workout)
+        ReviewPromptManager.recordCompletedWorkout()
 
         do {
             try dataManager.saveChanges()
