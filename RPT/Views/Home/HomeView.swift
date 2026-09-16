@@ -20,6 +20,7 @@ struct HomeView: View {
     @State private var workoutToDelete: Workout?
     @State private var errorMessage: String?
     @State private var pendingTemplate: WorkoutTemplate?
+    @State private var showingReviewAsk = false
 
     // Derived dashboard data, recomputed on appear.
     @State private var weekCells: [WeekDayCell] = []
@@ -73,6 +74,9 @@ struct HomeView: View {
                 if !presenting {
                     viewModel.refresh()
                     refreshDerivedData()
+                    if ReviewPromptManager.isEligibleForPrompt() {
+                        showingReviewAsk = true
+                    }
                 }
             }
             .confirmationDialog(
@@ -119,6 +123,16 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showingPlateCalculator) {
                 PlateCalculatorView()
+            }
+            .alert("Enjoying RPT?", isPresented: $showingReviewAsk) {
+                Button("Rate RPT") {
+                    ReviewPromptManager.requestReviewIfEligible()
+                }
+                Button("Not now", role: .cancel) {
+                    ReviewPromptManager.snooze()
+                }
+            } message: {
+                Text("A quick rating helps other lifters find a focused reverse-pyramid log.")
             }
         }
     }

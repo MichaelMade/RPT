@@ -40,17 +40,17 @@ struct UpgradeView: View {
                 storePriceLabel
             }
 
-            Text("Train for free. Upgrade when you want deeper insight and more planning headroom.")
+            Text("Deeper progress. Unlimited templates. Yours for life.")
                 .font(Theme.titleFont(size: 18))
                 .foregroundStyle(Theme.textPrimary)
 
-            Text(MonetizationPlan.upgradeCTA)
+            Text("Keep logging free. Unlock RPT Pro when you want the full picture of your training.")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.textSecondary)
 
-            Text(MonetizationPlan.purchaseOfferSummary)
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.textSecondary)
+            Text(MonetizationPlan.privacyNote)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Theme.primary)
 
             VStack(spacing: 10) {
                 Button {
@@ -104,7 +104,7 @@ struct UpgradeView: View {
                 .font(Theme.titleFont(size: 16))
                 .foregroundStyle(Theme.textPrimary)
 
-            Text("RPT Free keeps workout logging and core progress tools available without an account. Upgrade once to add Pro features across devices that use the same Apple ID.")
+            Text("RPT Free keeps workout logging and core progress tools available without an account. Upgrade once to unlock Pro features across every device on your Apple ID.")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.textSecondary)
 

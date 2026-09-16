@@ -16,24 +16,24 @@ final class MonetizationPlanTests: XCTestCase {
         XCTAssertEqual(MonetizationPlan.proTier.name, "RPT Pro")
         XCTAssertEqual(MonetizationPlan.proProductID, "rpt.pro.lifetime")
         XCTAssertEqual(MonetizationPlan.proProductIDs, ["rpt.pro.lifetime"])
-        XCTAssertEqual(MonetizationPlan.purchaseOfferTitle, "Lifetime unlock")
+        XCTAssertEqual(MonetizationPlan.purchaseOfferTitle, "One-time · No subscription")
         XCTAssertEqual(MonetizationPlan.purchaseOfferSummary, "One-time purchase. No subscription.")
-        XCTAssertTrue(MonetizationPlan.proTier.features.contains("Advanced analytics and personal-record trends"))
+        XCTAssertTrue(MonetizationPlan.proTier.features.contains("Advanced analytics — weekly volume, muscle balance, PR & e1RM trends"))
         XCTAssertTrue(MonetizationPlan.proTier.features.contains("Unlimited custom templates"))
-        XCTAssertTrue(MonetizationPlan.proTier.features.contains("CSV export for your complete training history"))
+        XCTAssertTrue(MonetizationPlan.proTier.features.contains("Full CSV export of every logged set"))
     }
 
     func testUpgradeCTAStaysAlignedWithProValueProp() {
         XCTAssertEqual(
             MonetizationPlan.upgradeCTA,
-            "RPT Pro unlocks advanced analytics, unlimited templates, and CSV export."
+            "RPT Pro unlocks advanced analytics, unlimited templates, and full CSV export."
         )
     }
 
     func testPurchaseStateMessagesSupportStoreKitSurfaces() {
         XCTAssertEqual(
             MonetizationPurchaseState.ready.displayMessage,
-            "One lifetime purchase. No subscription."
+            "One purchase, yours forever. No subscription. Restore anytime with your Apple ID."
         )
         XCTAssertEqual(
             MonetizationPurchaseState.unlocked.displayMessage,
@@ -47,5 +47,26 @@ final class MonetizationPlanTests: XCTestCase {
 
     func testPendingApprovalPreventsDuplicatePurchaseActions() {
         XCTAssertTrue(MonetizationPurchaseState.pendingApproval.isBusy)
+    }
+
+    func testGateSheetTitlesAreConfigured() {
+        XCTAssertEqual(MonetizationPlan.gateTemplatesTitle, "You've used your free custom templates")
+        XCTAssertEqual(MonetizationPlan.gateCSVTitle, "Export your full training history")
+        XCTAssertEqual(MonetizationPlan.gateAdvancedStatsTitle, "See the trends behind your lifts")
+    }
+
+    func testGateBodyIncludesAntiSubscriptionMessage() {
+        let body = MonetizationPlan.gateBody(for: "Test benefit.")
+        XCTAssertTrue(body.contains("Unlock RPT Pro once"))
+        XCTAssertTrue(body.contains("no subscription"))
+    }
+
+    func testPrivacyNoteIsExposed() {
+        XCTAssertEqual(MonetizationPlan.privacyNote, "No account. No ads. No tracking.")
+    }
+
+    func testStoreKitNoteIncludesPrivacyAndRestoreGuidance() {
+        XCTAssertTrue(MonetizationPlan.storeKitNote.contains("No account"))
+        XCTAssertTrue(MonetizationPlan.storeKitNote.contains("Apple ID"))
     }
 }
