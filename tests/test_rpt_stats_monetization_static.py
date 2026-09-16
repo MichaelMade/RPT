@@ -50,7 +50,7 @@ class RPTStatsMonetizationStaticTests(unittest.TestCase):
         self.assertIn('PillTag(text: "Advanced Analytics"', self.stats_view)
         self.assertIn("Weekly volume charts, muscle-balance breakdowns, and personal-record leaderboards", self.stats_view)
         self.assertIn(
-            'purchaseManager.displayPrice.map { "Unlock RPT Pro for \\($0)" } ?? "View RPT Pro"',
+            'purchaseManager.displayPrice.map { "Unlock RPT Pro for \\($0)" } ?? "Unlock RPT Pro"',
             self.stats_view,
         )
 
