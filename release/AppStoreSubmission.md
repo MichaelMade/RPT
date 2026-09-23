@@ -1,6 +1,6 @@
 # RPT App Store Submission Packet
 
-This packet is the manual App Store Connect source of truth for the RPT 2.1 update to the existing App Store listing (Apple ID `6745407020`). It mirrors `RPT/App/AppStoreReleasePlan.swift` and `fastlane/metadata/en-US/`.
+This packet is the manual App Store Connect source of truth for the RPT 2.2 update to the existing App Store listing (Apple ID `6745407020`). It mirrors `RPT/App/AppStoreReleasePlan.swift` and `fastlane/metadata/en-US/`.
 
 ## App identity
 
@@ -9,7 +9,7 @@ This packet is the manual App Store Connect source of truth for the RPT 2.1 upda
 | App name | RPT: Reverse Pyramid Training |
 | App Store Apple ID | `6745407020` |
 | Bundle ID | `com.MichaelMade.RPT` |
-| Version | `2.1.0` |
+| Version | `2.2.0` |
 | SKU | `rpt-ios-001` (verify against the existing App Store Connect record) |
 | Category | Health & Fitness |
 | Content rights | No third-party content |
@@ -91,10 +91,10 @@ RPT uses Apple's Standard EULA for App Store purchases: https://www.apple.com/le
 
 - [ ] Build archive on Mac/Xcode and confirm `PrivacyInfo.xcprivacy` is present in the archive.
 - [ ] Generate and inspect the Xcode privacy report.
-- [ ] Verify the existing App Store Connect record (Apple ID `6745407020`) uses bundle ID `com.MichaelMade.RPT` and has version `2.1.0` ready for the update.
+- [ ] Verify the existing App Store Connect record (Apple ID `6745407020`) uses bundle ID `com.MichaelMade.RPT` and has version `2.2.0` ready for the update.
 - [ ] Verify the immutable SKU on the existing record before treating `rpt-ios-001` as authoritative.
 - [ ] Confirm the Paid Apps Agreement is active and banking/tax setup is complete.
-- [ ] Create non-consumable IAP `rpt.pro.lifetime`, add its price, territories, localization, review notes, and review screenshot, move it to Ready to Submit, and attach it to version 2.1.
+- [ ] Create non-consumable IAP `rpt.pro.lifetime`, add its price, territories, localization, review notes, and review screenshot, move it to Ready to Submit, and attach it to version 2.2.
 - [ ] Confirm App Store Connect is set to Apple's Standard EULA.
 - [ ] Add GitHub Actions signing secrets listed in `docs/GitHubReleaseSetup.md`.
 - [ ] Run GitHub `iOS CI` workflow green.

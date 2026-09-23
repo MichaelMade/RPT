@@ -1,8 +1,6 @@
-RPT 2.1 — stronger training tools and progress insights.
+RPT 2.2 — clearer Pro upgrade and a timely review prompt.
 
-• Smarter RPT logging: back-off weights always anchored to your top set
-• Estimated 1RM trends, personal records, and a 16-week consistency heatmap
-• Warm-up ramp generator and next-session progression targets
-• Save any finished workout as a reusable template
-• Full workout history, mid-session notes, and CSV export (RPT Pro)
-• RPT Pro lifetime unlock: advanced analytics, unlimited templates, CSV export
+• After a few completed workouts, RPT may ask if you'd like to rate the app
+• Rate RPT anytime from Settings → About
+• Sharper RPT Pro copy: one-time unlock, no subscription, restore with Apple ID
+• Privacy-forward paywall: no account, no ads, no tracking
