@@ -158,6 +158,7 @@ final class StoreKitPurchaseManager: ObservableObject {
                 // result. Deliver the entitlement before finishing it.
                 grantProEntitlement(from: record)
                 await transaction.finish()
+                await revalidateGrantedPurchase()
             case .userCancelled:
                 state = .ready
             case .pending:
@@ -224,6 +225,9 @@ final class StoreKitPurchaseManager: ObservableObject {
                 if record.isActive(at: Date()) {
                     grantProEntitlement(from: record)
                     await transaction.finish()
+                    if isUnlocked {
+                        await revalidateGrantedPurchase()
+                    }
                     return
                 }
 
@@ -265,6 +269,13 @@ final class StoreKitPurchaseManager: ObservableObject {
         return records
     }
 
+    private func revalidateGrantedPurchase() async {
+        let hasEntitlement = await refreshPurchasedState(kind: .postGrantRevalidation)
+        if !hasEntitlement {
+            revokeProEntitlement()
+        }
+    }
+
     private func grantProEntitlement(from record: ProEntitlementRecord) {
         entitlementGate.applyVerifiedTransaction(record)
         publishEntitlementState()
@@ -293,6 +304,13 @@ final class StoreKitPurchaseManager: ObservableObject {
         state = .loadingStore
         alertMessage = nil
     }
+
+    func applyTransactionUpdateForTesting(_ record: ProEntitlementRecord) async {
+        grantProEntitlement(from: record)
+        if isUnlocked {
+            await revalidateGrantedPurchase()
+        }
+    }
     #endif
 }
 
@@ -302,7 +320,9 @@ extension ProEntitlementRecord {
             productID: transaction.productID,
             purchaseDate: transaction.purchaseDate,
             revocationDate: transaction.revocationDate,
-            expirationDate: transaction.expirationDate
+            expirationDate: transaction.expirationDate,
+            id: transaction.id,
+            signedDate: transaction.signedDate
         )
     }
 }

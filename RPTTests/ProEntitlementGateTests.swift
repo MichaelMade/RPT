@@ -222,15 +222,85 @@ final class ProEntitlementGateTests: XCTestCase {
         XCTAssertTrue(gate.lastVerifiedWasRevocation)
     }
 
+    func testDelayedStaleActiveUpdateAfterRefundStaysLocked() {
+        var gate = ProEntitlementGate()
+        let purchase = record(purchaseDate: 1_000, id: 10, signedDate: 1_000)
+        gate.applyVerifiedTransaction(purchase, now: now)
+        gate.applyVerifiedTransaction(
+            record(purchaseDate: 1_000, revokedAt: 1_800, id: 10, signedDate: 1_000),
+            now: now
+        )
+        XCTAssertFalse(gate.isUnlocked)
+
+        gate.applyVerifiedTransaction(purchase, now: now)
+
+        XCTAssertFalse(gate.isUnlocked)
+        XCTAssertTrue(gate.lastVerifiedWasRevocation)
+        XCTAssertTrue(gate.isAtOrBeforeKnownRevocation(purchase))
+    }
+
+    func testNewPurchaseAfterRefundStillUnlocks() {
+        var gate = ProEntitlementGate()
+        gate.applyVerifiedTransaction(record(purchaseDate: 1_000, id: 10), now: now)
+        gate.applyVerifiedTransaction(
+            record(purchaseDate: 1_000, revokedAt: 1_800, id: 10),
+            now: now
+        )
+        XCTAssertFalse(gate.isUnlocked)
+
+        let repurchase = record(purchaseDate: 1_900, id: 11, signedDate: 1_900)
+        XCTAssertTrue(gate.applyVerifiedTransaction(repurchase, now: now))
+        XCTAssertTrue(gate.isUnlocked)
+        XCTAssertFalse(gate.lastVerifiedWasRevocation)
+    }
+
+    func testPostGrantRevalidationRevokesWhenSnapshotShowsSameTransactionRevoked() {
+        var gate = ProEntitlementGate()
+        let purchase = record(purchaseDate: 1_000, id: 10)
+        gate.applyVerifiedTransaction(purchase, now: now)
+
+        let generation = gate.beginRefresh()
+        let revoked = record(purchaseDate: 1_000, revokedAt: 1_800, id: 10)
+        XCTAssertFalse(
+            gate.applyRefresh(
+                generation: generation,
+                entitlements: [revoked],
+                kind: .postGrantRevalidation,
+                now: now
+            )
+        )
+        XCTAssertFalse(gate.isUnlocked)
+    }
+
+    func testPostGrantRevalidationKeepsProOnEmptySnapshotInsideGrace() {
+        var gate = ProEntitlementGate()
+        gate.applyVerifiedTransaction(record(purchaseDate: 1_000, id: 10), now: now)
+
+        let generation = gate.beginRefresh()
+        XCTAssertTrue(
+            gate.applyRefresh(
+                generation: generation,
+                entitlements: [],
+                kind: .postGrantRevalidation,
+                now: now
+            )
+        )
+        XCTAssertTrue(gate.isUnlocked)
+    }
+
     private func record(
         purchaseDate: TimeInterval,
-        revokedAt: TimeInterval? = nil
+        revokedAt: TimeInterval? = nil,
+        id: UInt64? = nil,
+        signedDate: TimeInterval? = nil
     ) -> ProEntitlementRecord {
         ProEntitlementRecord(
             productID: MonetizationPlan.proProductID,
             purchaseDate: Date(timeIntervalSince1970: purchaseDate),
             revocationDate: revokedAt.map(Date.init(timeIntervalSince1970:)),
-            expirationDate: nil
+            expirationDate: nil,
+            id: id,
+            signedDate: signedDate.map(Date.init(timeIntervalSince1970:))
         )
     }
 }

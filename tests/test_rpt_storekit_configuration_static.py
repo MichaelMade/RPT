@@ -43,6 +43,9 @@ class RPTStoreKitConfigurationStaticTests(unittest.TestCase):
         self.assertIn("generation", gate_source)
         self.assertIn("case opportunistic", gate_source)
         self.assertIn("case canonical", gate_source)
+        self.assertIn("case postGrantRevalidation", gate_source)
+        self.assertIn("lastRevokedPurchaseDate", gate_source)
+        self.assertIn("isAtOrBeforeKnownRevocation", gate_source)
         load_products = re.search(
             r"func loadProducts\(\) async \{.*?\n    \}",
             purchase_manager,
@@ -81,6 +84,8 @@ class RPTStoreKitConfigurationStaticTests(unittest.TestCase):
         self.assertIn("entitlementGate.beginRefresh()", purchase_manager)
         self.assertIn("entitlementGate.applyRefresh", purchase_manager)
         self.assertIn("refreshPurchasedState(kind: .opportunistic)", purchase_manager)
+        self.assertIn("revalidateGrantedPurchase()", purchase_manager)
+        self.assertIn("refreshPurchasedState(kind: .postGrantRevalidation)", purchase_manager)
         self.assertIn("ProEntitlementGate", purchase_manager)
 
     def test_localized_product_copy_covers_paid_tier_promise(self):

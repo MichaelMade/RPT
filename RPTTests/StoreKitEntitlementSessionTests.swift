@@ -84,6 +84,41 @@ final class StoreKitEntitlementSessionTests: XCTestCase {
         XCTAssertTrue(locked, "Refunded currentEntitlements must revoke Pro on the shared manager")
     }
 
+    func testRefundThenDelayedStaleUpdateStaysLocked() async throws {
+        let session = try XCTUnwrap(self.session)
+        let manager = StoreKitPurchaseManager.shared
+        let transaction = try await session.buyProduct(
+            identifier: MonetizationPlan.proProductID,
+            options: []
+        )
+        _ = await manager.refreshPurchasedState()
+        XCTAssertTrue(manager.isUnlocked)
+
+        try session.refundTransaction(identifier: try refundIdentifier(in: session, after: transaction))
+
+        var locked = false
+        for _ in 0..<20 {
+            let hasEntitlement = await manager.refreshPurchasedState()
+            if !hasEntitlement && !manager.isUnlocked {
+                locked = true
+                break
+            }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        XCTAssertTrue(locked)
+
+        let staleActiveUpdate = ProEntitlementRecord(
+            productID: transaction.productID,
+            purchaseDate: transaction.purchaseDate,
+            revocationDate: nil,
+            expirationDate: transaction.expirationDate,
+            id: transaction.id,
+            signedDate: transaction.signedDate
+        )
+        await manager.applyTransactionUpdateForTesting(staleActiveUpdate)
+        XCTAssertFalse(manager.isUnlocked)
+    }
+
     private func refundIdentifier(in session: SKTestSession, after transaction: Transaction) throws -> UInt {
         if let identifier = session.allTransactions().first(where: {
             $0.productIdentifier == transaction.productID
