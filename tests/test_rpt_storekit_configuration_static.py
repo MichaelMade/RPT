@@ -45,6 +45,7 @@ class RPTStoreKitConfigurationStaticTests(unittest.TestCase):
         self.assertIn("case canonical", gate_source)
         self.assertIn("case postGrantRevalidation", gate_source)
         self.assertIn("lastRevokedPurchaseDate", gate_source)
+        self.assertIn("lastGrantedSignedDate", gate_source)
         self.assertIn("isAtOrBeforeKnownRevocation", gate_source)
         load_products = re.search(
             r"func loadProducts\(\) async \{.*?\n    \}",
