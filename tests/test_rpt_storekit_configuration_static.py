@@ -36,7 +36,16 @@ class RPTStoreKitConfigurationStaticTests(unittest.TestCase):
         purchase_manager = (REPO_ROOT / "RPT" / "App" / "StoreKitPurchaseManager.swift").read_text()
         self.assertIn("Product.products(for: MonetizationPlan.proProductIDs)", purchase_manager)
         self.assertNotIn("?? MonetizationPlan", purchase_manager)
-        self.assertIn("transaction.revocationDate == nil", purchase_manager)
+        self.assertIn("revocationDate: transaction.revocationDate", purchase_manager)
+        gate_source = (REPO_ROOT / "RPT" / "App" / "ProEntitlementGate.swift").read_text()
+        self.assertIn("if revocationDate != nil", gate_source)
+        self.assertIn("lastVerifiedPurchaseDate", gate_source)
+        self.assertIn("generation", gate_source)
+        self.assertIn("case opportunistic", gate_source)
+        self.assertIn("case canonical", gate_source)
+        self.assertIn("case postGrantRevalidation", gate_source)
+        self.assertIn("lastRevokedPurchaseDate", gate_source)
+        self.assertIn("isAtOrBeforeKnownRevocation", gate_source)
         load_products = re.search(
             r"func loadProducts\(\) async \{.*?\n    \}",
             purchase_manager,
@@ -54,18 +63,30 @@ class RPTStoreKitConfigurationStaticTests(unittest.TestCase):
         )
         self.assertIsNotNone(update_handler)
         handler_body = update_handler.group(0)
-        self.assertIn("grantProEntitlement()", handler_body)
+        self.assertIn("grantProEntitlement(from:", handler_body)
         self.assertIn("await refreshPurchasedState()", handler_body)
         self.assertIn("if !hasEntitlement", handler_body)
         self.assertIn("revokeProEntitlement()", handler_body)
+        self.assertIn("entitlementGate.applyVerifiedTransaction", handler_body)
+        self.assertIn("record.isActive(at:", handler_body)
         self.assertLess(
-            handler_body.index("grantProEntitlement()"),
+            handler_body.index("grantProEntitlement(from:"),
             handler_body.index("await transaction.finish()"),
         )
         self.assertLess(
-            handler_body.index("await transaction.finish()"),
+            handler_body.index("grantProEntitlement(from:"),
+            handler_body.index("return"),
+        )
+        self.assertLess(
+            handler_body.index("return"),
             handler_body.index("await refreshPurchasedState()"),
         )
+        self.assertIn("entitlementGate.beginRefresh()", purchase_manager)
+        self.assertIn("entitlementGate.applyRefresh", purchase_manager)
+        self.assertIn("refreshPurchasedState(kind: .opportunistic)", purchase_manager)
+        self.assertIn("revalidateGrantedPurchase()", purchase_manager)
+        self.assertIn("refreshPurchasedState(kind: .postGrantRevalidation)", purchase_manager)
+        self.assertIn("ProEntitlementGate", purchase_manager)
 
     def test_localized_product_copy_covers_paid_tier_promise(self):
         localization = self.config["products"][0]["localizations"][0]
