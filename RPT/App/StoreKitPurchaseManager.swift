@@ -22,6 +22,7 @@ final class StoreKitPurchaseManager: ObservableObject {
 
     private var updatesTask: Task<Void, Never>?
     private var isLoadingProducts = false
+    private var entitlementGate = ProEntitlementGate()
 
     /// App Store-localized price. Never substitute a hard-coded price because
     /// storefront currency and pricing can differ by region.
@@ -112,7 +113,7 @@ final class StoreKitPurchaseManager: ObservableObject {
         do {
             let products = try await Product.products(for: MonetizationPlan.proProductIDs)
             proProduct = products.first { $0.id == MonetizationPlan.proProductID }
-            let hasEntitlement = await refreshPurchasedState()
+            let hasEntitlement = await refreshPurchasedState(kind: .opportunistic)
 
             if !hasEntitlement {
                 state = proProduct == nil ? .unavailable : .ready
@@ -148,14 +149,14 @@ final class StoreKitPurchaseManager: ObservableObject {
             switch result {
             case .success(let verification):
                 let transaction = try Self.verified(verification)
-                guard MonetizationPlan.proProductIDs.contains(transaction.productID),
-                      transaction.revocationDate == nil else {
+                let record = ProEntitlementRecord(transaction)
+                guard record.isActive(at: Date()) else {
                     throw StoreKitPurchaseError.unexpectedTransaction
                 }
 
                 // A verified transaction is the authoritative purchase
                 // result. Deliver the entitlement before finishing it.
-                grantProEntitlement()
+                grantProEntitlement(from: record)
                 await transaction.finish()
             case .userCancelled:
                 state = .ready
@@ -190,27 +191,18 @@ final class StoreKitPurchaseManager: ObservableObject {
     }
 
     @discardableResult
-    func refreshPurchasedState() async -> Bool {
+    func refreshPurchasedState(kind: ProEntitlementRefreshKind = .canonical) async -> Bool {
         defer { hasPreparedEntitlements = true }
 
-        for await result in Transaction.currentEntitlements {
-            guard let transaction = try? Self.verified(result) else {
-                continue
-            }
-
-            if MonetizationPlan.proProductIDs.contains(transaction.productID),
-               transaction.revocationDate == nil {
-                isUnlocked = true
-                state = .unlocked
-                return true
-            }
-        }
-
-        isUnlocked = false
-        if !state.isBusy {
-            state = proProduct == nil ? .unavailable : .ready
-        }
-        return false
+        let refreshGeneration = entitlementGate.beginRefresh()
+        let records = await currentEntitlementRecords()
+        let hasEntitlement = entitlementGate.applyRefresh(
+            generation: refreshGeneration,
+            entitlements: records,
+            kind: kind
+        )
+        publishEntitlementState()
+        return hasEntitlement
     }
 
     private func observeTransactionUpdates() {
@@ -226,16 +218,22 @@ final class StoreKitPurchaseManager: ObservableObject {
     private func handle(transactionUpdate result: VerificationResult<Transaction>) async {
         do {
             let transaction = try Self.verified(result)
+            let record = ProEntitlementRecord(transaction)
 
-            if MonetizationPlan.proProductIDs.contains(transaction.productID) {
-                if transaction.revocationDate == nil {
-                    grantProEntitlement()
+            if MonetizationPlan.proProductIDs.contains(record.productID) {
+                if record.isActive(at: Date()) {
+                    grantProEntitlement(from: record)
+                    await transaction.finish()
+                    return
                 }
+
                 await transaction.finish()
 
-                // Transaction.currentEntitlements is canonical. In
-                // particular, a delayed revocation for an older transaction
-                // must not lock a newer valid repurchase.
+                // Revocation/expiration: currentEntitlements is canonical so a
+                // delayed revocation of an older transaction cannot lock a newer
+                // valid repurchase. A just-completed purchase is protected by the
+                // generation token if this refresh is empty only because of lag.
+                entitlementGate.applyVerifiedTransaction(record)
                 let hasEntitlement = await refreshPurchasedState()
                 if !hasEntitlement {
                     revokeProEntitlement()
@@ -255,16 +253,56 @@ final class StoreKitPurchaseManager: ObservableObject {
         }
     }
 
-    private func grantProEntitlement() {
-        isUnlocked = true
-        hasPreparedEntitlements = true
-        state = .unlocked
+    private func currentEntitlementRecords() async -> [ProEntitlementRecord] {
+        var records: [ProEntitlementRecord] = []
+        for await result in Transaction.currentEntitlements {
+            guard let transaction = try? Self.verified(result) else {
+                continue
+            }
+            records.append(ProEntitlementRecord(transaction))
+        }
+        return records
+    }
+
+    private func grantProEntitlement(from record: ProEntitlementRecord) {
+        entitlementGate.applyVerifiedTransaction(record)
+        publishEntitlementState()
     }
 
     private func revokeProEntitlement() {
-        isUnlocked = false
+        entitlementGate.forceRevoke()
+        publishEntitlementState()
+    }
+
+    private func publishEntitlementState() {
+        isUnlocked = entitlementGate.isUnlocked
         hasPreparedEntitlements = true
-        state = proProduct == nil ? .unavailable : .ready
+        if entitlementGate.isUnlocked {
+            state = .unlocked
+        } else if !state.isBusy {
+            state = proProduct == nil ? .unavailable : .ready
+        }
+    }
+
+    #if DEBUG
+    func resetEntitlementStateForTesting() {
+        entitlementGate.reset()
+        isUnlocked = false
+        hasPreparedEntitlements = false
+        state = .loadingStore
+        alertMessage = nil
+    }
+    #endif
+}
+
+extension ProEntitlementRecord {
+    init(_ transaction: Transaction) {
+        self.init(
+            productID: transaction.productID,
+            purchaseDate: transaction.purchaseDate,
+            revocationDate: transaction.revocationDate,
+            expirationDate: transaction.expirationDate
+        )
     }
 }
 
