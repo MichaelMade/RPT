@@ -71,6 +71,7 @@ struct ProEntitlementGate: Equatable, Sendable {
     private(set) var lastVerifiedWasRevocation = false
     private(set) var lastGrantedAt: Date?
     private(set) var lastGrantedTransactionID: UInt64?
+    private(set) var lastGrantedSignedDate: Date?
     private(set) var lastRevokedProductID: String?
     private(set) var lastRevokedPurchaseDate: Date?
     private(set) var lastRevokedSignedDate: Date?
@@ -192,6 +193,7 @@ struct ProEntitlementGate: Equatable, Sendable {
     private mutating func grant(_ record: ProEntitlementRecord, now: Date) {
         lastVerifiedPurchaseDate = record.purchaseDate
         lastGrantedTransactionID = record.id
+        lastGrantedSignedDate = record.signedDate
         lastGrantedAt = now
         lastVerifiedWasRevocation = false
         isUnlocked = true
@@ -205,11 +207,31 @@ struct ProEntitlementGate: Equatable, Sendable {
     }
 
     private mutating func rememberRevocationOfLastGrant() {
-        if lastRevokedPurchaseDate == nil {
-            lastRevokedProductID = MonetizationPlan.proProductID
-            lastRevokedPurchaseDate = lastVerifiedPurchaseDate
-            lastRevokedTransactionID = lastGrantedTransactionID
+        guard lastGrantIsNewerThanKnownRevocation() else { return }
+
+        lastRevokedProductID = MonetizationPlan.proProductID
+        lastRevokedPurchaseDate = lastVerifiedPurchaseDate
+        lastRevokedSignedDate = lastGrantedSignedDate
+        lastRevokedTransactionID = lastGrantedTransactionID
+    }
+
+    private func lastGrantIsNewerThanKnownRevocation() -> Bool {
+        guard lastRevokedPurchaseDate != nil else {
+            return true
         }
+        guard let lastVerifiedPurchaseDate else {
+            return false
+        }
+
+        let lastGrant = ProEntitlementRecord(
+            productID: MonetizationPlan.proProductID,
+            purchaseDate: lastVerifiedPurchaseDate,
+            revocationDate: nil,
+            expirationDate: nil,
+            id: lastGrantedTransactionID,
+            signedDate: lastGrantedSignedDate
+        )
+        return !isAtOrBeforeKnownRevocation(lastGrant)
     }
 
     private func revokedCopyOfLastGrant(in entitlements: [ProEntitlementRecord]) -> ProEntitlementRecord? {

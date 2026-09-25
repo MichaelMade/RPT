@@ -288,6 +288,77 @@ final class ProEntitlementGateTests: XCTestCase {
         XCTAssertTrue(gate.isUnlocked)
     }
 
+    func testCanonicalEmptySnapshotAfterRepurchaseRemembersLatestRevocationAndRejectsStaleUpdate() {
+        var gate = ProEntitlementGate()
+        let purchaseA = record(purchaseDate: 1_000, id: 10, signedDate: 1_000)
+        let purchaseB = record(purchaseDate: 1_900, id: 11, signedDate: 1_900)
+
+        gate.applyVerifiedTransaction(purchaseA, now: now)
+        gate.applyVerifiedTransaction(
+            record(purchaseDate: 1_000, revokedAt: 1_800, id: 10, signedDate: 1_000),
+            now: now
+        )
+        XCTAssertFalse(gate.isUnlocked)
+
+        XCTAssertTrue(gate.applyVerifiedTransaction(purchaseB, now: now))
+        XCTAssertTrue(gate.isUnlocked)
+        XCTAssertEqual(gate.lastGrantedSignedDate, Date(timeIntervalSince1970: 1_900))
+
+        let generation = gate.beginRefresh()
+        XCTAssertFalse(
+            gate.applyRefresh(
+                generation: generation,
+                entitlements: [],
+                kind: .canonical,
+                now: now
+            )
+        )
+        XCTAssertFalse(gate.isUnlocked)
+        XCTAssertTrue(gate.lastVerifiedWasRevocation)
+        XCTAssertEqual(gate.lastRevokedPurchaseDate, Date(timeIntervalSince1970: 1_900))
+        XCTAssertEqual(gate.lastRevokedSignedDate, Date(timeIntervalSince1970: 1_900))
+        XCTAssertEqual(gate.lastRevokedTransactionID, 11)
+        XCTAssertTrue(gate.isAtOrBeforeKnownRevocation(purchaseB))
+
+        gate.applyVerifiedTransaction(purchaseB, now: now)
+
+        XCTAssertFalse(gate.isUnlocked)
+        XCTAssertTrue(gate.lastVerifiedWasRevocation)
+        XCTAssertTrue(gate.isAtOrBeforeKnownRevocation(purchaseB))
+    }
+
+    func testRepurchaseAfterLatestEmptySnapshotRevocationStillUnlocks() {
+        var gate = ProEntitlementGate()
+        let purchaseA = record(purchaseDate: 1_000, id: 10, signedDate: 1_000)
+        let purchaseB = record(purchaseDate: 1_900, id: 11, signedDate: 1_900)
+        let purchaseC = record(purchaseDate: 2_100, id: 12, signedDate: 2_100)
+
+        gate.applyVerifiedTransaction(purchaseA, now: now)
+        gate.applyVerifiedTransaction(
+            record(purchaseDate: 1_000, revokedAt: 1_800, id: 10, signedDate: 1_000),
+            now: now
+        )
+        gate.applyVerifiedTransaction(purchaseB, now: now)
+
+        let generation = gate.beginRefresh()
+        XCTAssertFalse(
+            gate.applyRefresh(
+                generation: generation,
+                entitlements: [],
+                kind: .canonical,
+                now: now
+            )
+        )
+        gate.applyVerifiedTransaction(purchaseB, now: now)
+        XCTAssertFalse(gate.isUnlocked)
+
+        XCTAssertTrue(gate.applyVerifiedTransaction(purchaseC, now: now))
+        XCTAssertTrue(gate.isUnlocked)
+        XCTAssertFalse(gate.lastVerifiedWasRevocation)
+        XCTAssertEqual(gate.lastGrantedSignedDate, Date(timeIntervalSince1970: 2_100))
+        XCTAssertFalse(gate.isAtOrBeforeKnownRevocation(purchaseC))
+    }
+
     private func record(
         purchaseDate: TimeInterval,
         revokedAt: TimeInterval? = nil,
