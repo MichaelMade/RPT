@@ -64,6 +64,7 @@ struct ProEntitlementGate: Equatable, Sendable {
         }
 
         lastVerifiedWasRevocation = true
+        isUnlocked = false
     }
 
     @discardableResult

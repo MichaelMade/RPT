@@ -234,6 +234,7 @@ final class StoreKitPurchaseManager: ObservableObject {
                 // valid repurchase. A just-completed purchase is protected by the
                 // generation token if this refresh is empty only because of lag.
                 entitlementGate.applyVerifiedTransaction(record)
+                publishEntitlementState()
                 let hasEntitlement = await refreshPurchasedState()
                 if !hasEntitlement {
                     revokeProEntitlement()

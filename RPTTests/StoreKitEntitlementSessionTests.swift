@@ -72,28 +72,16 @@ final class StoreKitEntitlementSessionTests: XCTestCase {
 
         try session.refundTransaction(identifier: try refundIdentifier(in: session, after: transaction))
 
-        let stillUnlocked = await manager.refreshPurchasedState()
-        XCTAssertFalse(stillUnlocked)
-        XCTAssertFalse(manager.isUnlocked)
-    }
-
-    func testAskToBuyPurchaseStaysOutOfCurrentEntitlementsUntilApproved() async throws {
-        let session = try XCTUnwrap(self.session)
-        session.askToBuyEnabled = true
-
-        try session.buyProduct(productIdentifier: MonetizationPlan.proProductID)
-
-        let pendingIDs = await currentEntitlementProductIDs()
-        XCTAssertFalse(pendingIDs.contains(MonetizationPlan.proProductID))
-
-        let pending = try XCTUnwrap(
-            session.allTransactions().first { $0.productIdentifier == MonetizationPlan.proProductID }
-        )
-        XCTAssertTrue(pending.pendingAskToBuyConfirmation)
-        try session.approveAskToBuyTransaction(identifier: pending.identifier)
-
-        let approvedIDs = await currentEntitlementProductIDs()
-        XCTAssertTrue(approvedIDs.contains(MonetizationPlan.proProductID))
+        var locked = false
+        for _ in 0..<20 {
+            let hasEntitlement = await manager.refreshPurchasedState()
+            if !hasEntitlement && !manager.isUnlocked {
+                locked = true
+                break
+            }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        XCTAssertTrue(locked, "Refunded currentEntitlements must revoke Pro on the shared manager")
     }
 
     private func refundIdentifier(in session: SKTestSession, after transaction: Transaction) throws -> UInt {

@@ -47,10 +47,8 @@ final class ProEntitlementGateTests: XCTestCase {
         gate.applyVerifiedTransaction(purchase, now: now)
 
         gate.applyVerifiedTransaction(record(purchaseDate: 1_000, revokedAt: 1_800), now: now)
-        XCTAssertTrue(
-            gate.lastVerifiedWasRevocation,
-            "Revocation must be recorded so a later empty refresh can lock"
-        )
+        XCTAssertTrue(gate.lastVerifiedWasRevocation)
+        XCTAssertFalse(gate.isUnlocked)
 
         let generation = gate.beginRefresh()
         let hasEntitlement = gate.applyRefresh(
