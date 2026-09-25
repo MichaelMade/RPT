@@ -41,9 +41,8 @@ final class StoreKitEntitlementSessionTests: XCTestCase {
 
         XCTAssertEqual(transaction.productID, MonetizationPlan.proProductID)
         XCTAssertNil(transaction.revocationDate)
-        XCTAssertTrue(
-            await currentEntitlementProductIDs().contains(MonetizationPlan.proProductID)
-        )
+        let entitledIDs = await currentEntitlementProductIDs()
+        XCTAssertTrue(entitledIDs.contains(MonetizationPlan.proProductID))
     }
 
     func testRefundRemovesLifetimeEntitlement() async throws {
@@ -84,9 +83,8 @@ final class StoreKitEntitlementSessionTests: XCTestCase {
 
         try session.buyProduct(productIdentifier: MonetizationPlan.proProductID)
 
-        XCTAssertFalse(
-            await currentEntitlementProductIDs().contains(MonetizationPlan.proProductID)
-        )
+        let pendingIDs = await currentEntitlementProductIDs()
+        XCTAssertFalse(pendingIDs.contains(MonetizationPlan.proProductID))
 
         let pending = try XCTUnwrap(
             session.allTransactions().first { $0.productIdentifier == MonetizationPlan.proProductID }
@@ -94,18 +92,17 @@ final class StoreKitEntitlementSessionTests: XCTestCase {
         XCTAssertTrue(pending.pendingAskToBuyConfirmation)
         try session.approveAskToBuyTransaction(identifier: pending.identifier)
 
-        XCTAssertTrue(
-            await currentEntitlementProductIDs().contains(MonetizationPlan.proProductID)
-        )
+        let approvedIDs = await currentEntitlementProductIDs()
+        XCTAssertTrue(approvedIDs.contains(MonetizationPlan.proProductID))
     }
 
-    private func refundIdentifier(in session: SKTestSession, after transaction: Transaction) throws -> Int {
+    private func refundIdentifier(in session: SKTestSession, after transaction: Transaction) throws -> UInt {
         if let identifier = session.allTransactions().first(where: {
             $0.productIdentifier == transaction.productID
         })?.identifier {
             return identifier
         }
-        return try XCTUnwrap(Int(exactly: transaction.id))
+        return try XCTUnwrap(UInt(exactly: transaction.id))
     }
 
     private func currentEntitlementProductIDs() async -> [String] {
