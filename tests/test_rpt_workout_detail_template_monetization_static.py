@@ -30,7 +30,7 @@ class RPTWorkoutDetailTemplateMonetizationStaticTests(unittest.TestCase):
         self.assertIn("@ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared", self.swift)
         self.assertIn("@State private var showingUpgrade = false", self.swift)
         self.assertIn(".sheet(isPresented: $showingUpgrade)", self.swift)
-        self.assertIn("UpgradeView()", self.swift)
+        self.assertIn("UpgradeView(source: .workoutDetail, gateReason: .templateLimit)", self.swift)
         self.assertIn("Button(\"Close\") { showingUpgrade = false }", self.swift)
         self.assertIn("await purchaseManager.start()", self.swift)
 

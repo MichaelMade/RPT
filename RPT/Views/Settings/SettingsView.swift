@@ -98,7 +98,7 @@ struct SettingsView: View {
     private var premiumSection: some View {
         Section {
             NavigationLink {
-                UpgradeView()
+                UpgradeView(source: .settings)
             } label: {
                 proBanner
             }
@@ -579,7 +579,7 @@ struct SettingsView: View {
             }
         } else {
             NavigationLink {
-                UpgradeView()
+                UpgradeView(source: .settings, gateReason: .csvExport)
             } label: {
                 exportRowLabel(title: "Export data as CSV", icon: nil, showsProTag: true)
             }

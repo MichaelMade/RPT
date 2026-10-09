@@ -138,10 +138,14 @@ final class StoreKitPurchaseManager: ObservableObject {
         guard let proProduct else {
             state = .unavailable
             alertMessage = "RPT Pro is unavailable right now. Check your connection and try again."
+            FunnelAnalytics.shared.trackPurchaseStart(price: displayPrice)
+            FunnelAnalytics.shared.trackPurchaseFail(price: displayPrice, detail: "unavailable")
             return
         }
 
+        let price = displayPrice
         state = .purchasing
+        FunnelAnalytics.shared.trackPurchaseStart(price: price)
 
         do {
             let result = try await proProduct.purchase()
@@ -159,23 +163,29 @@ final class StoreKitPurchaseManager: ObservableObject {
                 grantProEntitlement(from: record)
                 await transaction.finish()
                 await revalidateGrantedPurchase()
+                FunnelAnalytics.shared.trackPurchaseSuccess(price: price)
             case .userCancelled:
                 state = .ready
+                FunnelAnalytics.shared.trackPurchaseFail(price: price, detail: "user_cancelled")
             case .pending:
                 state = .pendingApproval
             @unknown default:
                 state = .ready
+                FunnelAnalytics.shared.trackPurchaseFail(price: price, detail: "unknown")
             }
         } catch {
             state = .ready
             alertMessage = "Could not complete the RPT Pro purchase. Please try again."
+            FunnelAnalytics.shared.trackPurchaseFail(price: price, detail: "error")
         }
     }
 
     func restorePurchases() async {
         guard !state.isBusy else { return }
 
+        let price = displayPrice
         state = .restoring
+        FunnelAnalytics.shared.trackRestore(price: price)
 
         do {
             try await AppStore.sync()

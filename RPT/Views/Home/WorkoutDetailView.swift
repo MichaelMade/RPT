@@ -117,7 +117,7 @@ struct WorkoutDetailView: View {
         }
         .sheet(isPresented: $showingUpgrade) {
             NavigationStack {
-                UpgradeView()
+                UpgradeView(source: .workoutDetail, gateReason: .templateLimit)
                     .toolbar {
                         ToolbarItem(placement: .topBarLeading) {
                             Button("Close") { showingUpgrade = false }

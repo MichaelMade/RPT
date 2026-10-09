@@ -33,12 +33,19 @@ struct RPTTrainerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if dataManager.hasPersistenceFailure {
-                StorageUnavailableView()
-            } else if hasCompletedOnboarding {
-                ContentView()
-            } else {
-                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+            Group {
+                if dataManager.hasPersistenceFailure {
+                    StorageUnavailableView()
+                } else if hasCompletedOnboarding {
+                    ContentView()
+                } else {
+                    OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                }
+            }
+            .task {
+                FunnelAnalytics.shared.trackInstallIfNeeded(
+                    hasCompletedOnboarding: hasCompletedOnboarding
+                )
             }
         }
         .modelContainer(dataManager.getSharedModelContainer())

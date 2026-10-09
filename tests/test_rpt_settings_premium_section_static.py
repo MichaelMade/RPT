@@ -15,7 +15,7 @@ class RPTSettingsPremiumSectionStaticTests(unittest.TestCase):
 
         self.assertIn("Section {", section_body)
         self.assertIn("NavigationLink", section_body)
-        self.assertIn("UpgradeView()", section_body)
+        self.assertIn("UpgradeView(source: .settings)", section_body)
         self.assertIn('} header: {\n            Text("RPT Pro")', section_body)
         self.assertIn("} footer: {", section_body)
         self.assertNotIn('Section("RPT Pro")', section_body)

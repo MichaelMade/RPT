@@ -96,7 +96,7 @@ struct TemplatesListView: View {
             }
             .sheet(isPresented: $showingUpgrade) {
                 NavigationStack {
-                    UpgradeView()
+                    UpgradeView(source: .templates, gateReason: .templateLimit)
                         .toolbar {
                             ToolbarItem(placement: .topBarLeading) {
                                 Button("Close") { showingUpgrade = false }

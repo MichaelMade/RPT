@@ -28,6 +28,7 @@ RPT includes a local StoreKit configuration at `RPT/Configuration/RPTPro.storeki
 6. Relaunch the app and confirm entitlement refresh still unlocks Pro.
 7. Use **Debug > StoreKit > Manage Transactions** to revoke the transaction, relaunch, and confirm the app returns to the locked state.
 8. Run **Restore Purchases** after revoking/no purchase and confirm the no-purchase copy is clear.
+9. Open **Settings → About RPT → On-device funnel** and confirm the test purchase produced `paywall_view`, `purchase_start`, `purchase_success` (or `purchase_fail`), and that restore produced `restore` in the 7-day counts.
 
 ## Release handoff
 

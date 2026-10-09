@@ -14,12 +14,14 @@ final class StoreKitEntitlementSessionTests: XCTestCase {
         session.clearTransactions()
         self.session = session
         StoreKitPurchaseManager.shared.resetEntitlementStateForTesting()
+        FunnelAnalytics.replaceSharedForTesting(FunnelAnalytics.makeIsolatedForTesting())
     }
 
     override func tearDownWithError() throws {
         session?.clearTransactions()
         session = nil
         StoreKitPurchaseManager.shared.resetEntitlementStateForTesting()
+        FunnelAnalytics.restoreShared()
     }
 
     func testStoreKitConfigurationUsesMonetizationProductID() throws {
@@ -117,6 +119,48 @@ final class StoreKitEntitlementSessionTests: XCTestCase {
         )
         await manager.applyTransactionUpdateForTesting(staleActiveUpdate)
         XCTAssertFalse(manager.isUnlocked)
+    }
+
+    func testPurchaseAndRestoreEmitExpectedFunnelEvents() async throws {
+        _ = try XCTUnwrap(self.session)
+        let analytics = FunnelAnalytics.shared
+        let manager = StoreKitPurchaseManager.shared
+
+        analytics.trackPaywallView(
+            source: .settings,
+            gateReason: nil,
+            price: "$9.99"
+        )
+
+        await manager.start()
+        await manager.purchasePro()
+
+        let namesAfterPurchase = analytics.recordedEvents().map(\.name)
+        XCTAssertTrue(namesAfterPurchase.contains(.paywallView))
+        XCTAssertTrue(
+            namesAfterPurchase.contains(.purchaseStart),
+            "purchasePro() must emit purchase_start. Events: \(namesAfterPurchase.map(\.rawValue))"
+        )
+        XCTAssertTrue(
+            namesAfterPurchase.contains(.purchaseSuccess) || namesAfterPurchase.contains(.purchaseFail),
+            "A test purchase must emit purchase_success or purchase_fail. Events: \(namesAfterPurchase.map(\.rawValue))"
+        )
+
+        let purchaseEvents = analytics.recordedEvents().filter {
+            $0.name == .purchaseStart || $0.name == .purchaseSuccess || $0.name == .purchaseFail
+        }
+        for event in purchaseEvents {
+            XCTAssertEqual(event.source, .settings)
+            if let displayPrice = manager.displayPrice {
+                XCTAssertEqual(event.price, displayPrice)
+            }
+        }
+
+        await manager.restorePurchases()
+        XCTAssertTrue(
+            analytics.recordedEvents().map(\.name).contains(.restore),
+            "restorePurchases() must emit restore"
+        )
     }
 
     private func refundIdentifier(in session: SKTestSession, after transaction: Transaction) throws -> UInt {

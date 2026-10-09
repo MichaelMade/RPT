@@ -91,6 +91,36 @@ struct AboutView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .rptCard()
+
+                NavigationLink {
+                    FunnelReportView()
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "chart.bar.xaxis")
+                            .font(.title3)
+                            .foregroundStyle(Theme.brandGradient)
+                            .frame(width: 30)
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("On-device funnel")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Theme.textPrimary)
+                            Text("Local 7-day and 30-day install → paywall → purchase counts. Nothing is sent off this device.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.leading)
+                        }
+
+                        Spacer(minLength: 8)
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Theme.textTertiary)
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Shows on-device conversion counts")
+                .rptCard()
             }
             .padding(Theme.screenPadding)
         }

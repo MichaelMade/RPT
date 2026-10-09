@@ -19,8 +19,11 @@ Audit summary:
 - [x] Add a release-grade monetization entry path.
   StoreKit 2 product loading, purchase, pending, restore, revocation, relaunch entitlement hydration, localized pricing, and all three Pro gates are implemented for `rpt.pro.lifetime`. Local validation uses `RPT/Configuration/RPTPro.storekit`; `docs/storekit-validation.md` defines the smoke path. The external gate is creating and attaching the real non-consumable in App Store Connect, then validating it on TestFlight.
 
+- [x] Instrument the install → paywall → purchase funnel.
+  Anonymous events stay on-device behind `FunnelAnalytics` (protocol + UserDefaults store + no-op remote sink). Settings → About → On-device funnel shows 7-day and 30-day counts. No TelemetryDeck (or other) SDK is linked; supply `FunnelRemoteConfig.telemetryDeckAppID` and an SDK later if aggregate cloud metrics are needed.
+
 - [ ] Define the App Store privacy answers and release disclosures.
-  `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. `docs/app-store-privacy-answers.md` captures the current App Store Connect stance: no developer-collected data, no tracking, no analytics, user-initiated CSV export, and Apple-handled StoreKit purchases. The remaining compliance pass should generate the Xcode privacy report from the archived binary, confirm the generated Info.plist still ships with no unexpected permission strings, and verify App Store Connect accepts the answers.
+  `PrivacyInfo.xcprivacy` now exists and declares on-device `UserDefaults` access only. `docs/app-store-privacy-answers.md` captures the current App Store Connect stance: no developer-collected data, no tracking, no third-party analytics SDKs, user-initiated CSV export, Apple-handled StoreKit purchases, and on-device funnel counts that do not leave the device. The remaining compliance pass should generate the Xcode privacy report from the archived binary, confirm the generated Info.plist still ships with no unexpected permission strings, and verify App Store Connect accepts the answers.
 
 - [x] Upgrade onboarding from explanation to activation.
   First-run now ends with a concrete handoff: start the built-in `Upper Body RPT` template, open template creation, or launch an empty first workout. Simulator UI tests validate onboarding, tab routing, save-for-later, resume, and returning-user behavior.

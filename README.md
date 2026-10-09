@@ -47,6 +47,7 @@ RPT/
 - **Single in-progress workout** is coordinated by `WorkoutSession`; starting a template or follow-up while a draft is open always routes through an explicit save-or-discard handoff.
 - **Persistence** uses a single SwiftData container with rollback-on-failed-save in every mutation path.
 - **Pure training math** (e1RM, warm-up ramps, progression, plate math, RPT drops) lives in dependency-free utilities covered by unit tests in `RPTTests/`.
+- **On-device funnel analytics** (`FunnelAnalytics`) records anonymous install → onboarding → paywall → purchase events locally. No third-party SDK is linked. A TelemetryDeck sink stays a no-op until an app ID is supplied.
 
 ## Testing
 
@@ -62,13 +63,31 @@ The repo now includes a shared `RPT` Xcode scheme plus GitHub Actions release au
 
 ## Privacy
 
-No accounts and no analytics. Training data never leaves the device except through the export you trigger yourself. RPT Pro purchase and restore actions use StoreKit/App Store purchase services only.
+No accounts and no third-party analytics SDKs. Training data never leaves the device except through the export you trigger yourself. RPT Pro purchase and restore actions use StoreKit/App Store purchase services only.
+
+Anonymous conversion-funnel events (`install`, `onboarding_complete`, `paywall_view`, `purchase_start`, `purchase_success`, `purchase_fail`, `restore`) stay in on-device storage. They do not include a user ID, IDFA, Apple ID, or workout contents.
 
 The About screen exposes a support email action, the public [`SUPPORT.md`](SUPPORT.md) page, a public privacy-policy link, and Apple's Standard EULA so App Store reviewers and users can reach the release disclosures from inside the app.
 
-RPT ships a privacy manifest that declares on-device UserDefaults access for onboarding, workout-state recovery, and settings toggles.
+RPT ships a privacy manifest that declares on-device UserDefaults access for onboarding, workout-state recovery, settings toggles, and local funnel counts.
 
 The current app binary does not declare camera, photo library, contacts, location, notifications, or tracking permissions. See `Privacy Policy`.
+
+## How to read the funnel
+
+Open **Settings → About RPT → On-device funnel**. The screen shows raw counts for the last 7 days and the last 30 days, plus paid / paywall for each window.
+
+Read it as a local conversion ladder, not a live user census:
+
+1. **Install** — first launch of a fresh install (existing users who already finished onboarding are not counted).
+2. **Onboarding complete** — first successful activation choice or "browse the app first".
+3. **Paywall view** — each time the RPT Pro upgrade screen appears. `source` is settings/stats/templates/workout_detail; `gate_reason` is `template_limit`, `csv_export`, or `advanced_stats` when a Pro gate opened the screen.
+4. **Purchase start / success / fail** — StoreKit purchase attempts. Fail includes user cancel. `price` is the App Store-localized display price when available.
+5. **Restore** — the user tapped Restore Purchases.
+
+These counts are **this device only**. They are the sanity-check and debug report. Cross-device product analytics need a TelemetryDeck app ID (see `FunnelRemoteConfig.telemetryDeckAppID`) plus linking that SDK; until then the remote sink is a no-op and nothing is uploaded.
+
+A StoreKit test purchase or restore should emit `paywall_view` (if you opened the upgrade screen), then `purchase_start` plus `purchase_success` or `purchase_fail`, and `restore` when Restore is used. Unit tests in `FunnelAnalyticsTests` and `StoreKitEntitlementSessionTests` cover that sequence.
 
 ## Monetization Direction
 

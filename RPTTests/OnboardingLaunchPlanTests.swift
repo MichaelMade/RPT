@@ -22,4 +22,10 @@ final class OnboardingLaunchPlanTests: XCTestCase {
         XCTAssertFalse(OnboardingLaunchPlan.emptyWorkout.shouldShowTemplateComposer)
         XCTAssertNil(OnboardingLaunchPlan.emptyWorkout.starterTemplateName)
     }
+
+    func testActivationChoicesMapToFunnelSources() {
+        XCTAssertEqual(OnboardingLaunchPlan.starterTemplate.funnelSource, .onboardingStarter)
+        XCTAssertEqual(OnboardingLaunchPlan.createTemplate.funnelSource, .onboardingCreateTemplate)
+        XCTAssertEqual(OnboardingLaunchPlan.emptyWorkout.funnelSource, .onboardingEmptyWorkout)
+    }
 }

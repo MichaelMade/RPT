@@ -40,4 +40,15 @@ enum OnboardingLaunchPlan: Equatable {
     var starterTemplateName: String? {
         self == .starterTemplate ? "RPT Day 1 - Deadlift" : nil
     }
+
+    var funnelSource: FunnelSource {
+        switch self {
+        case .starterTemplate:
+            return .onboardingStarter
+        case .createTemplate:
+            return .onboardingCreateTemplate
+        case .emptyWorkout:
+            return .onboardingEmptyWorkout
+        }
+    }
 }
