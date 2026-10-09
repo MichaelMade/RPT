@@ -6,7 +6,11 @@
 import SwiftUI
 
 struct UpgradeView: View {
+    var source: FunnelSource = .settings
+    var gateReason: FunnelGateReason? = nil
+
     @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
+    @State private var didTrackPaywallView = false
 
     var body: some View {
         ScrollView {
@@ -22,8 +26,21 @@ struct UpgradeView: View {
         .background(Theme.screenBackground)
         .navigationTitle("RPT Pro")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            FunnelAnalytics.shared.rememberPaywallContext(
+                source: source,
+                gateReason: gateReason
+            )
+        }
         .task {
             await purchaseManager.start()
+            guard !didTrackPaywallView else { return }
+            didTrackPaywallView = true
+            FunnelAnalytics.shared.trackPaywallView(
+                source: source,
+                gateReason: gateReason,
+                price: purchaseManager.displayPrice
+            )
         }
         .alert("RPT Pro", isPresented: alertBinding) {
             Button("OK", role: .cancel) {}

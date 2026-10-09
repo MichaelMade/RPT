@@ -207,6 +207,7 @@ struct OnboardingView: View {
                 return
             }
 
+            FunnelAnalytics.shared.trackOnboardingComplete(source: plan.funnelSource)
             hasCompletedOnboarding = true
             session.start(workout)
             return
@@ -219,12 +220,14 @@ struct OnboardingView: View {
             }
         }
 
+        FunnelAnalytics.shared.trackOnboardingComplete(source: plan.funnelSource)
         hasCompletedOnboarding = true
     }
 
     private func completeOnboardingByBrowsing() {
         selectedRootTabRawValue = RootTab.home.rawValue
         showCreateTemplateAfterOnboarding = false
+        FunnelAnalytics.shared.trackOnboardingComplete(source: .onboardingBrowse)
         hasCompletedOnboarding = true
     }
 

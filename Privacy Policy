@@ -5,13 +5,13 @@ Introduction
 RPT is a local-first strength training app for reverse pyramid training. This policy explains what information the app handles, where it stays, and what leaves the device.
 
 No Accounts, Tracking, or Analytics
-RPT does not require an account. We do not run third-party analytics, advertising SDKs, tracking SDKs, or crash-reporting SDKs in the app binary. The app does not track you across apps or websites.
+RPT does not require an account. We do not run third-party analytics, advertising SDKs, tracking SDKs, or crash-reporting SDKs in the app binary. The app does not track you across apps or websites. Anonymous install-to-purchase funnel counts are stored only on your device so you can see 7-day and 30-day totals in Settings → About → On-device funnel. They do not include your name, Apple ID, advertising identifier, or workout contents, and they are not sent to a developer server.
 
 Information You Enter in the App
 You may enter training information such as workout logs, exercise names, weights, repetitions, RPE values, templates, timer preferences, and app settings. This information is stored locally on your device using Apple's on-device storage systems. We do not operate a server that receives or stores your workout data.
 
 Device Storage and UserDefaults
-RPT uses on-device storage, including UserDefaults, for app preferences, onboarding state, rest-timer settings, and workout-state recovery. This data remains on your device unless you export it yourself, delete it, reset app data, or remove the app.
+RPT uses on-device storage, including UserDefaults, for app preferences, onboarding state, rest-timer settings, workout-state recovery, and anonymous conversion-funnel events. This data remains on your device unless you export it yourself, delete it, reset app data, or remove the app.
 
 CSV Export
 If you choose to export your workout history, RPT creates a CSV file locally and opens the iOS share sheet. You control where that exported file goes. Exporting is a user-initiated action.

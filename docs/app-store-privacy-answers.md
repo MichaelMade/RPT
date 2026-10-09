@@ -1,6 +1,6 @@
 # RPT App Store Privacy Answers
 
-Last updated: 2026-06-29
+Last updated: 2026-10-09
 
 Use this as the source checklist when filling App Store Connect privacy nutrition labels for the current RPT binary.
 
@@ -9,15 +9,15 @@ Use this as the source checklist when filling App Store Connect privacy nutritio
 - **Data collected by the developer:** No.
 - **Tracking:** No.
 - **Third-party advertising:** No.
-- **Third-party analytics SDKs:** No.
+- **Third-party analytics SDKs:** No. TelemetryDeck (or any other analytics SDK) is not linked. `FunnelRemoteConfig.telemetryDeckAppID` is empty, and the remote sink is a no-op.
 - **Accounts or sign-in:** No.
 - **Developer-run backend receiving workout data:** No.
 
 ## Data handled only on device
 
-RPT stores workout logs, exercise/template data, rest-timer preferences, onboarding state, app settings, and workout-recovery state locally on the user's device. The privacy manifest declares UserDefaults access for app functionality.
+RPT stores workout logs, exercise/template data, rest-timer preferences, onboarding state, app settings, workout-recovery state, and anonymous conversion-funnel events (`install`, onboarding, paywall, purchase, restore) locally on the user's device. Funnel events do not include a user identifier, IDFA, Apple ID, or workout contents. The privacy manifest declares UserDefaults access for app functionality (`CA92.1`).
 
-These local-only values should not be entered as developer-collected App Store privacy data unless a future release sends them to a server or third-party SDK.
+These local-only values should not be entered as developer-collected App Store privacy data unless a future release sends them to a server or third-party SDK. If a TelemetryDeck app ID is supplied and that SDK is linked later, re-check this checklist before the next App Store submission.
 
 ## User-initiated export
 

@@ -81,7 +81,7 @@ Based on the current source and `RPT/PrivacyInfo.xcprivacy`:
 
 ## Reviewer notes draft
 
-RPT is a private on-device workout log. The app has no account system, no tracking, no advertising SDK, and no analytics SDK. Training data is stored locally via SwiftData and only leaves the device if the user explicitly exports a CSV.
+RPT is a private on-device workout log. The app has no account system, no tracking, no advertising SDK, and no analytics SDK. Training data is stored locally via SwiftData and only leaves the device if the user explicitly exports a CSV. Anonymous install-to-purchase funnel counts also stay on device and are not uploaded.
 
 RPT Pro is a one-time lifetime in-app purchase (`rpt.pro.lifetime`) that unlocks advanced analytics, unlimited custom templates, and CSV export. The core logging flow remains usable without purchase.
 

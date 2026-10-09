@@ -122,7 +122,7 @@ struct StatsView: View {
             exportButton
         } else {
             NavigationLink {
-                UpgradeView()
+                UpgradeView(source: .stats, gateReason: .csvExport)
             } label: {
                 headerButtonLabel("Export CSV", icon: "crown.fill")
             }
@@ -225,7 +225,7 @@ struct StatsView: View {
 
     private var premiumPreviewCard: some View {
         NavigationLink {
-            UpgradeView()
+            UpgradeView(source: .stats)
         } label: {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -289,7 +289,7 @@ struct StatsView: View {
 
     private var advancedAnalyticsLockedCard: some View {
         NavigationLink {
-            UpgradeView()
+            UpgradeView(source: .stats, gateReason: .advancedStats)
         } label: {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
