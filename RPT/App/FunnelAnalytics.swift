@@ -159,6 +159,7 @@ struct FunnelReport: Equatable, Sendable {
 
 // MARK: - Abstraction
 
+@MainActor
 protocol FunnelAnalyticsClient: AnyObject {
     func track(_ event: FunnelEvent)
 }
@@ -326,9 +327,13 @@ final class FunnelAnalytics: FunnelAnalyticsClient {
         track(FunnelEvent(name: .onboardingComplete, source: source))
     }
 
-    func trackPaywallView(source: FunnelSource, gateReason: FunnelGateReason?, price: String?) {
+    func rememberPaywallContext(source: FunnelSource, gateReason: FunnelGateReason?) {
         lastPaywallSource = source
         lastPaywallGateReason = gateReason
+    }
+
+    func trackPaywallView(source: FunnelSource, gateReason: FunnelGateReason?, price: String?) {
+        rememberPaywallContext(source: source, gateReason: gateReason)
         track(
             FunnelEvent(
                 name: .paywallView,

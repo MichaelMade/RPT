@@ -41,6 +41,18 @@ final class FunnelAnalyticsTests: XCTestCase {
         }
     }
 
+    func testRememberedPaywallContextAppliesToPurchaseBeforeViewEvent() {
+        let analytics = FunnelAnalytics.makeIsolatedForTesting()
+        analytics.rememberPaywallContext(source: .templates, gateReason: .templateLimit)
+        analytics.trackPurchaseStart(price: "$9.99")
+
+        let started = analytics.recordedEvents()[0]
+        XCTAssertEqual(started.name, .purchaseStart)
+        XCTAssertEqual(started.source, .templates)
+        XCTAssertEqual(started.gateReason, .templateLimit)
+        XCTAssertEqual(started.price, "$9.99")
+    }
+
     func testPurchaseFailKeepsPaywallContextAndStoresReason() throws {
         let analytics = FunnelAnalytics.makeIsolatedForTesting()
         analytics.trackPaywallView(
@@ -52,11 +64,11 @@ final class FunnelAnalyticsTests: XCTestCase {
         analytics.trackPurchaseFail(price: "$9.99", detail: "user_cancelled")
 
         let failed = try XCTUnwrap(analytics.recordedEvents().last)
-        XCTAssertEqual(failed?.name, .purchaseFail)
-        XCTAssertEqual(failed?.source, .stats)
-        XCTAssertEqual(failed?.gateReason, .advancedStats)
-        XCTAssertEqual(failed?.price, "$9.99")
-        XCTAssertEqual(failed?.detail, "user_cancelled")
+        XCTAssertEqual(failed.name, .purchaseFail)
+        XCTAssertEqual(failed.source, .stats)
+        XCTAssertEqual(failed.gateReason, .advancedStats)
+        XCTAssertEqual(failed.price, "$9.99")
+        XCTAssertEqual(failed.detail, "user_cancelled")
     }
 
     func testInstallFiresOnceForFreshOnboardingAndSkipsExistingUsers() {

@@ -27,6 +27,13 @@ struct UpgradeView: View {
         .navigationTitle("RPT Pro")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            FunnelAnalytics.shared.rememberPaywallContext(
+                source: source,
+                gateReason: gateReason
+            )
+        }
+        .task {
+            await purchaseManager.start()
             guard !didTrackPaywallView else { return }
             didTrackPaywallView = true
             FunnelAnalytics.shared.trackPaywallView(
@@ -34,9 +41,6 @@ struct UpgradeView: View {
                 gateReason: gateReason,
                 price: purchaseManager.displayPrice
             )
-        }
-        .task {
-            await purchaseManager.start()
         }
         .alert("RPT Pro", isPresented: alertBinding) {
             Button("OK", role: .cancel) {}
