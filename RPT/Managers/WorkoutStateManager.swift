@@ -19,6 +19,12 @@ class WorkoutStateManager: ObservableObject {
     // Store when the workout was discarded
     var discardTimestamp: Date? = nil
 
+    /// Identity of the workout discarded during this launch. Kept as a
+    /// value, not text: a `PersistentIdentifier` interpolates to the same
+    /// string for every model that has not been saved yet, so comparing
+    /// the text form would treat unrelated drafts as the discarded one.
+    private var lastDiscardedPersistentId: PersistentIdentifier?
+
     // Keep track of whether we've loaded from UserDefaults
     private var hasLoadedFromDefaults = false
 
@@ -31,6 +37,7 @@ class WorkoutStateManager: ObservableObject {
         // Even if no ID is provided, mark as discarded
         workoutWasDiscarded = true
         discardTimestamp = Date()
+        lastDiscardedPersistentId = workoutId as? PersistentIdentifier
         
         // If an ID is provided, try to convert it to a string
         if let id = workoutId {
@@ -91,15 +98,17 @@ class WorkoutStateManager: ObservableObject {
             return true
         }
 
-        guard let lastDiscardedWorkoutId else {
-            // Fail open for legacy/corrupted discard state.
+        guard let lastDiscardedPersistentId else {
+            // Nothing in memory to match: the app relaunched since the
+            // discard, or the state is legacy. A discarded workout is
+            // deleted before it is marked, so no stored draft can be it.
             return true
         }
 
         // Only the workout that was actually discarded stops being
         // resumable. Other saved drafts — including ones started before the
         // discard — hold logged sets and must stay reachable.
-        return "\(workout.id)" != lastDiscardedWorkoutId
+        return workout.id != lastDiscardedPersistentId
     }
 
     func firstResumableWorkout(in workouts: [Workout]) -> Workout? {
@@ -118,6 +127,7 @@ class WorkoutStateManager: ObservableObject {
     func clearDiscardedState() {
         workoutWasDiscarded = false
         lastDiscardedWorkoutId = nil
+        lastDiscardedPersistentId = nil
         discardTimestamp = nil
 
         UserDefaults.standard.removeObject(forKey: Keys.discardedId)
