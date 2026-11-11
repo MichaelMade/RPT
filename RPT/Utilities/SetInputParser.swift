@@ -13,8 +13,10 @@ enum SetInputParser {
     /// an absurd number into history or overflow downstream volume math.
     static let maxWeight = 9_999
 
-    /// Sanity ceiling for reps in a single set.
-    static let maxReps = 999
+    /// Sanity ceiling for reps in a single set. Generous on purpose: high-rep
+    /// conditioning work is legitimate, and a set that already holds a large
+    /// count must stay editable.
+    static let maxReps = 9_999
 
     /// Parses a whole number typed into a weight or reps field.
     ///

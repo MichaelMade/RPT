@@ -49,7 +49,8 @@ final class SetInputParserTests: XCTestCase {
     func testBoundsKeepVolumeMathWellInsideInt() {
         let (volume, overflowed) = SetInputParser.maxWeight.multipliedReportingOverflow(by: SetInputParser.maxReps)
         XCTAssertFalse(overflowed)
-        XCTAssertLessThan(volume, 10_000_000)
+        // A lifetime of maximal sets still sums without overflowing.
+        XCTAssertLessThan(volume, Int.max / 1_000_000)
     }
 
     func testDecimalAcceptsDotAndCommaSeparators() throws {
@@ -407,5 +408,72 @@ final class TemplateRepRangeCoachingTests: XCTestCase {
 
     func testCoachingFallsBackToClassicRangeWithoutATemplate() {
         XCTAssertEqual(ProgressionAdvisor.topSetRepRange(for: nil), 4...6)
+    }
+}
+
+// MARK: - What A New Template Workout Is Pre-filled From
+
+@MainActor
+final class LastSessionLookupTests: XCTestCase {
+    private let bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
+    private let squat = Exercise(name: "Barbell Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
+
+    private func completedWorkout(daysAgo: Int, _ build: (Workout) -> Void) -> Workout {
+        let workout = Workout(
+            date: Date(timeIntervalSinceNow: -Double(daysAgo) * 24 * 60 * 60),
+            name: "Day -\(daysAgo)",
+            isCompleted: true
+        )
+        build(workout)
+        return workout
+    }
+
+    func testReturnsWorkingSetsOfTheMostRecentCompletedSessionInLoggedOrder() {
+        let older = completedWorkout(daysAgo: 14) { workout in
+            _ = workout.addSet(exercise: bench, weight: 175, reps: 8)
+            _ = workout.addSet(exercise: bench, weight: 155, reps: 8)
+        }
+        let newer = completedWorkout(daysAgo: 7) { workout in
+            _ = workout.addSet(exercise: bench, weight: 95, reps: 5, isWarmup: true)
+            _ = workout.addSet(exercise: bench, weight: 185, reps: 8)
+            _ = workout.addSet(exercise: squat, weight: 275, reps: 5)
+            _ = workout.addSet(exercise: bench, weight: 165, reps: 8)
+        }
+
+        // Order of the input must not matter.
+        let sets = Workout.lastCompletedWorkingSets(of: bench, in: [older, newer])
+
+        XCTAssertEqual(sets.map(\.weight), [185, 165], "Newest session, working sets only, in the order they were logged")
+    }
+
+    func testSkipsDraftsUnloggedSetsAndSessionsWithoutTheExercise() {
+        let withHistory = completedWorkout(daysAgo: 21) { workout in
+            _ = workout.addSet(exercise: bench, weight: 180, reps: 6)
+        }
+        let squatOnly = completedWorkout(daysAgo: 7) { workout in
+            _ = workout.addSet(exercise: squat, weight: 275, reps: 5)
+        }
+        let plannedButNotLogged = completedWorkout(daysAgo: 3) { workout in
+            let planned = workout.addSet(exercise: bench, weight: 200, reps: 5)
+            planned.completedAt = .distantPast
+        }
+        let draft = Workout(date: Date(), name: "In Progress")
+        _ = draft.addSet(exercise: bench, weight: 205, reps: 5)
+
+        let sets = Workout.lastCompletedWorkingSets(
+            of: bench,
+            in: [draft, plannedButNotLogged, squatOnly, withHistory]
+        )
+
+        XCTAssertEqual(sets.map(\.weight), [180], "Only a completed session with logged working sets counts")
+    }
+
+    func testIsEmptyWhenTheExerciseWasNeverLogged() {
+        let squatOnly = completedWorkout(daysAgo: 7) { workout in
+            _ = workout.addSet(exercise: squat, weight: 275, reps: 5)
+        }
+
+        XCTAssertTrue(Workout.lastCompletedWorkingSets(of: bench, in: [squatOnly]).isEmpty)
+        XCTAssertTrue(Workout.lastCompletedWorkingSets(of: bench, in: []).isEmpty)
     }
 }

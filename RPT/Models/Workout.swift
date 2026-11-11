@@ -227,6 +227,25 @@ final class Workout {
     func orderedSets(for exercise: Exercise) -> [ExerciseSet] {
         orderedExerciseGroups.first(where: { $0.exercise.id == exercise.id })?.sets ?? []
     }
+
+    /// Working sets of `exercise` from the most recent completed workout in
+    /// `workouts` that logged any, in logged order. Empty when the exercise
+    /// has never been logged. This is what a new template workout is
+    /// pre-filled from.
+    static func lastCompletedWorkingSets(of exercise: Exercise, in workouts: [Workout]) -> [ExerciseSet] {
+        let newestFirst = workouts
+            .filter(\.isCompleted)
+            .sorted { $0.date > $1.date }
+
+        for workout in newestFirst {
+            let workingSets = workout.orderedSets(for: exercise).filter(\.isCompletedWorkingSet)
+            if !workingSets.isEmpty {
+                return workingSets
+            }
+        }
+
+        return []
+    }
     
     // Calculate best set for each exercise
     var bestSets: [Exercise: ExerciseSet] {

@@ -95,88 +95,18 @@ class ActiveWorkoutViewModel: ObservableObject {
         self.exerciseManager = exerciseManager ?? ExerciseManager.shared
         self.settingsManager = settingsManager ?? SettingsManager.shared
 
+        // Building this view model never changes the workout. It is rebuilt
+        // every time the workout screen is presented (reopening a saved
+        // draft, relaunching mid-session), so anything written here would be
+        // rewriting what the lifter already entered. Template pre-fill
+        // happens once, in `TemplateManager.createWorkoutFromTemplate`.
         updateExerciseGroupsAndOrder()
-
-        do {
-            try populateWithPreviousWeights()
-        } catch {
-            setError(title: "Couldn’t Load Previous Weights", message: WorkoutError.saveFailure.description)
-        }
 
         for exercise in exerciseOrder {
             expandedExercises.insert(exercise.id)
         }
 
         currentRestDuration = self.settingsManager.settings.restTimerDuration
-    }
-
-    // MARK: - Template Autofill
-
-    /// Pre-fills still-empty template sets with the weights from the most
-    /// recent completed session of each exercise, without marking anything
-    /// logged.
-    ///
-    /// This runs every time the workout screen is built — including when a
-    /// saved draft is reopened or the app relaunches mid-session — so it
-    /// only ever writes to working sets the user has neither logged nor
-    /// given a weight. Anything already entered, logged, or carried in by a
-    /// follow-up workout is left exactly as it is. RPE describes a set that
-    /// was performed, so it is never copied onto a planned one.
-    private func populateWithPreviousWeights() throws {
-        guard workout.startedFromTemplate != nil else {
-            return
-        }
-
-        struct SetSnapshot {
-            let set: ExerciseSet
-            let weight: Int
-            let reps: Int
-        }
-
-        var snapshots: [SetSnapshot] = []
-
-        for exercise in exerciseOrder {
-            // Index against working sets only on both sides: warm-ups sort
-            // first for display and would otherwise shift the pairing.
-            let currentWorkingSets = orderedSetsForDisplay(in: exercise).filter { !$0.isWarmup }
-            guard currentWorkingSets.contains(where: \.isAwaitingAutofill) else { continue }
-
-            let history = workoutManager.getWorkoutHistory(for: exercise)
-
-            let recentWorkouts = history.filter { workout, sets in
-                workout.isCompleted && sets.contains(where: \.isCompletedWorkingSet)
-            }
-
-            guard let mostRecent = recentWorkouts.first else { continue }
-
-            let previousSets = orderSetsForDisplay(mostRecent.sets.filter(\.isCompletedWorkingSet))
-
-            for (index, currentSet) in currentWorkingSets.enumerated() {
-                guard currentSet.isAwaitingAutofill,
-                      let previousSet = previousSets[safe: index] else { continue }
-
-                let filledWeight = max(0, previousSet.weight)
-                let filledReps = currentSet.reps == 0 ? max(0, previousSet.reps) : currentSet.reps
-                guard filledWeight != currentSet.weight || filledReps != currentSet.reps else { continue }
-
-                snapshots.append(SetSnapshot(set: currentSet, weight: currentSet.weight, reps: currentSet.reps))
-                currentSet.weight = filledWeight
-                currentSet.reps = filledReps
-            }
-        }
-
-        // Reopening a draft normally changes nothing; skip the write.
-        guard !snapshots.isEmpty else { return }
-
-        do {
-            try saveWorkout()
-        } catch {
-            for snapshot in snapshots {
-                snapshot.set.weight = snapshot.weight
-                snapshot.set.reps = snapshot.reps
-            }
-            throw error
-        }
     }
 
     // MARK: - Workout Lifecycle
@@ -597,7 +527,11 @@ class ActiveWorkoutViewModel: ObservableObject {
 
     /// Recalculates back-off set weights from a new top-set weight using the
     /// configured RPT percentage drops.
-    func updateDropSetSuggestions(for exercise: Exercise, firstSetWeight: Int) throws {
+    ///
+    /// - Parameter onlyEmptySets: when true, only back-offs that still have
+    ///   no load are filled, leaving every load the lifter already has
+    ///   planned as it is.
+    func updateDropSetSuggestions(for exercise: Exercise, firstSetWeight: Int, onlyEmptySets: Bool = false) throws {
         let sets = orderedSetsForDisplay(in: exercise).filter { !$0.isWarmup }
         guard sets.count > 1 else { return }
 
@@ -623,6 +557,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             // back-offs follow the top set; rewriting a logged one would
             // put a load in history that was never performed.
             guard !set.isCompletedLoggedSet else { continue }
+            if onlyEmptySets, set.weight > 0 { continue }
 
             let dropPercentage = min(max(reductionPercentage(forSetIndex: index), 0), 1)
             let calculatedWeight = Double(firstSetWeight) * (1.0 - dropPercentage)
@@ -657,9 +592,9 @@ class ActiveWorkoutViewModel: ObservableObject {
         updateExerciseGroupsAndOrder(maintainOrder: true)
     }
 
-    func updateDropSetSuggestionsSafely(for exercise: Exercise, firstSetWeight: Int) -> Bool {
+    func updateDropSetSuggestionsSafely(for exercise: Exercise, firstSetWeight: Int, onlyEmptySets: Bool = false) -> Bool {
         do {
-            try updateDropSetSuggestions(for: exercise, firstSetWeight: firstSetWeight)
+            try updateDropSetSuggestions(for: exercise, firstSetWeight: firstSetWeight, onlyEmptySets: onlyEmptySets)
             return true
         } catch {
             setError(title: "Couldn’t Update Back-off Sets", message: WorkoutError.saveFailure.description)
@@ -806,13 +741,5 @@ class ActiveWorkoutViewModel: ObservableObject {
 
         // Past the configured drops, keep the deepest configured drop.
         return settingsDrops.last ?? 0.1
-    }
-}
-
-private extension ExerciseSet {
-    /// True for a working set template autofill may still write to: one the
-    /// user has neither logged nor given a weight.
-    var isAwaitingAutofill: Bool {
-        !isWarmup && !isCompletedLoggedSet && weight == 0
     }
 }

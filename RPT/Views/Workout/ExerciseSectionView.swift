@@ -9,16 +9,30 @@
 //
 
 import SwiftUI
+import SwiftData
 import UIKit
 
 struct ExerciseSectionView: View {
     @ObservedObject var viewModel: ActiveWorkoutViewModel
     let exercise: Exercise
 
-    @State private var editingSet: ExerciseSet?
-    /// True when the editor was opened by a log tap on an empty set, so a
-    /// successful save finishes the check-off (haptic + auto rest timer).
-    @State private var editorOpenedForLogging = false
+    /// The set being edited, together with why the editor was opened.
+    ///
+    /// The intent travels inside the sheet item on purpose. Keeping it in a
+    /// separate `@State` flag that only the sheet's content closure reads
+    /// leaves SwiftUI free to build the first presentation with the flag's
+    /// previous value, which would skip validation on a log attempt.
+    private struct SetEditorRequest: Identifiable {
+        let exerciseSet: ExerciseSet
+        /// True when a log tap on a set with nothing to log opened the
+        /// editor, so a successful save finishes the check-off (haptic +
+        /// auto rest timer).
+        let isLogging: Bool
+
+        var id: PersistentIdentifier { exerciseSet.id }
+    }
+
+    @State private var editorRequest: SetEditorRequest? = nil
     @State private var setToDelete: ExerciseSet?
     @State private var showingDeleteExercise = false
     @State private var showingWarmupPlan = false
@@ -91,11 +105,16 @@ struct ExerciseSectionView: View {
                 viewModel.toggleExerciseExpansion(exercise)
             }
         }
-        .sheet(item: $editingSet) { set in
-            SetValueEditorSheet(set: set, isLogging: editorOpenedForLogging) { weight, reps in
-                applyEditedValues(to: set, weight: weight, reps: reps)
+        .sheet(item: $editorRequest) { request in
+            SetValueEditorSheet(set: request.exerciseSet, isLogging: request.isLogging) { weight, reps in
+                applyEditedValues(
+                    to: request.exerciseSet,
+                    weight: weight,
+                    reps: reps,
+                    completesLog: request.isLogging
+                )
             }
-            .presentationDetents([.height(340), .medium])
+            .presentationDetents([.height(340), .medium, .large])
         }
         .sheet(isPresented: $showingWarmupPlan) {
             WarmupPlanView(topSetWeight: topWorkingSet?.weight ?? 0) { steps in
@@ -154,8 +173,7 @@ struct ExerciseSectionView: View {
                     ladder: ladderInfo(for: set),
                     isNextUp: set.id == nextSet?.id,
                     onEdit: {
-                        editorOpenedForLogging = false
-                        editingSet = set
+                        editorRequest = SetEditorRequest(exerciseSet: set, isLogging: false)
                     },
                     onDelete: { setToDelete = set },
                     onLogTapped: { handleLogTap(for: set) },
@@ -498,14 +516,14 @@ struct ExerciseSectionView: View {
 
     // MARK: - Set Mutations
 
-    private func applyEditedValues(to set: ExerciseSet, weight: Int, reps: Int) {
+    private func applyEditedValues(to set: ExerciseSet, weight: Int, reps: Int, completesLog: Bool) {
         let previousWeight = set.weight
         guard viewModel.updateSetSafely(set, weight: weight, reps: reps, rpe: set.rpe) else { return }
         propagateTopSetChangeIfNeeded(for: set, previousWeight: previousWeight, newWeight: weight)
 
         // Saving values from a log tap completes the check-off. Value edits
         // never log implicitly, so finish the intent with an explicit toggle.
-        if editorOpenedForLogging,
+        if completesLog,
            !set.isCompletedLoggedSet,
            viewModel.toggleSetLoggedSafely(set) == .logged {
             HapticFeedbackManager.shared.medium()
@@ -513,18 +531,34 @@ struct ExerciseSectionView: View {
                 viewModel.startRestTimer()
             }
         }
-        editorOpenedForLogging = false
     }
 
-    /// Changing the top working set's weight recalculates the back-off
-    /// suggestions that are still planned. A reps-only edit leaves the
-    /// ladder alone, and logged back-offs are never rewritten.
+    /// Keeps the planned back-offs in step with the top working set.
+    ///
+    /// - A new top-set weight recalculates every back-off that is still
+    ///   planned. Logged back-offs are never rewritten.
+    /// - Saving the top set without changing its weight (a reps-only edit)
+    ///   leaves planned loads alone and only fills back-offs that have no
+    ///   load yet, so the lifter is not left working out the drops by hand.
     private func propagateTopSetChangeIfNeeded(for set: ExerciseSet, previousWeight: Int, newWeight: Int) {
-        guard !set.isWarmup,
-              newWeight > 0,
-              newWeight != previousWeight,
-              set.id == topWorkingSet?.id else { return }
-        _ = viewModel.updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: newWeight)
+        guard !set.isWarmup, set.id == topWorkingSet?.id else { return }
+
+        // Zero is a real load only for bodyweight movements. There it also
+        // cannot tell "empty" from "bodyweight", so only a weight change
+        // moves the ladder.
+        let zeroIsARealLoad = exercise.category == .bodyweight
+        let weightChanged = newWeight != previousWeight
+
+        if weightChanged {
+            guard newWeight > 0 || zeroIsARealLoad else { return }
+            _ = viewModel.updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: newWeight)
+        } else if newWeight > 0, !zeroIsARealLoad {
+            _ = viewModel.updateDropSetSuggestionsSafely(
+                for: exercise,
+                firstSetWeight: newWeight,
+                onlyEmptySets: true
+            )
+        }
     }
 
     private func handleLogTap(for set: ExerciseSet) {
@@ -538,8 +572,7 @@ struct ExerciseSectionView: View {
             HapticFeedbackManager.shared.light()
         case .needsValues:
             // Nothing to log yet — open the editor so the user can enter values.
-            editorOpenedForLogging = true
-            editingSet = set
+            editorRequest = SetEditorRequest(exerciseSet: set, isLogging: true)
         case .failed:
             break // The view model surfaces the error alert.
         }
