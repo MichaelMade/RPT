@@ -245,6 +245,38 @@ final class Workout {
         return result
     }
     
+    /// A draft counts as parked, rather than in progress, once this long has
+    /// passed between creating it and logging its first set.
+    static let parkedDraftGap: TimeInterval = 4 * 60 * 60
+
+    /// Moves a parked draft onto the day it was actually trained.
+    ///
+    /// `date` is stamped when the workout is created. A draft saved for
+    /// later and trained days afterwards would otherwise be filed under its
+    /// creation day in history, the weekly goal, the heatmap, and the
+    /// streak. Call this before `complete()`.
+    ///
+    /// A normal session is left alone — including one that starts late and
+    /// runs past midnight, which keeps the day it began.
+    func alignDateWithFirstLoggedSet(now: Date = Date(), calendar: Calendar = .current) {
+        guard !isCompleted else { return }
+
+        let firstLoggedAt = sets
+            .filter(\.isCompletedLoggedSet)
+            .map(\.completedAt)
+            .filter { $0 > .distantPast }
+            .min()
+
+        guard let firstLoggedAt,
+              firstLoggedAt <= now,
+              firstLoggedAt.timeIntervalSince(date) >= Self.parkedDraftGap,
+              !calendar.isDate(firstLoggedAt, inSameDayAs: date) else {
+            return
+        }
+
+        date = firstLoggedAt
+    }
+
     // Mark workout as completed
     func complete(now: Date = Date()) {
         isCompleted = true

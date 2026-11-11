@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct ExerciseSectionView: View {
     @ObservedObject var viewModel: ActiveWorkoutViewModel
@@ -91,10 +92,10 @@ struct ExerciseSectionView: View {
             }
         }
         .sheet(item: $editingSet) { set in
-            SetValueEditorSheet(set: set) { weight, reps in
+            SetValueEditorSheet(set: set, isLogging: editorOpenedForLogging) { weight, reps in
                 applyEditedValues(to: set, weight: weight, reps: reps)
             }
-            .presentationDetents([.height(320), .medium])
+            .presentationDetents([.height(340), .medium])
         }
         .sheet(isPresented: $showingWarmupPlan) {
             WarmupPlanView(topSetWeight: topWorkingSet?.weight ?? 0) { steps in
@@ -498,8 +499,9 @@ struct ExerciseSectionView: View {
     // MARK: - Set Mutations
 
     private func applyEditedValues(to set: ExerciseSet, weight: Int, reps: Int) {
+        let previousWeight = set.weight
         guard viewModel.updateSetSafely(set, weight: weight, reps: reps, rpe: set.rpe) else { return }
-        propagateTopSetChangeIfNeeded(for: set, newWeight: weight)
+        propagateTopSetChangeIfNeeded(for: set, previousWeight: previousWeight, newWeight: weight)
 
         // Saving values from a log tap completes the check-off. Value edits
         // never log implicitly, so finish the intent with an explicit toggle.
@@ -514,9 +516,14 @@ struct ExerciseSectionView: View {
         editorOpenedForLogging = false
     }
 
-    /// Editing the top working set recalculates all back-off set suggestions.
-    private func propagateTopSetChangeIfNeeded(for set: ExerciseSet, newWeight: Int) {
-        guard !set.isWarmup, newWeight > 0, set.id == topWorkingSet?.id else { return }
+    /// Changing the top working set's weight recalculates the back-off
+    /// suggestions that are still planned. A reps-only edit leaves the
+    /// ladder alone, and logged back-offs are never rewritten.
+    private func propagateTopSetChangeIfNeeded(for set: ExerciseSet, previousWeight: Int, newWeight: Int) {
+        guard !set.isWarmup,
+              newWeight > 0,
+              newWeight != previousWeight,
+              set.id == topWorkingSet?.id else { return }
         _ = viewModel.updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: newWeight)
     }
 
@@ -767,10 +774,15 @@ struct SetValueEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let set: ExerciseSet
+    /// True when a Log tap opened the editor because the set had nothing to
+    /// log yet. Saving then has to produce loggable values, so the sheet
+    /// explains what is missing instead of closing with the set unlogged.
+    var isLogging: Bool = false
     let onSave: (Int, Int) -> Void
 
     @State private var weightText: String = ""
     @State private var repsText: String = ""
+    @State private var validationMessage: String?
     @FocusState private var focusedField: Field?
 
     private enum Field {
@@ -808,6 +820,15 @@ struct SetValueEditorSheet: View {
                     }
                 }
 
+                if let validationMessage {
+                    Text(validationMessage)
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(Theme.topSetForeground)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("setEditorValidationMessage")
+                }
+
                 Button {
                     save()
                 } label: {
@@ -818,6 +839,8 @@ struct SetValueEditorSheet: View {
                 Spacer()
             }
             .padding(Theme.screenPadding)
+            .onChange(of: weightText) { validationMessage = nil }
+            .onChange(of: repsText) { validationMessage = nil }
             .navigationTitle(set.isWarmup ? "Warm-up Set" : "Working Set")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -839,9 +862,36 @@ struct SetValueEditorSheet: View {
     }
 
     private func save() {
-        let weight = max(0, Int(weightText.trimmingCharacters(in: .whitespaces)) ?? 0)
-        let reps = max(0, Int(repsText.trimmingCharacters(in: .whitespaces)) ?? 0)
+        guard let weight = SetInputParser.weight(from: weightText) else {
+            showValidation("Weight must be a whole number of pounds, up to \(SetInputParser.maxWeight).")
+            focusedField = .weight
+            return
+        }
+
+        guard let reps = SetInputParser.reps(from: repsText) else {
+            showValidation("Reps must be a whole number, up to \(SetInputParser.maxReps).")
+            focusedField = .reps
+            return
+        }
+
+        if isLogging,
+           !ExerciseSet.hasCompletedValues(weight: weight, reps: reps, exerciseCategory: set.exercise?.category) {
+            if reps == 0 {
+                showValidation("Enter the reps you completed to log this set.")
+                focusedField = .reps
+            } else {
+                showValidation("Enter the weight you lifted to log this set.")
+                focusedField = .weight
+            }
+            return
+        }
+
         onSave(weight, reps)
         dismiss()
+    }
+
+    private func showValidation(_ message: String) {
+        validationMessage = message
+        UIAccessibility.post(notification: .announcement, argument: message)
     }
 }

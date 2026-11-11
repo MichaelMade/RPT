@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import SwiftData
 @testable import RPT
 
 @MainActor
@@ -129,6 +130,175 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         let sets = viewModel.orderedSetsForDisplay(in: exercise)
         XCTAssertFalse(sets[1].isCompletedLoggedSet, "Recalculating suggestions must not log unperformed sets")
         XCTAssertFalse(sets[2].isCompletedLoggedSet, "Recalculating suggestions must not log unperformed sets")
+    }
+
+    func testUpdateDropSetSuggestionsLeavesLoggedBackoffsAlone() {
+        let exercise = makeExercise()
+        let workout = Workout(name: "Test")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        XCTAssertTrue(viewModel.addExerciseToWorkoutSafely(exercise))
+        XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
+        XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
+
+        var sets = viewModel.orderedSetsForDisplay(in: exercise)
+        XCTAssertTrue(viewModel.updateSetSafely(sets[0], weight: 185, reps: 6, rpe: nil))
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(sets[0]), .logged)
+
+        // The first back-off was lifted heavier than suggested, and logged.
+        XCTAssertTrue(viewModel.updateSetSafely(sets[1], weight: 170, reps: 8, rpe: nil))
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(sets[1]), .logged)
+
+        // The second back-off is still only a plan.
+        XCTAssertTrue(viewModel.updateSetSafely(sets[2], weight: 150, reps: 8, rpe: nil))
+
+        XCTAssertTrue(viewModel.updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: 200))
+
+        sets = viewModel.orderedSetsForDisplay(in: exercise)
+        XCTAssertEqual(sets[1].weight, 170, "A logged back-off keeps the load that was actually lifted")
+        XCTAssertTrue(sets[1].isCompletedLoggedSet)
+        XCTAssertEqual(sets[2].weight, 170, "A planned back-off still follows the top set: 15% off 200")
+        XCTAssertFalse(sets[2].isCompletedLoggedSet)
+    }
+
+    // MARK: - Template Autofill
+
+    @MainActor
+    private struct IsolatedStore {
+        let dataManager: DataManager
+        let workoutManager: WorkoutManager
+        let exerciseManager: ExerciseManager
+
+        var context: ModelContext { dataManager.getModelContext() }
+
+        func makeViewModel(for workout: Workout) -> ActiveWorkoutViewModel {
+            ActiveWorkoutViewModel(
+                workout: workout,
+                workoutManager: workoutManager,
+                exerciseManager: exerciseManager
+            )
+        }
+    }
+
+    /// Template autofill reads prior sessions from the store, so these tests
+    /// run against their own in-memory container rather than the app's.
+    private func makeIsolatedStore() -> IsolatedStore {
+        let dataManager = DataManager(
+            containerFactory: { schema, _ in
+                let configuration = ModelConfiguration(
+                    isStoredInMemoryOnly: true,
+                    allowsSave: true
+                )
+                return try ModelContainer(for: schema, configurations: configuration)
+            },
+            seedDefaultData: false
+        )
+
+        return IsolatedStore(
+            dataManager: dataManager,
+            workoutManager: WorkoutManager(dataManager: dataManager),
+            exerciseManager: ExerciseManager(dataManager: dataManager)
+        )
+    }
+
+    /// Inserts a completed 185 / 165 / 155 bench session from a week ago.
+    private func insertLastWeeksBenchSession(for bench: Exercise, in store: IsolatedStore) throws -> Workout {
+        let lastWeek = Workout(
+            date: Date(timeIntervalSinceNow: -7 * 24 * 60 * 60),
+            name: "Bench Day",
+            startedFromTemplate: "Bench Day"
+        )
+        store.context.insert(lastWeek)
+
+        for (weight, rpe) in [(185, 9), (165, 8), (155, 8)] {
+            _ = lastWeek.addSet(exercise: bench, weight: weight, reps: 8, rpe: rpe)
+        }
+        lastWeek.isCompleted = true
+
+        try store.context.save()
+        return lastWeek
+    }
+
+    /// Inserts a fresh template-origin workout with three empty working sets.
+    private func insertTodaysTemplateWorkout(for bench: Exercise, in store: IsolatedStore) throws -> Workout {
+        let today = Workout(name: "Bench Day", startedFromTemplate: "Bench Day")
+        store.context.insert(today)
+
+        for _ in 0..<3 {
+            let plannedSet = today.addSet(exercise: bench, weight: 0, reps: 8)
+            plannedSet.completedAt = .distantPast
+        }
+
+        try store.context.save()
+        return today
+    }
+
+    func testTemplateWorkoutPrefillsWeightsButNotRPEFromLastSession() throws {
+        let store = makeIsolatedStore()
+        let bench = makeExercise()
+        store.context.insert(bench)
+        _ = try insertLastWeeksBenchSession(for: bench, in: store)
+        let today = try insertTodaysTemplateWorkout(for: bench, in: store)
+
+        let viewModel = store.makeViewModel(for: today)
+        let sets = viewModel.orderedSetsForDisplay(in: bench)
+
+        XCTAssertEqual(sets.map(\.weight), [185, 165, 155], "First open pre-fills from the last session")
+        XCTAssertEqual(sets.map(\.reps), [8, 8, 8], "Template rep targets are kept")
+        XCTAssertTrue(sets.allSatisfy { $0.rpe == nil }, "RPE belongs to a performed set and is never pre-filled")
+        XCTAssertTrue(sets.allSatisfy { !$0.isCompletedLoggedSet }, "Pre-filling never logs a set")
+    }
+
+    func testReopeningTemplateWorkoutKeepsEditedAndLoggedValues() throws {
+        let store = makeIsolatedStore()
+        let bench = makeExercise()
+        store.context.insert(bench)
+        _ = try insertLastWeeksBenchSession(for: bench, in: store)
+        let today = try insertTodaysTemplateWorkout(for: bench, in: store)
+
+        let firstOpen = store.makeViewModel(for: today)
+        var sets = firstOpen.orderedSetsForDisplay(in: bench)
+        XCTAssertEqual(sets.map(\.weight), [185, 165, 155])
+
+        // Go heavier than last week, log the top set, adjust a back-off,
+        // and add a warm-up.
+        XCTAssertTrue(firstOpen.updateSetSafely(sets[0], weight: 190, reps: 8, rpe: 8))
+        XCTAssertEqual(firstOpen.toggleSetLoggedSafely(sets[0]), .logged)
+        XCTAssertTrue(firstOpen.updateSetSafely(sets[1], weight: 170, reps: 8, rpe: nil))
+        XCTAssertTrue(firstOpen.addWarmupSetSafely(to: bench, weight: 95, reps: 5))
+
+        // "Save for later" then "Continue" (or a relaunch) builds a brand
+        // new view model on the same workout.
+        let reopened = store.makeViewModel(for: today)
+        sets = reopened.orderedSetsForDisplay(in: bench)
+
+        XCTAssertEqual(sets.count, 4)
+        XCTAssertTrue(sets[0].isWarmup)
+        XCTAssertEqual(sets[0].weight, 95, "A warm-up must not receive last week's top-set weight")
+        XCTAssertEqual(sets[1].weight, 190, "A logged set keeps the weight that was lifted")
+        XCTAssertEqual(sets[1].rpe, 8, "A logged set keeps its own RPE")
+        XCTAssertTrue(sets[1].isCompletedLoggedSet)
+        XCTAssertEqual(sets[2].weight, 170, "An edited back-off keeps the lifter's number")
+        XCTAssertEqual(sets[3].weight, 155)
+        XCTAssertNil(reopened.errorMessage)
+    }
+
+    func testFollowUpFromTemplateSessionKeepsItsProgressedWeights() throws {
+        let store = makeIsolatedStore()
+        let bench = makeExercise()
+        store.context.insert(bench)
+        let lastWeek = try insertLastWeeksBenchSession(for: bench, in: store)
+
+        let followUp = try XCTUnwrap(store.workoutManager.createFollowUpWorkoutSafely(from: lastWeek))
+        XCTAssertNotNil(followUp.startedFromTemplate, "Sanity check: the follow-up inherits the template origin")
+
+        let viewModel = store.makeViewModel(for: followUp)
+
+        XCTAssertEqual(
+            viewModel.orderedSetsForDisplay(in: bench).map(\.weight),
+            [190, 170, 160],
+            "Opening a follow-up must not swap its progressed loads back to last session's"
+        )
     }
 
     // MARK: - Warm-up Sets

@@ -63,7 +63,7 @@ struct RPTCalculatorView: View {
     }
 
     private var topSetWeight: Int {
-        max(0, Int(topSetText.trimmingCharacters(in: .whitespaces)) ?? 0)
+        SetInputParser.weight(from: topSetText) ?? 0
     }
 
     @ViewBuilder

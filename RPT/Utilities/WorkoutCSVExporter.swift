@@ -13,11 +13,14 @@ enum WorkoutCSVExporter {
 
     /// Builds a CSV string of all logged sets in completed workouts,
     /// newest workout first, sets in logged order.
-    static func csv(for workouts: [Workout]) -> String {
+    ///
+    /// Dates are the lifter's own calendar days (`timeZone`, the device's
+    /// zone by default) so the export agrees with History and Stats. A UTC
+    /// date would file an evening session under the following day.
+    static func csv(for workouts: [Workout], timeZone: TimeZone = .current) -> String {
         var lines: [String] = [header]
 
-        let dateFormatter = ISO8601DateFormatter()
-        dateFormatter.formatOptions = [.withFullDate]
+        let dateFormatter = dayFormatter(timeZone: timeZone)
 
         let completed = workouts
             .filter(\.isCompleted)
@@ -55,9 +58,7 @@ enum WorkoutCSVExporter {
     /// Writes the CSV to a temporary file suitable for the share sheet.
     static func exportFile(for workouts: [Workout]) -> URL? {
         let content = csv(for: workouts)
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let filename = "RPT-History-\(formatter.string(from: Date())).csv"
+        let filename = "RPT-History-\(dayFormatter(timeZone: .current).string(from: Date())).csv"
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
 
         do {
@@ -66,6 +67,17 @@ enum WorkoutCSVExporter {
         } catch {
             return nil
         }
+    }
+
+    /// `yyyy-MM-dd` in a fixed Gregorian/POSIX format, so the output does not
+    /// change with the device's region, calendar, or numbering system.
+    static func dayFormatter(timeZone: TimeZone) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
     }
 
     /// Escapes a CSV field per RFC 4180.

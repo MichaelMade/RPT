@@ -87,18 +87,19 @@ class WorkoutStateManager: ObservableObject {
             return false
         }
 
-        let wasAnyWorkoutDiscarded = wasAnyWorkoutDiscarded()
-
-        guard wasAnyWorkoutDiscarded else {
+        guard wasAnyWorkoutDiscarded() else {
             return true
         }
 
-        guard let discardTimestamp else {
+        guard let lastDiscardedWorkoutId else {
             // Fail open for legacy/corrupted discard state.
             return true
         }
 
-        return workout.date >= discardTimestamp
+        // Only the workout that was actually discarded stops being
+        // resumable. Other saved drafts — including ones started before the
+        // discard — hold logged sets and must stay reachable.
+        return "\(workout.id)" != lastDiscardedWorkoutId
     }
 
     func firstResumableWorkout(in workouts: [Workout]) -> Workout? {

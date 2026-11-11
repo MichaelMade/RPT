@@ -134,9 +134,11 @@ class WorkoutManager: ObservableObject {
 
         let originalIsCompleted = workout.isCompleted
         let originalDuration = workout.duration
+        let originalDate = workout.date
         let originalUser = workout.user
         let userSnapshot = userManager.getCurrentUser().map(UserCompletionSnapshot.init)
 
+        workout.alignDateWithFirstLoggedSet()
         workout.complete()
         userManager.getCurrentUser()?.registerCompletedWorkoutIfNeeded(workout)
 
@@ -145,6 +147,7 @@ class WorkoutManager: ObservableObject {
         } catch {
             workout.isCompleted = originalIsCompleted
             workout.duration = originalDuration
+            workout.date = originalDate
             workout.user = originalUser
             userSnapshot?.restore()
             throw error

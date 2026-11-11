@@ -91,7 +91,8 @@ struct PlateCalculatorView: View {
     // MARK: - Result
 
     private var targetWeight: Double {
-        Double(targetText.trimmingCharacters(in: .whitespaces)) ?? 0
+        // The decimal pad types a comma in most non-US regions.
+        SetInputParser.decimal(from: targetText) ?? 0
     }
 
     private var result: PlateCalculator.Result? {
