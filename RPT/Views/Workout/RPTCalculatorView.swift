@@ -77,7 +77,9 @@ struct RPTCalculatorView: View {
 
             VStack(spacing: 10) {
                 ForEach(Array(weights.enumerated()), id: \.offset) { index, weight in
-                    let rounded = WorkoutManager.shared.roundToNearest5(weight)
+                    // The top set is the lifter's own number; only the
+                    // calculated back-offs are rounded to a loadable weight.
+                    let rounded = index == 0 ? topSetWeight : WorkoutManager.shared.roundToNearest5(weight)
 
                     HStack(spacing: 12) {
                         Text("\(index + 1)")

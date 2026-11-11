@@ -7,11 +7,11 @@ Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All d
 ## Features
 
 ### Training
-- **Live workout logging** — fast steppers, tap-to-type set editing, RPE tracking, and per-exercise completion check-offs.
+- **Live workout logging** — tap-to-type set editing, one-tap set logging, RPE tracking, and per-exercise completion check-offs.
 - **RPT back-off suggestions** — log your top set and the app calculates every back-off weight from your configured percentage drops (default −10% / −15%), always anchored to the top set.
 - **Warm-up ramp generator** — one tap builds a low-fatigue ramp (bar × 10 → 40% × 5 → 60% × 3 → 80% × 1) toward your top set.
 - **Progression coaching** — double-progression targets on every exercise: hit the top of your rep range and RPT tells you to load more next session.
-- **Rest timer** — progress-ring countdown with ±15s adjustments, haptic and sound cues, and optional auto-start when you check off a set.
+- **Rest timer** — docked countdown with a +15s extension, haptic and sound cues, and optional auto-start when you log a set. The countdown follows the wall clock, so it stays accurate while the app is in the background; it does not yet alert you when the phone is locked.
 - **Follow-up workouts** — re-run any completed session at +2.5% load with one tap.
 
 ### Planning

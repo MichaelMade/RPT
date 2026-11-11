@@ -378,3 +378,34 @@ final class RPTDropNormalizationTests: XCTestCase {
         XCTAssertEqual(stepped([5, 10], index: 1, by: -5), [5, 5])
     }
 }
+
+// MARK: - Coaching Against The Programmed Rep Range
+
+final class TemplateRepRangeCoachingTests: XCTestCase {
+    func testCoachingUsesTheTemplatesTopSetRange() {
+        let squat = TemplateExercise(
+            exerciseName: "Barbell Squat",
+            suggestedSets: 3,
+            repRanges: [
+                TemplateRepRange(setNumber: 1, minReps: 9, maxReps: 11, percentageOfFirstSet: 1.0),
+                TemplateRepRange(setNumber: 2, minReps: 10, maxReps: 12, percentageOfFirstSet: 0.9),
+                TemplateRepRange(setNumber: 3, minReps: 11, maxReps: 13, percentageOfFirstSet: 0.85)
+            ]
+        )
+
+        let programmedRange = ProgressionAdvisor.topSetRepRange(for: squat)
+        XCTAssertEqual(programmedRange, 9...11)
+
+        // 225 × 9 is the bottom of a 9–11 range: stay and add a rep.
+        let coached = ProgressionAdvisor.suggestion(lastWeight: 225, lastReps: 9, repRange: programmedRange)
+        XCTAssertEqual(coached.direction, .addReps)
+        XCTAssertEqual(coached.suggestedWeight, 225)
+
+        // Judged against the 4–6 default, the same set was told to add weight.
+        XCTAssertEqual(ProgressionAdvisor.suggestion(lastWeight: 225, lastReps: 9).direction, .increaseWeight)
+    }
+
+    func testCoachingFallsBackToClassicRangeWithoutATemplate() {
+        XCTAssertEqual(ProgressionAdvisor.topSetRepRange(for: nil), 4...6)
+    }
+}

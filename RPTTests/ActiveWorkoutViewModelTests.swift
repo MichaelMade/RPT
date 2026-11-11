@@ -161,6 +161,39 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertFalse(sets[2].isCompletedLoggedSet)
     }
 
+    func testAddedSetAndRecalculationFollowLadderPosition() {
+        let exercise = makeExercise()
+        let workout = Workout(name: "Test")
+        let viewModel = ActiveWorkoutViewModel(workout: workout)
+
+        // Three planned sets, as a template creates them; only the top is logged.
+        XCTAssertTrue(viewModel.addExerciseToWorkoutSafely(exercise))
+        XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
+        XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
+
+        let topSet = viewModel.orderedSetsForDisplay(in: exercise)[0]
+        XCTAssertTrue(viewModel.updateSetSafely(topSet, weight: 200, reps: 5, rpe: nil))
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(topSet), .logged)
+        XCTAssertTrue(viewModel.updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: 200))
+
+        // A fourth set is planned before the back-offs are done.
+        XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
+        XCTAssertEqual(
+            viewModel.orderedSetsForDisplay(in: exercise).map(\.weight),
+            [200, 180, 170, 170],
+            "A fourth set reuses the deepest drop; it must not come out heavier than the third"
+        )
+
+        // The top set turns out lighter: every planned back-off follows it.
+        XCTAssertTrue(viewModel.updateSetSafely(topSet, weight: 150, reps: 5, rpe: nil))
+        XCTAssertTrue(viewModel.updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: 150))
+        XCTAssertEqual(
+            viewModel.orderedSetsForDisplay(in: exercise).map(\.weight),
+            [150, 135, 130, 130],
+            "No back-off may be left heavier than the top set"
+        )
+    }
+
     // MARK: - Template Autofill
 
     @MainActor

@@ -384,7 +384,11 @@ class ActiveWorkoutViewModel: ObservableObject {
         var newReps = 8
 
         if let topSet = completedWorkingSets.first {
-            let reductionPercentage = min(max(reductionPercentage(forSetIndex: completedWorkingSets.count), 0), 1)
+            // The new set's place in the ladder, not how many sets happen to
+            // be logged: with planned back-offs already present, counting
+            // logged sets suggested a load heavier than the set before it.
+            let ladderPosition = orderedExistingSets.filter { !$0.isWarmup }.count
+            let reductionPercentage = min(max(reductionPercentage(forSetIndex: ladderPosition), 0), 1)
             let safeTopWeight = max(0, topSet.weight)
             newWeight = max(0, workoutManager.roundToNearest5(Double(safeTopWeight) * (1.0 - reductionPercentage)))
 
@@ -597,9 +601,10 @@ class ActiveWorkoutViewModel: ObservableObject {
         let sets = orderedSetsForDisplay(in: exercise).filter { !$0.isWarmup }
         guard sets.count > 1 else { return }
 
-        let dropPercentages = settingsManager.settings.defaultRPTPercentageDrops
-        let affectedSetCount = min(sets.count, dropPercentages.count)
-        guard affectedSetCount > 1 else { return }
+        // Every back-off follows the top set. Sets past the configured
+        // drops reuse the deepest one, matching how "Add set" plans them, so
+        // a fourth set can never be left heavier than a lowered top set.
+        let affectedSetCount = sets.count
 
         struct SetSnapshot {
             let set: ExerciseSet
@@ -619,7 +624,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             // put a load in history that was never performed.
             guard !set.isCompletedLoggedSet else { continue }
 
-            let dropPercentage = min(max(dropPercentages[index], 0), 1)
+            let dropPercentage = min(max(reductionPercentage(forSetIndex: index), 0), 1)
             let calculatedWeight = Double(firstSetWeight) * (1.0 - dropPercentage)
             let roundedWeight = max(0, workoutManager.roundToNearest5(calculatedWeight))
 

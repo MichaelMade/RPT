@@ -583,10 +583,25 @@ struct ExerciseSectionView: View {
 
         let suggestion = ProgressionAdvisor.suggestion(
             lastWeight: lastTopSet.weight,
-            lastReps: lastTopSet.reps
+            lastReps: lastTopSet.reps,
+            repRange: programmedTopSetRepRange
         )
         progressionNote = "Last top set \(lastTopSet.weight)×\(lastTopSet.reps). \(suggestion.note)"
         progressionTargetWeight = suggestion.suggestedWeight
+    }
+
+    /// The rep range programmed for this exercise's top set: the source
+    /// template's when the workout came from one, otherwise classic 4–6.
+    /// Coaching against the wrong range told a lifter on a 9–11 template to
+    /// add weight after every session and "aim for 4+ reps".
+    private var programmedTopSetRepRange: ClosedRange<Int> {
+        let exerciseKey = ExerciseManager.normalizedNameLookupKey(exercise.name)
+        let templateExercise = TemplateManager.shared
+            .sourceTemplate(for: viewModel.workout)?
+            .exercises
+            .first { ExerciseManager.normalizedNameLookupKey($0.exerciseName) == exerciseKey }
+
+        return ProgressionAdvisor.topSetRepRange(for: templateExercise)
     }
 }
 
