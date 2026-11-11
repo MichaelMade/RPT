@@ -74,7 +74,7 @@ struct HomeView: View {
                 if !presenting {
                     viewModel.refresh()
                     refreshDerivedData()
-                    if ReviewPromptManager.claimSoftAsk() {
+                    if ReviewPromptManager.claimSoftAskAfterWorkoutDismissal() {
                         showingReviewAsk = true
                     }
                 }

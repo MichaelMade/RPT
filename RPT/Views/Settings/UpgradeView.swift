@@ -36,6 +36,9 @@ struct UpgradeView: View {
             await purchaseManager.start()
             guard !didTrackPaywallView else { return }
             didTrackPaywallView = true
+            // An owner reopening this screen from Stats or Settings is not a
+            // paywall exposure; counting it would dilute paid / paywall.
+            guard !purchaseManager.isUnlocked else { return }
             FunnelAnalytics.shared.trackPaywallView(
                 source: source,
                 gateReason: gateReason,

@@ -29,6 +29,11 @@ enum ReviewPromptManager {
     /// `claimSoftAsk()` wins and the others get `false`.
     private static var softAskClaimed = false
 
+    /// Set when a workout is completed and consumed by the next soft-ask
+    /// check, so only the dismissal that follows a finished session can
+    /// lead to the ask.
+    private static var workoutCompletedSinceLastCheck = false
+
     // MARK: - Workout Counting
 
     static var completedWorkoutCount: Int {
@@ -38,6 +43,7 @@ enum ReviewPromptManager {
 
     static func recordCompletedWorkout() {
         completedWorkoutCount += 1
+        workoutCompletedSinceLastCheck = true
     }
 
     // MARK: - Eligibility
@@ -74,11 +80,26 @@ enum ReviewPromptManager {
         return true
     }
 
+    /// The soft-ask check for the moment the workout screen comes down.
+    ///
+    /// The screen is dismissed for three reasons: the workout was completed,
+    /// saved for later, or discarded. Only a completed session is a good
+    /// moment to ask for a rating, so this returns `false` unless a workout
+    /// was completed since the last check. Home and Stats both observe the
+    /// same dismissal; the first caller consumes the completion and the
+    /// second gets `false`.
+    static func claimSoftAskAfterWorkoutDismissal() -> Bool {
+        guard workoutCompletedSinceLastCheck else { return false }
+        workoutCompletedSinceLastCheck = false
+        return claimSoftAsk()
+    }
+
     /// Resets the in-memory latch. Called when the prompt is actioned
     /// (either "Rate RPT" or "Not now") so a future eligibility window
     /// can fire again, and also useful in tests.
     static func resetSoftAskLatch() {
         softAskClaimed = false
+        workoutCompletedSinceLastCheck = false
     }
 
     // MARK: - Prompt

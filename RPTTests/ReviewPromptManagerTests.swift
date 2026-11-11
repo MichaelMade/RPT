@@ -158,6 +158,47 @@ final class ReviewPromptManagerTests: XCTestCase {
                        "After latch reset a new eligibility window should allow another claim")
     }
 
+    // MARK: - Asking Only After A Completed Workout
+
+    func testDismissalWithoutACompletedWorkoutNeverAsks() {
+        ReviewPromptManager.completedWorkoutCount = 5
+        XCTAssertTrue(ReviewPromptManager.isEligibleForPrompt(), "Sanity check: the user is otherwise eligible")
+
+        XCTAssertFalse(
+            ReviewPromptManager.claimSoftAskAfterWorkoutDismissal(),
+            "Saving for later or discarding a workout is not a moment to ask for a rating"
+        )
+        XCTAssertTrue(
+            ReviewPromptManager.isEligibleForPrompt(),
+            "The ask stays available for the next completed workout"
+        )
+    }
+
+    func testDismissalAfterACompletedWorkoutAsksExactlyOnce() {
+        ReviewPromptManager.completedWorkoutCount = 4
+        ReviewPromptManager.recordCompletedWorkout()
+
+        XCTAssertTrue(ReviewPromptManager.claimSoftAskAfterWorkoutDismissal(), "The first tab to see the dismissal asks")
+        XCTAssertFalse(ReviewPromptManager.claimSoftAskAfterWorkoutDismissal(), "Its sibling tab must not ask again")
+
+        // The alert is answered, and a later workout is discarded.
+        ReviewPromptManager.resetSoftAskLatch()
+        XCTAssertFalse(
+            ReviewPromptManager.claimSoftAskAfterWorkoutDismissal(),
+            "A completed workout arms one dismissal only"
+        )
+    }
+
+    func testCompletedWorkoutBelowThresholdDoesNotArmALaterDismissal() {
+        ReviewPromptManager.completedWorkoutCount = 0
+        ReviewPromptManager.recordCompletedWorkout()
+        XCTAssertFalse(ReviewPromptManager.claimSoftAskAfterWorkoutDismissal(), "One workout is below the threshold")
+
+        // Reaching the threshold by other means must not make a discard ask.
+        ReviewPromptManager.completedWorkoutCount = 5
+        XCTAssertFalse(ReviewPromptManager.claimSoftAskAfterWorkoutDismissal())
+    }
+
     func testClaimSoftAsk_blocksSecondViewEvenWhenBothEligible() {
         ReviewPromptManager.completedWorkoutCount = 10
 

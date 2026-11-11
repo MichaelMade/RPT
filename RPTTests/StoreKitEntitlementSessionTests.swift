@@ -59,6 +59,31 @@ final class StoreKitEntitlementSessionTests: XCTestCase {
         XCTAssertFalse(activeIDs.contains(MonetizationPlan.proProductID))
     }
 
+    func testCancelledRefreshLeavesAnOwnersEntitlementAlone() async throws {
+        let session = try XCTUnwrap(self.session)
+        let manager = StoreKitPurchaseManager.shared
+
+        _ = try await session.buyProduct(
+            identifier: MonetizationPlan.proProductID,
+            options: []
+        )
+        let unlocked = await manager.refreshPurchasedState()
+        XCTAssertTrue(unlocked)
+
+        // A view's `.task` torn down while its refresh is in flight.
+        let abandonedRefresh = Task { @MainActor in
+            await manager.refreshPurchasedState()
+        }
+        abandonedRefresh.cancel()
+        _ = await abandonedRefresh.value
+
+        XCTAssertTrue(manager.isUnlocked, "A cancelled refresh must never read as a refund")
+        XCTAssertEqual(manager.state, .unlocked)
+
+        let stillUnlocked = await manager.refreshPurchasedState()
+        XCTAssertTrue(stillUnlocked, "The next complete refresh still finds the purchase")
+    }
+
     func testManagerRefreshUnlocksAfterPurchaseAndLocksAfterRefund() async throws {
         let session = try XCTUnwrap(self.session)
         let manager = StoreKitPurchaseManager.shared

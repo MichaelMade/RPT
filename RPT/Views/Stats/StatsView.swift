@@ -65,7 +65,7 @@ struct StatsView: View {
                 // just-finished workout is reflected immediately.
                 if !presenting {
                     viewModel.refresh()
-                    if ReviewPromptManager.claimSoftAsk() {
+                    if ReviewPromptManager.claimSoftAskAfterWorkoutDismissal() {
                         showingReviewAsk = true
                     }
                 }

@@ -196,17 +196,36 @@ final class StoreKitPurchaseManager: ObservableObject {
                 alertMessage = "No RPT Pro purchase was found for this Apple ID."
             }
         } catch {
-            state = proProduct == nil ? .unavailable : .ready
+            // A failed restore does not make an owner any less of an owner.
+            if isUnlocked {
+                state = .unlocked
+            } else {
+                state = proProduct == nil ? .unavailable : .ready
+            }
+
+            // Backing out of the Apple ID prompt is a choice, not a failure.
+            if let storeKitError = error as? StoreKitError, case .userCancelled = storeKitError {
+                return
+            }
             alertMessage = "Could not restore RPT Pro. Please try again."
         }
     }
 
     @discardableResult
     func refreshPurchasedState(kind: ProEntitlementRefreshKind = .canonical) async -> Bool {
-        defer { hasPreparedEntitlements = true }
-
         let refreshGeneration = entitlementGate.beginRefresh()
         let records = await currentEntitlementRecords()
+
+        // Most refreshes run inside a view's `.task`, which SwiftUI cancels
+        // when the view goes away. Cancellation can end the StoreKit
+        // sequence early, leaving an empty or partial list. Applied as a
+        // canonical snapshot, that reads as a refund and locks a paying
+        // customer out until relaunch. Leave the entitlement exactly as it
+        // was; the next refresh applies a complete snapshot.
+        guard !Task.isCancelled else {
+            return isUnlocked
+        }
+
         let hasEntitlement = entitlementGate.applyRefresh(
             generation: refreshGeneration,
             entitlements: records,
