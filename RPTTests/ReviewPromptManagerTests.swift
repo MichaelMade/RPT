@@ -189,6 +189,22 @@ final class ReviewPromptManagerTests: XCTestCase {
         )
     }
 
+    func testStartingAnotherWorkoutDisarmsACompletionNobodyObserved() {
+        ReviewPromptManager.completedWorkoutCount = 4
+        ReviewPromptManager.recordCompletedWorkout()
+
+        // Neither Home nor Stats was mounted for that dismissal. The next
+        // workout screen going up clears it, so discarding that workout
+        // cannot trigger the ask.
+        ReviewPromptManager.disarmWorkoutCompletion()
+
+        XCTAssertFalse(ReviewPromptManager.claimSoftAskAfterWorkoutDismissal())
+        XCTAssertTrue(
+            ReviewPromptManager.isEligibleForPrompt(),
+            "The ask stays available for the next completed workout"
+        )
+    }
+
     func testCompletedWorkoutBelowThresholdDoesNotArmALaterDismissal() {
         ReviewPromptManager.completedWorkoutCount = 0
         ReviewPromptManager.recordCompletedWorkout()

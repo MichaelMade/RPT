@@ -519,7 +519,7 @@ struct ExerciseSectionView: View {
     private func applyEditedValues(to set: ExerciseSet, weight: Int, reps: Int, completesLog: Bool) {
         let previousWeight = set.weight
         guard viewModel.updateSetSafely(set, weight: weight, reps: reps, rpe: set.rpe) else { return }
-        propagateTopSetChangeIfNeeded(for: set, previousWeight: previousWeight, newWeight: weight)
+        viewModel.syncBackoffsAfterTopSetSave(set, in: exercise, previousWeight: previousWeight)
 
         // Saving values from a log tap completes the check-off. Value edits
         // never log implicitly, so finish the intent with an explicit toggle.
@@ -530,34 +530,6 @@ struct ExerciseSectionView: View {
             if viewModel.autoStartRestTimerEnabled {
                 viewModel.startRestTimer()
             }
-        }
-    }
-
-    /// Keeps the planned back-offs in step with the top working set.
-    ///
-    /// - A new top-set weight recalculates every back-off that is still
-    ///   planned. Logged back-offs are never rewritten.
-    /// - Saving the top set without changing its weight (a reps-only edit)
-    ///   leaves planned loads alone and only fills back-offs that have no
-    ///   load yet, so the lifter is not left working out the drops by hand.
-    private func propagateTopSetChangeIfNeeded(for set: ExerciseSet, previousWeight: Int, newWeight: Int) {
-        guard !set.isWarmup, set.id == topWorkingSet?.id else { return }
-
-        // Zero is a real load only for bodyweight movements. There it also
-        // cannot tell "empty" from "bodyweight", so only a weight change
-        // moves the ladder.
-        let zeroIsARealLoad = exercise.category == .bodyweight
-        let weightChanged = newWeight != previousWeight
-
-        if weightChanged {
-            guard newWeight > 0 || zeroIsARealLoad else { return }
-            _ = viewModel.updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: newWeight)
-        } else if newWeight > 0, !zeroIsARealLoad {
-            _ = viewModel.updateDropSetSuggestionsSafely(
-                for: exercise,
-                firstSetWeight: newWeight,
-                onlyEmptySets: true
-            )
         }
     }
 

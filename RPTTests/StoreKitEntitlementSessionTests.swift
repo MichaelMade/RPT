@@ -77,7 +77,7 @@ final class StoreKitEntitlementSessionTests: XCTestCase {
         abandonedRefresh.cancel()
         _ = await abandonedRefresh.value
 
-        XCTAssertTrue(manager.isUnlocked, "A cancelled refresh must never read as a refund")
+        XCTAssertTrue(manager.isUnlocked, "A refresh whose caller was cancelled must never read as a refund")
         XCTAssertEqual(manager.state, .unlocked)
 
         let stillUnlocked = await manager.refreshPurchasedState()

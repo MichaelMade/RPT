@@ -214,17 +214,15 @@ final class StoreKitPurchaseManager: ObservableObject {
     @discardableResult
     func refreshPurchasedState(kind: ProEntitlementRefreshKind = .canonical) async -> Bool {
         let refreshGeneration = entitlementGate.beginRefresh()
-        let records = await currentEntitlementRecords()
 
         // Most refreshes run inside a view's `.task`, which SwiftUI cancels
         // when the view goes away. Cancellation can end the StoreKit
         // sequence early, leaving an empty or partial list. Applied as a
         // canonical snapshot, that reads as a refund and locks a paying
-        // customer out until relaunch. Leave the entitlement exactly as it
-        // was; the next refresh applies a complete snapshot.
-        guard !Task.isCancelled else {
-            return isUnlocked
-        }
+        // customer out until relaunch. The read therefore runs in a task of
+        // its own, which a caller's cancellation does not reach, so every
+        // snapshot that gets applied is a complete one.
+        let records = await Task { await self.currentEntitlementRecords() }.value
 
         let hasEntitlement = entitlementGate.applyRefresh(
             generation: refreshGeneration,

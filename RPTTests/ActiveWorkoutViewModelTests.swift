@@ -218,6 +218,143 @@ final class ActiveWorkoutViewModelTests: XCTestCase {
         XCTAssertFalse(sets[2].isCompletedLoggedSet)
     }
 
+    // MARK: - Back-offs After A Top-Set Save
+
+    private func makePullUp() -> Exercise {
+        Exercise(name: "Pull-up", category: .bodyweight, primaryMuscleGroups: [.back])
+    }
+
+    /// Builds one exercise whose working sets carry the given planned loads
+    /// (0 means "no load yet"), none of them logged.
+    private func makeLadder(_ plannedWeights: [Int], of exercise: Exercise) -> ActiveWorkoutViewModel {
+        let viewModel = ActiveWorkoutViewModel(workout: Workout(name: "Test"))
+
+        XCTAssertTrue(viewModel.addExerciseToWorkoutSafely(exercise))
+        for _ in plannedWeights.dropFirst() {
+            XCTAssertTrue(viewModel.addSetToExerciseSafely(exercise))
+        }
+
+        for (set, weight) in zip(viewModel.orderedSetsForDisplay(in: exercise), plannedWeights) {
+            XCTAssertTrue(viewModel.updateSetSafely(set, weight: weight, reps: 8, rpe: nil))
+        }
+
+        return viewModel
+    }
+
+    /// What the set editor does when the top set is saved.
+    private func saveTopSet(of exercise: Exercise, in viewModel: ActiveWorkoutViewModel, weight: Int, reps: Int) {
+        let topSet = viewModel.orderedSetsForDisplay(in: exercise)[0]
+        let previousWeight = topSet.weight
+
+        XCTAssertTrue(viewModel.updateSetSafely(topSet, weight: weight, reps: reps, rpe: nil))
+        XCTAssertTrue(viewModel.syncBackoffsAfterTopSetSave(topSet, in: exercise, previousWeight: previousWeight))
+    }
+
+    private func plannedWeights(of exercise: Exercise, in viewModel: ActiveWorkoutViewModel) -> [Int] {
+        viewModel.orderedSetsForDisplay(in: exercise).map(\.weight)
+    }
+
+    func testNewTopSetWeightRecalculatesPlannedBackoffs() {
+        let bench = makeExercise()
+        let viewModel = makeLadder([200, 180, 170], of: bench)
+
+        saveTopSet(of: bench, in: viewModel, weight: 220, reps: 8)
+
+        XCTAssertEqual(plannedWeights(of: bench, in: viewModel), [220, 200, 185], "10% and 15% off 220")
+    }
+
+    func testRepsOnlySaveLeavesPlannedBackoffsAlone() {
+        let bench = makeExercise()
+        let viewModel = makeLadder([200, 190, 180], of: bench)
+
+        saveTopSet(of: bench, in: viewModel, weight: 200, reps: 6)
+
+        XCTAssertEqual(
+            plannedWeights(of: bench, in: viewModel),
+            [200, 190, 180],
+            "Correcting reps must not replace back-offs the lifter planned"
+        )
+    }
+
+    func testRepsOnlySaveFillsBackoffsThatHaveNoLoadYet() {
+        let bench = makeExercise()
+        let viewModel = makeLadder([200, 0, 0], of: bench)
+
+        saveTopSet(of: bench, in: viewModel, weight: 200, reps: 6)
+
+        XCTAssertEqual(plannedWeights(of: bench, in: viewModel), [200, 180, 170])
+    }
+
+    func testFilledBackoffNeverComesOutHeavierThanTheSetAboveIt() {
+        let bench = makeExercise()
+        // The second set is planned lighter than the configured 10% drop.
+        let viewModel = makeLadder([200, 165, 0], of: bench)
+
+        saveTopSet(of: bench, in: viewModel, weight: 200, reps: 6)
+
+        XCTAssertEqual(
+            plannedWeights(of: bench, in: viewModel),
+            [200, 165, 165],
+            "15% off 200 is 170, which would sit above the 165 planned before it"
+        )
+    }
+
+    func testClearingACompoundTopSetLeavesBackoffsAlone() {
+        let bench = makeExercise()
+        let viewModel = makeLadder([200, 180, 170], of: bench)
+
+        saveTopSet(of: bench, in: viewModel, weight: 0, reps: 8)
+
+        XCTAssertEqual(plannedWeights(of: bench, in: viewModel), [0, 180, 170])
+    }
+
+    func testAddedWeightOnABodyweightTopSetRecalculatesBackoffs() {
+        let pullUp = makePullUp()
+        let viewModel = makeLadder([0, 0, 0], of: pullUp)
+
+        saveTopSet(of: pullUp, in: viewModel, weight: 25, reps: 8)
+
+        XCTAssertEqual(plannedWeights(of: pullUp, in: viewModel), [25, 25, 20], "10% and 15% off 25, rounded to 5 lb")
+    }
+
+    func testChangingABodyweightTopSetToBodyweightTakesTheBackoffsWithIt() {
+        let pullUp = makePullUp()
+        let viewModel = makeLadder([25, 25, 20], of: pullUp)
+
+        saveTopSet(of: pullUp, in: viewModel, weight: 0, reps: 8)
+
+        XCTAssertEqual(
+            plannedWeights(of: pullUp, in: viewModel),
+            [0, 0, 0],
+            "Planned back-offs must not stay heavier than a bodyweight top set"
+        )
+    }
+
+    func testRepsOnlySaveNeverFillsBodyweightBackoffs() {
+        let pullUp = makePullUp()
+        // Weighted top set, back-offs deliberately at bodyweight.
+        let viewModel = makeLadder([25, 0, 0], of: pullUp)
+
+        saveTopSet(of: pullUp, in: viewModel, weight: 25, reps: 6)
+
+        XCTAssertEqual(
+            plannedWeights(of: pullUp, in: viewModel),
+            [25, 0, 0],
+            "Zero is a real load for a bodyweight movement, not an empty set"
+        )
+    }
+
+    func testSavingABackoffNeverMovesTheLadder() {
+        let bench = makeExercise()
+        let viewModel = makeLadder([200, 180, 170], of: bench)
+        let firstBackoff = viewModel.orderedSetsForDisplay(in: bench)[1]
+
+        XCTAssertTrue(viewModel.updateSetSafely(firstBackoff, weight: 150, reps: 8, rpe: nil))
+        XCTAssertTrue(viewModel.syncBackoffsAfterTopSetSave(firstBackoff, in: bench, previousWeight: 180))
+
+        XCTAssertEqual(plannedWeights(of: bench, in: viewModel), [200, 150, 170], "Only the top set drives the ladder")
+    }
+
     // MARK: - Template Pre-fill And Reopening
 
     @MainActor

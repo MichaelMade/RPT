@@ -550,18 +550,31 @@ class ActiveWorkoutViewModel: ObservableObject {
             SetSnapshot(set: sets[index], weight: sets[index].weight, completedAt: sets[index].completedAt)
         }
 
+        // When only filling gaps, a new load must not break the ladder: it
+        // is capped at the lightest load already sitting above it.
+        var lightestLoadAbove = firstSetWeight
+
         for index in 1..<affectedSetCount {
             let set = sets[index]
 
             // A logged set records what was actually lifted. Only planned
             // back-offs follow the top set; rewriting a logged one would
             // put a load in history that was never performed.
-            guard !set.isCompletedLoggedSet else { continue }
-            if onlyEmptySets, set.weight > 0 { continue }
+            let keepsItsLoad = set.isCompletedLoggedSet || (onlyEmptySets && set.weight > 0)
+            if keepsItsLoad {
+                if set.weight > 0 {
+                    lightestLoadAbove = min(lightestLoadAbove, set.weight)
+                }
+                continue
+            }
 
             let dropPercentage = min(max(reductionPercentage(forSetIndex: index), 0), 1)
             let calculatedWeight = Double(firstSetWeight) * (1.0 - dropPercentage)
-            let roundedWeight = max(0, workoutManager.roundToNearest5(calculatedWeight))
+            var roundedWeight = max(0, workoutManager.roundToNearest5(calculatedWeight))
+            if onlyEmptySets {
+                roundedWeight = min(roundedWeight, lightestLoadAbove)
+                lightestLoadAbove = roundedWeight
+            }
 
             set.weight = roundedWeight
 
@@ -600,6 +613,38 @@ class ActiveWorkoutViewModel: ObservableObject {
             setError(title: "Couldn’t Update Back-off Sets", message: WorkoutError.saveFailure.description)
             return false
         }
+    }
+
+    /// Keeps the planned back-offs in step after the top working set was
+    /// saved from the editor. Call it once the new values are stored.
+    ///
+    /// - A new top-set weight recalculates every back-off that is still
+    ///   planned. Logged back-offs are never rewritten.
+    /// - Saving the top set without changing its weight (a reps-only edit)
+    ///   leaves planned loads alone and only fills back-offs that have no
+    ///   load yet, so the lifter is not left working out the drops by hand.
+    /// - Zero is a real load only for bodyweight movements. There it also
+    ///   cannot tell "empty" from "bodyweight", so only a weight change
+    ///   moves the ladder, and changing the top set to bodyweight takes the
+    ///   planned back-offs with it.
+    ///
+    /// - Returns: `false` only when a needed update could not be saved; the
+    ///   error alert is already set in that case.
+    @discardableResult
+    func syncBackoffsAfterTopSetSave(_ set: ExerciseSet, in exercise: Exercise, previousWeight: Int) -> Bool {
+        let topWorkingSet = orderedSetsForDisplay(in: exercise).first { !$0.isWarmup }
+        guard !set.isWarmup, set.id == topWorkingSet?.id else { return true }
+
+        let newWeight = set.weight
+        let zeroIsARealLoad = exercise.category == .bodyweight
+
+        if newWeight != previousWeight {
+            guard newWeight > 0 || zeroIsARealLoad else { return true }
+            return updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: newWeight)
+        }
+
+        guard newWeight > 0, !zeroIsARealLoad else { return true }
+        return updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: newWeight, onlyEmptySets: true)
     }
 
     // MARK: - Completion & Expansion

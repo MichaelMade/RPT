@@ -94,6 +94,14 @@ enum ReviewPromptManager {
         return claimSoftAsk()
     }
 
+    /// Forgets a completion that no dismissal check consumed. Called when a
+    /// workout screen goes up, so a completion finished while neither Home
+    /// nor Stats was mounted cannot make the ask appear after a later
+    /// discard or save-for-later.
+    static func disarmWorkoutCompletion() {
+        workoutCompletedSinceLastCheck = false
+    }
+
     /// Resets the in-memory latch. Called when the prompt is actioned
     /// (either "Rate RPT" or "Not now") so a future eligibility window
     /// can fire again, and also useful in tests.
