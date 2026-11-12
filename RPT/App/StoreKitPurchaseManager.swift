@@ -24,6 +24,11 @@ final class StoreKitPurchaseManager: ObservableObject {
     private var isLoadingProducts = false
     private var entitlementGate = ProEntitlementGate()
 
+    /// Remembered across launches: approval for an Ask to Buy or bank
+    /// authentication request can arrive days later through
+    /// `Transaction.updates`, and that is when the purchase succeeds.
+    private static let pendingApprovalDefaultsKey = "storekit.proPurchasePendingApproval"
+
     /// App Store-localized price. Never substitute a hard-coded price because
     /// storefront currency and pricing can differ by region.
     var displayPrice: String? {
@@ -85,6 +90,19 @@ final class StoreKitPurchaseManager: ObservableObject {
     func prepareEntitlements() async {
         observeTransactionUpdates()
         await refreshPurchasedState()
+    }
+
+    /// Call when a paywall is presented.
+    ///
+    /// A purchase that came back pending (Ask to Buy, bank authentication)
+    /// only ever resolves through `Transaction.updates`. A declined or
+    /// expired request delivers nothing, so without this the purchase and
+    /// restore buttons stayed disabled until the app was relaunched. The
+    /// pending state still holds for as long as the paywall that started it
+    /// is on screen, which is what prevents a duplicate request.
+    func paywallDidAppear() {
+        guard state == .pendingApproval, !isUnlocked else { return }
+        state = proProduct == nil ? .unavailable : .ready
     }
 
     func loadProducts() async {
@@ -163,12 +181,13 @@ final class StoreKitPurchaseManager: ObservableObject {
                 grantProEntitlement(from: record)
                 await transaction.finish()
                 await revalidateGrantedPurchase()
+                UserDefaults.standard.removeObject(forKey: Self.pendingApprovalDefaultsKey)
                 FunnelAnalytics.shared.trackPurchaseSuccess(price: price)
             case .userCancelled:
                 state = .ready
                 FunnelAnalytics.shared.trackPurchaseFail(price: price, detail: "user_cancelled")
             case .pending:
-                state = .pendingApproval
+                enterPendingApproval()
             @unknown default:
                 state = .ready
                 FunnelAnalytics.shared.trackPurchaseFail(price: price, detail: "unknown")
@@ -255,6 +274,7 @@ final class StoreKitPurchaseManager: ObservableObject {
                     if isUnlocked {
                         await revalidateGrantedPurchase()
                     }
+                    recordDeferredPurchaseSuccessIfNeeded()
                     return
                 }
 
@@ -296,6 +316,23 @@ final class StoreKitPurchaseManager: ObservableObject {
         return records
     }
 
+    private func enterPendingApproval() {
+        state = .pendingApproval
+        UserDefaults.standard.set(true, forKey: Self.pendingApprovalDefaultsKey)
+    }
+
+    /// A purchase that was left pending and is approved later arrives as a
+    /// transaction update, not as the result of `purchase()`. Count it then,
+    /// so the funnel does not show a purchase that started and never ended.
+    private func recordDeferredPurchaseSuccessIfNeeded() {
+        guard isUnlocked, UserDefaults.standard.bool(forKey: Self.pendingApprovalDefaultsKey) else {
+            return
+        }
+
+        UserDefaults.standard.removeObject(forKey: Self.pendingApprovalDefaultsKey)
+        FunnelAnalytics.shared.trackPurchaseSuccess(price: displayPrice)
+    }
+
     private func revalidateGrantedPurchase() async {
         let hasEntitlement = await refreshPurchasedState(kind: .postGrantRevalidation)
         if !hasEntitlement {
@@ -330,6 +367,7 @@ final class StoreKitPurchaseManager: ObservableObject {
         hasPreparedEntitlements = false
         state = .loadingStore
         alertMessage = nil
+        UserDefaults.standard.removeObject(forKey: Self.pendingApprovalDefaultsKey)
     }
 
     func applyTransactionUpdateForTesting(_ record: ProEntitlementRecord) async {
@@ -337,6 +375,12 @@ final class StoreKitPurchaseManager: ObservableObject {
         if isUnlocked {
             await revalidateGrantedPurchase()
         }
+        recordDeferredPurchaseSuccessIfNeeded()
+    }
+
+    /// Puts the manager where a `.pending` purchase result leaves it.
+    func enterPendingApprovalForTesting() {
+        enterPendingApproval()
     }
     #endif
 }

@@ -9,12 +9,14 @@ struct UpgradeView: View {
     var source: FunnelSource = .settings
     var gateReason: FunnelGateReason? = nil
 
+    @Environment(\.dismiss) private var dismiss
     @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
     @State private var didTrackPaywallView = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: Theme.sectionSpacing) {
+                gateContextCard
                 heroCard
                 tierComparison
                 faqCard
@@ -27,10 +29,20 @@ struct UpgradeView: View {
         .navigationTitle("RPT Pro")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            purchaseManager.paywallDidAppear()
             FunnelAnalytics.shared.rememberPaywallContext(
                 source: source,
                 gateReason: gateReason
             )
+        }
+        .onChange(of: purchaseManager.isUnlocked) { wasUnlocked, isUnlocked in
+            // A gate sent the customer here and they have now unlocked Pro:
+            // get out of the way so they land back on what they were doing.
+            // Opened on its own (Settings, the Stats card), the screen stays
+            // and shows the unlocked state.
+            if gateReason != nil, !wasUnlocked, isUnlocked {
+                dismiss()
+            }
         }
         .task {
             await purchaseManager.start()
@@ -49,6 +61,27 @@ struct UpgradeView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(purchaseManager.alertMessage ?? "Please try again.")
+        }
+    }
+
+    /// Says why the paywall appeared when a Pro gate opened it.
+    @ViewBuilder
+    private var gateContextCard: some View {
+        if let gateReason, !purchaseManager.isUnlocked {
+            VStack(alignment: .leading, spacing: 6) {
+                Label(MonetizationPlan.gateTitle(for: gateReason), systemImage: "lock.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.textPrimary)
+
+                Text(MonetizationPlan.gateMessage(for: gateReason))
+                    .font(.footnote)
+                    .foregroundStyle(Theme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .rptCard()
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("upgradeGateContext")
         }
     }
 

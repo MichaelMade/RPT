@@ -29,10 +29,19 @@ class RPTWorkoutDetailTemplateMonetizationStaticTests(unittest.TestCase):
     def test_workout_detail_can_present_upgrade_sheet_and_refresh_entitlement(self):
         self.assertIn("@ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared", self.swift)
         self.assertIn("@State private var showingUpgrade = false", self.swift)
-        self.assertIn(".sheet(isPresented: $showingUpgrade)", self.swift)
+        self.assertIn(
+            ".sheet(isPresented: $showingUpgrade, onDismiss: resumeSaveAsTemplateIfUnlocked)",
+            self.swift,
+        )
         self.assertIn("UpgradeView(source: .workoutDetail, gateReason: .templateLimit)", self.swift)
         self.assertIn("Button(\"Close\") { showingUpgrade = false }", self.swift)
         self.assertIn("await purchaseManager.start()", self.swift)
+
+    def test_unlocking_from_the_gate_finishes_the_blocked_save(self):
+        resume_body = self._function_body("resumeSaveAsTemplateIfUnlocked")
+
+        self.assertIn("guard purchaseManager.isUnlocked else { return }", resume_body)
+        self.assertIn("saveAsTemplate()", resume_body)
 
     def test_roadmap_records_the_save_as_template_gate(self):
         roadmap = ROADMAP.read_text()

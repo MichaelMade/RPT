@@ -56,7 +56,14 @@ struct ContentView: View {
         }
         .environmentObject(session)
         .tint(Theme.primary)
-        .fullScreenCover(isPresented: $session.isPresentingWorkout) {
+        .fullScreenCover(
+            isPresented: $session.isPresentingWorkout,
+            onDismiss: {
+                // The root is always mounted, so this runs whichever tab the
+                // workout was started from, and only after the cover is gone.
+                ReviewPromptManager.requestReviewAfterWorkoutDismissal()
+            }
+        ) {
             if let workout = session.activeWorkout {
                 ActiveWorkoutView(workout: workout)
                     .environmentObject(session)

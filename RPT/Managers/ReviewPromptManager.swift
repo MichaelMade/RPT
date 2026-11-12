@@ -2,9 +2,15 @@
 //  ReviewPromptManager.swift
 //  RPT
 //
-//  Apple-compliant StoreKit review prompt gating. Shows the system review
-//  sheet after ≥3 completed workouts, at most once per app version, with
-//  a 90-day belt-and-suspenders cooldown.
+//  Apple-compliant StoreKit review prompt gating. Asks the system for its
+//  review sheet right after a completed workout, once the user has ≥3
+//  completed workouts, at most once per app version, with a 90-day
+//  belt-and-suspenders cooldown.
+//
+//  There is deliberately no custom "Enjoying RPT?" alert in front of the
+//  system sheet. The system decides whether to show it, so a button that
+//  calls it can do nothing when tapped, and App Review guideline 5.6.1 asks
+//  apps to use the system prompt rather than their own.
 //
 
 import Foundation
@@ -92,6 +98,16 @@ enum ReviewPromptManager {
         guard workoutCompletedSinceLastCheck else { return false }
         workoutCompletedSinceLastCheck = false
         return claimSoftAsk()
+    }
+
+    /// Call once the workout screen has finished dismissing. Requests the
+    /// system review sheet only when that dismissal followed a completed
+    /// workout and every eligibility rule passes. Saving for later or
+    /// discarding never leads here.
+    static func requestReviewAfterWorkoutDismissal() {
+        guard claimSoftAskAfterWorkoutDismissal() else { return }
+        requestReviewIfEligible()
+        resetSoftAskLatch()
     }
 
     /// Forgets a completion that no dismissal check consumed. Called when a

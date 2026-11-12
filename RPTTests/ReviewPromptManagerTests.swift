@@ -189,6 +189,17 @@ final class ReviewPromptManagerTests: XCTestCase {
         )
     }
 
+    func testReviewRequestAfterDismissalDoesNothingWithoutACompletedWorkout() {
+        ReviewPromptManager.completedWorkoutCount = 5
+
+        ReviewPromptManager.requestReviewAfterWorkoutDismissal()
+
+        XCTAssertTrue(
+            ReviewPromptManager.isEligibleForPrompt(),
+            "Discarding or saving for later must not spend the once-per-version request"
+        )
+    }
+
     func testStartingAnotherWorkoutDisarmsACompletionNobodyObserved() {
         ReviewPromptManager.completedWorkoutCount = 4
         ReviewPromptManager.recordCompletedWorkout()

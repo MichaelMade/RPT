@@ -59,6 +59,78 @@ final class StoreKitEntitlementSessionTests: XCTestCase {
         XCTAssertFalse(activeIDs.contains(MonetizationPlan.proProductID))
     }
 
+    func testPendingApprovalClearsWhenAPaywallIsPresentedAgain() {
+        let manager = StoreKitPurchaseManager.shared
+
+        manager.enterPendingApprovalForTesting()
+        XCTAssertEqual(manager.state, .pendingApproval)
+        XCTAssertFalse(
+            manager.canActivatePurchaseButton,
+            "No duplicate request while the paywall that started it is still up"
+        )
+
+        // The request was declined or expired: StoreKit delivers nothing.
+        // Reopening a paywall must make purchase and restore usable again.
+        manager.paywallDidAppear()
+
+        XCTAssertNotEqual(manager.state, .pendingApproval)
+        XCTAssertFalse(manager.state.isBusy)
+        XCTAssertTrue(manager.canActivatePurchaseButton)
+    }
+
+    func testPaywallAppearingLeavesOtherStatesAlone() async throws {
+        let session = try XCTUnwrap(self.session)
+        let manager = StoreKitPurchaseManager.shared
+
+        _ = try await session.buyProduct(
+            identifier: MonetizationPlan.proProductID,
+            options: []
+        )
+        let unlocked = await manager.refreshPurchasedState()
+        XCTAssertTrue(unlocked)
+
+        manager.paywallDidAppear()
+
+        XCTAssertEqual(manager.state, .unlocked)
+        XCTAssertTrue(manager.isUnlocked)
+    }
+
+    func testApprovalThatArrivesLaterIsCountedAsThePurchaseSuccess() async throws {
+        let session = try XCTUnwrap(self.session)
+        let manager = StoreKitPurchaseManager.shared
+        let analytics = FunnelAnalytics.shared
+
+        manager.enterPendingApprovalForTesting()
+        XCTAssertFalse(analytics.recordedEvents().map(\.name).contains(.purchaseSuccess))
+
+        // Approval shows up as a transaction, delivered outside purchase().
+        let transaction = try await session.buyProduct(
+            identifier: MonetizationPlan.proProductID,
+            options: []
+        )
+        let approved = ProEntitlementRecord(
+            productID: transaction.productID,
+            purchaseDate: transaction.purchaseDate,
+            revocationDate: nil,
+            expirationDate: transaction.expirationDate,
+            id: transaction.id,
+            signedDate: transaction.signedDate
+        )
+        await manager.applyTransactionUpdateForTesting(approved)
+
+        XCTAssertTrue(manager.isUnlocked)
+        XCTAssertEqual(manager.state, .unlocked)
+        XCTAssertEqual(
+            analytics.recordedEvents().filter { $0.name == .purchaseSuccess }.count,
+            1,
+            "A purchase approved after the fact must close the funnel exactly once"
+        )
+
+        // A later update for the same purchase is not a second sale.
+        await manager.applyTransactionUpdateForTesting(approved)
+        XCTAssertEqual(analytics.recordedEvents().filter { $0.name == .purchaseSuccess }.count, 1)
+    }
+
     func testCancelledRefreshLeavesAnOwnersEntitlementAlone() async throws {
         let session = try XCTUnwrap(self.session)
         let manager = StoreKitPurchaseManager.shared

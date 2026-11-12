@@ -115,7 +115,7 @@ struct WorkoutDetailView: View {
         } message: {
             Text("“\(savedTemplateName ?? "Template")” is in your Templates tab, seeded with this session's sets and reps.")
         }
-        .sheet(isPresented: $showingUpgrade) {
+        .sheet(isPresented: $showingUpgrade, onDismiss: resumeSaveAsTemplateIfUnlocked) {
             NavigationStack {
                 UpgradeView(source: .workoutDetail, gateReason: .templateLimit)
                     .toolbar {
@@ -131,6 +131,13 @@ struct WorkoutDetailView: View {
     }
 
     // MARK: - Save as Template
+
+    /// The free-tier limit interrupted "Save as Template". If the customer
+    /// unlocked Pro from the paywall, finish what they asked for.
+    private func resumeSaveAsTemplateIfUnlocked() {
+        guard purchaseManager.isUnlocked else { return }
+        saveAsTemplate()
+    }
 
     private func saveAsTemplate() {
         guard purchaseManager.hasPreparedEntitlements else {

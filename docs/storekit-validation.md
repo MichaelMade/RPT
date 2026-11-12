@@ -33,3 +33,12 @@ RPT includes a local StoreKit configuration at `RPT/Configuration/RPTPro.storeki
 ## Release handoff
 
 Before the 2.1 TestFlight/App Store update, repeat the same smoke path with the real App Store Connect product available. The `.storekit` file is excluded from the app target and must not appear in the archived app bundle.
+
+## Ask to Buy and pending purchases
+
+A purchase can come back `.pending` (Ask to Buy on a child account, or bank authentication). It only resolves through `Transaction.updates`, and a declined or expired request delivers nothing at all.
+
+1. In the StoreKit transaction manager, enable **Ask to Buy** (Xcode: Debug > StoreKit > Manage Transactions, or `SKTestSession.askToBuyEnabled = true`).
+2. Open the paywall and tap **Unlock RPT Pro**. The button reads "Pending Approval" and the note says Pro unlocks on its own once approved. Purchase and Restore stay disabled while this paywall is on screen, so a second request cannot be sent.
+3. **Decline** the request. Leave the paywall and open it again: the purchase button is active and Restore works. No relaunch is needed.
+4. Repeat step 2, then **approve** the request. RPT Pro unlocks without any further tap, including after a relaunch, and the on-device funnel shows one `purchase_success` for that `purchase_start`.
