@@ -244,15 +244,17 @@ final class StoreMigrationTests: XCTestCase {
         context.insert(workout)
 
         let loggedAt = workoutDate.addingTimeInterval(600)
-        for (index, plan) in [(185, 6, 9), (165, 8, 8), (155, 10, 8)].enumerated() {
+        let benchSets: [(weight: Int, reps: Int, rpe: Int)] = [(185, 6, 9), (165, 8, 8), (155, 10, 8)]
+        for (index, plan) in benchSets.enumerated() {
+            let secondsIntoWorkout = TimeInterval(index * 240)
             context.insert(
                 ShippedSchema_2_2_1.ExerciseSet(
-                    weight: plan.0,
-                    reps: plan.1,
+                    weight: plan.weight,
+                    reps: plan.reps,
                     exercise: bench,
                     workout: workout,
-                    completedAt: loggedAt.addingTimeInterval(Double(index) * 240),
-                    rpe: plan.2,
+                    completedAt: loggedAt.addingTimeInterval(secondsIntoWorkout),
+                    rpe: plan.rpe,
                     orderIndex: index
                 )
             )
@@ -338,12 +340,16 @@ final class StoreMigrationTests: XCTestCase {
         let sets = workout.setsInLoggedOrder
         XCTAssertEqual(sets.map(\.weight), [185, 165, 155, 0])
         XCTAssertEqual(sets.map(\.reps), [6, 8, 10, 10])
-        XCTAssertEqual(sets.map(\.rpe), [9, 8, 8, nil])
-        XCTAssertEqual(sets.map { $0.exercise?.name }, [
+        let expectedRPE: [Int?] = [9, 8, 8, nil]
+        XCTAssertEqual(sets.map(\.rpe), expectedRPE)
+        let expectedExercises: [String?] = [
             "Barbell Bench Press", "Barbell Bench Press", "Barbell Bench Press", "Ring Dip"
-        ])
+        ]
+        XCTAssertEqual(sets.map { $0.exercise?.name }, expectedExercises)
         XCTAssertTrue(sets.allSatisfy(\.isCompletedLoggedSet), "Logged history must still read as logged")
-        XCTAssertEqual(workout.totalVolume, 185 * 6 + 165 * 8 + 155 * 10, accuracy: 0.001)
+        // 185x6 + 165x8 + 155x10; the bodyweight set adds no load.
+        let expectedVolume: Double = 3_980
+        XCTAssertEqual(workout.totalVolume, expectedVolume, accuracy: 0.001)
 
         // Template
         let templates = try context.fetch(FetchDescriptor<WorkoutTemplate>())

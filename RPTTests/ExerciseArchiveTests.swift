@@ -97,12 +97,15 @@ final class ExerciseArchiveTests: XCTestCase {
 
         XCTAssertEqual(try storedSets().count, 2, "Logged sets must survive removing their exercise from the library")
         XCTAssertEqual(workout.sets.count, 2)
+        let expectedNames: [String?] = ["Garage Sled Push", "Garage Sled Push"]
         XCTAssertEqual(
             workout.sets.map { $0.exercise?.name },
-            ["Garage Sled Push", "Garage Sled Push"],
+            expectedNames,
             "History must still be able to name the exercise each set was logged with"
         )
-        XCTAssertEqual(workout.totalVolume, 180 * 8 + 160 * 10, accuracy: 0.001)
+        // 180x8 + 160x10
+        let expectedVolume: Double = 3_040
+        XCTAssertEqual(workout.totalVolume, expectedVolume, accuracy: 0.001)
 
         let stored = try storedExercises()
         XCTAssertEqual(stored.count, 1)
