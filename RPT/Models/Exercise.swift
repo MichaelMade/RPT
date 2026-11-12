@@ -31,6 +31,12 @@ final class Exercise {
     var secondaryMuscleGroups: [MuscleGroup]
     var instructions: String
     var isCustom: Bool
+    /// A custom exercise the lifter removed from their library after
+    /// logging sets with it. It stays in the store so that history keeps its
+    /// sets, and is hidden from the library, pickers, and template starts.
+    /// Inline default so stores created before this attribute migrate
+    /// without a plan.
+    var isArchived: Bool = false
     
     @Relationship(deleteRule: .cascade, inverse: \ExerciseSet.exercise)
     var sets: [ExerciseSet]

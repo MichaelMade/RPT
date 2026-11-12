@@ -101,7 +101,18 @@ final class DataManager: DataManaging {
         }
     }
 
-    private static func makeSchema() -> Schema {
+    /// Every model the store holds.
+    ///
+    /// There is deliberately no `SchemaMigrationPlan`. Stores in the field
+    /// were created by several shipped versions, none of which declared a
+    /// versioned schema, so a plan would have to name every one of those
+    /// shapes exactly or the store fails to open with an unknown model
+    /// version. RPT relies on SwiftData's automatic lightweight migration
+    /// instead, which holds as long as model changes stay additive. Read
+    /// docs/data-migrations.md before changing a stored property;
+    /// `StoreMigrationTests` opens a store written by the shipped models to
+    /// prove a change is safe.
+    static func makeSchema() -> Schema {
         Schema([
             Exercise.self,
             Workout.self,

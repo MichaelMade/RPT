@@ -80,11 +80,13 @@ struct ExerciseDetailView: View {
             }
         }
         .confirmationDialog(
-            "Delete \(exercise.displayName)?",
+            deletionKeepsHistory
+                ? "Remove \(exercise.displayName) from your library?"
+                : "Delete \(exercise.displayName)?",
             isPresented: $showingDeleteConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Delete Exercise", role: .destructive) {
+            Button(deletionKeepsHistory ? "Remove from Library" : "Delete Exercise", role: .destructive) {
                 deleteExercise()
             }
             Button("Cancel", role: .cancel) {}
@@ -328,15 +330,22 @@ struct ExerciseDetailView: View {
 
     // MARK: - Deletion
 
+    /// Logged sets are history and are kept: the exercise is archived
+    /// rather than destroyed. See `ExerciseManager.deleteExercise`.
+    private var deletionKeepsHistory: Bool {
+        exerciseManager.deletionImpact(for: exercise).loggedSetCount > 0
+    }
+
     private var deletionImpactMessage: String {
         let impact = exerciseManager.deletionImpact(for: exercise)
+        let keepsHistory = impact.loggedSetCount > 0
 
         var parts: [String] = []
-        if impact.loggedSetCount > 0 {
-            parts.append("\(impact.loggedSetCount) logged \(impact.loggedSetCount == 1 ? "set" : "sets") will be removed from your history")
+        if keepsHistory {
+            parts.append("It leaves your library, and its \(impact.loggedSetCount) logged \(impact.loggedSetCount == 1 ? "set stays" : "sets stay") in your history")
         }
         if impact.draftSetCount > 0 {
-            parts.append("\(impact.draftSetCount) draft \(impact.draftSetCount == 1 ? "set" : "sets") will be removed from in-progress workouts")
+            parts.append("\(impact.draftSetCount) planned \(impact.draftSetCount == 1 ? "set" : "sets") will be removed from in-progress workouts")
         }
         if impact.templateCount > 0 {
             parts.append("\(impact.templateCount) \(impact.templateCount == 1 ? "template references" : "templates reference") this exercise")
@@ -346,7 +355,10 @@ struct ExerciseDetailView: View {
             return "This custom exercise has no logged history. This cannot be undone."
         }
 
-        return parts.joined(separator: ". ") + ". This cannot be undone."
+        let ending = keepsHistory
+            ? "Add an exercise with the same name to bring it back."
+            : "This cannot be undone."
+        return parts.joined(separator: ". ") + ". " + ending
     }
 
     private func deleteExercise() {
