@@ -16,7 +16,6 @@ struct StatsView: View {
     @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
     @AppStorage("selectedRootTab") private var selectedRootTabRawValue = RootTab.home.rawValue
     @State private var exportURL: URL?
-    @State private var showingReviewAsk = false
 
     /// Weeks covered by the consistency heatmap and its insight sentence.
     private let heatmapWeekCount = 16
@@ -65,9 +64,6 @@ struct StatsView: View {
                 // just-finished workout is reflected immediately.
                 if !presenting {
                     viewModel.refresh()
-                    if ReviewPromptManager.claimSoftAsk() {
-                        showingReviewAsk = true
-                    }
                 }
             }
             .onDisappear {
@@ -77,18 +73,6 @@ struct StatsView: View {
             }
             .task {
                 await purchaseManager.start()
-            }
-            .alert("Enjoying RPT?", isPresented: $showingReviewAsk) {
-                Button("Rate RPT") {
-                    ReviewPromptManager.requestReviewIfEligible()
-                    ReviewPromptManager.resetSoftAskLatch()
-                }
-                Button("Not now", role: .cancel) {
-                    ReviewPromptManager.snooze()
-                    ReviewPromptManager.resetSoftAskLatch()
-                }
-            } message: {
-                Text("A quick rating helps other lifters find a focused reverse-pyramid log.")
             }
         }
     }

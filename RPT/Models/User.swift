@@ -124,34 +124,43 @@ final class User {
         return true
     }
 
-    // Check and update the workout streak, excluding the just-completed workout.
-    // Use the workout's own logged day rather than the wall-clock completion day so
-    // late-night finishes or backfilled historical workouts do not reset valid streaks.
-    private func updateWorkoutStreak(currentWorkout: Workout) {
-        let calendar = Calendar.current
-        let workoutDay = calendar.startOfDay(for: currentWorkout.date)
-        guard let previousDay = calendar.date(byAdding: .day, value: -1, to: workoutDay) else { return }
+    /// Length of the unbroken run of training days that ends on the most
+    /// recent training day in `dates`. Several workouts on one day count once.
+    static func consecutiveTrainingDays(in dates: [Date], calendar: Calendar = .current) -> Int {
+        let trainingDays = Set(dates.map { calendar.startOfDay(for: $0) })
+        guard var day = trainingDays.max() else { return 0 }
 
-        let previousDates = workouts.filter { $0 !== currentWorkout }.map { $0.date }
-        let latestPreviousDay = previousDates.max().map { calendar.startOfDay(for: $0) }
-
-        if latestPreviousDay == workoutDay {
-            // Another workout already counted on this workout's day; streak unchanged.
-            return
-        } else if latestPreviousDay == previousDay {
-            workoutStreak += 1
-        } else {
-            workoutStreak = 1
+        var length = 1
+        while let previous = calendar.date(byAdding: .day, value: -1, to: day).map({ calendar.startOfDay(for: $0) }),
+              previous < day,
+              trainingDays.contains(previous) {
+            length += 1
+            day = previous
         }
+
+        return length
     }
 
-    /// The streak as the user should see it right now. The stored
-    /// `workoutStreak` is the chain length as of the last registered workout;
-    /// it only counts as current while it can still be extended — that is,
-    /// while the most recent training day is today or yesterday.
+    // Recompute the streak from the registered workouts' own days rather than
+    // counting up from the previous value. Counting incrementally drifted
+    // whenever history changed out of order: a deleted workout left the old
+    // number in place, and finishing an older-dated draft reset a live chain.
+    private func updateWorkoutStreak(currentWorkout: Workout) {
+        var trainingDates = workouts.map(\.date)
+        if !workouts.contains(where: { $0 === currentWorkout }) {
+            trainingDates.append(currentWorkout.date)
+        }
+
+        workoutStreak = Self.consecutiveTrainingDays(in: trainingDates)
+    }
+
+    /// The streak as the user should see it right now, derived from the
+    /// registered workouts so it stays right after a workout is deleted. A
+    /// chain only counts as current while it can still be extended — that
+    /// is, while the most recent training day is today or yesterday.
     func currentWorkoutStreak(asOf now: Date = Date()) -> Int {
-        guard workoutStreak > 0 else { return 0 }
-        guard let latestWorkoutDate = workouts.map(\.date).max() else { return 0 }
+        let trainingDates = workouts.map(\.date)
+        guard let latestWorkoutDate = trainingDates.max() else { return 0 }
 
         let calendar = Calendar.current
         let latestDay = calendar.startOfDay(for: latestWorkoutDate)
@@ -161,7 +170,7 @@ final class User {
             return 0
         }
 
-        return workoutStreak
+        return Self.consecutiveTrainingDays(in: trainingDates, calendar: calendar)
     }
 
     // Update personal bests based on the workout (working sets only)

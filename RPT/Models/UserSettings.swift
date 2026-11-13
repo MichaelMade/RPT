@@ -53,16 +53,12 @@ final class UserSettings {
             .filter { $0 > 0 }
             .sorted()
 
+        // Equal back-off drops are a legitimate plan (two back-offs at the
+        // same load), so duplicates are kept. Collapsing them made the
+        // Settings steppers ignore a tap or move the other way.
         let normalizedDrops = [0.0] + sortedBackoffDrops
 
-        var dedupedDrops: [Double] = []
-        dedupedDrops.reserveCapacity(normalizedDrops.count)
-
-        for drop in normalizedDrops where dedupedDrops.last != drop {
-            dedupedDrops.append(drop)
-        }
-
-        var fixedDrops = Array(dedupedDrops.prefix(supportedRPTSetCount))
+        var fixedDrops = Array(normalizedDrops.prefix(supportedRPTSetCount))
 
         while fixedDrops.count < supportedRPTSetCount {
             let fallback = defaultRPTPercentageDrops[fixedDrops.count]

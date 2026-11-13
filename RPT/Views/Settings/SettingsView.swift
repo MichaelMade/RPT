@@ -8,16 +8,22 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct SettingsView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
+
     @StateObject private var settingsManager = SettingsManager.shared
     @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
+    @ObservedObject private var restAlerts = RestAlertManager.shared
 
     @State private var soundEnabled = SoundManager.shared.isSoundEnabled()
     @State private var showingResetConfirmation = false
     @State private var errorMessage: String?
     @State private var exportURL: URL?
     @State private var showingDropEditors = false
+    @State private var showingNotificationsBlocked = false
 
     /// One-tap rest presets shown as chips (seconds).
     private let restDurationChips = [90, 120, 150, 180]
@@ -72,6 +78,16 @@ struct SettingsView: View {
             } message: {
                 Text(errorMessage ?? "Please try again.")
             }
+            .alert("Notifications Are Off for RPT", isPresented: $showingNotificationsBlocked) {
+                Button("Open Settings") {
+                    if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+                        openURL(url)
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Allow notifications for RPT in Settings to get an alert when your rest ends.")
+            }
             .onDisappear {
                 // Drop any generated CSV so the next visit exports fresh data
                 // instead of re-sharing a stale file.
@@ -79,6 +95,16 @@ struct SettingsView: View {
             }
             .task {
                 await purchaseManager.start()
+            }
+            .task {
+                await restAlerts.refreshPermission()
+            }
+            .onChange(of: scenePhase) { _, phase in
+                // Coming back from the iOS Settings app: the answer there
+                // decides whether the rest alert toggle can be on.
+                if phase == .active {
+                    Task { await restAlerts.refreshPermission() }
+                }
             }
         }
     }
@@ -393,6 +419,8 @@ struct SettingsView: View {
             restDurationRow
             hairline
             autoStartRow
+            hairline
+            restAlertRow
         }
     }
 
@@ -494,6 +522,24 @@ struct SettingsView: View {
         .tint(Theme.primary)
         .padding(.horizontal, Theme.cardPadding)
         .padding(.vertical, 12)
+    }
+
+    private var restAlertRow: some View {
+        Toggle(isOn: restAlertBinding) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Alert when rest ends")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.textPrimary)
+
+                Text("A notification when RPT is in the background or your phone is locked")
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(Theme.textSecondary)
+            }
+        }
+        .tint(Theme.primary)
+        .padding(.horizontal, Theme.cardPadding)
+        .padding(.vertical, 12)
+        .accessibilityIdentifier("restAlertToggle")
     }
 
     // MARK: - App
@@ -773,6 +819,26 @@ struct SettingsView: View {
             set: { newValue in
                 if !settingsManager.updateAutoStartRestTimerSafely(enabled: newValue) {
                     errorMessage = "Couldn’t save the timer setting. Please try again."
+                }
+            }
+        )
+    }
+
+    /// On only when alerts will really arrive: the lifter chose them and iOS
+    /// allows them. Permission revoked in the Settings app reads as off.
+    private var restAlertBinding: Binding<Bool> {
+        Binding(
+            get: { restAlerts.isActive },
+            set: { newValue in
+                guard newValue else {
+                    restAlerts.disable()
+                    return
+                }
+
+                Task {
+                    if await restAlerts.enable() == .permissionDenied {
+                        showingNotificationsBlocked = true
+                    }
                 }
             }
         )

@@ -95,84 +95,18 @@ class ActiveWorkoutViewModel: ObservableObject {
         self.exerciseManager = exerciseManager ?? ExerciseManager.shared
         self.settingsManager = settingsManager ?? SettingsManager.shared
 
+        // Building this view model never changes the workout. It is rebuilt
+        // every time the workout screen is presented (reopening a saved
+        // draft, relaunching mid-session), so anything written here would be
+        // rewriting what the lifter already entered. Template pre-fill
+        // happens once, in `TemplateManager.createWorkoutFromTemplate`.
         updateExerciseGroupsAndOrder()
-
-        do {
-            try populateWithPreviousWeights()
-        } catch {
-            setError(title: "Couldn’t Load Previous Weights", message: WorkoutError.saveFailure.description)
-        }
 
         for exercise in exerciseOrder {
             expandedExercises.insert(exercise.id)
         }
 
         currentRestDuration = self.settingsManager.settings.restTimerDuration
-    }
-
-    // MARK: - Template Autofill
-
-    /// Pre-fills template-created sets with the weights from the most recent
-    /// completed session of each exercise, without marking anything logged.
-    private func populateWithPreviousWeights() throws {
-        guard workout.startedFromTemplate != nil else {
-            return
-        }
-
-        struct SetSnapshot {
-            let set: ExerciseSet
-            let weight: Int
-            let reps: Int
-            let rpe: Int?
-            let completedAt: Date
-        }
-
-        var snapshots: [PersistentIdentifier: SetSnapshot] = [:]
-
-        for exercise in exerciseOrder {
-            let history = workoutManager.getWorkoutHistory(for: exercise)
-
-            let recentWorkouts = history.filter { workout, sets in
-                workout.isCompleted && sets.contains(where: \.isCompletedWorkingSet)
-            }
-
-            guard let mostRecent = recentWorkouts.first else { continue }
-
-            let previousSets = orderSetsForDisplay(mostRecent.sets.filter(\.isCompletedWorkingSet))
-            guard let currentSets = exerciseGroups[exercise.id].map(orderSetsForDisplay) else { continue }
-
-            for (index, currentSet) in currentSets.enumerated() {
-                guard let previousSet = previousSets[safe: index] else { continue }
-
-                if snapshots[currentSet.id] == nil {
-                    snapshots[currentSet.id] = SetSnapshot(
-                        set: currentSet,
-                        weight: currentSet.weight,
-                        reps: currentSet.reps,
-                        rpe: currentSet.rpe,
-                        completedAt: currentSet.completedAt
-                    )
-                }
-
-                currentSet.weight = previousSet.weight
-                if currentSet.reps == 0 {
-                    currentSet.reps = previousSet.reps
-                }
-                currentSet.rpe = previousSet.rpe
-            }
-        }
-
-        do {
-            try saveWorkout()
-        } catch {
-            for snapshot in snapshots.values {
-                snapshot.set.weight = snapshot.weight
-                snapshot.set.reps = snapshot.reps
-                snapshot.set.rpe = snapshot.rpe
-                snapshot.set.completedAt = snapshot.completedAt
-            }
-            throw error
-        }
     }
 
     // MARK: - Workout Lifecycle
@@ -380,7 +314,11 @@ class ActiveWorkoutViewModel: ObservableObject {
         var newReps = 8
 
         if let topSet = completedWorkingSets.first {
-            let reductionPercentage = min(max(reductionPercentage(forSetIndex: completedWorkingSets.count), 0), 1)
+            // The new set's place in the ladder, not how many sets happen to
+            // be logged: with planned back-offs already present, counting
+            // logged sets suggested a load heavier than the set before it.
+            let ladderPosition = orderedExistingSets.filter { !$0.isWarmup }.count
+            let reductionPercentage = min(max(reductionPercentage(forSetIndex: ladderPosition), 0), 1)
             let safeTopWeight = max(0, topSet.weight)
             newWeight = max(0, workoutManager.roundToNearest5(Double(safeTopWeight) * (1.0 - reductionPercentage)))
 
@@ -589,13 +527,18 @@ class ActiveWorkoutViewModel: ObservableObject {
 
     /// Recalculates back-off set weights from a new top-set weight using the
     /// configured RPT percentage drops.
-    func updateDropSetSuggestions(for exercise: Exercise, firstSetWeight: Int) throws {
+    ///
+    /// - Parameter onlyEmptySets: when true, only back-offs that still have
+    ///   no load are filled, leaving every load the lifter already has
+    ///   planned as it is.
+    func updateDropSetSuggestions(for exercise: Exercise, firstSetWeight: Int, onlyEmptySets: Bool = false) throws {
         let sets = orderedSetsForDisplay(in: exercise).filter { !$0.isWarmup }
         guard sets.count > 1 else { return }
 
-        let dropPercentages = settingsManager.settings.defaultRPTPercentageDrops
-        let affectedSetCount = min(sets.count, dropPercentages.count)
-        guard affectedSetCount > 1 else { return }
+        // Every back-off follows the top set. Sets past the configured
+        // drops reuse the deepest one, matching how "Add set" plans them, so
+        // a fourth set can never be left heavier than a lowered top set.
+        let affectedSetCount = sets.count
 
         struct SetSnapshot {
             let set: ExerciseSet
@@ -607,11 +550,31 @@ class ActiveWorkoutViewModel: ObservableObject {
             SetSnapshot(set: sets[index], weight: sets[index].weight, completedAt: sets[index].completedAt)
         }
 
+        // When only filling gaps, a new load must not break the ladder: it
+        // is capped at the lightest load already sitting above it.
+        var lightestLoadAbove = firstSetWeight
+
         for index in 1..<affectedSetCount {
-            let dropPercentage = min(max(dropPercentages[index], 0), 1)
-            let calculatedWeight = Double(firstSetWeight) * (1.0 - dropPercentage)
-            let roundedWeight = max(0, workoutManager.roundToNearest5(calculatedWeight))
             let set = sets[index]
+
+            // A logged set records what was actually lifted. Only planned
+            // back-offs follow the top set; rewriting a logged one would
+            // put a load in history that was never performed.
+            let keepsItsLoad = set.isCompletedLoggedSet || (onlyEmptySets && set.weight > 0)
+            if keepsItsLoad {
+                if set.weight > 0 {
+                    lightestLoadAbove = min(lightestLoadAbove, set.weight)
+                }
+                continue
+            }
+
+            let dropPercentage = min(max(reductionPercentage(forSetIndex: index), 0), 1)
+            let calculatedWeight = Double(firstSetWeight) * (1.0 - dropPercentage)
+            var roundedWeight = max(0, workoutManager.roundToNearest5(calculatedWeight))
+            if onlyEmptySets {
+                roundedWeight = min(roundedWeight, lightestLoadAbove)
+                lightestLoadAbove = roundedWeight
+            }
 
             set.weight = roundedWeight
 
@@ -642,14 +605,46 @@ class ActiveWorkoutViewModel: ObservableObject {
         updateExerciseGroupsAndOrder(maintainOrder: true)
     }
 
-    func updateDropSetSuggestionsSafely(for exercise: Exercise, firstSetWeight: Int) -> Bool {
+    func updateDropSetSuggestionsSafely(for exercise: Exercise, firstSetWeight: Int, onlyEmptySets: Bool = false) -> Bool {
         do {
-            try updateDropSetSuggestions(for: exercise, firstSetWeight: firstSetWeight)
+            try updateDropSetSuggestions(for: exercise, firstSetWeight: firstSetWeight, onlyEmptySets: onlyEmptySets)
             return true
         } catch {
             setError(title: "Couldn’t Update Back-off Sets", message: WorkoutError.saveFailure.description)
             return false
         }
+    }
+
+    /// Keeps the planned back-offs in step after the top working set was
+    /// saved from the editor. Call it once the new values are stored.
+    ///
+    /// - A new top-set weight recalculates every back-off that is still
+    ///   planned. Logged back-offs are never rewritten.
+    /// - Saving the top set without changing its weight (a reps-only edit)
+    ///   leaves planned loads alone and only fills back-offs that have no
+    ///   load yet, so the lifter is not left working out the drops by hand.
+    /// - Zero is a real load only for bodyweight movements. There it also
+    ///   cannot tell "empty" from "bodyweight", so only a weight change
+    ///   moves the ladder, and changing the top set to bodyweight takes the
+    ///   planned back-offs with it.
+    ///
+    /// - Returns: `false` only when a needed update could not be saved; the
+    ///   error alert is already set in that case.
+    @discardableResult
+    func syncBackoffsAfterTopSetSave(_ set: ExerciseSet, in exercise: Exercise, previousWeight: Int) -> Bool {
+        let topWorkingSet = orderedSetsForDisplay(in: exercise).first { !$0.isWarmup }
+        guard !set.isWarmup, set.id == topWorkingSet?.id else { return true }
+
+        let newWeight = set.weight
+        let zeroIsARealLoad = exercise.category == .bodyweight
+
+        if newWeight != previousWeight {
+            guard newWeight > 0 || zeroIsARealLoad else { return true }
+            return updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: newWeight)
+        }
+
+        guard newWeight > 0, !zeroIsARealLoad else { return true }
+        return updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: newWeight, onlyEmptySets: true)
     }
 
     // MARK: - Completion & Expansion

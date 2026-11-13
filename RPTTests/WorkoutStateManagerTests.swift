@@ -38,7 +38,35 @@ final class WorkoutStateManagerTests: XCTestCase {
 
         let resumable = manager.firstResumableWorkout(in: [discardedNewestDraft, newerEligibleDraft])
 
-        XCTAssertTrue(resumable === newerEligibleDraft, "Resume selection should skip drafts older than the discard timestamp and keep scanning for a valid newer draft")
+        XCTAssertTrue(resumable === newerEligibleDraft, "Resume selection should skip the discarded draft and keep scanning for a valid one")
+    }
+
+    func testShouldResume_keepsOlderSavedDraftAfterAnotherWorkoutIsDiscarded() {
+        let manager = WorkoutStateManager.shared
+        let savedDraft = Workout(date: Date().addingTimeInterval(-60 * 60), name: "Saved For Later", isCompleted: false)
+        let discardedDraft = Workout(date: Date(), name: "Started By Mistake", isCompleted: false)
+
+        manager.markWorkoutAsDiscarded(discardedDraft.id)
+
+        XCTAssertFalse(manager.shouldResume(discardedDraft), "The workout that was discarded must not come back")
+        XCTAssertTrue(
+            manager.shouldResume(savedDraft),
+            "A draft saved before the discard holds logged sets and must stay reachable"
+        )
+        XCTAssertTrue(manager.firstResumableWorkout(in: [discardedDraft, savedDraft]) === savedDraft)
+    }
+
+    func testShouldResume_failsOpenWhenTheDiscardedIdentityIsNotInMemory() {
+        let manager = WorkoutStateManager.shared
+        let savedDraft = Workout(date: Date().addingTimeInterval(-60 * 60), name: "Saved For Later", isCompleted: false)
+
+        // After a relaunch only the persisted flag and text id survive. The
+        // discarded workout was deleted before it was marked, so every
+        // draft still in the store is a different workout.
+        manager.markWorkoutAsDiscarded("identifier-from-a-previous-launch")
+
+        XCTAssertTrue(manager.wasAnyWorkoutDiscarded())
+        XCTAssertTrue(manager.shouldResume(savedDraft))
     }
 
     func testShouldResume_rejectsCompletedWorkouts() {

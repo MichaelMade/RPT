@@ -51,6 +51,7 @@ final class WorkoutSession: ObservableObject {
     /// Starts (and presents) a workout.
     func start(_ workout: Workout) {
         stateManager.clearDiscardedState()
+        ReviewPromptManager.disarmWorkoutCompletion()
         activeWorkout = workout
         isPresentingWorkout = true
     }
@@ -69,6 +70,7 @@ final class WorkoutSession: ObservableObject {
     /// Re-opens the current resumable draft.
     func openCurrent() {
         guard resumableWorkout != nil else { return }
+        ReviewPromptManager.disarmWorkoutCompletion()
         isPresentingWorkout = true
     }
 

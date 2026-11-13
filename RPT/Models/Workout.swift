@@ -227,6 +227,25 @@ final class Workout {
     func orderedSets(for exercise: Exercise) -> [ExerciseSet] {
         orderedExerciseGroups.first(where: { $0.exercise.id == exercise.id })?.sets ?? []
     }
+
+    /// Working sets of `exercise` from the most recent completed workout in
+    /// `workouts` that logged any, in logged order. Empty when the exercise
+    /// has never been logged. This is what a new template workout is
+    /// pre-filled from.
+    static func lastCompletedWorkingSets(of exercise: Exercise, in workouts: [Workout]) -> [ExerciseSet] {
+        let newestFirst = workouts
+            .filter(\.isCompleted)
+            .sorted { $0.date > $1.date }
+
+        for workout in newestFirst {
+            let workingSets = workout.orderedSets(for: exercise).filter(\.isCompletedWorkingSet)
+            if !workingSets.isEmpty {
+                return workingSets
+            }
+        }
+
+        return []
+    }
     
     // Calculate best set for each exercise
     var bestSets: [Exercise: ExerciseSet] {
@@ -245,6 +264,38 @@ final class Workout {
         return result
     }
     
+    /// A draft counts as parked, rather than in progress, once this long has
+    /// passed between creating it and logging its first set.
+    static let parkedDraftGap: TimeInterval = 4 * 60 * 60
+
+    /// Moves a parked draft onto the day it was actually trained.
+    ///
+    /// `date` is stamped when the workout is created. A draft saved for
+    /// later and trained days afterwards would otherwise be filed under its
+    /// creation day in history, the weekly goal, the heatmap, and the
+    /// streak. Call this before `complete()`.
+    ///
+    /// A normal session is left alone — including one that starts late and
+    /// runs past midnight, which keeps the day it began.
+    func alignDateWithFirstLoggedSet(now: Date = Date(), calendar: Calendar = .current) {
+        guard !isCompleted else { return }
+
+        let firstLoggedAt = sets
+            .filter(\.isCompletedLoggedSet)
+            .map(\.completedAt)
+            .filter { $0 > .distantPast }
+            .min()
+
+        guard let firstLoggedAt,
+              firstLoggedAt <= now,
+              firstLoggedAt.timeIntervalSince(date) >= Self.parkedDraftGap,
+              !calendar.isDate(firstLoggedAt, inSameDayAs: date) else {
+            return
+        }
+
+        date = firstLoggedAt
+    }
+
     // Mark workout as completed
     func complete(now: Date = Date()) {
         isCompleted = true
