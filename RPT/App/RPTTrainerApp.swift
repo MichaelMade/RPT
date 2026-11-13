@@ -46,6 +46,9 @@ struct RPTTrainerApp: App {
                 FunnelAnalytics.shared.trackInstallIfNeeded(
                     hasCompletedOnboarding: hasCompletedOnboarding
                 )
+                // A rest alert scheduled before the app was closed belongs
+                // to a countdown that no longer exists.
+                RestAlertManager.shared.cancelRestEnd()
             }
         }
         .modelContainer(dataManager.getSharedModelContainer())

@@ -4,7 +4,8 @@
 //
 //  Docked rest countdown that sits above the finish button instead of
 //  blocking in a sheet: wall-clock countdown, +15s adjustment, skip, and
-//  sound + haptic completion cues.
+//  sound + haptic completion cues. Once RPT leaves the foreground those
+//  cues cannot play, so an opt-in local notification stands in for them.
 //
 
 import Combine
@@ -12,6 +13,7 @@ import SwiftUI
 
 struct RestTimerView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @ObservedObject private var restAlerts = RestAlertManager.shared
 
     let duration: Int
     /// Called when the user skips the rest (or dismisses the finished timer).
@@ -23,6 +25,11 @@ struct RestTimerView: View {
     @State private var remainingSeconds: Int = 0
     @State private var totalSeconds: Int = 0
     @State private var didComplete = false
+
+    /// Decided once per rest so the offer does not vanish mid-countdown
+    /// when its own display is counted.
+    @State private var offersRestAlert = false
+    @State private var showingRestAlertOffer = false
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -38,6 +45,17 @@ struct RestTimerView: View {
                 .font(.system(size: 12.5))
                 .foregroundStyle(.white.opacity(0.75))
                 .accessibilityLabel("Rest Timer")
+
+            if offersRestAlert && !didComplete {
+                Button {
+                    showingRestAlertOffer = true
+                } label: {
+                    Image(systemName: "bell.badge")
+                }
+                .buttonStyle(RestChipButtonStyle())
+                .accessibilityLabel("Alert me when rest ends")
+                .accessibilityIdentifier("restAlertOffer")
+            }
 
             Spacer(minLength: 8)
 
@@ -70,15 +88,48 @@ struct RestTimerView: View {
             remainingSeconds = totalSeconds
             endDate = Date().addingTimeInterval(TimeInterval(totalSeconds))
         }
+        .task {
+            // The offer depends on what iOS has already been told, so read
+            // that before deciding to show it.
+            await restAlerts.refreshPermission()
+            offersRestAlert = restAlerts.claimDockOffer()
+        }
         .onReceive(timer) { _ in
             syncRemaining()
         }
         .onChange(of: scenePhase) { _, phase in
-            // Catch up immediately after returning from the background so
-            // the countdown reflects the rest actually taken.
-            if phase == .active {
+            switch phase {
+            case .background:
+                // Locked or behind another app, the chime and haptics below
+                // cannot play. Hand the end of rest to a notification. It
+                // exists only while RPT is out of the foreground: this dock
+                // cannot be skipped or restarted from there, and `.active`
+                // below always takes it back first.
+                if !didComplete {
+                    restAlerts.scheduleRestEnd(at: endDate)
+                }
+            case .active:
+                // Catch up immediately after returning from the background
+                // so the countdown reflects the rest actually taken, then
+                // take the alert back: in the foreground the dock owns it.
                 syncRemaining()
+                restAlerts.cancelRestEnd()
+                Task { await restAlerts.refreshPermission() }
+            default:
+                break
             }
+        }
+        .alert("Alert when rest ends?", isPresented: $showingRestAlertOffer) {
+            Button("Turn On") {
+                offersRestAlert = false
+                Task { await restAlerts.enable() }
+            }
+            Button("Not Now", role: .cancel) {
+                offersRestAlert = false
+                restAlerts.declineDockOffer()
+            }
+        } message: {
+            Text("RPT can notify you when your rest is over, so you can lock your phone or switch apps between sets.")
         }
     }
 
@@ -107,8 +158,14 @@ struct RestTimerView: View {
 
         if newRemaining <= 0 {
             didComplete = true
-            // playTimerComplete() owns both the chime and the completion haptic.
-            SoundManager.shared.playTimerComplete()
+
+            // A rest that ended while RPT was in the background was already
+            // announced by its notification. Chiming again on return would
+            // be a second, late alert for the same event.
+            if !restAlerts.scheduledAlertHasFired(asOf: now) {
+                // playTimerComplete() owns both the chime and the completion haptic.
+                SoundManager.shared.playTimerComplete()
+            }
         }
     }
 
