@@ -42,6 +42,12 @@ final class RestAlertManager: ObservableObject {
     /// When the alert that is currently scheduled will fire, if one is.
     private var scheduledFireDate: Date?
 
+    /// The rest the dock is counting down right now. Logging the next set
+    /// mid-rest replaces the dock, and the old one is still on screen for
+    /// the length of its exit animation; it must not schedule an alert for
+    /// a deadline that no longer applies.
+    private var currentRestID: UUID?
+
     init(center: RestAlertNotificationCenter? = nil, defaults: UserDefaults = .standard) {
         self.center = center ?? SystemRestAlertCenter()
         self.defaults = defaults
@@ -107,11 +113,19 @@ final class RestAlertManager: ObservableObject {
 
     // MARK: - Scheduling
 
+    /// Call when a rest countdown starts. Only that rest can schedule an
+    /// alert from then on.
+    func beginRest(_ restID: UUID) {
+        currentRestID = restID
+    }
+
     /// Schedules the alert for a rest ending at `endDate`. Call when RPT
     /// leaves the foreground; while it is in front the dock handles the end
     /// of rest itself. Returns whether an alert was scheduled.
     @discardableResult
-    func scheduleRestEnd(at endDate: Date, now: Date = Date()) -> Bool {
+    func scheduleRestEnd(at endDate: Date, for restID: UUID, now: Date = Date()) -> Bool {
+        guard restID == currentRestID else { return false }
+
         guard let leadTime = RestAlertPolicy.leadTime(
             untilRestEndsAt: endDate,
             now: now,
@@ -136,6 +150,15 @@ final class RestAlertManager: ObservableObject {
     func scheduledAlertHasFired(asOf now: Date = Date()) -> Bool {
         guard let scheduledFireDate else { return false }
         return scheduledFireDate <= now
+    }
+
+    /// For a rest whose alert time has already passed: whether iOS had
+    /// stopped allowing the alert by then, in which case nothing told the
+    /// lifter and the dock still has to. Permission can be withdrawn in the
+    /// Settings app while RPT is in the background.
+    func scheduledAlertWasBlocked() async -> Bool {
+        await refreshPermission()
+        return permission != .granted
     }
 
     /// Clears the alert, pending or delivered. Safe to call when none is

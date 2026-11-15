@@ -65,7 +65,12 @@ struct SettingsView: View {
                 titleVisibility: .visible
             ) {
                 Button("Reset to Defaults", role: .destructive) {
-                    if !settingsManager.resetToDefaultsSafely() {
+                    if settingsManager.resetToDefaultsSafely() {
+                        // The rest-end alert is part of the rest timer group
+                        // and is off by default. iOS permission is left as
+                        // it is, so turning it back on needs no new prompt.
+                        restAlerts.disable()
+                    } else {
                         errorMessage = "Couldn’t reset settings. Please try again."
                     }
                 }

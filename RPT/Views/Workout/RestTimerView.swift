@@ -10,6 +10,7 @@
 
 import Combine
 import SwiftUI
+import UIKit
 
 struct RestTimerView: View {
     @Environment(\.scenePhase) private var scenePhase
@@ -25,6 +26,9 @@ struct RestTimerView: View {
     @State private var remainingSeconds: Int = 0
     @State private var totalSeconds: Int = 0
     @State private var didComplete = false
+
+    /// Names this countdown to the alert manager; see `beginRest`.
+    @State private var restID = UUID()
 
     /// Decided once per rest so the offer does not vanish mid-countdown
     /// when its own display is counted.
@@ -87,6 +91,7 @@ struct RestTimerView: View {
             totalSeconds = max(1, duration)
             remainingSeconds = totalSeconds
             endDate = Date().addingTimeInterval(TimeInterval(totalSeconds))
+            restAlerts.beginRest(restID)
         }
         .task {
             // The offer depends on what iOS has already been told, so read
@@ -98,26 +103,30 @@ struct RestTimerView: View {
             syncRemaining()
         }
         .onChange(of: scenePhase) { _, phase in
-            switch phase {
-            case .background:
-                // Locked or behind another app, the chime and haptics below
-                // cannot play. Hand the end of rest to a notification. It
-                // exists only while RPT is out of the foreground: this dock
-                // cannot be skipped or restarted from there, and `.active`
-                // below always takes it back first.
-                if !didComplete {
-                    restAlerts.scheduleRestEnd(at: endDate)
-                }
-            case .active:
-                // Catch up immediately after returning from the background
-                // so the countdown reflects the rest actually taken, then
-                // take the alert back: in the foreground the dock owns it.
+            // Catch up immediately after returning from the background so
+            // the countdown reflects the rest actually taken.
+            if phase == .active {
                 syncRemaining()
-                restAlerts.cancelRestEnd()
-                Task { await restAlerts.refreshPermission() }
-            default:
-                break
             }
+        }
+        // The alert hand-off listens to the app itself, not `scenePhase`:
+        // this dock lives inside a full-screen cover, and presented content
+        // is not reliably told when its scene goes to the background.
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+            // Locked or behind another app, the chime and haptics cannot
+            // play. Hand the end of rest to a notification. It exists only
+            // while RPT is out of the foreground: this dock cannot be
+            // skipped or restarted from there, and coming back always takes
+            // it back first.
+            if !didComplete {
+                restAlerts.scheduleRestEnd(at: endDate, for: restID)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            reclaimRestAlert()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            reclaimRestAlert()
         }
         .alert("Alert when rest ends?", isPresented: $showingRestAlertOffer) {
             Button("Turn On") {
@@ -159,14 +168,31 @@ struct RestTimerView: View {
         if newRemaining <= 0 {
             didComplete = true
 
-            // A rest that ended while RPT was in the background was already
-            // announced by its notification. Chiming again on return would
-            // be a second, late alert for the same event.
-            if !restAlerts.scheduledAlertHasFired(asOf: now) {
+            if restAlerts.scheduledAlertHasFired(asOf: now) {
+                // The rest ended while RPT was in the background and its
+                // notification announced it; chiming again on return would
+                // be a second, late alert for the same event. That only
+                // holds if iOS still allowed the notification, so check
+                // before staying quiet.
+                Task {
+                    if await restAlerts.scheduledAlertWasBlocked() {
+                        SoundManager.shared.playTimerComplete()
+                    }
+                }
+            } else {
                 // playTimerComplete() owns both the chime and the completion haptic.
                 SoundManager.shared.playTimerComplete()
             }
         }
+    }
+
+    /// RPT is in front again, so the dock owns the end of rest. Reads the
+    /// countdown first: it has to see whether the alert already fired
+    /// before that alert is cleared.
+    private func reclaimRestAlert() {
+        syncRemaining()
+        restAlerts.cancelRestEnd()
+        Task { await restAlerts.refreshPermission() }
     }
 
     private func adjust(by delta: Int) {

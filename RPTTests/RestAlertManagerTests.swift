@@ -76,8 +76,13 @@ final class RestAlertManagerTests: XCTestCase {
         super.tearDown()
     }
 
+    /// The rest the dock is counting down in these tests.
+    private let rest = UUID()
+
     private func makeManager(_ center: FakeCenter) -> RestAlertManager {
-        RestAlertManager(center: center, defaults: defaults)
+        let manager = RestAlertManager(center: center, defaults: defaults)
+        manager.beginRest(rest)
+        return manager
     }
 
     /// A manager whose lifter has turned the alert on and iOS allows it.
@@ -97,7 +102,7 @@ final class RestAlertManagerTests: XCTestCase {
 
         XCTAssertFalse(manager.isEnabled)
         XCTAssertFalse(manager.isActive)
-        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(180), now: now))
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
         XCTAssertTrue(center.scheduled.isEmpty, "iOS allowing notifications is not the lifter asking for them")
         XCTAssertEqual(center.promptCount, 0)
     }
@@ -152,14 +157,14 @@ final class RestAlertManagerTests: XCTestCase {
         await manager.refreshPermission()
 
         XCTAssertFalse(manager.isActive)
-        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(180), now: now))
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
         XCTAssertTrue(center.scheduled.isEmpty)
     }
 
     func testTurningItOffCancelsAnAlertAlreadyScheduled() async {
         let center = FakeCenter(permission: .notDetermined)
         let manager = await makeActiveManager(center)
-        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), now: now))
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
 
         manager.disable()
 
@@ -174,7 +179,7 @@ final class RestAlertManagerTests: XCTestCase {
         let center = FakeCenter(permission: .notDetermined)
         let manager = await makeActiveManager(center)
 
-        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(137), now: now))
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(137), for: rest, now: now))
 
         XCTAssertEqual(
             center.scheduled,
@@ -194,8 +199,8 @@ final class RestAlertManagerTests: XCTestCase {
         let center = FakeCenter(permission: .notDetermined)
         let manager = await makeActiveManager(center)
 
-        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(-5), now: now))
-        XCTAssertFalse(manager.scheduleRestEnd(at: .distantFuture, now: now))
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(-5), for: rest, now: now))
+        XCTAssertFalse(manager.scheduleRestEnd(at: .distantFuture, for: rest, now: now))
 
         XCTAssertTrue(center.scheduled.isEmpty)
         XCTAssertFalse(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(600)))
@@ -204,7 +209,7 @@ final class RestAlertManagerTests: XCTestCase {
     func testComingBackBeforeRestEndsTakesTheAlertBack() async {
         let center = FakeCenter(permission: .notDetermined)
         let manager = await makeActiveManager(center)
-        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), now: now))
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
 
         let returnedAt = now.addingTimeInterval(60)
         XCTAssertFalse(manager.scheduledAlertHasFired(asOf: returnedAt), "Rest is still running; the dock will chime itself")
@@ -221,7 +226,7 @@ final class RestAlertManagerTests: XCTestCase {
     func testComingBackAfterTheAlertFiredIsNotAnnouncedTwice() async {
         let center = FakeCenter(permission: .notDetermined)
         let manager = await makeActiveManager(center)
-        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), now: now))
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
 
         XCTAssertTrue(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(180)))
         XCTAssertTrue(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(400)))
@@ -234,14 +239,56 @@ final class RestAlertManagerTests: XCTestCase {
         )
     }
 
+    func testAlertThatIOSStoppedAllowingStillNeedsTheDockToAnnounceRest() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+
+        // Notifications switched off in the Settings app while RPT was away.
+        center.permission = .denied
+
+        XCTAssertTrue(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(200)))
+        let blocked = await manager.scheduledAlertWasBlocked()
+        XCTAssertTrue(blocked, "The clock says the alert fired, but iOS showed nothing; the dock must chime")
+        XCTAssertEqual(manager.permission, .denied)
+        XCTAssertFalse(manager.isActive)
+    }
+
+    func testAlertThatIOSDeliveredIsNotBlocked() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+
+        let blocked = await manager.scheduledAlertWasBlocked()
+
+        XCTAssertFalse(blocked)
+    }
+
+    func testDockThatWasReplacedCannotScheduleForItsOldDeadline() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+
+        // The next set is logged mid-rest: a new countdown starts while the
+        // old dock is still animating away, then the phone is locked.
+        let restartedRest = UUID()
+        manager.beginRest(restartedRest)
+
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(20), for: rest, now: now))
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: restartedRest, now: now))
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(20), for: rest, now: now))
+
+        XCTAssertEqual(center.scheduled.map(\.interval), [180], "Only the rest on screen may be announced")
+        XCTAssertFalse(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(60)))
+    }
+
     func testLeavingAgainAfterComingBackReschedulesForTheTimeLeft() async {
         let center = FakeCenter(permission: .notDetermined)
         let manager = await makeActiveManager(center)
         let restEnds = now.addingTimeInterval(180)
 
-        XCTAssertTrue(manager.scheduleRestEnd(at: restEnds, now: now))
+        XCTAssertTrue(manager.scheduleRestEnd(at: restEnds, for: rest, now: now))
         manager.cancelRestEnd()
-        XCTAssertTrue(manager.scheduleRestEnd(at: restEnds, now: now.addingTimeInterval(100)))
+        XCTAssertTrue(manager.scheduleRestEnd(at: restEnds, for: rest, now: now.addingTimeInterval(100)))
 
         XCTAssertEqual(center.scheduled.map(\.interval), [180, 80])
         XCTAssertTrue(center.hasPendingAlert)
