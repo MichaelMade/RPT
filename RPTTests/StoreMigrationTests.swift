@@ -387,6 +387,49 @@ final class StoreMigrationTests: XCTestCase {
             exercises.allSatisfy { !$0.isArchived },
             "No exercise from an existing store may come back archived (hidden from the library)"
         )
+
+        // Units: every set logged before they existed is whole pounds, and
+        // must keep reading as exactly the load that was stored.
+        let sets = try context.fetch(FetchDescriptor<ExerciseSet>())
+        XCTAssertEqual(sets.count, 4)
+        XCTAssertTrue(sets.allSatisfy { $0.loadValue == nil && $0.loadUnitRaw == nil })
+        XCTAssertTrue(sets.allSatisfy { $0.loadUnit == .pounds })
+        XCTAssertTrue(sets.allSatisfy { $0.exactPounds == Double($0.weight) })
+    }
+
+    func testMigratedStoreAcceptsAKilogramSetAndReadsItBackExactly() throws {
+        try writeStoreWithShippedSchema()
+
+        try autoreleasepool {
+            let container = try openStoreWithCurrentModels()
+            let context = ModelContext(container)
+            let bench = try XCTUnwrap(
+                try context.fetch(FetchDescriptor<Exercise>()).first { $0.name == "Barbell Bench Press" }
+            )
+
+            let workout = Workout(
+                date: workoutDate.addingTimeInterval(7 * 24 * 60 * 60),
+                name: "First Kilogram Session"
+            )
+            context.insert(workout)
+            let set = workout.addSet(exercise: bench, weight: 0, reps: 5)
+            set.setLoad(61.25, in: .kilograms)
+            workout.isCompleted = true
+            try context.save()
+        }
+
+        let reopened = try openStoreWithCurrentModels()
+        let workouts = try ModelContext(reopened).fetch(FetchDescriptor<Workout>())
+        let kilogramWorkout = try XCTUnwrap(workouts.first { $0.name == "First Kilogram Session" })
+        let kilogramSet = try XCTUnwrap(kilogramWorkout.sets.first)
+
+        XCTAssertEqual(kilogramSet.load(in: .kilograms), 61.25)
+        XCTAssertEqual(kilogramSet.loadUnit, .kilograms)
+        XCTAssertEqual(kilogramSet.weight, 135)
+
+        let originalWorkout = try XCTUnwrap(workouts.first { $0.name == "RPT Day 2 - Bench" })
+        let expectedPounds: [Int] = [185, 165, 155, 0]
+        XCTAssertEqual(originalWorkout.setsInLoggedOrder.map(\.weight), expectedPounds)
     }
 
     func testMigratedStoreAcceptsNewWritesAndReopens() throws {

@@ -9,7 +9,12 @@
 import Foundation
 
 enum WorkoutCSVExporter {
-    static let header = "date,workout,exercise,set_type,weight_lb,reps,rpe,volume_lb"
+    static let header = header(for: .pounds)
+
+    /// Column names carry the unit, so a spreadsheet never has to guess.
+    static func header(for unit: WeightUnit) -> String {
+        "date,workout,exercise,set_type,weight_\(unit.short),reps,rpe,volume_\(unit.short)"
+    }
 
     /// Builds a CSV string of all logged sets in completed workouts,
     /// newest workout first, sets in logged order.
@@ -17,8 +22,11 @@ enum WorkoutCSVExporter {
     /// Dates are the lifter's own calendar days (`timeZone`, the device's
     /// zone by default) so the export agrees with History and Stats. A UTC
     /// date would file an evening session under the following day.
-    static func csv(for workouts: [Workout], timeZone: TimeZone = .current) -> String {
-        var lines: [String] = [header]
+    ///
+    /// Loads are exported in `unit`, the unit the lifter trains in. A set
+    /// logged in that unit is written exactly as it was entered.
+    static func csv(for workouts: [Workout], timeZone: TimeZone = .current, unit: WeightUnit = .current) -> String {
+        var lines: [String] = [header(for: unit)]
 
         let dateFormatter = dayFormatter(timeZone: timeZone)
 
@@ -35,7 +43,11 @@ enum WorkoutCSVExporter {
 
                 let setType = set.isWarmup ? "warmup" : "working"
                 let rpeField = set.displayRPE.map(String.init) ?? ""
-                let volume = set.isWarmup ? 0 : set.weight * set.reps
+                // Volume is the written load times reps, so each row adds
+                // up for anyone checking it by hand.
+                let weightField = unit.string(for: set.load(in: unit))
+                let writtenLoad = Double(weightField) ?? 0
+                let volumeField = set.isWarmup ? "0" : unit.string(for: writtenLoad * Double(set.reps))
 
                 lines.append(
                     [
@@ -43,10 +55,10 @@ enum WorkoutCSVExporter {
                         workoutField,
                         escape(exercise.displayName),
                         setType,
-                        String(set.weight),
+                        weightField,
                         String(set.reps),
                         rpeField,
-                        String(volume)
+                        volumeField
                     ].joined(separator: ",")
                 )
             }

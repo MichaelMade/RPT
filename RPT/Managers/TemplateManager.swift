@@ -455,7 +455,21 @@ class TemplateManager {
 
     // MARK: - Workout Creation
 
-    func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout? {
+    /// A planned set starts at the load the same set was logged with last
+    /// time. Logged in the unit the lifter trains in now, that is exactly
+    /// the same load. Logged in another unit, it is rounded to a step they
+    /// can load today.
+    static func carryOverLoad(from previousSet: ExerciseSet, to newSet: ExerciseSet, unit: WeightUnit) {
+        guard previousSet.weight > 0 else { return }
+
+        if previousSet.loadUnit == unit {
+            newSet.restoreLoad(previousSet.storedLoad)
+        } else {
+            newSet.setLoad(unit.roundedToIncrement(previousSet.load(in: unit)), in: unit)
+        }
+    }
+
+    func createWorkoutFromTemplate(_ template: WorkoutTemplate, unit: WeightUnit = .current) -> Workout? {
         // Create the workout with the template name
         let workout = Workout(
             name: template.name,
@@ -487,11 +501,10 @@ class TemplateManager {
                 // with last time. RPE is not carried over: it describes a
                 // set that was performed.
                 let previousSet = previousWorkingSets[safe: setIndex]
-                let initialWeight = max(0, previousSet?.weight ?? 0)
                 let initialReps = targetReps > 0 ? targetReps : max(0, previousSet?.reps ?? 0)
 
                 let newSet = ExerciseSet(
-                    weight: initialWeight,
+                    weight: 0,
                     reps: initialReps,
                     exercise: exercise,
                     workout: workout,
@@ -500,6 +513,9 @@ class TemplateManager {
                     completedAt: .distantPast,
                     orderIndex: createdSetCount
                 )
+                if let previousSet {
+                    Self.carryOverLoad(from: previousSet, to: newSet, unit: unit)
+                }
 
                 if !workout.sets.contains(where: { $0.id == newSet.id }) {
                     workout.sets.append(newSet)

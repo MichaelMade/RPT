@@ -11,8 +11,9 @@ RPT does not declare a `SchemaMigrationPlan` or any `VersionedSchema`. Each
 launch opens the store with the current models (`DataManager.makeSchema()`),
 and SwiftData's automatic lightweight migration carries an older store
 forward. That is how `ExerciseSet.orderIndex`,
-`UserSettings.autoStartRestTimerEnabled`, `UserSettings.weeklyWorkoutGoal`
-and `Exercise.isArchived` reached existing users.
+`UserSettings.autoStartRestTimerEnabled`, `UserSettings.weeklyWorkoutGoal`,
+`Exercise.isArchived`, and `ExerciseSet.loadValue` / `loadUnitRaw` reached
+existing users.
 
 Lightweight migration only handles additive changes. Anything else makes
 `ModelContainer` throw at launch, and the app shows the storage-unavailable
@@ -64,6 +65,13 @@ Not allowed without a plan:
 
 When a value needs a new representation, add a new property beside the old
 one and keep reading the old one. Never repurpose a shipped property.
+
+Units are the worked example. `ExerciseSet.weight` shipped as whole pounds
+and still is: a set logged in pounds is stored exactly as it always was. A
+set logged in kilograms keeps its exact value in the new optional
+`loadValue` with its unit in `loadUnitRaw`, and `weight` holds the nearest
+whole pound. Nothing that existed was retyped, and no existing row is
+rewritten when the lifter changes unit.
 
 ## What enforces this
 

@@ -5,18 +5,6 @@
 
 import Foundation
 
-enum WeightUnit: String, CaseIterable, Codable {
-    case pounds
-    case kilograms
-
-    var short: String {
-        switch self {
-        case .pounds: return "lb"
-        case .kilograms: return "kg"
-        }
-    }
-}
-
 struct BarbellType: Hashable, Identifiable {
     let id = UUID()
     let name: String

@@ -86,7 +86,7 @@ final class User {
 
         let completedWorkingVolume = workout.sets
             .filter(\.isCompletedWorkingSet)
-            .reduce(0.0) { $0 + (Double($1.weight) * Double($1.reps)) }
+            .reduce(0.0) { $0 + ($1.exactPounds * Double($1.reps)) }
         let safeWorkoutVolume = completedWorkingVolume.isFinite ? max(0, completedWorkingVolume) : 0
         totalVolume += safeWorkoutVolume
 

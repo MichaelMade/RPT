@@ -54,6 +54,33 @@ enum SetInputParser {
         wholeNumber(from: text, upperBound: maxReps)
     }
 
+    /// Parses a set's load typed in `unit`.
+    ///
+    /// Pounds are whole numbers, as before. Kilograms take up to two
+    /// decimals, because plates go down to 0.25 kg a side. Empty text is
+    /// `0` (the lifter cleared the field); anything unreadable, too
+    /// precise, or above the unit's ceiling is `nil` so the caller can say
+    /// what is wrong.
+    static func load(from text: String, unit: WeightUnit) -> Double? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return 0 }
+
+        guard unit.entryFractionDigits > 0 else {
+            return wholeNumber(from: trimmed, upperBound: Int(unit.maximumLoad)).map(Double.init)
+        }
+
+        guard let value = decimal(from: trimmed, upperBound: unit.maximumLoad) else { return nil }
+
+        // `decimal` has already established there is at most one separator.
+        let separators: Set<Character> = [".", ",", "٫"]
+        let fractionDigits = trimmed.firstIndex(where: separators.contains).map {
+            trimmed.distance(from: $0, to: trimmed.endIndex) - 1
+        } ?? 0
+        guard fractionDigits <= unit.entryFractionDigits else { return nil }
+
+        return unit.normalized(value)
+    }
+
     /// Parses a decimal the lifter typed, accepting either `.` or `,` as the
     /// decimal separator so entry works in every region's number format
     /// (the decimal pad shows a comma in most of Europe and Latin America).

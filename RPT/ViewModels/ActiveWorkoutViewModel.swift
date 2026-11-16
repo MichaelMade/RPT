@@ -305,12 +305,16 @@ class ActiveWorkoutViewModel: ObservableObject {
     /// Adds the next RPT back-off set. The suggested weight always drops
     /// from the exercise's top (first completed working) set, so back-off
     /// percentages never compound on each other.
-    func addSetToExercise(_ exercise: Exercise) throws {
+    ///
+    /// The suggestion is worked out and rounded in `unit`, the unit the
+    /// lifter trains in.
+    func addSetToExercise(_ exercise: Exercise, unit: WeightUnit = .current) throws {
         let existingSets = workout.sets.filter { $0.exercise?.id == exercise.id }
         let orderedExistingSets = orderSetsForDisplay(existingSets)
         let completedWorkingSets = orderedExistingSets.filter(\.isCompletedWorkingSet)
 
-        var newWeight = 0
+        var newLoad = 0.0
+        var mirroredSet: ExerciseSet?
         var newReps = 8
 
         if let topSet = completedWorkingSets.first {
@@ -319,8 +323,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             // logged sets suggested a load heavier than the set before it.
             let ladderPosition = orderedExistingSets.filter { !$0.isWarmup }.count
             let reductionPercentage = min(max(reductionPercentage(forSetIndex: ladderPosition), 0), 1)
-            let safeTopWeight = max(0, topSet.weight)
-            newWeight = max(0, workoutManager.roundToNearest5(Double(safeTopWeight) * (1.0 - reductionPercentage)))
+            newLoad = unit.roundedToIncrement(topSet.load(in: unit) * (1.0 - reductionPercentage))
 
             let safeLastReps = max(0, completedWorkingSets.last?.reps ?? 0)
             if safeLastReps > 0 {
@@ -328,14 +331,20 @@ class ActiveWorkoutViewModel: ObservableObject {
             }
         } else if let lastSet = orderedExistingSets.last {
             // Nothing logged yet — mirror the most recent placeholder.
-            newWeight = max(0, lastSet.weight)
+            mirroredSet = lastSet
             let safeLastReps = max(0, lastSet.reps)
             if safeLastReps > 0 {
                 newReps = safeLastReps
             }
         }
 
-        let newSet = workout.addSet(exercise: exercise, weight: newWeight, reps: newReps)
+        let newSet = workout.addSet(exercise: exercise, weight: 0, reps: newReps)
+        if let mirroredSet {
+            // An exact copy, whatever unit the placeholder was planned in.
+            newSet.restoreLoad(mirroredSet.storedLoad)
+        } else {
+            newSet.setLoad(newLoad, in: unit)
+        }
         newSet.completedAt = .distantPast
 
         if exerciseGroups[exercise.id] != nil {
@@ -367,13 +376,19 @@ class ActiveWorkoutViewModel: ObservableObject {
 
     /// Adds a warm-up set ahead of the working sets.
     func addWarmupSet(to exercise: Exercise, weight: Int, reps: Int) throws {
-        let sanitized = workoutManager.sanitizedSetInput(weight: weight, reps: reps, rpe: nil)
+        try addWarmupSet(to: exercise, load: Double(max(0, weight)), unit: .pounds, reps: reps)
+    }
+
+    /// Adds a warm-up set whose load is given in `unit`.
+    func addWarmupSet(to exercise: Exercise, load: Double, unit: WeightUnit, reps: Int) throws {
+        let sanitized = workoutManager.sanitizedSetInput(weight: 0, reps: reps, rpe: nil)
         let newSet = workout.addSet(
             exercise: exercise,
-            weight: sanitized.weight,
+            weight: 0,
             reps: sanitized.reps,
             isWarmup: true
         )
+        newSet.setLoad(load, in: unit)
         newSet.completedAt = .distantPast
 
         if exerciseGroups[exercise.id] != nil {
@@ -394,8 +409,12 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     func addWarmupSetSafely(to exercise: Exercise, weight: Int, reps: Int) -> Bool {
+        addWarmupSetSafely(to: exercise, load: Double(max(0, weight)), unit: .pounds, reps: reps)
+    }
+
+    func addWarmupSetSafely(to exercise: Exercise, load: Double, unit: WeightUnit, reps: Int) -> Bool {
         do {
-            try addWarmupSet(to: exercise, weight: weight, reps: reps)
+            try addWarmupSet(to: exercise, load: load, unit: unit, reps: reps)
             return true
         } catch {
             setError(title: "Couldn’t Add Warm-up Set", message: WorkoutError.saveFailure.description)
@@ -404,18 +423,26 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     func updateSet(_ set: ExerciseSet, weight: Int, reps: Int, rpe: Int?) throws {
-        guard weight >= 0, reps >= 0 else {
+        guard weight >= 0 else {
+            throw WorkoutError.invalidSetData
+        }
+        try updateSet(set, load: Double(weight), unit: .pounds, reps: reps, rpe: rpe)
+    }
+
+    /// Saves a set's values, with the load given in `unit`.
+    func updateSet(_ set: ExerciseSet, load: Double, unit: WeightUnit, reps: Int, rpe: Int?) throws {
+        guard load.isFinite, load >= 0, reps >= 0 else {
             throw WorkoutError.invalidSetData
         }
         if let rpeValue = rpe, !(1...10).contains(rpeValue) {
             throw WorkoutError.invalidSetData
         }
 
-        let originalWeight = set.weight
+        let originalLoad = set.storedLoad
         let originalReps = set.reps
         let originalRPE = set.rpe
         let originalCompletedAt = set.completedAt
-        set.weight = weight
+        set.setLoad(load, in: unit)
         set.reps = reps
         set.rpe = rpe
 
@@ -423,7 +450,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         // never logs a set. It can only UN-log one whose values are no
         // longer complete, since a logged set must stay valid.
         let isComplete = ExerciseSet.hasCompletedValues(
-            weight: weight,
+            weight: set.weight,
             reps: reps,
             exerciseCategory: set.exercise?.category
         )
@@ -434,7 +461,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         do {
             try saveWorkout()
         } catch {
-            set.weight = originalWeight
+            set.restoreLoad(originalLoad)
             set.reps = originalReps
             set.rpe = originalRPE
             set.completedAt = originalCompletedAt
@@ -452,6 +479,22 @@ class ActiveWorkoutViewModel: ObservableObject {
             setError(title: "Couldn’t Update Set", message: WorkoutError.saveFailure.description)
             return false
         }
+    }
+
+    func updateSetSafely(_ set: ExerciseSet, load: Double, unit: WeightUnit, reps: Int, rpe: Int?) -> Bool {
+        do {
+            try updateSet(set, load: load, unit: unit, reps: reps, rpe: rpe)
+            return true
+        } catch {
+            setError(title: "Couldn’t Update Set", message: WorkoutError.saveFailure.description)
+            return false
+        }
+    }
+
+    /// Changes only a set's RPE. The load is not touched at all, so a set
+    /// logged in another unit keeps exactly what was lifted.
+    func updateRPESafely(_ set: ExerciseSet, rpe: Int?) -> Bool {
+        updateSetSafely(set, load: set.load(in: set.loadUnit), unit: set.loadUnit, reps: set.reps, rpe: rpe)
     }
 
     func deleteSet(_ set: ExerciseSet) throws {
@@ -532,6 +575,22 @@ class ActiveWorkoutViewModel: ObservableObject {
     ///   no load are filled, leaving every load the lifter already has
     ///   planned as it is.
     func updateDropSetSuggestions(for exercise: Exercise, firstSetWeight: Int, onlyEmptySets: Bool = false) throws {
+        try updateDropSetSuggestions(
+            for: exercise,
+            firstSetLoad: Double(max(0, firstSetWeight)),
+            unit: .pounds,
+            onlyEmptySets: onlyEmptySets
+        )
+    }
+
+    /// The same recalculation with the top set's load given in `unit`.
+    /// Back-offs are rounded to that unit's loadable step.
+    func updateDropSetSuggestions(
+        for exercise: Exercise,
+        firstSetLoad: Double,
+        unit: WeightUnit,
+        onlyEmptySets: Bool = false
+    ) throws {
         let sets = orderedSetsForDisplay(in: exercise).filter { !$0.isWarmup }
         guard sets.count > 1 else { return }
 
@@ -542,17 +601,17 @@ class ActiveWorkoutViewModel: ObservableObject {
 
         struct SetSnapshot {
             let set: ExerciseSet
-            let weight: Int
+            let load: ExerciseSet.StoredLoad
             let completedAt: Date
         }
 
         let snapshots = (1..<affectedSetCount).map { index in
-            SetSnapshot(set: sets[index], weight: sets[index].weight, completedAt: sets[index].completedAt)
+            SetSnapshot(set: sets[index], load: sets[index].storedLoad, completedAt: sets[index].completedAt)
         }
 
         // When only filling gaps, a new load must not break the ladder: it
         // is capped at the lightest load already sitting above it.
-        var lightestLoadAbove = firstSetWeight
+        var lightestLoadAbove = firstSetLoad
 
         for index in 1..<affectedSetCount {
             let set = sets[index]
@@ -563,27 +622,26 @@ class ActiveWorkoutViewModel: ObservableObject {
             let keepsItsLoad = set.isCompletedLoggedSet || (onlyEmptySets && set.weight > 0)
             if keepsItsLoad {
                 if set.weight > 0 {
-                    lightestLoadAbove = min(lightestLoadAbove, set.weight)
+                    lightestLoadAbove = min(lightestLoadAbove, set.load(in: unit))
                 }
                 continue
             }
 
             let dropPercentage = min(max(reductionPercentage(forSetIndex: index), 0), 1)
-            let calculatedWeight = Double(firstSetWeight) * (1.0 - dropPercentage)
-            var roundedWeight = max(0, workoutManager.roundToNearest5(calculatedWeight))
+            var roundedLoad = unit.roundedToIncrement(firstSetLoad * (1.0 - dropPercentage))
             if onlyEmptySets {
-                roundedWeight = min(roundedWeight, lightestLoadAbove)
-                lightestLoadAbove = roundedWeight
+                roundedLoad = min(roundedLoad, lightestLoadAbove)
+                lightestLoadAbove = roundedLoad
             }
 
-            set.weight = roundedWeight
+            set.setLoad(roundedLoad, in: unit)
 
             // Suggestions only adjust the planned load — they must never log
             // a set the user hasn't performed. Logging happens via the
             // explicit check-off or the user's own value edits. A set whose
             // values become incomplete does get unlogged.
             let isComplete = ExerciseSet.hasCompletedValues(
-                weight: roundedWeight,
+                weight: set.weight,
                 reps: set.reps,
                 exerciseCategory: set.exercise?.category
             )
@@ -596,7 +654,7 @@ class ActiveWorkoutViewModel: ObservableObject {
             try saveWorkout()
         } catch {
             for snapshot in snapshots {
-                snapshot.set.weight = snapshot.weight
+                snapshot.set.restoreLoad(snapshot.load)
                 snapshot.set.completedAt = snapshot.completedAt
             }
             throw error
@@ -606,8 +664,27 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
 
     func updateDropSetSuggestionsSafely(for exercise: Exercise, firstSetWeight: Int, onlyEmptySets: Bool = false) -> Bool {
+        updateDropSetSuggestionsSafely(
+            for: exercise,
+            firstSetLoad: Double(max(0, firstSetWeight)),
+            unit: .pounds,
+            onlyEmptySets: onlyEmptySets
+        )
+    }
+
+    func updateDropSetSuggestionsSafely(
+        for exercise: Exercise,
+        firstSetLoad: Double,
+        unit: WeightUnit,
+        onlyEmptySets: Bool = false
+    ) -> Bool {
         do {
-            try updateDropSetSuggestions(for: exercise, firstSetWeight: firstSetWeight, onlyEmptySets: onlyEmptySets)
+            try updateDropSetSuggestions(
+                for: exercise,
+                firstSetLoad: firstSetLoad,
+                unit: unit,
+                onlyEmptySets: onlyEmptySets
+            )
             return true
         } catch {
             setError(title: "Couldn’t Update Back-off Sets", message: WorkoutError.saveFailure.description)
@@ -632,19 +709,32 @@ class ActiveWorkoutViewModel: ObservableObject {
     ///   error alert is already set in that case.
     @discardableResult
     func syncBackoffsAfterTopSetSave(_ set: ExerciseSet, in exercise: Exercise, previousWeight: Int) -> Bool {
+        syncBackoffsAfterTopSetSave(set, in: exercise, previousLoad: Double(max(0, previousWeight)), unit: .pounds)
+    }
+
+    /// The same rules with loads in `unit`. `previousLoad` is what the top
+    /// set held, in that unit, before the save.
+    @discardableResult
+    func syncBackoffsAfterTopSetSave(
+        _ set: ExerciseSet,
+        in exercise: Exercise,
+        previousLoad: Double,
+        unit: WeightUnit
+    ) -> Bool {
         let topWorkingSet = orderedSetsForDisplay(in: exercise).first { !$0.isWarmup }
         guard !set.isWarmup, set.id == topWorkingSet?.id else { return true }
 
-        let newWeight = set.weight
+        let newLoad = set.load(in: unit)
+        let hasLoad = set.weight > 0
         let zeroIsARealLoad = exercise.category == .bodyweight
 
-        if newWeight != previousWeight {
-            guard newWeight > 0 || zeroIsARealLoad else { return true }
-            return updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: newWeight)
+        if !unit.displaysSameLoad(newLoad, previousLoad) {
+            guard hasLoad || zeroIsARealLoad else { return true }
+            return updateDropSetSuggestionsSafely(for: exercise, firstSetLoad: newLoad, unit: unit)
         }
 
-        guard newWeight > 0, !zeroIsARealLoad else { return true }
-        return updateDropSetSuggestionsSafely(for: exercise, firstSetWeight: newWeight, onlyEmptySets: true)
+        guard hasLoad, !zeroIsARealLoad else { return true }
+        return updateDropSetSuggestionsSafely(for: exercise, firstSetLoad: newLoad, unit: unit, onlyEmptySets: true)
     }
 
     // MARK: - Completion & Expansion

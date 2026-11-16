@@ -88,11 +88,13 @@ final class Workout {
         return exerciseCount
     }
     
-    // Calculate total volume from completed working sets only
+    /// Total volume from completed working sets, in pounds. Computed from
+    /// each set's exact load, so it converts cleanly for a lifter who
+    /// trains in kilograms.
     var totalVolume: Double {
         sets
             .filter(\.isCompletedWorkingSet)
-            .reduce(0.0) { $0 + (Double($1.weight) * Double($1.reps)) }
+            .reduce(0.0) { $0 + ($1.exactPounds * Double($1.reps)) }
     }
 
     // Calculate completed reps for bodyweight working sets
@@ -359,8 +361,10 @@ final class Workout {
         return newSet
     }
 
-    // Create a follow-up workout with the same exercises but increased weights
-    func createFollowUpWorkout(percentageIncrease: Double = 0.025) -> Workout {
+    /// Creates a follow-up workout with the same exercises and a heavier
+    /// top set. Targets are worked out and rounded in `unit`, so they are
+    /// loads the lifter can actually put on the bar.
+    func createFollowUpWorkout(percentageIncrease: Double = 0.025, unit: WeightUnit = .current) -> Workout {
         let followUp = Workout(
             name: "Follow-up: \(name)",
             startedFromTemplate: startedFromTemplate,
@@ -373,28 +377,27 @@ final class Workout {
             let workingSets = exerciseSets.filter(\.isCompletedWorkingSet)
             guard !workingSets.isEmpty else { continue }
 
-            guard let originalFirstWeight = workingSets.first?.weight else { continue }
+            guard let firstSet = workingSets.first else { continue }
+            let originalFirstLoad = firstSet.load(in: unit)
 
-            let shouldPreserveBodyweightLoads = originalFirstWeight == 0 && exercise.category == .bodyweight
-            guard shouldPreserveBodyweightLoads || originalFirstWeight > 0 else { continue }
+            let shouldPreserveBodyweightLoads = firstSet.weight == 0 && exercise.category == .bodyweight
+            guard shouldPreserveBodyweightLoads || firstSet.weight > 0 else { continue }
 
-            var newFirstSetWeight = 0
+            var newFirstSetLoad = 0.0
 
             for (index, previousSet) in workingSets.enumerated() {
-                let safePreviousWeight = max(0, previousSet.weight)
-                let roundedWeight: Int
+                let previousLoad = previousSet.load(in: unit)
+                let targetLoad: Double
 
                 if shouldPreserveBodyweightLoads {
-                    roundedWeight = safePreviousWeight
+                    targetLoad = previousLoad
                 } else if index == 0 {
-                    let calculatedWeight = Double(safePreviousWeight) * (1.0 + safePercentageIncrease)
-                    roundedWeight = max(0, Int(round(calculatedWeight / 5.0) * 5.0))
-                    newFirstSetWeight = roundedWeight
+                    targetLoad = unit.roundedToIncrement(previousLoad * (1.0 + safePercentageIncrease))
+                    newFirstSetLoad = targetLoad
                 } else {
-                    let rawDropPercentage = 1.0 - (Double(safePreviousWeight) / Double(originalFirstWeight))
+                    let rawDropPercentage = 1.0 - (previousLoad / originalFirstLoad)
                     let safeDropPercentage = min(max(rawDropPercentage, 0), 1)
-                    let calculatedWeight = Double(newFirstSetWeight) * (1.0 - safeDropPercentage)
-                    roundedWeight = max(0, Int(round(calculatedWeight / 5.0) * 5.0))
+                    targetLoad = unit.roundedToIncrement(newFirstSetLoad * (1.0 - safeDropPercentage))
                 }
 
                 let safeReps = max(0, previousSet.reps)
@@ -402,11 +405,17 @@ final class Workout {
 
                 let followUpSet = followUp.addSet(
                     exercise: exercise,
-                    weight: roundedWeight,
+                    weight: 0,
                     reps: safeReps,
                     isWarmup: false,
                     rpe: safeRPE
                 )
+                if shouldPreserveBodyweightLoads {
+                    // Carried over untouched, whatever unit it was logged in.
+                    followUpSet.restoreLoad(previousSet.storedLoad)
+                } else {
+                    followUpSet.setLoad(targetLoad, in: unit)
+                }
                 followUpSet.completedAt = .distantPast
             }
         }
@@ -414,11 +423,14 @@ final class Workout {
         return followUp
     }
     
-    // Format total volume with lb unit
-    func formattedTotalVolume() -> String {
-        let safeTotalVolume = totalVolume.isFinite ? max(0, totalVolume) : 0
-        let isWholeNumber = safeTotalVolume.truncatingRemainder(dividingBy: 1) == 0
-        return isWholeNumber ? "\(Int(safeTotalVolume)) lb" : String(format: "%.1f lb", safeTotalVolume)
+    /// Total volume written in the lifter's unit.
+    func formattedTotalVolume(in unit: WeightUnit = .current) -> String {
+        let pounds = totalVolume.isFinite ? max(0, totalVolume) : 0
+        // To the tenth, which also removes the float noise a conversion
+        // leaves behind (500 kg must not read as 499.9).
+        let value = (unit.converting(pounds, from: .pounds) * 10).rounded() / 10
+        let isWholeNumber = value.truncatingRemainder(dividingBy: 1) == 0
+        return isWholeNumber ? "\(Int(value)) \(unit.short)" : String(format: "%.1f", value) + " \(unit.short)"
     }
 
     func formattedTotalBodyweightReps() -> String {
