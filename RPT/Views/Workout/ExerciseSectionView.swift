@@ -38,7 +38,14 @@ struct ExerciseSectionView: View {
     @State private var showingWarmupPlan = false
     @State private var showingPlateCalculator = false
     @State private var progressionNote: String?
-    @State private var progressionTargetWeight: Int?
+    /// The suggested load exactly as it is written inside the note, so it
+    /// can be emphasised there.
+    @State private var progressionTarget: String?
+
+    /// The unit the lifter trains in. It cannot change while a workout is
+    /// on screen, but reading it here keeps every load in this section in
+    /// one unit.
+    @AppStorage(WeightUnit.defaultsKey) private var weightUnit: WeightUnit = .pounds
 
     private var isExpanded: Bool {
         viewModel.expandedExercises.contains(exercise.id)
@@ -106,10 +113,14 @@ struct ExerciseSectionView: View {
             }
         }
         .sheet(item: $editorRequest) { request in
-            SetValueEditorSheet(set: request.exerciseSet, isLogging: request.isLogging) { weight, reps in
+            SetValueEditorSheet(
+                set: request.exerciseSet,
+                unit: weightUnit,
+                isLogging: request.isLogging
+            ) { load, reps in
                 applyEditedValues(
                     to: request.exerciseSet,
-                    weight: weight,
+                    load: load,
                     reps: reps,
                     completesLog: request.isLogging
                 )
@@ -117,15 +128,21 @@ struct ExerciseSectionView: View {
             .presentationDetents([.height(340), .medium, .large])
         }
         .sheet(isPresented: $showingWarmupPlan) {
-            WarmupPlanView(topSetWeight: topWorkingSet?.weight ?? 0) { steps in
+            WarmupPlanView(
+                topSetLoad: topWorkingSet?.loadableLoad(in: weightUnit) ?? 0,
+                unit: weightUnit
+            ) { steps in
                 for step in steps {
-                    _ = viewModel.addWarmupSetSafely(to: exercise, weight: step.weight, reps: step.reps)
+                    _ = viewModel.addWarmupSetSafely(to: exercise, load: step.load, unit: weightUnit, reps: step.reps)
                 }
             }
             .presentationDetents([.medium])
         }
         .sheet(isPresented: $showingPlateCalculator) {
-            PlateCalculatorView(initialTargetWeight: nextSet?.weight ?? topWorkingSet?.weight ?? 0)
+            PlateCalculatorView(
+                initialTargetLoad: (nextSet ?? topWorkingSet)?.load(in: weightUnit) ?? 0,
+                initialUnit: weightUnit
+            )
         }
         .alert(item: $setToDelete) { set in
             Alert(
@@ -178,7 +195,7 @@ struct ExerciseSectionView: View {
                     onDelete: { setToDelete = set },
                     onLogTapped: { handleLogTap(for: set) },
                     onSetRPE: { rpe in
-                        _ = viewModel.updateSetSafely(set, weight: set.weight, reps: set.reps, rpe: rpe)
+                        _ = viewModel.updateRPESafely(set, rpe: rpe)
                     }
                 )
             }
@@ -447,9 +464,7 @@ struct ExerciseSectionView: View {
         guard !logged.isEmpty else { return nil }
 
         let weights = logged
-            .map { set in
-                set.weight == 0 && set.exercise?.category == .bodyweight ? "BW" : "\(max(0, set.weight))"
-            }
+            .map { $0.loadText(in: weightUnit, empty: "0") }
             .joined(separator: " → ")
         let reps = logged.map { "\(max(0, $0.reps))" }.joined(separator: "+")
         return "\(weights) · \(reps) reps"
@@ -502,9 +517,11 @@ struct ExerciseSectionView: View {
         }
 
         var text = "Back-off"
-        if let top = topWorkingSet, top.weight > 0, set.weight > 0, set.weight <= top.weight {
-            let percent = Int(((1 - Double(set.weight) / Double(top.weight)) * 100).rounded())
-            text = percent > 0 ? "−\(percent)% · \(set.weight) lb" : "Same load"
+        if let top = topWorkingSet, top.weight > 0, set.weight > 0, set.exactPounds <= top.exactPounds {
+            let percent = Int(((1 - set.exactPounds / top.exactPounds) * 100).rounded())
+            text = percent > 0
+                ? "−\(percent)% · \(weightUnit.formatted(set.load(in: weightUnit)))"
+                : "Same load"
         }
         return SetLadderInfo(
             badgeColor: color,
@@ -516,10 +533,10 @@ struct ExerciseSectionView: View {
 
     // MARK: - Set Mutations
 
-    private func applyEditedValues(to set: ExerciseSet, weight: Int, reps: Int, completesLog: Bool) {
-        let previousWeight = set.weight
-        guard viewModel.updateSetSafely(set, weight: weight, reps: reps, rpe: set.rpe) else { return }
-        viewModel.syncBackoffsAfterTopSetSave(set, in: exercise, previousWeight: previousWeight)
+    private func applyEditedValues(to set: ExerciseSet, load: Double, reps: Int, completesLog: Bool) {
+        let previousLoad = set.load(in: weightUnit)
+        guard viewModel.updateSetSafely(set, load: load, unit: weightUnit, reps: reps, rpe: set.rpe) else { return }
+        viewModel.syncBackoffsAfterTopSetSave(set, in: exercise, previousLoad: previousLoad, unit: weightUnit)
 
         // Saving values from a log tap completes the check-off. Value edits
         // never log implicitly, so finish the intent with an explicit toggle.
@@ -565,8 +582,8 @@ struct ExerciseSectionView: View {
         guard let progressionNote else { return nil }
 
         var attributed = AttributedString(progressionNote)
-        if let target = progressionTargetWeight, target > 0,
-           let range = attributed.range(of: "\(target) lb") {
+        if let target = progressionTarget,
+           let range = attributed.range(of: target) {
             attributed[range].inlinePresentationIntent = .stronglyEmphasized
         }
         return attributed
@@ -582,17 +599,19 @@ struct ExerciseSectionView: View {
 
         guard let lastTopSet = lastCompleted?.sets.first(where: \.isCompletedWorkingSet), lastTopSet.weight > 0 else {
             progressionNote = nil
-            progressionTargetWeight = nil
+            progressionTarget = nil
             return
         }
 
         let suggestion = ProgressionAdvisor.suggestion(
-            lastWeight: lastTopSet.weight,
+            lastLoad: lastTopSet.loadableLoad(in: weightUnit),
+            unit: weightUnit,
             lastReps: lastTopSet.reps,
             repRange: programmedTopSetRepRange
         )
-        progressionNote = "Last top set \(lastTopSet.weight)×\(lastTopSet.reps). \(suggestion.note)"
-        progressionTargetWeight = suggestion.suggestedWeight
+        let lastLoadText = weightUnit.string(for: lastTopSet.load(in: weightUnit))
+        progressionNote = "Last top set \(lastLoadText)×\(lastTopSet.reps). \(suggestion.note)"
+        progressionTarget = suggestion.suggestedLoad > 0 ? suggestion.formattedLoad : nil
     }
 
     /// The rep range programmed for this exercise's top set: the source
@@ -631,6 +650,8 @@ struct SetTableRow: View {
     let onDelete: () -> Void
     let onLogTapped: () -> Void
     let onSetRPE: (Int?) -> Void
+
+    @AppStorage(WeightUnit.defaultsKey) private var weightUnit: WeightUnit = .pounds
 
     private var isLogged: Bool {
         // `self.` is required: a leading bare `set` parses as a setter keyword.
@@ -768,10 +789,8 @@ struct SetTableRow: View {
     }
 
     private var weightText: String {
-        if set.weight == 0, set.exercise?.category == .bodyweight {
-            return "BW"
-        }
-        return set.weight > 0 ? "\(set.weight)" : "—"
+        // `self.` is required: a leading bare `set` parses as a setter keyword.
+        self.set.loadText(in: weightUnit)
     }
 
     private var repsText: String {
@@ -794,11 +813,14 @@ struct SetValueEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let set: ExerciseSet
+    /// The unit the load is typed and saved in.
+    var unit: WeightUnit = .pounds
     /// True when a Log tap opened the editor because the set had nothing to
     /// log yet. Saving then has to produce loggable values, so the sheet
     /// explains what is missing instead of closing with the set unlogged.
     var isLogging: Bool = false
-    let onSave: (Int, Int) -> Void
+    /// Called with the load, in `unit`, and the reps.
+    let onSave: (Double, Int) -> Void
 
     @State private var weightText: String = ""
     @State private var repsText: String = ""
@@ -814,12 +836,14 @@ struct SetValueEditorSheet: View {
             VStack(spacing: 16) {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Weight (lb)")
+                        Text("Weight (\(unit.short))")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
 
                         TextField("0", text: $weightText)
-                            .keyboardType(.numberPad)
+                            // Kilogram plates go down to fractions; pounds
+                            // are logged whole.
+                            .keyboardType(unit.entryFractionDigits > 0 ? .decimalPad : .numberPad)
                             .font(Theme.statFont(size: 26))
                             .padding(12)
                             .background(Theme.surfaceMuted, in: RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
@@ -874,7 +898,7 @@ struct SetValueEditorSheet: View {
                 }
             }
             .onAppear {
-                weightText = set.weight > 0 ? "\(set.weight)" : ""
+                weightText = set.loadEntryText(in: unit)
                 repsText = set.reps > 0 ? "\(set.reps)" : ""
                 focusedField = .weight
             }
@@ -882,8 +906,8 @@ struct SetValueEditorSheet: View {
     }
 
     private func save() {
-        guard let weight = SetInputParser.weight(from: weightText) else {
-            showValidation("Weight must be a whole number of pounds, up to \(SetInputParser.maxWeight).")
+        guard let load = SetInputParser.load(from: weightText, unit: unit) else {
+            showValidation(unit.entryValidationMessage)
             focusedField = .weight
             return
         }
@@ -895,7 +919,7 @@ struct SetValueEditorSheet: View {
         }
 
         if isLogging,
-           !ExerciseSet.hasCompletedValues(weight: weight, reps: reps, exerciseCategory: set.exercise?.category) {
+           !ExerciseSet.hasCompletedValues(load: load, reps: reps, exerciseCategory: set.exercise?.category) {
             if reps == 0 {
                 showValidation("Enter the reps you completed to log this set.")
                 focusedField = .reps
@@ -906,7 +930,7 @@ struct SetValueEditorSheet: View {
             return
         }
 
-        onSave(weight, reps)
+        onSave(load, reps)
         dismiss()
     }
 

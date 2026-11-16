@@ -11,10 +11,15 @@ import SwiftUI
 struct PlateCalculatorView: View {
     @Environment(\.dismiss) private var dismiss
 
-    var initialTargetWeight: Int = 0
+    /// Load to start from, in `initialUnit`.
+    var initialTargetLoad: Double = 0
+    /// Starts in the unit the lifter trains in; the picker still lets them
+    /// check a load in the other one.
+    var initialUnit: WeightUnit = .current
 
     @State private var targetText: String = ""
     @State private var unit: WeightUnit = .pounds
+    @State private var hasAppliedInitialValues = false
     @State private var barbell: BarbellType = .olympic
     @FocusState private var isInputFocused: Bool
 
@@ -42,8 +47,14 @@ struct PlateCalculatorView: View {
                 }
             }
             .onAppear {
-                if initialTargetWeight > 0 {
-                    targetText = "\(initialTargetWeight)"
+                // Once: reappearing must not undo a unit or target the
+                // lifter has changed since.
+                guard !hasAppliedInitialValues else { return }
+                hasAppliedInitialValues = true
+
+                unit = initialUnit
+                if initialTargetLoad > 0 {
+                    targetText = initialUnit.string(for: initialTargetLoad)
                 }
             }
         }

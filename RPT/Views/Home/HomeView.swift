@@ -583,14 +583,15 @@ struct HomeView: View {
         workout.totalVolume.isFinite ? max(0, workout.totalVolume) : 0
     }
 
+    /// A volume held in pounds, written in the lifter's unit.
     private func volumeText(_ volume: Double) -> String {
-        let safeVolume = volume.isFinite ? max(0, volume) : 0
-        return "\(Int(safeVolume).formatted()) lb"
+        let unit = WeightUnit.current
+        return "\(unit.wholeNumber(forPounds: volume).formatted()) \(unit.short)"
     }
 
     private func workMetricText(for workout: Workout) -> String {
         if workout.totalVolume.isFinite, workout.totalVolume > 0 {
-            return "\(Int(workout.totalVolume).formatted()) lb"
+            return volumeText(workout.totalVolume)
         }
 
         return workout.preferredWorkMetricValue

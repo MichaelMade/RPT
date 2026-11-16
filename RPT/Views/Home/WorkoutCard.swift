@@ -99,7 +99,8 @@ struct WorkoutCard: View {
 
     private var workMetricText: String {
         if workout.totalVolume.isFinite, workout.totalVolume > 0 {
-            return "\(Int(workout.totalVolume).formatted()) lb"
+            let unit = WeightUnit.current
+            return "\(unit.wholeNumber(forPounds: workout.totalVolume).formatted()) \(unit.short)"
         }
 
         return workout.preferredWorkMetricValue

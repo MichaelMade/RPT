@@ -450,8 +450,11 @@ struct StatsView: View {
     }
 
     /// Short numeric form for the in-chart annotation ("27.4k").
+    /// A weekly volume, held in pounds, as a short number in the lifter's
+    /// unit.
     private func compactVolume(_ volume: Double) -> String {
-        let safe = volume.isFinite ? max(0, volume) : 0
+        let pounds = volume.isFinite ? max(0, volume) : 0
+        let safe = WeightUnit.current.converting(pounds, from: .pounds)
         if safe >= 1_000_000 {
             return String(format: "%.1fM", safe / 1_000_000)
         }
@@ -558,7 +561,7 @@ struct StatsView: View {
 
     /// e1RM gain over each exercise's best set logged before the PR
     /// workout; exercises with no earlier history carry no delta.
-    private func recordDeltas(for records: [PersonalRecordEntry]) -> [String: Int] {
+    private func recordDeltas(for records: [PersonalRecordEntry]) -> [String: Double] {
         guard !records.isEmpty else { return [:] }
 
         let prDates = Dictionary(uniqueKeysWithValues: records.map { ($0.exerciseName, $0.date) })
@@ -570,26 +573,29 @@ struct StatsView: View {
                       let prDate = prDates[name],
                       workout.date < prDate else { continue }
 
-                let estimate = OneRepMax.estimate(weight: set.weight, reps: set.reps)
+                let estimate = OneRepMax.estimate(pounds: set.exactPounds, reps: set.reps)
                 if estimate > 0 {
                     previousBest[name] = max(previousBest[name] ?? 0, estimate)
                 }
             }
         }
 
-        var deltas: [String: Int] = [:]
+        // Gains are in pounds, like the estimates. One that would be written
+        // as zero in the lifter's unit is not shown.
+        let unit = WeightUnit.current
+        var deltas: [String: Double] = [:]
         for record in records {
             guard let previous = previousBest[record.exerciseName] else { continue }
 
-            let gain = Int((record.estimatedOneRepMax - previous).rounded())
-            if gain > 0 {
+            let gain = record.estimatedOneRepMax - previous
+            if gain > 0, unit.string(forPounds: gain) != "0" {
                 deltas[record.exerciseName] = gain
             }
         }
         return deltas
     }
 
-    private func recordRow(_ record: PersonalRecordEntry, delta: Int?) -> some View {
+    private func recordRow(_ record: PersonalRecordEntry, delta: Double?) -> some View {
         HStack(spacing: 10) {
             Image(systemName: "star.fill")
                 .font(.system(size: 12, weight: .semibold))
@@ -608,7 +614,7 @@ struct StatsView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
 
-                Text("\(record.weight) × \(record.reps) · \(record.date.formatted(.dateTime.month(.abbreviated).day()))")
+                Text("\(WeightUnit.current.string(forPounds: record.loadPounds)) × \(record.reps) · \(record.date.formatted(.dateTime.month(.abbreviated).day()))")
                     .font(.system(size: 11.5))
                     .monospacedDigit()
                     .foregroundStyle(Theme.textSecondary)
@@ -617,7 +623,7 @@ struct StatsView: View {
             Spacer(minLength: 8)
 
             if let delta {
-                Text("+\(delta) lb")
+                Text("+\(WeightUnit.current.formatted(pounds: delta))")
                     .font(.system(size: 11, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(Theme.doneForeground)

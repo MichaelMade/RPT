@@ -13,6 +13,9 @@ struct ContentView: View {
     @StateObject private var settingsManager = SettingsManager.shared
     @StateObject private var session = WorkoutSession.shared
     @AppStorage("selectedRootTab") private var selectedRootTabRawValue = RootTab.home.rawValue
+    /// Changing the unit in Settings rebuilds the other tabs, so every load
+    /// and total they show is read again in the new unit.
+    @AppStorage(WeightUnit.defaultsKey) private var weightUnit: WeightUnit = .pounds
 
     var body: some View {
         if settingsManager.initializationFailureDescription != nil {
@@ -25,24 +28,28 @@ struct ContentView: View {
     private var tabShell: some View {
         TabView(selection: selectedRootTabBinding) {
             HomeView()
+                .id(weightUnit)
                 .tag(RootTab.home)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
 
             TemplatesListView()
+                .id(weightUnit)
                 .tag(RootTab.templates)
                 .tabItem {
                     Label("Templates", systemImage: "square.grid.2x2.fill")
                 }
 
             ExercisesView()
+                .id(weightUnit)
                 .tag(RootTab.exercises)
                 .tabItem {
                     Label("Exercises", systemImage: "figure.strengthtraining.traditional")
                 }
 
             StatsView()
+                .id(weightUnit)
                 .tag(RootTab.stats)
                 .tabItem {
                     Label("Stats", systemImage: "chart.bar.fill")

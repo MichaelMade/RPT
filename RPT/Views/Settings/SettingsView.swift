@@ -17,6 +17,8 @@ struct SettingsView: View {
     @StateObject private var settingsManager = SettingsManager.shared
     @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
     @ObservedObject private var restAlerts = RestAlertManager.shared
+    /// The unit loads are entered and shown in, everywhere in the app.
+    @AppStorage(WeightUnit.defaultsKey) private var weightUnit: WeightUnit = .pounds
 
     @State private var soundEnabled = SoundManager.shared.isSoundEnabled()
     @State private var showingResetConfirmation = false
@@ -203,6 +205,8 @@ struct SettingsView: View {
 
     private var trainingSection: some View {
         settingsGroup("Training") {
+            weightUnitRow
+            hairline
             rptDropsRow
             hairline
             weeklyGoalRow
@@ -211,19 +215,49 @@ struct SettingsView: View {
         }
     }
 
+    /// Pounds or kilograms. Nothing stored is rewritten by the switch:
+    /// each set keeps the load it was logged with and is shown converted.
+    private var weightUnitRow: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Weight unit")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.textPrimary)
+
+                Text("Earlier workouts are shown converted")
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(Theme.textSecondary)
+            }
+
+            Spacer()
+
+            Picker("Weight unit", selection: $weightUnit) {
+                Text("lb").tag(WeightUnit.pounds)
+                Text("kg").tag(WeightUnit.kilograms)
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 120)
+            .frame(minHeight: 44)
+            .accessibilityIdentifier("weightUnitPicker")
+        }
+        .padding(.horizontal, Theme.cardPadding)
+        .padding(.vertical, 12)
+    }
+
     /// "−10% / −15%" from the currently configured back-off drops.
     private var dropsSummary: String {
         backoffDropPercents.map { "−\($0)%" }.joined(separator: " / ")
     }
 
-    /// The configured ladder applied to a 100 lb top set, e.g. [100, 90, 85].
-    private var ladderWeights: [Int] {
-        let topSetWeight = 100
-        let workoutManager = WorkoutManager.shared
+    /// The configured ladder applied to a top set of 100 in the lifter's
+    /// unit, each back-off rounded to a load they can put on the bar:
+    /// 100, 90, 85.
+    private var ladderWeights: [String] {
+        let topSetLoad = 100.0
         let backoffs = settings.defaultRPTPercentageDrops.dropFirst().map { drop in
-            workoutManager.roundToNearest5(Double(topSetWeight) * (1.0 - drop))
+            weightUnit.roundedToIncrement(topSetLoad * (1.0 - drop))
         }
-        return [topSetWeight] + backoffs
+        return ([topSetLoad] + backoffs).map { weightUnit.string(for: $0) }
     }
 
     private var ladderColors: [Color] {
@@ -293,7 +327,7 @@ struct SettingsView: View {
                         .foregroundStyle(Theme.textTertiary)
                 }
 
-                Text("\(weight)")
+                Text(weight)
                     .font(.system(size: 12, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(index == 0 ? Color.white : Theme.inverted)
@@ -305,7 +339,7 @@ struct SettingsView: View {
                     )
             }
 
-            Text("from a 100 lb top set")
+            Text("from a 100 \(weightUnit.short) top set")
                 .font(.system(size: 11.5))
                 .foregroundStyle(Theme.textSecondary)
                 .padding(.leading, 4)
@@ -314,7 +348,7 @@ struct SettingsView: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
-            "Example from a 100 pound top set: \(ladderWeights.map(String.init).joined(separator: ", ")) pounds"
+            "Example from a top set of 100 \(weightUnit.displayName.lowercased()): \(ladderWeights.joined(separator: ", "))"
         )
     }
 

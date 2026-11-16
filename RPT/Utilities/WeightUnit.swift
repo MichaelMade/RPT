@@ -49,6 +49,14 @@ enum WeightUnit: String, CaseIterable, Codable {
         defaults.string(forKey: defaultsKey).flatMap(WeightUnit.init(rawValue:))
     }
 
+    /// For a first launch: adopts the unit the lifter's region trains in,
+    /// unless a choice has already been made. Never called for someone who
+    /// was already using the app, whose history is in pounds.
+    static func adoptSuggestedIfUnset(defaults: UserDefaults = .standard, locale: Locale = .current) {
+        guard stored(in: defaults) == nil else { return }
+        defaults.set(suggested(for: locale).rawValue, forKey: defaultsKey)
+    }
+
     /// The unit a first-time lifter most likely trains in. Only the United
     /// States loads its bars in pounds.
     static func suggested(for locale: Locale = .current) -> WeightUnit {
@@ -107,6 +115,16 @@ enum WeightUnit: String, CaseIterable, Codable {
         switch self {
         case .pounds: return 0
         case .kilograms: return 2
+        }
+    }
+
+    /// Shown when a typed load cannot be read.
+    var entryValidationMessage: String {
+        switch self {
+        case .pounds:
+            return "Weight must be a whole number of pounds, up to \(Int(maximumLoad))."
+        case .kilograms:
+            return "Weight must be in kilograms with at most two decimals, up to \(Int(maximumLoad))."
         }
     }
 
@@ -172,6 +190,14 @@ enum WeightUnit: String, CaseIterable, Codable {
 
     func formatted(pounds: Double) -> String {
         formatted(converting(pounds, from: .pounds))
+    }
+
+    /// A total held in pounds as a whole number in this unit, with its
+    /// symbol: "12450 lb", "5647 kg". Callers add digit grouping.
+    func wholeNumber(forPounds pounds: Double) -> Int {
+        let value = converting(pounds.isFinite ? max(0, pounds) : 0, from: .pounds)
+        // Snap first so a converted 500 kg cannot land on 499.9999.
+        return Int(((value * 1_000).rounded() / 1_000).rounded())
     }
 
     private static func trimmed(hundredths: Int) -> String {

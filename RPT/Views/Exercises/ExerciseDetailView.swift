@@ -175,7 +175,12 @@ struct ExerciseDetailView: View {
             return nil
         }
 
-        return ProgressionAdvisor.suggestion(lastWeight: topSet.weight, lastReps: topSet.reps)
+        let unit = WeightUnit.current
+        return ProgressionAdvisor.suggestion(
+            lastLoad: topSet.loadableLoad(in: unit),
+            unit: unit,
+            lastReps: topSet.reps
+        )
     }
 
     private func progressionCard(_ suggestion: ProgressionSuggestion) -> some View {
@@ -220,6 +225,12 @@ struct ExerciseDetailView: View {
         e1rmPoints.map(\.value).max() ?? 0
     }
 
+    /// Estimates are held in pounds; the chart's axis is in the lifter's
+    /// unit.
+    private func chartValue(_ point: E1RMPoint) -> Double {
+        WeightUnit.current.converting(point.value, from: .pounds)
+    }
+
     private var e1rmAccessibilitySummary: String {
         guard let first = e1rmPoints.first, let latest = e1rmPoints.last else {
             return "No strength trend data."
@@ -251,14 +262,14 @@ struct ExerciseDetailView: View {
                 Chart(e1rmPoints) { point in
                     LineMark(
                         x: .value("Date", point.date),
-                        y: .value("e1RM", point.value)
+                        y: .value("e1RM", chartValue(point))
                     )
                     .foregroundStyle(Theme.accent)
                     .interpolationMethod(.catmullRom)
 
                     PointMark(
                         x: .value("Date", point.date),
-                        y: .value("e1RM", point.value)
+                        y: .value("e1RM", chartValue(point))
                     )
                     .foregroundStyle(Theme.accentDeep)
                 }

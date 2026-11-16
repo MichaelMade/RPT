@@ -64,6 +64,30 @@ final class WeightUnitConversionTests: XCTestCase {
         defaults.set("stone", forKey: WeightUnit.defaultsKey)
         XCTAssertNil(WeightUnit.stored(in: defaults), "An unknown value is treated as no choice")
     }
+
+    func testFirstLaunchAdoptsTheRegionsUnitOnce() throws {
+        let suiteName = "rpt.tests.weight-unit.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        WeightUnit.adoptSuggestedIfUnset(defaults: defaults, locale: Locale(identifier: "de_DE"))
+        XCTAssertEqual(WeightUnit.stored(in: defaults), .kilograms)
+
+        // A later launch in another region must not move a choice that
+        // history has already been logged under.
+        WeightUnit.adoptSuggestedIfUnset(defaults: defaults, locale: Locale(identifier: "en_US"))
+        XCTAssertEqual(WeightUnit.stored(in: defaults), .kilograms)
+    }
+
+    func testFirstLaunchInTheUnitedStatesStaysInPounds() throws {
+        let suiteName = "rpt.tests.weight-unit.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        WeightUnit.adoptSuggestedIfUnset(defaults: defaults, locale: Locale(identifier: "en_US"))
+
+        XCTAssertEqual(WeightUnit.stored(in: defaults), .pounds)
+    }
 }
 
 final class WeightUnitDisplayTests: XCTestCase {
@@ -100,6 +124,28 @@ final class WeightUnitDisplayTests: XCTestCase {
         XCTAssertEqual(WeightUnit.pounds.string(for: 0), "0")
         XCTAssertEqual(WeightUnit.kilograms.string(for: -3), "0")
         XCTAssertEqual(WeightUnit.kilograms.string(for: .nan), "0")
+    }
+
+    func testTotalsAreWholeNumbersInTheLiftersUnit() {
+        let poundsPerKilogram = 1 / WeightUnit.kilogramsPerPound
+
+        XCTAssertEqual(WeightUnit.pounds.wholeNumber(forPounds: 12_450), 12_450)
+        XCTAssertEqual(WeightUnit.kilograms.wholeNumber(forPounds: 500 * poundsPerKilogram), 500)
+        XCTAssertEqual(WeightUnit.kilograms.wholeNumber(forPounds: 1_720 * poundsPerKilogram), 1_720)
+        XCTAssertEqual(WeightUnit.kilograms.wholeNumber(forPounds: 233.4), 106)
+        XCTAssertEqual(WeightUnit.kilograms.wholeNumber(forPounds: .nan), 0)
+        XCTAssertEqual(WeightUnit.pounds.wholeNumber(forPounds: -40), 0)
+    }
+
+    func testEntryMessageNamesWhatTheUnitAccepts() {
+        XCTAssertEqual(
+            WeightUnit.pounds.entryValidationMessage,
+            "Weight must be a whole number of pounds, up to 9999."
+        )
+        XCTAssertEqual(
+            WeightUnit.kilograms.entryValidationMessage,
+            "Weight must be in kilograms with at most two decimals, up to 4500."
+        )
     }
 
     func testSameWrittenLoadIsTheSameLoad() {
@@ -277,6 +323,68 @@ final class ExerciseSetLoadTests: XCTestCase {
         XCTAssertEqual(lighter.weight, heavier.weight, "The whole-pound shadows collide here")
         XCTAssertTrue(heavier.isBetterPerformance(than: lighter))
         XCTAssertFalse(lighter.isBetterPerformance(than: heavier))
+    }
+
+    func testPlanningStartsFromALoadThatCanBeLoaded() {
+        let poundSet = makeSet(weight: 225)
+        XCTAssertEqual(poundSet.loadableLoad(in: .pounds), 225)
+        XCTAssertEqual(poundSet.loadableLoad(in: .kilograms), 102.5, "102.06 kg cannot be put on a bar")
+
+        let oddPoundSet = makeSet(weight: 187)
+        XCTAssertEqual(oddPoundSet.loadableLoad(in: .pounds), 187, "What was lifted, not rounded to 185")
+
+        let kilogramSet = makeSet()
+        kilogramSet.setLoad(61.25, in: .kilograms)
+        XCTAssertEqual(kilogramSet.loadableLoad(in: .kilograms), 61.25)
+        XCTAssertEqual(kilogramSet.loadableLoad(in: .pounds), 135)
+    }
+
+    func testWeightColumnAndEditorText() {
+        let empty = makeSet()
+        XCTAssertEqual(empty.loadText(in: .kilograms), "—")
+        XCTAssertEqual(empty.loadText(in: .pounds, empty: "0"), "0")
+        XCTAssertEqual(empty.loadEntryText(in: .kilograms), "", "A blank field, not a zero to delete")
+
+        let bodyweight = makeSet(category: .bodyweight)
+        XCTAssertEqual(bodyweight.loadText(in: .kilograms), "BW")
+        XCTAssertEqual(bodyweight.loadEntryText(in: .kilograms), "")
+
+        let kilogramSet = makeSet()
+        kilogramSet.setLoad(61.25, in: .kilograms)
+        XCTAssertEqual(kilogramSet.loadText(in: .kilograms), "61.25")
+        XCTAssertEqual(kilogramSet.loadEntryText(in: .kilograms), "61.25")
+        XCTAssertEqual(kilogramSet.loadText(in: .pounds), "135")
+
+        let poundSet = makeSet(weight: 225)
+        XCTAssertEqual(poundSet.loadEntryText(in: .pounds), "225")
+        XCTAssertEqual(poundSet.loadEntryText(in: .kilograms), "102.1")
+    }
+
+    func testEditorTextRoundTripsThroughTheParser() {
+        // Whatever the editor shows must parse back to the same written
+        // load, or a reps-only save would change the weight.
+        for load in [20.0, 61.25, 62.5, 100, 102.5, 142.75, 0.5] {
+            let set = makeSet()
+            set.setLoad(load, in: .kilograms)
+            let text = set.loadEntryText(in: .kilograms)
+            XCTAssertEqual(SetInputParser.load(from: text, unit: .kilograms), load, text)
+        }
+
+        let converted = makeSet(weight: 225)
+        let text = converted.loadEntryText(in: .kilograms)
+        let parsed = SetInputParser.load(from: text, unit: .kilograms)
+        XCTAssertNotNil(parsed)
+        converted.setLoad(parsed ?? 0, in: .kilograms)
+        XCTAssertEqual(converted.weight, 225)
+        XCTAssertNil(converted.loadValue, "Saving the shown value back must not rewrite a pound set")
+    }
+
+    func testLoggableValuesForATypedLoad() {
+        XCTAssertTrue(ExerciseSet.hasCompletedValues(load: 0.5, reps: 5, exerciseCategory: .compound))
+        XCTAssertFalse(ExerciseSet.hasCompletedValues(load: 0, reps: 5, exerciseCategory: .compound))
+        XCTAssertTrue(ExerciseSet.hasCompletedValues(load: 0, reps: 5, exerciseCategory: .bodyweight))
+        XCTAssertFalse(ExerciseSet.hasCompletedValues(load: 60, reps: 0, exerciseCategory: .compound))
+        XCTAssertFalse(ExerciseSet.hasCompletedValues(load: .nan, reps: 5, exerciseCategory: .compound))
     }
 
     func testSetIsWrittenInTheLiftersUnit() {

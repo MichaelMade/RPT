@@ -193,6 +193,9 @@ struct OnboardingView: View {
     }
 
     private func completeOnboarding(using plan: OnboardingLaunchPlan) {
+        // Before the first workout is created, so it is planned in the unit
+        // this lifter's region trains in.
+        WeightUnit.adoptSuggestedIfUnset()
         selectedRootTabRawValue = plan.rootTab.rawValue
         showCreateTemplateAfterOnboarding = plan.shouldShowTemplateComposer
 
@@ -225,6 +228,7 @@ struct OnboardingView: View {
     }
 
     private func completeOnboardingByBrowsing() {
+        WeightUnit.adoptSuggestedIfUnset()
         selectedRootTabRawValue = RootTab.home.rawValue
         showCreateTemplateAfterOnboarding = false
         FunnelAnalytics.shared.trackOnboardingComplete(source: .onboardingBrowse)

@@ -79,6 +79,12 @@ final class ExerciseSet {
         return exerciseCategory == .bodyweight
     }
 
+    /// The same rule for a load typed in any unit.
+    static func hasCompletedValues(load: Double, reps: Int, exerciseCategory: ExerciseCategory? = nil) -> Bool {
+        guard load.isFinite else { return false }
+        return hasCompletedValues(weight: load > 0 ? 1 : 0, reps: reps, exerciseCategory: exerciseCategory)
+    }
+
     var hasCompletedValues: Bool {
         Self.hasCompletedValues(weight: weight, reps: reps, exerciseCategory: exercise?.category)
     }
@@ -227,6 +233,28 @@ extension ExerciseSet {
         loadUnitRaw = unit.rawValue
         // Never zero for a real load: zero means "no weight" throughout.
         weight = max(1, Int(WeightUnit.pounds.converting(safeValue, from: unit).rounded()))
+    }
+
+    /// The load to plan from in `unit`: exactly what was logged when it was
+    /// logged in that unit, otherwise the nearest step that can be loaded.
+    /// A 225 lb set is 102.06 kg, which nobody can put on a bar.
+    func loadableLoad(in unit: WeightUnit) -> Double {
+        loadUnit == unit ? load(in: unit) : unit.roundedToIncrement(load(in: unit))
+    }
+
+    /// The weight column: the number alone, "BW" for a bodyweight set with
+    /// no added load, and `empty` when nothing has been entered.
+    func loadText(in unit: WeightUnit, empty: String = "—") -> String {
+        if weight <= 0 {
+            return exercise?.category == .bodyweight ? "BW" : empty
+        }
+        return unit.string(for: load(in: unit))
+    }
+
+    /// What the weight field starts with when the set is opened for
+    /// editing: blank when there is no load.
+    func loadEntryText(in unit: WeightUnit) -> String {
+        weight > 0 ? unit.string(for: load(in: unit)) : ""
     }
 
     /// Writes a whole-pound load, clearing any exact value. For the paths

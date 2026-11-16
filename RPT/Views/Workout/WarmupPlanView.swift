@@ -11,17 +11,29 @@ import SwiftUI
 struct WarmupPlanView: View {
     @Environment(\.dismiss) private var dismiss
 
-    let topSetWeight: Int
-    let onAdd: ([WarmupStep]) -> Void
+    /// The top set's load, in `unit`.
+    let topSetLoad: Double
+    let unit: WeightUnit
+    let onAdd: ([WarmupLoadStep]) -> Void
 
-    private var steps: [WarmupStep] {
-        WarmupPlanner.plan(topSetWeight: topSetWeight)
+    private var steps: [WarmupLoadStep] {
+        WarmupPlanner.plan(topSetLoad: topSetLoad, unit: unit)
+    }
+
+    private func title(for step: WarmupLoadStep) -> String {
+        if step.load <= 0 {
+            return "Bodyweight"
+        }
+        if step.load == unit.emptyBarLoad {
+            return "Empty bar"
+        }
+        return unit.formatted(step.load)
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                if topSetWeight <= 0 {
+                if topSetLoad <= 0 {
                     EmptyStateCard(
                         icon: "thermometer.low",
                         title: "Set a Top-Set Weight First",
@@ -34,7 +46,7 @@ struct WarmupPlanView: View {
                                 Image(systemName: "thermometer.low")
                                     .foregroundStyle(Theme.amber)
 
-                                Text(step.weight == 0 ? "Bodyweight" : (step.weight == WarmupPlanner.barWeight ? "Empty bar" : "\(step.weight) lb"))
+                                Text(title(for: step))
                                     .font(.subheadline.weight(.semibold))
 
                                 Spacer()
@@ -48,7 +60,7 @@ struct WarmupPlanView: View {
                         }
                     }
 
-                    Text("Ramping toward your \(topSetWeight) lb top set. Low reps keep fatigue away from the set that counts.")
+                    Text("Ramping toward your \(unit.formatted(topSetLoad)) top set. Low reps keep fatigue away from the set that counts.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)

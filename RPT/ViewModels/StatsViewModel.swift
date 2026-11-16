@@ -26,6 +26,8 @@ struct MuscleGroupShare: Identifiable {
 struct PersonalRecordEntry: Identifiable {
     let exerciseName: String
     let weight: Int
+    /// The record set's exact load, in pounds.
+    let loadPounds: Double
     let reps: Int
     let estimatedOneRepMax: Double
     let date: Date
@@ -122,7 +124,7 @@ class StatsViewModel: ObservableObject {
             for set in workout.sets where set.isCompletedWorkingSet && set.weight > 0 {
                 guard let exerciseName = set.exercise?.displayName else { continue }
 
-                let estimate = OneRepMax.estimate(weight: set.weight, reps: set.reps)
+                let estimate = OneRepMax.estimate(pounds: set.exactPounds, reps: set.reps)
                 guard estimate > 0 else { continue }
 
                 if let existing = bestByExercise[exerciseName], existing.estimatedOneRepMax >= estimate {
@@ -132,6 +134,7 @@ class StatsViewModel: ObservableObject {
                 bestByExercise[exerciseName] = PersonalRecordEntry(
                     exerciseName: exerciseName,
                     weight: set.weight,
+                    loadPounds: set.exactPounds,
                     reps: set.reps,
                     estimatedOneRepMax: estimate,
                     date: workout.date
