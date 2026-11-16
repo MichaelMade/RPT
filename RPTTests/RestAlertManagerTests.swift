@@ -281,6 +281,78 @@ final class RestAlertManagerTests: XCTestCase {
         XCTAssertFalse(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(60)))
     }
 
+    func testSkippedRestCannotScheduleWhileItsDockAnimatesOut() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+
+        manager.endRest(rest)
+
+        XCTAssertFalse(manager.isCurrentRest(rest))
+        XCTAssertFalse(
+            manager.scheduleRestEnd(at: now.addingTimeInterval(150), for: rest, now: now),
+            "Skip, then lock before the dock is gone: the skipped rest must not be announced"
+        )
+        XCTAssertTrue(center.scheduled.isEmpty)
+    }
+
+    func testEndingAReplacedRestLeavesTheCurrentOneAlone() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        let restartedRest = UUID()
+        manager.beginRest(restartedRest)
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: restartedRest, now: now))
+
+        // The old dock finishes its exit animation and disappears.
+        manager.endRest(rest)
+
+        XCTAssertTrue(manager.isCurrentRest(restartedRest))
+        XCTAssertTrue(center.hasPendingAlert, "The old dock going away must not cancel the new rest's alert")
+        XCTAssertTrue(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(200)))
+    }
+
+    func testPuttingTheWorkoutAwayEndsTheRestAndItsAlert() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+
+        manager.endCurrentRest()
+
+        XCTAssertFalse(manager.isCurrentRest(rest))
+        XCTAssertFalse(center.hasPendingAlert)
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+        XCTAssertFalse(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(600)))
+    }
+
+    func testNewRestDoesNotInheritAnEarlierRestsAlert() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+
+        // An alert was scheduled for a rest whose dock is gone, so nothing
+        // took it back when RPT returned.
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(60), for: rest, now: now))
+        let later = now.addingTimeInterval(300)
+        XCTAssertTrue(manager.scheduledAlertHasFired(asOf: later))
+
+        let nextRest = UUID()
+        manager.beginRest(nextRest)
+
+        XCTAssertFalse(
+            manager.scheduledAlertHasFired(asOf: later.addingTimeInterval(180)),
+            "A rest that runs entirely in the foreground must still chime at its end"
+        )
+        XCTAssertFalse(center.hasPendingAlert, "Starting a rest clears the leftover banner or pending alert")
+        XCTAssertTrue(manager.isCurrentRest(nextRest))
+    }
+
+    func testStartingARestWithNothingLeftOverTouchesNothing() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+
+        manager.beginRest(UUID())
+
+        XCTAssertTrue(center.cancelled.isEmpty, "No needless calls into the notification centre on every rest")
+    }
+
     func testLeavingAgainAfterComingBackReschedulesForTheTimeLeft() async {
         let center = FakeCenter(permission: .notDetermined)
         let manager = await makeActiveManager(center)

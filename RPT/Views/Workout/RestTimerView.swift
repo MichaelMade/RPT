@@ -79,6 +79,10 @@ struct RestTimerView: View {
             .accessibilityLabel("Add 15 seconds of rest")
 
             Button("Skip") {
+                // End the rest before the dock starts to leave: it stays
+                // mounted for its exit animation and must not hand a skipped
+                // rest to a notification if the phone is locked just then.
+                restAlerts.endRest(restID)
                 onSkip()
             }
             .buttonStyle(RestChipButtonStyle())
@@ -122,11 +126,13 @@ struct RestTimerView: View {
                 restAlerts.scheduleRestEnd(at: endDate, for: restID)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            reclaimRestAlert()
-        }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
             reclaimRestAlert()
+        }
+        .onDisappear {
+            // No-op for a dock that was replaced by the next rest: only the
+            // current rest can end itself.
+            restAlerts.endRest(restID)
         }
         .alert("Alert when rest ends?", isPresented: $showingRestAlertOffer) {
             Button("Turn On") {
@@ -168,6 +174,10 @@ struct RestTimerView: View {
         if newRemaining <= 0 {
             didComplete = true
 
+            // A dock that was replaced or skipped is only finishing its exit
+            // animation. Its countdown is not the lifter's rest any more.
+            guard restAlerts.isCurrentRest(restID) else { return }
+
             if restAlerts.scheduledAlertHasFired(asOf: now) {
                 // The rest ended while RPT was in the background and its
                 // notification announced it; chiming again on return would
@@ -190,6 +200,8 @@ struct RestTimerView: View {
     /// countdown first: it has to see whether the alert already fired
     /// before that alert is cleared.
     private func reclaimRestAlert() {
+        guard restAlerts.isCurrentRest(restID) else { return }
+
         syncRemaining()
         restAlerts.cancelRestEnd()
         Task { await restAlerts.refreshPermission() }

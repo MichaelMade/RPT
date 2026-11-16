@@ -18,16 +18,29 @@ final class SystemRestAlertCenter: RestAlertNotificationCenter {
     func restAlertPermission() async -> RestAlertPermission {
         let settings = await center.notificationSettings()
 
+        let hasBeenAsked: Bool
+        let isAuthorized: Bool
         switch settings.authorizationStatus {
         case .authorized, .provisional, .ephemeral:
-            return .granted
+            hasBeenAsked = true
+            isAuthorized = true
         case .notDetermined:
-            return .notDetermined
+            hasBeenAsked = false
+            isAuthorized = false
         case .denied:
-            return .denied
+            hasBeenAsked = true
+            isAuthorized = false
         @unknown default:
-            return .denied
+            hasBeenAsked = true
+            isAuthorized = false
         }
+
+        return RestAlertPolicy.permission(
+            hasBeenAsked: hasBeenAsked,
+            isAuthorized: isAuthorized,
+            playsSound: settings.soundSetting == .enabled,
+            showsAlert: settings.alertSetting == .enabled || settings.lockScreenSetting == .enabled
+        )
     }
 
     func requestRestAlertPermission() async -> Bool {

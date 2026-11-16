@@ -116,7 +116,34 @@ final class RestAlertManager: ObservableObject {
     /// Call when a rest countdown starts. Only that rest can schedule an
     /// alert from then on.
     func beginRest(_ restID: UUID) {
+        // A rest starts with RPT in front, so anything still scheduled, or
+        // remembered as fired, belongs to an earlier rest. Left in place it
+        // would make this rest end without a chime.
+        if scheduledFireDate != nil {
+            cancelRestEnd()
+        }
         currentRestID = restID
+    }
+
+    /// Call when a rest is skipped or its dock goes away. From then on that
+    /// dock can no longer schedule, even while it animates out.
+    func endRest(_ restID: UUID) {
+        guard restID == currentRestID else { return }
+        endCurrentRest()
+    }
+
+    /// Ends whichever rest is running. For when the whole workout screen is
+    /// put away.
+    func endCurrentRest() {
+        currentRestID = nil
+        cancelRestEnd()
+    }
+
+    /// Whether this is the rest the lifter is actually in. A dock that was
+    /// replaced or skipped keeps ticking until its exit animation ends and
+    /// must not announce, schedule, or clear anything.
+    func isCurrentRest(_ restID: UUID) -> Bool {
+        restID == currentRestID
     }
 
     /// Schedules the alert for a rest ending at `endDate`. Call when RPT

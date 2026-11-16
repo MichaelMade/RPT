@@ -61,6 +61,43 @@ final class RestAlertPolicyTests: XCTestCase {
         XCTAssertNotNil(leadTime(secondsLeft: 300 + 20 * 15), "The longest preset plus many +15s taps is still a rest")
     }
 
+    // MARK: - What iOS will actually deliver
+
+    func testPermissionIsUndeterminedUntilIOSHasBeenAsked() {
+        XCTAssertEqual(
+            RestAlertPolicy.permission(hasBeenAsked: false, isAuthorized: false, playsSound: false, showsAlert: false),
+            .notDetermined
+        )
+    }
+
+    func testPermissionIsDeniedWhenNotificationsAreOff() {
+        XCTAssertEqual(
+            RestAlertPolicy.permission(hasBeenAsked: true, isAuthorized: false, playsSound: true, showsAlert: true),
+            .denied
+        )
+    }
+
+    func testPermissionNeedsASoundOrAVisibleAlert() {
+        XCTAssertEqual(
+            RestAlertPolicy.permission(hasBeenAsked: true, isAuthorized: true, playsSound: true, showsAlert: false),
+            .granted,
+            "Sound alone reaches a lifter whose phone is in a pocket"
+        )
+        XCTAssertEqual(
+            RestAlertPolicy.permission(hasBeenAsked: true, isAuthorized: true, playsSound: false, showsAlert: true),
+            .granted,
+            "A silent banner or lock-screen alert is still an alert"
+        )
+    }
+
+    func testAllowedButSilentAndInvisibleCountsAsRefused() {
+        XCTAssertEqual(
+            RestAlertPolicy.permission(hasBeenAsked: true, isAuthorized: true, playsSound: false, showsAlert: false),
+            .denied,
+            "A notification filed without sound or banner tells nobody that rest is over"
+        )
+    }
+
     // MARK: - Dock offer
 
     func testDockOffersTheAlertWhileIOSHasNotBeenAsked() {

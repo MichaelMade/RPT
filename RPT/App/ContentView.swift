@@ -73,6 +73,14 @@ struct ContentView: View {
                     .onAppear { session.isPresentingWorkout = false }
             }
         }
+        .onChange(of: session.isPresentingWorkout) { _, isPresenting in
+            // Save for later, finish, discard: the rest dock is on its way
+            // out with the workout screen, so its rest is over now, not when
+            // the dismissal animation ends.
+            if !isPresenting {
+                RestAlertManager.shared.endCurrentRest()
+            }
+        }
         .onAppear {
             session.restoreResumableWorkout()
             session.rearmPresentationAfterRootSwap()

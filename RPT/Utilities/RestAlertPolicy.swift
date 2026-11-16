@@ -36,6 +36,24 @@ enum RestAlertPolicy {
     /// never started, not a rest to announce.
     static let maximumLeadTime: TimeInterval = 60 * 60
 
+    /// Reads iOS's notification settings as one answer: can an alert from
+    /// RPT actually reach the lifter?
+    ///
+    /// Being authorized is not enough. With sound off and no banner or
+    /// lock-screen alert, iOS files the notification silently, which tells
+    /// nobody that rest is over. That counts as refused, so the toggle reads
+    /// off and the dock keeps announcing rest itself.
+    static func permission(
+        hasBeenAsked: Bool,
+        isAuthorized: Bool,
+        playsSound: Bool,
+        showsAlert: Bool
+    ) -> RestAlertPermission {
+        guard hasBeenAsked else { return .notDetermined }
+        guard isAuthorized else { return .denied }
+        return (playsSound || showsAlert) ? .granted : .denied
+    }
+
     /// How long from `now` the alert should fire, or nil when none should
     /// be scheduled.
     static func leadTime(
