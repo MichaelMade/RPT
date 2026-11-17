@@ -150,7 +150,7 @@ final class ExerciseSet {
             return "BW × \(repsText)"
         }
 
-        return "\(unit.formatted(load(in: unit))) × \(repsText)"
+        return "\(writtenLoad(in: unit)) \(unit.short) × \(repsText)"
     }
 }
 
@@ -210,8 +210,16 @@ extension ExerciseSet {
     func setLoad(_ value: Double, in unit: WeightUnit) {
         let safeValue = unit.normalized(min(value.isFinite ? value : 0, unit.maximumLoad))
 
-        let hasLoad = weight > 0 || loadValue != nil
-        if hasLoad, unit.displaysSameLoad(safeValue, load(in: unit)) {
+        // An exact value with no readable unit cannot be trusted; `weight`
+        // is the load in that case, so drop the leftover before comparing.
+        if loadValue != nil, loadUnitRaw.flatMap(WeightUnit.init(rawValue:)) == nil {
+            loadValue = nil
+            loadUnitRaw = nil
+        }
+
+        // Clearing always clears. Otherwise a load that is the one already
+        // stored is left exactly as it is.
+        if safeValue > 0, weight > 0, isSameLoad(safeValue, in: unit) {
             return
         }
 
@@ -248,13 +256,33 @@ extension ExerciseSet {
         if weight <= 0 {
             return exercise?.category == .bodyweight ? "BW" : empty
         }
-        return unit.string(for: load(in: unit))
+        return writtenLoad(in: unit)
     }
 
     /// What the weight field starts with when the set is opened for
     /// editing: blank when there is no load.
     func loadEntryText(in unit: WeightUnit) -> String {
-        weight > 0 ? unit.string(for: load(in: unit)) : ""
+        weight > 0 ? writtenLoad(in: unit) : ""
+    }
+
+    /// Whether `value`, typed in `unit`, is the load this set already holds.
+    ///
+    /// In the set's own unit that is a comparison of numbers: 7.3 over 7.26
+    /// is a correction. In the other unit the stored load is only ever seen
+    /// converted and rounded, so typing back what is shown (220 lb over
+    /// 100 kg) is not a change.
+    private func isSameLoad(_ value: Double, in unit: WeightUnit) -> Bool {
+        if loadUnit == unit {
+            return abs(value - load(in: unit)) < 0.001
+        }
+        return unit.displaysSameLoad(value, load(in: unit))
+    }
+
+    /// The load as it is written in `unit`, without the unit symbol:
+    /// exactly as entered when it was entered in that unit, otherwise the
+    /// conversion as a lifter would write it.
+    func writtenLoad(in unit: WeightUnit) -> String {
+        loadUnit == unit ? unit.exactString(for: load(in: unit)) : unit.string(for: load(in: unit))
     }
 
     /// Writes a whole-pound load, clearing any exact value. For the paths

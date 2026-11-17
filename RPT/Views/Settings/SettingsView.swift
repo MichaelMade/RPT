@@ -106,6 +106,12 @@ struct SettingsView: View {
             .task {
                 await restAlerts.refreshPermission()
             }
+            .onChange(of: weightUnit) { _, _ in
+                // The export is written in the unit it was made in. Settings
+                // is the one tab that is not rebuilt on a switch, so drop
+                // the file here.
+                exportURL = nil
+            }
             .onChange(of: scenePhase) { _, phase in
                 // Coming back from the iOS Settings app: the answer there
                 // decides whether the rest alert toggle can be on.

@@ -403,12 +403,15 @@ struct StatsView: View {
                 }
             }
 
-            let maxVolume = viewModel.weeklyVolume.map(\.volume).max() ?? 0
+            // Volumes are held in pounds. The bars, and the values VoiceOver
+            // reads from them, are in the lifter's unit.
+            let chartUnit = WeightUnit.current
+            let maxVolume = chartUnit.converting(viewModel.weeklyVolume.map(\.volume).max() ?? 0, from: .pounds)
 
             Chart(viewModel.weeklyVolume) { point in
                 BarMark(
                     x: .value("Week", point.weekStart, unit: .weekOfYear),
-                    y: .value("Volume", point.volume)
+                    y: .value("Volume", chartUnit.converting(point.volume, from: .pounds))
                 )
                 .foregroundStyle(barColor(for: point))
                 .cornerRadius(4)
@@ -453,15 +456,18 @@ struct StatsView: View {
     /// A weekly volume, held in pounds, as a short number in the lifter's
     /// unit.
     private func compactVolume(_ volume: Double) -> String {
+        let unit = WeightUnit.current
         let pounds = volume.isFinite ? max(0, volume) : 0
-        let safe = WeightUnit.current.converting(pounds, from: .pounds)
+        // Snapped, because a kilogram total that went through pounds comes
+        // back as 959.9999999999999 and would print one low.
+        let safe = (unit.converting(pounds, from: .pounds) * 1_000).rounded() / 1_000
         if safe >= 1_000_000 {
             return String(format: "%.1fM", safe / 1_000_000)
         }
         if safe >= 1_000 {
             return String(format: "%.1fk", safe / 1_000)
         }
-        return "\(Int(safe))"
+        return "\(unit.wholeNumber(forPounds: pounds))"
     }
 
     /// Percent change of the last four weeks of volume against the four
@@ -614,7 +620,7 @@ struct StatsView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
 
-                Text("\(WeightUnit.current.string(forPounds: record.loadPounds)) × \(record.reps) · \(record.date.formatted(.dateTime.month(.abbreviated).day()))")
+                Text("\(record.writtenLoad) × \(record.reps) · \(record.date.formatted(.dateTime.month(.abbreviated).day()))")
                     .font(.system(size: 11.5))
                     .monospacedDigit()
                     .foregroundStyle(Theme.textSecondary)

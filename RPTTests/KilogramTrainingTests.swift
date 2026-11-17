@@ -163,6 +163,26 @@ final class KilogramTrainingMathTests: XCTestCase {
         XCTAssertTrue(followUp.sets.allSatisfy { !$0.isCompletedLoggedSet }, "Targets are planned, never logged")
     }
 
+    func testFollowUpOfFiftyKilogramsGoesUp() {
+        // 50 x 1.025 is exactly halfway between 50 and 52.5.
+        let workout = makeKilogramWorkout([(50, 5), (45, 6)])
+
+        let followUp = workout.createFollowUpWorkout(unit: .kilograms)
+
+        XCTAssertEqual(followUp.setsInLoggedOrder.map { $0.load(in: .kilograms) }, [52.5, 47.5])
+    }
+
+    func testFollowUpOfAHundredPoundsGoesUp() {
+        // The same halfway case in pounds. It used to stay at 100.
+        let exercise = makeExercise()
+        let workout = Workout(name: "Session", isCompleted: true)
+        _ = workout.addSet(exercise: exercise, weight: 100, reps: 5)
+
+        let followUp = workout.createFollowUpWorkout(unit: .pounds)
+
+        XCTAssertEqual(followUp.sets.map(\.weight), [105])
+    }
+
     func testFollowUpOfPoundHistoryForAKilogramLifterIsLoadable() {
         let exercise = makeExercise()
         let workout = Workout(name: "Old Session", isCompleted: true)
@@ -200,6 +220,34 @@ final class KilogramTrainingMathTests: XCTestCase {
         XCTAssertNil(followUp.sets.first?.loadValue)
     }
 
+    // MARK: - Saving a workout as a template
+
+    func testSavedTemplateKeepsTheKilogramDropPercentage() {
+        let cases: [(top: Double, backoff: Double, percent: Int)] = [
+            (40, 36, 90), (62.5, 50, 80), (125, 112.5, 90), (150, 127.5, 85), (100, 100, 100)
+        ]
+
+        for plan in cases {
+            let workout = makeKilogramWorkout([(plan.top, 5), (plan.backoff, 7)])
+            let ranges = WorkoutTemplateBuilder.templateExercises(from: workout).first?.repRanges ?? []
+            let stored = ranges.last?.percentageOfFirstSet ?? 0
+
+            XCTAssertEqual(stored, Double(plan.percent) / 100, accuracy: 0.000_1, "\(plan.top) -> \(plan.backoff) kg")
+            XCTAssertEqual(Int((stored * 100).rounded()), plan.percent, "What the template screen shows")
+        }
+    }
+
+    func testSavedTemplatePercentageForPoundsIsUnchanged() {
+        let exercise = makeExercise()
+        let workout = Workout(name: "Session", isCompleted: true)
+        _ = workout.addSet(exercise: exercise, weight: 200, reps: 5)
+        _ = workout.addSet(exercise: exercise, weight: 180, reps: 7)
+
+        let ranges = WorkoutTemplateBuilder.templateExercises(from: workout).first?.repRanges ?? []
+
+        XCTAssertEqual(ranges.last?.percentageOfFirstSet, 0.9)
+    }
+
     // MARK: - CSV
 
     func testExportIsInTheLiftersUnitAndSaysSo() {
@@ -210,6 +258,15 @@ final class KilogramTrainingMathTests: XCTestCase {
         XCTAssertEqual(lines.first, "date,workout,exercise,set_type,weight_kg,reps,rpe,volume_kg")
         XCTAssertTrue(lines[1].hasSuffix(",working,102.5,5,,512.5"), lines[1])
         XCTAssertTrue(lines[2].hasSuffix(",working,61.25,8,,490"), lines[2])
+    }
+
+    func testOddKilogramLoadIsExportedAsTyped() {
+        let workout = makeKilogramWorkout([(7.26, 10), (61.35, 5)])
+
+        let lines = WorkoutCSVExporter.csv(for: [workout], unit: .kilograms).components(separatedBy: "\n")
+
+        XCTAssertTrue(lines[1].hasSuffix(",working,7.26,10,,72.6"), lines[1])
+        XCTAssertTrue(lines[2].hasSuffix(",working,61.35,5,,306.75"), lines[2])
     }
 
     func testPoundExportIsUnchanged() {

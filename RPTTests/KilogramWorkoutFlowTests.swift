@@ -173,6 +173,73 @@ final class KilogramWorkoutFlowTests: XCTestCase {
         XCTAssertTrue(sets.allSatisfy { $0.loadValue == nil })
     }
 
+    func testFillingAGapUnderASetPlannedInPoundsGivesALoadableKilogramLoad() {
+        // A draft planned in pounds, resumed after switching to kilograms.
+        let bench = makeExercise()
+        let (viewModel, sets) = makeWorkout(setCount: 3, exercise: bench)
+        XCTAssertTrue(viewModel.updateSetSafely(sets[0], load: 225, unit: .pounds, reps: 5, rpe: nil))
+        XCTAssertTrue(viewModel.updateSetSafely(sets[1], load: 180, unit: .pounds, reps: 6, rpe: nil))
+        XCTAssertEqual(sets[2].weight, 0)
+
+        // The top set is saved from the kilogram editor with only its reps
+        // changed, which fills the empty back-off.
+        let topInKilograms = sets[0].load(in: .kilograms)
+        XCTAssertTrue(viewModel.updateSetSafely(sets[0], load: 102.1, unit: .kilograms, reps: 6, rpe: nil))
+        XCTAssertTrue(
+            viewModel.syncBackoffsAfterTopSetSave(sets[0], in: bench, previousLoad: topInKilograms, unit: .kilograms)
+        )
+
+        XCTAssertEqual(sets[0].weight, 225, "The top set itself is untouched")
+        XCTAssertEqual(sets[1].weight, 180)
+        // 15% off would be 87.5, but 180 lb (81.65 kg) sits above it. The
+        // nearest loadable step that does not exceed it is 80.
+        XCTAssertEqual(sets[2].load(in: .kilograms), 80)
+        XCTAssertLessThanOrEqual(sets[2].exactPounds, sets[1].exactPounds)
+    }
+
+    func testFillingAGapUnderASetInTheSameUnitMatchesItExactly() {
+        let bench = makeExercise()
+        let (viewModel, sets) = makeWorkout(setCount: 3, exercise: bench)
+        XCTAssertTrue(viewModel.updateSetSafely(sets[0], load: 100, unit: .kilograms, reps: 5, rpe: nil))
+        XCTAssertTrue(viewModel.updateSetSafely(sets[1], load: 81.25, unit: .kilograms, reps: 6, rpe: nil))
+
+        XCTAssertTrue(viewModel.syncBackoffsAfterTopSetSave(sets[0], in: bench, previousLoad: 100, unit: .kilograms))
+
+        // 15% off is 85, capped at the 81.25 the lifter planned above it.
+        XCTAssertEqual(sets[2].load(in: .kilograms), 81.25)
+    }
+
+    func testRPEChangeLeavesEvenAnOutOfRangeLegacyLoadAlone() {
+        let bench = makeExercise()
+        let (viewModel, sets) = makeWorkout(setCount: 1, exercise: bench)
+        sets[0].setWholePounds(12_000)
+
+        XCTAssertTrue(viewModel.updateRPESafely(sets[0], rpe: 8))
+
+        XCTAssertEqual(sets[0].weight, 12_000, "Rating a set must never rewrite what was lifted")
+        XCTAssertEqual(sets[0].rpe, 8)
+    }
+
+    func testInvalidRPEIsRejected() {
+        let bench = makeExercise()
+        let (viewModel, sets) = makeWorkout(setCount: 1, exercise: bench)
+        XCTAssertTrue(viewModel.updateRPESafely(sets[0], rpe: 7))
+
+        XCTAssertFalse(viewModel.updateRPESafely(sets[0], rpe: 11))
+
+        XCTAssertEqual(sets[0].rpe, 7)
+    }
+
+    func testClearingRPE() {
+        let bench = makeExercise()
+        let (viewModel, sets) = makeWorkout(setCount: 1, exercise: bench)
+        XCTAssertTrue(viewModel.updateRPESafely(sets[0], rpe: 7))
+
+        XCTAssertTrue(viewModel.updateRPESafely(sets[0], rpe: nil))
+
+        XCTAssertNil(sets[0].rpe)
+    }
+
     // MARK: - Warm-ups
 
     func testKilogramWarmupIsStoredInKilograms() {

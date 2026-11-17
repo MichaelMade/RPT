@@ -45,9 +45,9 @@ enum WorkoutCSVExporter {
                 let rpeField = set.displayRPE.map(String.init) ?? ""
                 // Volume is the written load times reps, so each row adds
                 // up for anyone checking it by hand.
-                let weightField = unit.string(for: set.load(in: unit))
+                let weightField = set.writtenLoad(in: unit)
                 let writtenLoad = Double(weightField) ?? 0
-                let volumeField = set.isWarmup ? "0" : unit.string(for: writtenLoad * Double(set.reps))
+                let volumeField = set.isWarmup ? "0" : unit.exactString(for: writtenLoad * Double(set.reps))
 
                 lines.append(
                     [

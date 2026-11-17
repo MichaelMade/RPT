@@ -143,10 +143,25 @@ enum WeightUnit: String, CaseIterable, Codable {
         }
     }
 
-    /// Nearest load RPT would suggest, never negative.
+    /// Nearest load RPT would suggest, never negative. A load exactly
+    /// halfway between two steps goes up.
     func roundedToIncrement(_ value: Double) -> Double {
         guard value.isFinite, value > 0 else { return 0 }
-        return (value / loadIncrement).rounded() * loadIncrement
+        return Self.steps(value, per: loadIncrement).rounded() * loadIncrement
+    }
+
+    /// Nearest step at or below `value`, for when a suggestion must not
+    /// exceed a load above it.
+    func flooredToIncrement(_ value: Double) -> Double {
+        guard value.isFinite, value > 0 else { return 0 }
+        return Self.steps(value, per: loadIncrement).rounded(.down) * loadIncrement
+    }
+
+    /// `value` in steps, with float noise removed first. 50 x 1.025 is
+    /// 51.25 on paper and 51.24999999999999 in a Double; without this the
+    /// halfway case rounds the wrong way and a 50 kg follow-up stays at 50.
+    private static func steps(_ value: Double, per increment: Double) -> Double {
+        ((value / increment) * 1_000_000_000).rounded() / 1_000_000_000
     }
 
     /// A typed or computed load with float noise removed: whole pounds, or
@@ -190,6 +205,29 @@ enum WeightUnit: String, CaseIterable, Codable {
             let tenths = Int((value * 10).rounded())
             return Self.trimmed(hundredths: tenths * 10)
         }
+    }
+
+    /// A load exactly as it was entered in this unit: whole pounds, or
+    /// kilograms to the hundredth with trailing zeros dropped (7.26, 62.5,
+    /// 100). `string(for:)` is for loads that were converted, where
+    /// hundredths would be false precision.
+    func exactString(for value: Double) -> String {
+        guard value.isFinite, value > 0 else { return "0" }
+
+        switch self {
+        case .pounds:
+            return String(Int(value.rounded()))
+        case .kilograms:
+            return Self.trimmed(hundredths: Int((value * 100).rounded()))
+        }
+    }
+
+    /// A plate size or a difference between loads, in either unit: to the
+    /// hundredth with trailing zeros dropped, so a 1.25 kg plate and a
+    /// 2.5 lb plate both read as what is stamped on them.
+    static func plainString(for value: Double) -> String {
+        guard value.isFinite, value > 0 else { return "0" }
+        return trimmed(hundredths: Int((value * 100).rounded()))
     }
 
     /// The load with its unit: "135 lb", "62.5 kg".

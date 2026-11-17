@@ -37,6 +37,28 @@ final class WeightUnitConversionTests: XCTestCase {
         XCTAssertEqual(WeightUnit.pounds.roundedToIncrement(.nan), 0)
     }
 
+    func testALoadExactlyHalfwayBetweenStepsGoesUp() {
+        // On paper these are exact ties. In a Double the products land a
+        // hair below, which used to round them down.
+        XCTAssertEqual(WeightUnit.kilograms.roundedToIncrement(50 * 1.025), 52.5, "A 50 kg follow-up must go up")
+        XCTAssertEqual(WeightUnit.kilograms.roundedToIncrement(87.5 * 0.7), 62.5)
+        XCTAssertEqual(WeightUnit.pounds.roundedToIncrement(100 * 1.025), 105)
+        XCTAssertEqual(WeightUnit.pounds.roundedToIncrement(175 * 0.7), 125)
+
+        // Genuinely below the halfway point still goes down.
+        XCTAssertEqual(WeightUnit.kilograms.roundedToIncrement(51.2), 50)
+        XCTAssertEqual(WeightUnit.pounds.roundedToIncrement(102.4), 100)
+    }
+
+    func testSteppingDownToALoadableStep() {
+        XCTAssertEqual(WeightUnit.kilograms.flooredToIncrement(81.6466), 80)
+        XCTAssertEqual(WeightUnit.kilograms.flooredToIncrement(82.5), 82.5)
+        XCTAssertEqual(WeightUnit.kilograms.flooredToIncrement(0.3 * 25), 7.5, "Float noise must not drop a whole step")
+        XCTAssertEqual(WeightUnit.pounds.flooredToIncrement(187), 185)
+        XCTAssertEqual(WeightUnit.pounds.flooredToIncrement(0), 0)
+        XCTAssertEqual(WeightUnit.kilograms.flooredToIncrement(.nan), 0)
+    }
+
     func testBarAndIncrementMatchTheEquipment() {
         XCTAssertEqual(WeightUnit.pounds.emptyBarLoad, 45)
         XCTAssertEqual(WeightUnit.kilograms.emptyBarLoad, 20)
@@ -113,6 +135,26 @@ final class WeightUnitDisplayTests: XCTestCase {
         XCTAssertEqual(WeightUnit.kilograms.string(forPounds: 135), "61.2")
         XCTAssertEqual(WeightUnit.kilograms.formatted(pounds: 45), "20.4 kg")
         XCTAssertEqual(WeightUnit.kilograms.string(for: 99.96), "100")
+    }
+
+    func testALoadEnteredInTheUnitIsWrittenExactly() {
+        // A 16 lb kettlebell logged by a kilogram lifter: not a plate
+        // value, but it is what they typed.
+        XCTAssertEqual(WeightUnit.kilograms.exactString(for: 7.26), "7.26")
+        XCTAssertEqual(WeightUnit.kilograms.exactString(for: 61.35), "61.35")
+        XCTAssertEqual(WeightUnit.kilograms.exactString(for: 62.5), "62.5")
+        XCTAssertEqual(WeightUnit.kilograms.exactString(for: 100), "100")
+        XCTAssertEqual(WeightUnit.kilograms.exactString(for: 0.04), "0.04")
+        XCTAssertEqual(WeightUnit.pounds.exactString(for: 225), "225")
+        XCTAssertEqual(WeightUnit.kilograms.exactString(for: 0), "0")
+    }
+
+    func testPlateSizesReadAsStamped() {
+        XCTAssertEqual(WeightUnit.plainString(for: 1.25), "1.25")
+        XCTAssertEqual(WeightUnit.plainString(for: 2.5), "2.5")
+        XCTAssertEqual(WeightUnit.plainString(for: 45), "45")
+        XCTAssertEqual(WeightUnit.plainString(for: 20), "20")
+        XCTAssertEqual(WeightUnit.plainString(for: 0), "0")
     }
 
     func testPoundTotalsConvertOnceForDisplay() {
@@ -283,6 +325,54 @@ final class ExerciseSetLoadTests: XCTestCase {
         XCTAssertNil(poundSet.loadValue)
     }
 
+    func testCorrectingALoadInItsOwnUnitIsARealChange() {
+        let set = makeSet()
+        set.setLoad(7.26, in: .kilograms)
+
+        // 7.26 and 7.3 round to the same tenth, but in the unit the set
+        // was entered in the lifter sees 7.26 and means 7.3.
+        set.setLoad(7.3, in: .kilograms)
+
+        XCTAssertEqual(set.load(in: .kilograms), 7.3)
+    }
+
+    func testOddKilogramLoadIsShownAsTyped() {
+        let set = makeSet()
+        set.setLoad(7.26, in: .kilograms)
+
+        XCTAssertEqual(set.writtenLoad(in: .kilograms), "7.26")
+        XCTAssertEqual(set.loadText(in: .kilograms), "7.26")
+        XCTAssertEqual(set.loadEntryText(in: .kilograms), "7.26")
+        XCTAssertEqual(set.formattedLoadReps(in: .kilograms), "7.26 kg × 5 reps")
+        XCTAssertEqual(set.writtenLoad(in: .pounds), "16")
+    }
+
+    func testClearingATinyLoadClearsIt() {
+        let set = makeSet()
+        set.setLoad(0.04, in: .kilograms)
+        XCTAssertEqual(set.loadText(in: .kilograms), "0.04", "Shown as typed, not as a zero that cannot be cleared")
+
+        set.setLoad(0, in: .kilograms)
+
+        XCTAssertEqual(set.weight, 0)
+        XCTAssertNil(set.loadValue)
+        XCTAssertNil(set.loadUnitRaw)
+    }
+
+    func testExactValueWithNoReadableUnitIsDiscarded() {
+        let set = makeSet(weight: 110)
+        set.loadValue = 50
+        set.loadUnitRaw = "stone"
+        XCTAssertEqual(set.exactPounds, 110, "Without a unit the whole-pound weight is the load")
+
+        // Saving the same 110 lb back must not leave the orphan in place.
+        set.setLoad(110, in: .pounds)
+
+        XCTAssertEqual(set.weight, 110)
+        XCTAssertNil(set.loadValue)
+        XCTAssertNil(set.loadUnitRaw)
+    }
+
     func testLoadAboveTheCeilingIsClamped() {
         let set = makeSet()
 
@@ -363,7 +453,7 @@ final class ExerciseSetLoadTests: XCTestCase {
     func testEditorTextRoundTripsThroughTheParser() {
         // Whatever the editor shows must parse back to the same written
         // load, or a reps-only save would change the weight.
-        for load in [20.0, 61.25, 62.5, 100, 102.5, 142.75, 0.5] {
+        for load in [20.0, 61.25, 62.5, 100, 102.5, 142.75, 0.5, 7.26, 61.35, 99.96] {
             let set = makeSet()
             set.setLoad(load, in: .kilograms)
             let text = set.loadEntryText(in: .kilograms)

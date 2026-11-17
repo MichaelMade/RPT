@@ -171,17 +171,84 @@ class RPTWeightUnitStaticTests(unittest.TestCase):
         )
 
         onboarding = ONBOARDING.read_text()
-        complete = onboarding.split("private func completeOnboarding(using plan: OnboardingLaunchPlan) {")[1]
-        self.assertLess(
-            complete.index("WeightUnit.adoptSuggestedIfUnset()"),
-            complete.index("createWorkoutFromTemplate"),
-            "the starter workout must be planned in the unit just adopted",
+
+        # Every way out of onboarding picks the unit, and before a workout
+        # is created so the starter workout is planned in it.
+        exits = {
+            "completeOnboarding(using plan: OnboardingLaunchPlan)": "createWorkoutFromTemplate",
+            "completeOnboardingByBrowsing()": "hasCompletedOnboarding = true",
+        }
+        for signature, later in exits.items():
+            with self.subTest(exit=signature):
+                body = onboarding.split(f"private func {signature} {{")[1].split("\n    }\n")[0]
+                self.assertIn("adoptRegionalUnitIfNew()", body)
+                self.assertLess(body.index("adoptRegionalUnitIfNew()"), body.index(later))
+
+        # Someone with workouts already logged was using pounds, whatever
+        # the onboarding flag says.
+        adopt = onboarding.split("private func adoptRegionalUnitIfNew() {")[1].split("\n    }\n")[0]
+        self.assertIn("guard !hasHistory else { return }", adopt)
+        self.assertLess(adopt.index("guard !hasHistory"), adopt.index("WeightUnit.adoptSuggestedIfUnset()"))
+
+    def test_screens_convert_what_they_show(self):
+        sources = _sources(VIEWS)
+
+        # Totals and records are held in pounds. A screen that prints one
+        # with Int(...) or plots it raw shows pounds under a "kg" label.
+        raw_reads = [
+            r"Int\([^()\n]*totalVolume[^()\n]*\)",
+            r"Int\(safeVolume\)",
+            r"record\.weight\b",
+            r'\.value\("e1RM", point\.value\)',
+            r'\.value\("Volume", point\.volume\)',
+            r"Int\(lastBest",
+        ]
+        for name, source in sources.items():
+            for pattern in raw_reads:
+                with self.subTest(file=name, pattern=pattern):
+                    self.assertNotRegex(source, pattern)
+
+        home = (VIEWS / "Home" / "HomeView.swift").read_text()
+        card = (VIEWS / "Home" / "WorkoutCard.swift").read_text()
+        stats = (VIEWS / "Stats" / "StatsView.swift").read_text()
+        self.assertIn("unit.wholeNumber(forPounds: volume)", home)
+        self.assertIn("unit.wholeNumber(forPounds: workout.totalVolume)", card)
+
+        compact = stats.split("private func compactVolume(_ volume: Double) -> String {")[1].split("\n    }\n")[0]
+        self.assertIn("unit.wholeNumber(forPounds: pounds)", compact)
+        self.assertNotIn("Int(safe)", compact, "truncating a converted total prints 959 for a 960 kg week")
+        self.assertIn('y: .value("Volume", chartUnit.converting(point.volume, from: .pounds))', stats)
+        self.assertIn("record.writtenLoad", stats)
+
+        detail = (VIEWS / "Exercises" / "ExerciseDetailView.swift").read_text()
+        self.assertEqual(detail.count('y: .value("e1RM", chartValue(point))'), 2)
+
+    def test_workout_sheets_open_in_the_lifters_unit(self):
+        section = EXERCISE_SECTION.read_text()
+        self.assertIn("topSetLoad: topWorkingSet?.loadableLoad(in: weightUnit) ?? 0", section)
+        self.assertIn("unit: weightUnit", section.split("WarmupPlanView(")[1].split(") { steps in")[0])
+        self.assertIn("load: step.load, unit: weightUnit", section)
+        self.assertIn("initialUnit: weightUnit", section.split("PlateCalculatorView(")[1].split(")\n")[0])
+
+        plates = (VIEWS / "Workout" / "PlateCalculatorView.swift").read_text()
+        on_appear = plates.split(".onAppear {")[1].split("\n            }\n")[0]
+        self.assertIn("unit = initialUnit", on_appear, "a 102.5 kg target must not be plated as 102.5 lb")
+        self.assertIn("targetText = initialUnit.string(for: initialTargetLoad)", on_appear)
+        self.assertIn("WeightUnit.plainString(for: value)", plates, "a 1.25 kg plate must not read 1.2")
+        self.assertNotIn('String(format: "%.1f", value)', plates)
+
+    def test_export_made_before_a_unit_switch_is_dropped(self):
+        settings = SETTINGS.read_text()
+        self.assertRegex(
+            settings,
+            r"\.onChange\(of: weightUnit\) \{ _, _ in\n(?:\s*//[^\n]*\n)*\s*exportURL = nil",
         )
 
     def test_csv_names_the_unit_in_its_columns(self):
         source = CSV_EXPORTER.read_text()
         self.assertIn("weight_\\(unit.short),reps,rpe,volume_\\(unit.short)", source)
         self.assertIn("unit: WeightUnit = .current", source)
+        self.assertIn("let weightField = set.writtenLoad(in: unit)", source)
 
 
 if __name__ == "__main__":

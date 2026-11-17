@@ -494,7 +494,24 @@ class ActiveWorkoutViewModel: ObservableObject {
     /// Changes only a set's RPE. The load is not touched at all, so a set
     /// logged in another unit keeps exactly what was lifted.
     func updateRPESafely(_ set: ExerciseSet, rpe: Int?) -> Bool {
-        updateSetSafely(set, load: set.load(in: set.loadUnit), unit: set.loadUnit, reps: set.reps, rpe: rpe)
+        if let rpe, !(1...10).contains(rpe) {
+            setError(title: "Couldn’t Update Set", message: WorkoutError.saveFailure.description)
+            return false
+        }
+
+        let originalRPE = set.rpe
+        set.rpe = rpe
+
+        do {
+            try saveWorkout()
+        } catch {
+            set.rpe = originalRPE
+            setError(title: "Couldn’t Update Set", message: WorkoutError.saveFailure.description)
+            return false
+        }
+
+        updateExerciseGroupsAndOrder(maintainOrder: true)
+        return true
     }
 
     func deleteSet(_ set: ExerciseSet) throws {
@@ -612,6 +629,10 @@ class ActiveWorkoutViewModel: ObservableObject {
         // When only filling gaps, a new load must not break the ladder: it
         // is capped at the lightest load already sitting above it.
         var lightestLoadAbove = firstSetLoad
+        // Whether that load is one the lifter can put on the bar in this
+        // unit. A set planned in the other unit reads as a converted figure
+        // (180 lb is 81.65 kg), which is no use as a suggestion.
+        var lightestIsLoadable = sets[0].weight == 0 || sets[0].loadUnit == unit
 
         for index in 1..<affectedSetCount {
             let set = sets[index]
@@ -622,7 +643,11 @@ class ActiveWorkoutViewModel: ObservableObject {
             let keepsItsLoad = set.isCompletedLoggedSet || (onlyEmptySets && set.weight > 0)
             if keepsItsLoad {
                 if set.weight > 0 {
-                    lightestLoadAbove = min(lightestLoadAbove, set.load(in: unit))
+                    let load = set.load(in: unit)
+                    if load < lightestLoadAbove {
+                        lightestLoadAbove = load
+                        lightestIsLoadable = set.loadUnit == unit
+                    }
                 }
                 continue
             }
@@ -630,8 +655,15 @@ class ActiveWorkoutViewModel: ObservableObject {
             let dropPercentage = min(max(reductionPercentage(forSetIndex: index), 0), 1)
             var roundedLoad = unit.roundedToIncrement(firstSetLoad * (1.0 - dropPercentage))
             if onlyEmptySets {
-                roundedLoad = min(roundedLoad, lightestLoadAbove)
+                if roundedLoad > lightestLoadAbove {
+                    // Capped by a load above: match it when it can be
+                    // loaded as it is, otherwise step down to one that can.
+                    roundedLoad = lightestIsLoadable
+                        ? lightestLoadAbove
+                        : unit.flooredToIncrement(lightestLoadAbove)
+                }
                 lightestLoadAbove = roundedLoad
+                lightestIsLoadable = true
             }
 
             set.setLoad(roundedLoad, in: unit)
@@ -728,7 +760,10 @@ class ActiveWorkoutViewModel: ObservableObject {
         let hasLoad = set.weight > 0
         let zeroIsARealLoad = exercise.category == .bodyweight
 
-        if !unit.displaysSameLoad(newLoad, previousLoad) {
+        // Compared as loads, not as text. A save that did not really change
+        // the load (the same figure typed back in the other unit) leaves
+        // the stored load untouched, so the two are identical here.
+        if abs(newLoad - previousLoad) >= 0.001 {
             guard hasLoad || zeroIsARealLoad else { return true }
             return updateDropSetSuggestionsSafely(for: exercise, firstSetLoad: newLoad, unit: unit)
         }

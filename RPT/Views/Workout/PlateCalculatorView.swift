@@ -13,8 +13,8 @@ struct PlateCalculatorView: View {
 
     /// Load to start from, in `initialUnit`.
     var initialTargetLoad: Double = 0
-    /// Starts in the unit the lifter trains in; the picker still lets them
-    /// check a load in the other one.
+    /// Starts in the unit the lifter trains in. The picker switches the
+    /// bar and plate set; it does not convert the number typed.
     var initialUnit: WeightUnit = .current
 
     @State private var targetText: String = ""
@@ -225,9 +225,9 @@ struct PlateCalculatorView: View {
         return Theme.info
     }
 
+    /// Plate sizes and loads exactly as stamped: a 1.25 kg plate must not
+    /// read "1.2".
     private func formatted(_ value: Double) -> String {
-        value.truncatingRemainder(dividingBy: 1) == 0
-            ? "\(Int(value))"
-            : String(format: "%.1f", value)
+        WeightUnit.plainString(for: value)
     }
 }

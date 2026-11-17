@@ -19,7 +19,9 @@ enum WorkoutTemplateBuilder {
                 return nil
             }
 
-            let firstWeight = workingSets.first?.weight ?? 0
+            // Exact loads, not the whole-pound figure: 36 kg under 40 kg is
+            // a 10% drop, and 79 lb over 88 lb is not.
+            let firstLoad = workingSets.first?.exactPounds ?? 0
 
             let repRanges = workingSets.enumerated().map { index, set -> TemplateRepRange in
                 let reps = max(1, set.reps)
@@ -27,8 +29,8 @@ enum WorkoutTemplateBuilder {
                 let percentage: Double?
                 if index == 0 {
                     percentage = 1.0
-                } else if firstWeight > 0, set.weight > 0 {
-                    let ratio = Double(set.weight) / Double(firstWeight)
+                } else if firstLoad > 0, set.weight > 0 {
+                    let ratio = set.exactPounds / firstLoad
                     percentage = min(max(ratio, 0.1), 1.0)
                 } else {
                     percentage = nil
