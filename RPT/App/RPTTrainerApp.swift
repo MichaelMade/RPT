@@ -26,6 +26,17 @@ struct RPTTrainerApp: App {
         }
         #endif
 
+        #if DEBUG
+        // Hosted unit tests run in this process and read this app's
+        // defaults. Without a pin, a simulator last used in kilograms (or
+        // onboarded in a metric region) fails every test that asserts
+        // pound output. The stored choice itself is left alone.
+        let environment = ProcessInfo.processInfo.environment
+        if environment["XCTestConfigurationFilePath"] != nil || environment["XCTestBundlePath"] != nil {
+            WeightUnit.overrideForTesting = .pounds
+        }
+        #endif
+
         // The model container is the only dependency required before the
         // first scene. Feature managers initialize lazily with their views.
         self.dataManager = DataManager.shared

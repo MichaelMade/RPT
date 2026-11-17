@@ -147,7 +147,17 @@ class RPTWeightUnitStaticTests(unittest.TestCase):
 
     def test_existing_lifters_stay_in_pounds_and_new_ones_get_their_regions_unit(self):
         unit = WEIGHT_UNIT.read_text()
-        self.assertIn("get { stored(in: .standard) ?? .pounds }", unit)
+        self.assertIn("return stored(in: .standard) ?? .pounds", unit)
+
+        # The test-only override must not exist in a release build.
+        override = unit.split("static var overrideForTesting: WeightUnit?")[0].rsplit("#if DEBUG", 1)
+        self.assertEqual(len(override), 2, "overrideForTesting must sit inside #if DEBUG")
+        self.assertNotIn("#endif", override[1])
+        app_entry = (APP / "App" / "RPTTrainerApp.swift").read_text()
+        pin = app_entry.split("WeightUnit.overrideForTesting = .pounds")[0].rsplit("#if DEBUG", 1)
+        self.assertEqual(len(pin), 2, "the app may only pin the unit in a debug build")
+        self.assertNotIn("#endif", pin[1])
+        self.assertIn('environment["XCTestConfigurationFilePath"] != nil', pin[1])
 
         callers = [
             name

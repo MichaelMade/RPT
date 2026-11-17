@@ -41,9 +41,24 @@ enum WeightUnit: String, CaseIterable, Codable {
     /// chooses otherwise: every load logged before this setting existed is
     /// in pounds, so nobody's history changes meaning on update.
     static var current: WeightUnit {
-        get { stored(in: .standard) ?? .pounds }
+        get {
+            #if DEBUG
+            if let overrideForTesting {
+                return overrideForTesting
+            }
+            #endif
+            return stored(in: .standard) ?? .pounds
+        }
         set { UserDefaults.standard.set(newValue.rawValue, forKey: defaultsKey) }
     }
+
+    #if DEBUG
+    /// Unit tests run inside the app and share its container, so the unit a
+    /// simulator was last used in would otherwise decide what they compute.
+    /// The app pins this for a hosted test run; a test may set it to
+    /// exercise the other unit. Never set outside tests.
+    static var overrideForTesting: WeightUnit?
+    #endif
 
     static func stored(in defaults: UserDefaults) -> WeightUnit? {
         defaults.string(forKey: defaultsKey).flatMap(WeightUnit.init(rawValue:))
