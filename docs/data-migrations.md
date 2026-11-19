@@ -12,8 +12,8 @@ launch opens the store with the current models (`DataManager.makeSchema()`),
 and SwiftData's automatic lightweight migration carries an older store
 forward. That is how `ExerciseSet.orderIndex`,
 `UserSettings.autoStartRestTimerEnabled`, `UserSettings.weeklyWorkoutGoal`,
-`Exercise.isArchived`, and `ExerciseSet.loadValue` / `loadUnitRaw` reached
-existing users.
+`Exercise.isArchived`, `ExerciseSet.loadValue` / `loadUnitRaw`, and
+`ExerciseSet.relabeledFromPounds` reached existing users.
 
 Lightweight migration only handles additive changes. Anything else makes
 `ModelContainer` throw at launch, and the app shows the storage-unavailable
@@ -72,6 +72,26 @@ set logged in kilograms keeps its exact value in the new optional
 `loadValue` with its unit in `loadUnitRaw`, and `weight` holds the nearest
 whole pound. Nothing that existed was retyped, and no existing row is
 rewritten when the lifter changes unit.
+
+## Rewriting stored values
+
+A change that rewrites rows a lifter already logged needs the same care as
+a schema change, because there is no copy to go back to. There is one such
+place: `LoadHistoryRelabeler`, for lifters who typed kilograms while RPT
+only knew pounds. It is the pattern to follow.
+
+- It runs only when the lifter asks, never at launch or on a unit switch.
+- A row says for itself what was done to it. Each relabeled set keeps the
+  whole-pound number it held in `ExerciseSet.relabeledFromPounds`, saved in
+  the same transaction as the new load, so an undo is exact and cannot be
+  separated from the data it describes. A flag in `UserDefaults` that
+  changed how rows are read would be lost on a reset and would silently
+  reinterpret every row.
+- It only touches rows it can identify from their own contents (a bare
+  whole number with no unit). A set logged in kilograms is never a
+  candidate, before or after.
+- One save. If it fails, every row and stored total is put back.
+- The undo leaves alone any row edited since.
 
 ## What enforces this
 

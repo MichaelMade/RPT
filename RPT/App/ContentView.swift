@@ -16,6 +16,16 @@ struct ContentView: View {
     /// Changing the unit in Settings rebuilds the other tabs, so every load
     /// and total they show is read again in the new unit.
     @AppStorage(WeightUnit.defaultsKey) private var weightUnit: WeightUnit = .pounds
+    /// Relabeling earlier workouts (or undoing it) changes logged loads
+    /// without changing the unit, and the other tabs must not keep showing
+    /// the loads from before.
+    @AppStorage(KilogramRelabelPolicy.revisionDefaultsKey) private var loadHistoryRevision = 0
+
+    /// What the loads on screen depend on. A tab keyed on this is rebuilt
+    /// when either part changes.
+    private var loadIdentity: String {
+        "\(weightUnit.rawValue)-\(loadHistoryRevision)"
+    }
 
     var body: some View {
         if settingsManager.initializationFailureDescription != nil {
@@ -28,28 +38,28 @@ struct ContentView: View {
     private var tabShell: some View {
         TabView(selection: selectedRootTabBinding) {
             HomeView()
-                .id(weightUnit)
+                .id(loadIdentity)
                 .tag(RootTab.home)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
 
             TemplatesListView()
-                .id(weightUnit)
+                .id(loadIdentity)
                 .tag(RootTab.templates)
                 .tabItem {
                     Label("Templates", systemImage: "square.grid.2x2.fill")
                 }
 
             ExercisesView()
-                .id(weightUnit)
+                .id(loadIdentity)
                 .tag(RootTab.exercises)
                 .tabItem {
                     Label("Exercises", systemImage: "figure.strengthtraining.traditional")
                 }
 
             StatsView()
-                .id(weightUnit)
+                .id(loadIdentity)
                 .tag(RootTab.stats)
                 .tabItem {
                     Label("Stats", systemImage: "chart.bar.fill")

@@ -36,6 +36,11 @@ final class ExerciseSet {
     var loadValue: Double? = nil
     /// `WeightUnit` raw value for `loadValue`. Set and cleared with it.
     var loadUnitRaw: String? = nil
+    /// The whole number this set held as pounds before the lifter said
+    /// their earlier workouts had been typed in kilograms. Written only by
+    /// that relabel, and only so it can be undone exactly; `nil` on every
+    /// other set. See `LoadHistoryRelabeler`.
+    var relabeledFromPounds: Int? = nil
 
     @Relationship(deleteRule: .nullify)
     var exercise: Exercise?
@@ -291,5 +296,65 @@ extension ExerciseSet {
         weight = max(0, pounds)
         loadValue = nil
         loadUnitRaw = nil
+    }
+}
+
+// MARK: - Relabeling earlier history
+
+extension ExerciseSet {
+    /// Whether this set still holds a bare whole number from the time RPT
+    /// only knew pounds. A set logged in kilograms carries its own unit and
+    /// is never one of these, and neither is a set already relabeled.
+    ///
+    /// A number above what a kilogram entry accepts is left alone: it could
+    /// not be relabeled without being changed.
+    var holdsUnlabeledWholePounds: Bool {
+        weight > 0
+            && Double(weight) <= WeightUnit.kilograms.maximumLoad
+            && loadValue == nil
+            && loadUnitRaw == nil
+            && relabeledFromPounds == nil
+    }
+
+    /// Reads the stored whole number as kilograms instead of pounds: a set
+    /// stored as 100 becomes 100 kg. The number it held is remembered so
+    /// `undoKilogramRelabel()` can put it back. Returns whether the set
+    /// changed.
+    @discardableResult
+    func relabelAsKilograms() -> Bool {
+        guard holdsUnlabeledWholePounds else { return false }
+
+        let original = weight
+        setLoad(Double(original), in: .kilograms)
+
+        // The load setter is the one place that knows how a kilogram load
+        // is stored. If it did not store exactly this number, leave the set
+        // as it was instead of recording a relabel that cannot be undone.
+        guard loadUnit == .kilograms, loadValue == Double(original) else {
+            setWholePounds(original)
+            return false
+        }
+
+        relabeledFromPounds = original
+        return true
+    }
+
+    /// Puts back the whole-pound number a relabel replaced. A set whose
+    /// load has been edited since keeps the edit. Either way the set is no
+    /// longer marked as relabeled. Returns whether the load was put back.
+    @discardableResult
+    func undoKilogramRelabel() -> Bool {
+        guard let original = relabeledFromPounds else { return false }
+        relabeledFromPounds = nil
+
+        guard original > 0,
+              loadUnit == .kilograms,
+              let loadValue,
+              abs(loadValue - Double(original)) < 0.001 else {
+            return false
+        }
+
+        setWholePounds(original)
+        return true
     }
 }

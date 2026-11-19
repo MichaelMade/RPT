@@ -177,6 +177,23 @@ enum ShippedSchema_2_2_1 {
 
 @MainActor
 final class StoreMigrationTests: XCTestCase {
+    /// Lets a manager work on a context opened straight from the store file.
+    private final class ContextDataManager: DataManaging {
+        private let context: ModelContext
+
+        init(context: ModelContext) {
+            self.context = context
+        }
+
+        func getModelContext() -> ModelContext {
+            context
+        }
+
+        func saveChanges() throws {
+            try context.save()
+        }
+    }
+
     private var storeDirectory: URL!
     private var storeURL: URL { storeDirectory.appendingPathComponent("RPT.store") }
 
@@ -395,6 +412,10 @@ final class StoreMigrationTests: XCTestCase {
         XCTAssertTrue(sets.allSatisfy { $0.loadValue == nil && $0.loadUnitRaw == nil })
         XCTAssertTrue(sets.allSatisfy { $0.loadUnit == .pounds })
         XCTAssertTrue(sets.allSatisfy { $0.exactPounds == Double($0.weight) })
+
+        // Relabeling: no set from an existing store may come back marked as
+        // already relabeled, or an undo would have something to rewrite.
+        XCTAssertTrue(sets.allSatisfy { $0.relabeledFromPounds == nil })
     }
 
     func testMigratedStoreAcceptsAKilogramSetAndReadsItBackExactly() throws {
@@ -430,6 +451,75 @@ final class StoreMigrationTests: XCTestCase {
         let originalWorkout = try XCTUnwrap(workouts.first { $0.name == "RPT Day 2 - Bench" })
         let expectedPounds: [Int] = [185, 165, 155, 0]
         XCTAssertEqual(originalWorkout.setsInLoggedOrder.map(\.weight), expectedPounds)
+    }
+
+    /// Relabeling earlier workouts as kilograms rewrites logged sets in
+    /// bulk, so it is proven on the real thing: a store written by the
+    /// shipped app, on disk, closed and reopened between each step.
+    func testMigratedStoreCanBeRelabeledAsKilogramsAndPutBackExactly() throws {
+        try writeStoreWithShippedSchema()
+
+        let suiteName = "StoreMigrationTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        // 185x6 + 165x8 + 155x10, as the shipped store recorded it.
+        let shippedVolume: Double = 3_980
+
+        try autoreleasepool {
+            let container = try openStoreWithCurrentModels()
+            let relabeler = LoadHistoryRelabeler(
+                dataManager: ContextDataManager(context: ModelContext(container)),
+                defaults: defaults
+            )
+
+            XCTAssertEqual(relabeler.status(for: .pounds), .nothingToOffer)
+            XCTAssertEqual(
+                relabeler.status(for: .kilograms),
+                .readAsPounds(
+                    KilogramRelabelPolicy.Preview(setCount: 3, exerciseName: "Barbell Bench Press", number: 155)
+                )
+            )
+            XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 3))
+        }
+
+        try autoreleasepool {
+            let container = try openStoreWithCurrentModels()
+            let context = ModelContext(container)
+            let workout = try XCTUnwrap(try context.fetch(FetchDescriptor<Workout>()).first)
+            let user = try XCTUnwrap(try context.fetch(FetchDescriptor<User>()).first)
+
+            let expectedKilograms: [Double] = [185, 165, 155, 0]
+            let expectedMarks: [Int?] = [185, 165, 155, nil]
+            XCTAssertEqual(workout.setsInLoggedOrder.map { $0.load(in: .kilograms) }, expectedKilograms)
+            XCTAssertEqual(workout.setsInLoggedOrder.map(\.relabeledFromPounds), expectedMarks)
+            XCTAssertEqual(workout.setsInLoggedOrder.last?.weight, 0, "A bodyweight set has no number to relabel")
+
+            let relabeledVolume = WeightUnit.pounds.converting(shippedVolume, from: .kilograms)
+            XCTAssertEqual(user.totalVolume, relabeledVolume, accuracy: 0.01)
+            XCTAssertEqual(user.personalBests, ["Barbell Bench Press": 408])
+
+            let relabeler = LoadHistoryRelabeler(
+                dataManager: ContextDataManager(context: context),
+                defaults: defaults
+            )
+            XCTAssertEqual(relabeler.status(for: .pounds), .relabeled(setCount: 3))
+            XCTAssertEqual(relabeler.undoRelabel(), .changed(sets: 3))
+        }
+
+        let reopened = try openStoreWithCurrentModels()
+        let context = ModelContext(reopened)
+        let workout = try XCTUnwrap(try context.fetch(FetchDescriptor<Workout>()).first)
+        let user = try XCTUnwrap(try context.fetch(FetchDescriptor<User>()).first)
+
+        let expectedPounds: [Int] = [185, 165, 155, 0]
+        XCTAssertEqual(workout.setsInLoggedOrder.map(\.weight), expectedPounds)
+        XCTAssertTrue(
+            workout.sets.allSatisfy { $0.loadValue == nil && $0.loadUnitRaw == nil && $0.relabeledFromPounds == nil },
+            "After an undo the store holds exactly what the shipped app wrote"
+        )
+        XCTAssertEqual(user.totalVolume, shippedVolume, accuracy: 0.01)
+        XCTAssertEqual(user.personalBests, ["Barbell Bench Press": 185])
     }
 
     func testMigratedStoreAcceptsNewWritesAndReopens() throws {

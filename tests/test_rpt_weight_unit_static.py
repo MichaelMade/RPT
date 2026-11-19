@@ -136,12 +136,16 @@ class RPTWeightUnitStaticTests(unittest.TestCase):
 
         content = CONTENT_VIEW.read_text()
         self.assertIn("@AppStorage(WeightUnit.defaultsKey) private var weightUnit: WeightUnit = .pounds", content)
+        # The tabs are keyed on the unit (and on relabels of earlier
+        # history, see test_rpt_kilogram_relabel_static.py).
+        identity = content.split("private var loadIdentity: String {")[1].split("\n    }\n")[0]
+        self.assertIn("weightUnit.rawValue", identity)
         for tab in ("HomeView()", "TemplatesListView()", "ExercisesView()", "StatsView()"):
             with self.subTest(tab=tab):
-                self.assertRegex(content, re.escape(tab) + r"\n\s*\.id\(weightUnit\)")
+                self.assertRegex(content, re.escape(tab) + r"\n\s*\.id\(loadIdentity\)")
         self.assertNotRegex(
             content,
-            r"SettingsView\(\)\n\s*\.id\(weightUnit\)",
+            r"SettingsView\(\)\n\s*\.id\(",
             "Settings holds the picker; rebuilding it on change would reset the screen under the lifter's thumb",
         )
 
@@ -241,7 +245,7 @@ class RPTWeightUnitStaticTests(unittest.TestCase):
         settings = SETTINGS.read_text()
         self.assertRegex(
             settings,
-            r"\.onChange\(of: weightUnit\) \{ _, _ in\n(?:\s*//[^\n]*\n)*\s*exportURL = nil",
+            r"\.onChange\(of: weightUnit\) \{ _, \w+ in\n(?:\s*//[^\n]*\n)*\s*exportURL = nil",
         )
 
     def test_csv_names_the_unit_in_its_columns(self):

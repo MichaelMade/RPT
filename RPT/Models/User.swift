@@ -173,6 +173,33 @@ final class User {
         return Self.consecutiveTrainingDays(in: trainingDates, calendar: calendar)
     }
 
+    /// Brings the stored lifetime totals back in line after the loads of
+    /// sets that were already counted changed, which only happens when
+    /// earlier history is relabeled from one unit to the other.
+    ///
+    /// `volumeDelta` is the change in pounds times reps across those sets.
+    /// A best is read again from the workouts that still exist, since a
+    /// maximum cannot be adjusted by a difference.
+    func correctLoadTotals(volumeDelta: Double, exerciseNames: Set<String>) {
+        if volumeDelta.isFinite {
+            let corrected = totalVolume + volumeDelta
+            totalVolume = corrected.isFinite ? max(0, corrected) : totalVolume
+        }
+
+        for name in exerciseNames {
+            var best: Int?
+            for workout in workouts where workout.isCompleted {
+                for set in workout.sets where set.isCompletedWorkingSet && set.exercise?.name == name {
+                    best = max(best ?? set.weight, set.weight)
+                }
+            }
+
+            if let best {
+                personalBests[name] = best
+            }
+        }
+    }
+
     // Update personal bests based on the workout (working sets only)
     private func updatePersonalBests(with workout: Workout) {
         for set in workout.sets where set.isCompletedWorkingSet {
