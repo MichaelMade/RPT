@@ -106,12 +106,15 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         try context.fetch(FetchDescriptor<ExerciseSet>())
     }
 
-    /// Every set's stored load, by the set itself: a fetch with no sort
-    /// promises no order, so two fetches cannot be compared as arrays.
-    private func storedLoads() throws -> [ObjectIdentifier: ExerciseSet.StoredLoad] {
-        var loads: [ObjectIdentifier: ExerciseSet.StoredLoad] = [:]
+    /// Every set's stored load, by the row it belongs to. A fetch with no
+    /// sort promises no order, and SwiftData lets go of model objects
+    /// between fetches, so neither position nor object identity says which
+    /// set is which across two fetches. Call it only after a save: an
+    /// unsaved row's identifier is temporary.
+    private func storedLoads() throws -> [PersistentIdentifier: ExerciseSet.StoredLoad] {
+        var loads: [PersistentIdentifier: ExerciseSet.StoredLoad] = [:]
         for set in try storedSets() {
-            loads[ObjectIdentifier(set)] = set.storedLoad
+            loads[set.persistentModelID] = set.storedLoad
         }
         return loads
     }
