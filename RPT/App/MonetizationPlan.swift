@@ -32,7 +32,7 @@ enum MonetizationPlan {
         name: "RPT Pro",
         summary: "Deeper progress. Unlimited templates. Yours for life.",
         features: [
-            "Advanced analytics — weekly volume, muscle balance, PR & e1RM trends",
+            "Advanced analytics — weekly volume charts, muscle balance, and your PR leaderboard",
             "Unlimited custom templates",
             "Full CSV export of every logged set"
         ]
@@ -60,6 +60,33 @@ enum MonetizationPlan {
 
     static func gateBody(for benefit: String) -> String {
         "\(benefit) Unlock RPT Pro once — no subscription."
+    }
+
+    /// Headline for the paywall when a specific Pro gate sent the user there,
+    /// so the screen says why it appeared instead of reading as an unprompted
+    /// upsell.
+    static func gateTitle(for reason: FunnelGateReason) -> String {
+        switch reason {
+        case .templateLimit: return gateTemplatesTitle
+        case .csvExport: return gateCSVTitle
+        case .advancedStats: return gateAdvancedStatsTitle
+        }
+    }
+
+    /// What unlocking gives the user for the thing they were just trying to do.
+    static func gateBenefit(for reason: FunnelGateReason) -> String {
+        switch reason {
+        case .templateLimit:
+            return "RPT Free includes the built-in three-day split and three templates of your own. RPT Pro removes the limit."
+        case .csvExport:
+            return "RPT Pro exports every set you have logged as a CSV you can open anywhere."
+        case .advancedStats:
+            return "RPT Pro adds weekly volume charts, muscle balance, and your PR leaderboard."
+        }
+    }
+
+    static func gateMessage(for reason: FunnelGateReason) -> String {
+        gateBody(for: gateBenefit(for: reason))
     }
 }
 
@@ -92,7 +119,7 @@ enum MonetizationPurchaseState: Equatable {
         case .restoring:
             return "Checking your App Store purchases."
         case .pendingApproval:
-            return "Purchase is pending App Store approval."
+            return "Purchase is pending approval. RPT Pro unlocks on its own once it is approved."
         case .unlocked:
             return "RPT Pro is unlocked on this device."
         case .unavailable:

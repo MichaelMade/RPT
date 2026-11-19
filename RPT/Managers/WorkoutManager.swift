@@ -134,9 +134,11 @@ class WorkoutManager: ObservableObject {
 
         let originalIsCompleted = workout.isCompleted
         let originalDuration = workout.duration
+        let originalDate = workout.date
         let originalUser = workout.user
         let userSnapshot = userManager.getCurrentUser().map(UserCompletionSnapshot.init)
 
+        workout.alignDateWithFirstLoggedSet()
         workout.complete()
         userManager.getCurrentUser()?.registerCompletedWorkoutIfNeeded(workout)
 
@@ -145,6 +147,7 @@ class WorkoutManager: ObservableObject {
         } catch {
             workout.isCompleted = originalIsCompleted
             workout.duration = originalDuration
+            workout.date = originalDate
             workout.user = originalUser
             userSnapshot?.restore()
             throw error
@@ -218,15 +221,38 @@ class WorkoutManager: ObservableObject {
     // Add a set to an exercise in a workout
     @discardableResult
     func addSet(to workout: Workout, for exercise: Exercise, weight: Int, reps: Int, isWarmup: Bool = false, rpe: Int? = nil) throws -> ExerciseSet {
-        let sanitized = sanitizedSetInput(weight: weight, reps: reps, rpe: rpe)
+        try addSet(
+            to: workout,
+            for: exercise,
+            load: Double(max(0, weight)),
+            unit: .pounds,
+            reps: reps,
+            isWarmup: isWarmup,
+            rpe: rpe
+        )
+    }
+
+    /// Adds a set whose load is given in `unit`.
+    @discardableResult
+    func addSet(
+        to workout: Workout,
+        for exercise: Exercise,
+        load: Double,
+        unit: WeightUnit,
+        reps: Int,
+        isWarmup: Bool = false,
+        rpe: Int? = nil
+    ) throws -> ExerciseSet {
+        let sanitized = sanitizedSetInput(weight: 0, reps: reps, rpe: rpe)
 
         let newSet = workout.addSet(
             exercise: exercise,
-            weight: sanitized.weight,
+            weight: 0,
             reps: sanitized.reps,
             isWarmup: isWarmup,
             rpe: sanitized.rpe
         )
+        newSet.setLoad(load, in: unit)
         // Adding a set never logs it — logging is an explicit user action.
         newSet.completedAt = .distantPast
 
@@ -449,10 +475,10 @@ class WorkoutManager: ObservableObject {
         return (count, totalVolume, averageDuration)
     }
     
-    // Get formatted weight value
-    func formatWeight(_ weight: Double) -> String {
+    /// A load held in pounds, written in the lifter's unit to one decimal.
+    func formatWeight(_ weight: Double, unit: WeightUnit = .current) -> String {
         let safeWeight = weight.isFinite ? max(0, weight) : 0
-        return String(format: "%.1f lb", safeWeight)
+        return String(format: "%.1f", unit.converting(safeWeight, from: .pounds)) + " \(unit.short)"
     }
     
     // Round to nearest 5 pounds
@@ -461,9 +487,15 @@ class WorkoutManager: ObservableObject {
         return Int((safeWeight / 5.0).rounded() * 5.0)
     }
     
-    // Get formatted volume
-    func formatVolume(_ volume: Double) -> String {
-        let safeVolume = volume.isFinite ? max(0, volume) : 0
+    /// A volume held in pounds, written compactly in the lifter's unit.
+    func formatVolume(_ volume: Double, unit: WeightUnit = .current) -> String {
+        let poundVolume = volume.isFinite ? max(0, volume) : 0
+        // A conversion leaves float noise behind, and the truncation below
+        // would turn 499.99999 kg into 499.9. Pounds are passed through
+        // untouched so their output does not change.
+        let safeVolume = unit == .pounds
+            ? poundVolume
+            : (unit.converting(poundVolume, from: .pounds) * 1_000).rounded() / 1_000
         let truncatedVolume = floor(safeVolume * 10) / 10
 
         if truncatedVolume >= 1_000_000 {
@@ -472,8 +504,8 @@ class WorkoutManager: ObservableObject {
             let isWholeMillions = truncatedMillions.truncatingRemainder(dividingBy: 1) == 0
 
             return isWholeMillions
-                ? "\(Int(truncatedMillions))M lb"
-                : String(format: "%.1fM lb", truncatedMillions)
+                ? "\(Int(truncatedMillions))M \(unit.short)"
+                : String(format: "%.1fM", truncatedMillions) + " \(unit.short)"
         }
 
         if truncatedVolume >= 1000 {
@@ -482,14 +514,14 @@ class WorkoutManager: ObservableObject {
             let isWholeThousands = truncatedThousands.truncatingRemainder(dividingBy: 1) == 0
 
             return isWholeThousands
-                ? "\(Int(truncatedThousands))k lb"
-                : String(format: "%.1fk lb", truncatedThousands)
+                ? "\(Int(truncatedThousands))k \(unit.short)"
+                : String(format: "%.1fk", truncatedThousands) + " \(unit.short)"
         }
 
         let isWholeNumber = truncatedVolume.truncatingRemainder(dividingBy: 1) == 0
         return isWholeNumber
-            ? "\(Int(truncatedVolume)) lb"
-            : String(format: "%.1f lb", truncatedVolume)
+            ? "\(Int(truncatedVolume)) \(unit.short)"
+            : String(format: "%.1f", truncatedVolume) + " \(unit.short)"
     }
     
     func sanitizedCompletedWorkoutDuration(_ workout: Workout) -> TimeInterval? {

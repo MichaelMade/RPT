@@ -20,7 +20,6 @@ struct HomeView: View {
     @State private var workoutToDelete: Workout?
     @State private var errorMessage: String?
     @State private var pendingTemplate: WorkoutTemplate?
-    @State private var showingReviewAsk = false
 
     // Derived dashboard data, recomputed on appear.
     @State private var weekCells: [WeekDayCell] = []
@@ -74,9 +73,6 @@ struct HomeView: View {
                 if !presenting {
                     viewModel.refresh()
                     refreshDerivedData()
-                    if ReviewPromptManager.claimSoftAsk() {
-                        showingReviewAsk = true
-                    }
                 }
             }
             .confirmationDialog(
@@ -123,18 +119,6 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showingPlateCalculator) {
                 PlateCalculatorView()
-            }
-            .alert("Enjoying RPT?", isPresented: $showingReviewAsk) {
-                Button("Rate RPT") {
-                    ReviewPromptManager.requestReviewIfEligible()
-                    ReviewPromptManager.resetSoftAskLatch()
-                }
-                Button("Not now", role: .cancel) {
-                    ReviewPromptManager.snooze()
-                    ReviewPromptManager.resetSoftAskLatch()
-                }
-            } message: {
-                Text("A quick rating helps other lifters find a focused reverse-pyramid log.")
             }
         }
     }
@@ -599,14 +583,15 @@ struct HomeView: View {
         workout.totalVolume.isFinite ? max(0, workout.totalVolume) : 0
     }
 
+    /// A volume held in pounds, written in the lifter's unit.
     private func volumeText(_ volume: Double) -> String {
-        let safeVolume = volume.isFinite ? max(0, volume) : 0
-        return "\(Int(safeVolume).formatted()) lb"
+        let unit = WeightUnit.current
+        return "\(unit.wholeNumber(forPounds: volume).formatted()) \(unit.short)"
     }
 
     private func workMetricText(for workout: Workout) -> String {
         if workout.totalVolume.isFinite, workout.totalVolume > 0 {
-            return "\(Int(workout.totalVolume).formatted()) lb"
+            return volumeText(workout.totalVolume)
         }
 
         return workout.preferredWorkMetricValue

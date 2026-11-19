@@ -17,6 +17,9 @@ struct TemplatesListView: View {
 
     @State private var showingCreateTemplate = false
     @State private var showingUpgrade = false
+    /// What the free-tier limit interrupted, so it can carry on if the
+    /// customer unlocks Pro from the paywall it opened.
+    @State private var blockedTemplateAction: BlockedTemplateAction? = nil
     @State private var templateToDelete: WorkoutTemplate?
     @State private var templateToEdit: WorkoutTemplate?
     @State private var pendingStartTemplate: WorkoutTemplate?
@@ -24,6 +27,26 @@ struct TemplatesListView: View {
     @State private var lastRunDatesByTemplateID: [String: Date] = [:]
 
     private let workoutManager = WorkoutManager.shared
+
+    private enum BlockedTemplateAction {
+        case create
+        case duplicate(WorkoutTemplate)
+    }
+
+    /// Runs after the paywall sheet has finished dismissing. Presenting the
+    /// composer any earlier would collide with the sheet still going away.
+    private func resumeBlockedTemplateAction() {
+        guard let action = blockedTemplateAction else { return }
+        blockedTemplateAction = nil
+        guard purchaseManager.isUnlocked else { return }
+
+        switch action {
+        case .create:
+            showingCreateTemplate = true
+        case .duplicate(let template):
+            duplicateTemplate(template)
+        }
+    }
 
     /// Route every new-template entry point through the free-tier limit.
     private func requestCreateTemplate() {
@@ -41,6 +64,7 @@ struct TemplatesListView: View {
         ) {
             showingCreateTemplate = true
         } else {
+            blockedTemplateAction = .create
             showingUpgrade = true
         }
     }
@@ -94,7 +118,7 @@ struct TemplatesListView: View {
                     viewModel.refreshTemplates()
                 }
             }
-            .sheet(isPresented: $showingUpgrade) {
+            .sheet(isPresented: $showingUpgrade, onDismiss: resumeBlockedTemplateAction) {
                 NavigationStack {
                     UpgradeView(source: .templates, gateReason: .templateLimit)
                         .toolbar {
@@ -443,6 +467,7 @@ struct TemplatesListView: View {
             existingCount: viewModel.templates.count,
             isUnlocked: purchaseManager.isUnlocked
         ) else {
+            blockedTemplateAction = .duplicate(template)
             showingUpgrade = true
             return
         }

@@ -8,16 +8,29 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct SettingsView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
+
     @StateObject private var settingsManager = SettingsManager.shared
     @ObservedObject private var purchaseManager = StoreKitPurchaseManager.shared
+    @ObservedObject private var restAlerts = RestAlertManager.shared
+    /// The unit loads are entered and shown in, everywhere in the app.
+    @AppStorage(WeightUnit.defaultsKey) private var weightUnit: WeightUnit = .pounds
 
     @State private var soundEnabled = SoundManager.shared.isSoundEnabled()
     @State private var showingResetConfirmation = false
     @State private var errorMessage: String?
     @State private var exportURL: URL?
     @State private var showingDropEditors = false
+    @State private var showingNotificationsBlocked = false
+    /// Whether earlier workouts can be relabeled as kilograms, or have been.
+    @State private var earlierWorkoutsStatus: KilogramRelabelPolicy.Status = .nothingToOffer
+    /// The relabel question, while it is on screen.
+    @State private var relabelQuestion: KilogramRelabelPolicy.Preview?
+    @State private var showingRelabelUndo = false
 
     /// One-tap rest presets shown as chips (seconds).
     private let restDurationChips = [90, 120, 150, 180]
@@ -59,7 +72,12 @@ struct SettingsView: View {
                 titleVisibility: .visible
             ) {
                 Button("Reset to Defaults", role: .destructive) {
-                    if !settingsManager.resetToDefaultsSafely() {
+                    if settingsManager.resetToDefaultsSafely() {
+                        // The rest-end alert is part of the rest timer group
+                        // and is off by default. iOS permission is left as
+                        // it is, so turning it back on needs no new prompt.
+                        restAlerts.disable()
+                    } else {
                         errorMessage = "Couldn’t reset settings. Please try again."
                     }
                 }
@@ -72,6 +90,43 @@ struct SettingsView: View {
             } message: {
                 Text(errorMessage ?? "Please try again.")
             }
+            .alert("Notifications Are Off for RPT", isPresented: $showingNotificationsBlocked) {
+                Button("Open Settings") {
+                    if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+                        openURL(url)
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Allow notifications for RPT in Settings to get an alert when your rest ends.")
+            }
+            .alert(
+                KilogramRelabelPolicy.questionTitle,
+                isPresented: relabelQuestionBinding,
+                presenting: relabelQuestion
+            ) { _ in
+                Button(KilogramRelabelPolicy.relabelAnswer) {
+                    relabelEarlierWorkouts()
+                }
+                Button(KilogramRelabelPolicy.keepAnswer, role: .cancel) {
+                    historyRelabeler.recordPromptAnswered()
+                }
+            } message: { preview in
+                Text(KilogramRelabelPolicy.questionMessage(for: preview))
+            }
+            .alert(KilogramRelabelPolicy.undoTitle, isPresented: $showingRelabelUndo) {
+                Button(KilogramRelabelPolicy.undoAnswer, role: .destructive) {
+                    undoEarlierWorkoutsRelabel()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text(KilogramRelabelPolicy.undoMessage(setCount: relabeledSetCount))
+            }
+            .onAppear {
+                // Sets logged since the last visit can change what there is
+                // to relabel.
+                refreshEarlierWorkoutsStatus()
+            }
             .onDisappear {
                 // Drop any generated CSV so the next visit exports fresh data
                 // instead of re-sharing a stale file.
@@ -79,6 +134,27 @@ struct SettingsView: View {
             }
             .task {
                 await purchaseManager.start()
+            }
+            .task {
+                await restAlerts.refreshPermission()
+            }
+            .onChange(of: weightUnit) { _, newUnit in
+                // The export is written in the unit it was made in. Settings
+                // is the one tab that is not rebuilt on a switch, so drop
+                // the file here.
+                exportURL = nil
+
+                // A lifter switching to kilograms may have been typing
+                // kilograms into the pound field all along. Ask once.
+                refreshEarlierWorkoutsStatus()
+                relabelQuestion = historyRelabeler.question(afterSwitchingTo: newUnit)
+            }
+            .onChange(of: scenePhase) { _, phase in
+                // Coming back from the iOS Settings app: the answer there
+                // decides whether the rest alert toggle can be on.
+                if phase == .active {
+                    Task { await restAlerts.refreshPermission() }
+                }
             }
         }
     }
@@ -172,6 +248,9 @@ struct SettingsView: View {
 
     private var trainingSection: some View {
         settingsGroup("Training") {
+            weightUnitRow
+            earlierWorkoutsRow
+            hairline
             rptDropsRow
             hairline
             weeklyGoalRow
@@ -180,19 +259,116 @@ struct SettingsView: View {
         }
     }
 
+    /// Pounds or kilograms. Nothing stored is rewritten by the switch:
+    /// each set keeps the load it was logged with and is shown converted.
+    /// Earlier sets typed in kilograms while RPT only knew pounds are the
+    /// one exception, and only when the lifter asks: `earlierWorkoutsRow`.
+    private var weightUnitRow: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Weight unit")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.textPrimary)
+
+                Text("Loads logged in the other unit are shown converted")
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(Theme.textSecondary)
+            }
+
+            Spacer()
+
+            Picker("Weight unit", selection: $weightUnit) {
+                Text("lb").tag(WeightUnit.pounds)
+                Text("kg").tag(WeightUnit.kilograms)
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 120)
+            .frame(minHeight: 44)
+            .accessibilityIdentifier("weightUnitPicker")
+        }
+        .padding(.horizontal, Theme.cardPadding)
+        .padding(.vertical, 12)
+    }
+
+    /// Shown only when there is something to decide: a kilogram lifter
+    /// whose earlier sets are still read as pounds, or a relabel that can
+    /// be undone. A pound lifter never sees it.
+    @ViewBuilder
+    private var earlierWorkoutsRow: some View {
+        switch earlierWorkoutsStatus {
+        case .nothingToOffer:
+            EmptyView()
+
+        case .readAsPounds(let preview):
+            hairline
+            Button {
+                relabelQuestion = preview
+            } label: {
+                earlierWorkoutsLabel(
+                    detail: "Logged as pounds, shown converted",
+                    action: "Were they kg?"
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Earlier workouts, logged as pounds and shown converted")
+            .accessibilityHint("Asks whether they were logged in kilograms")
+            .accessibilityIdentifier("earlierWorkoutsRelabelRow")
+
+        case .relabeled(let setCount):
+            hairline
+            Button {
+                showingRelabelUndo = true
+            } label: {
+                earlierWorkoutsLabel(
+                    detail: KilogramRelabelPolicy.relabeledDetail(setCount: setCount),
+                    action: "Undo"
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Earlier workouts, \(KilogramRelabelPolicy.relabeledDetail(setCount: setCount))")
+            .accessibilityHint("Offers to change them back to pounds")
+            .accessibilityIdentifier("earlierWorkoutsUndoRow")
+        }
+    }
+
+    private func earlierWorkoutsLabel(detail: String, action: String) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Earlier workouts")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.textPrimary)
+
+                Text(detail)
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(Theme.textSecondary)
+            }
+
+            Spacer()
+
+            Text(action)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Theme.primary)
+        }
+        .padding(.horizontal, Theme.cardPadding)
+        .padding(.vertical, 12)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+    }
+
     /// "−10% / −15%" from the currently configured back-off drops.
     private var dropsSummary: String {
         backoffDropPercents.map { "−\($0)%" }.joined(separator: " / ")
     }
 
-    /// The configured ladder applied to a 100 lb top set, e.g. [100, 90, 85].
-    private var ladderWeights: [Int] {
-        let topSetWeight = 100
-        let workoutManager = WorkoutManager.shared
+    /// The configured ladder applied to a top set of 100 in the lifter's
+    /// unit, each back-off rounded to a load they can put on the bar:
+    /// 100, 90, 85.
+    private var ladderWeights: [String] {
+        let topSetLoad = 100.0
         let backoffs = settings.defaultRPTPercentageDrops.dropFirst().map { drop in
-            workoutManager.roundToNearest5(Double(topSetWeight) * (1.0 - drop))
+            weightUnit.roundedToIncrement(topSetLoad * (1.0 - drop))
         }
-        return [topSetWeight] + backoffs
+        return ([topSetLoad] + backoffs).map { weightUnit.string(for: $0) }
     }
 
     private var ladderColors: [Color] {
@@ -262,7 +438,7 @@ struct SettingsView: View {
                         .foregroundStyle(Theme.textTertiary)
                 }
 
-                Text("\(weight)")
+                Text(weight)
                     .font(.system(size: 12, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(index == 0 ? Color.white : Theme.inverted)
@@ -274,7 +450,7 @@ struct SettingsView: View {
                     )
             }
 
-            Text("from a 100 lb top set")
+            Text("from a 100 \(weightUnit.short) top set")
                 .font(.system(size: 11.5))
                 .foregroundStyle(Theme.textSecondary)
                 .padding(.leading, 4)
@@ -283,7 +459,7 @@ struct SettingsView: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
-            "Example from a 100 pound top set: \(ladderWeights.map(String.init).joined(separator: ", ")) pounds"
+            "Example from a top set of 100 \(weightUnit.displayName.lowercased()): \(ladderWeights.joined(separator: ", "))"
         )
     }
 
@@ -393,6 +569,8 @@ struct SettingsView: View {
             restDurationRow
             hairline
             autoStartRow
+            hairline
+            restAlertRow
         }
     }
 
@@ -494,6 +672,24 @@ struct SettingsView: View {
         .tint(Theme.primary)
         .padding(.horizontal, Theme.cardPadding)
         .padding(.vertical, 12)
+    }
+
+    private var restAlertRow: some View {
+        Toggle(isOn: restAlertBinding) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Alert when rest ends")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.textPrimary)
+
+                Text("A notification when RPT is in the background or your phone is locked")
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(Theme.textSecondary)
+            }
+        }
+        .tint(Theme.primary)
+        .padding(.horizontal, Theme.cardPadding)
+        .padding(.vertical, 12)
+        .accessibilityIdentifier("restAlertToggle")
     }
 
     // MARK: - App
@@ -735,6 +931,44 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Earlier workouts
+
+    /// Built when needed: it holds nothing but the store it works on.
+    private var historyRelabeler: LoadHistoryRelabeler {
+        LoadHistoryRelabeler()
+    }
+
+    private var relabeledSetCount: Int {
+        if case .relabeled(let setCount) = earlierWorkoutsStatus {
+            return setCount
+        }
+        return 0
+    }
+
+    private func refreshEarlierWorkoutsStatus() {
+        earlierWorkoutsStatus = historyRelabeler.status(for: weightUnit)
+    }
+
+    private func relabelEarlierWorkouts() {
+        if historyRelabeler.relabelEarlierSetsAsKilograms() == .failed {
+            errorMessage = "Couldn’t relabel your earlier workouts. Nothing was changed."
+        }
+        finishEarlierWorkoutsChange()
+    }
+
+    private func undoEarlierWorkoutsRelabel() {
+        if historyRelabeler.undoRelabel() == .failed {
+            errorMessage = "Couldn’t undo the relabel. Nothing was changed."
+        }
+        finishEarlierWorkoutsChange()
+    }
+
+    private func finishEarlierWorkoutsChange() {
+        // An export made before the change holds the loads from before.
+        exportURL = nil
+        refreshEarlierWorkoutsStatus()
+    }
+
     private func setRestDuration(_ seconds: Int) {
         guard seconds != settings.restTimerDuration else { return }
 
@@ -778,6 +1012,26 @@ struct SettingsView: View {
         )
     }
 
+    /// On only when alerts will really arrive: the lifter chose them and iOS
+    /// allows them. Permission revoked in the Settings app reads as off.
+    private var restAlertBinding: Binding<Bool> {
+        Binding(
+            get: { restAlerts.isActive },
+            set: { newValue in
+                guard newValue else {
+                    restAlerts.disable()
+                    return
+                }
+
+                Task {
+                    if await restAlerts.enable() == .permissionDenied {
+                        showingNotificationsBlocked = true
+                    }
+                }
+            }
+        )
+    }
+
     private var darkModeBinding: Binding<DarkModePreference> {
         Binding(
             get: { settingsManager.darkModePreference },
@@ -786,6 +1040,13 @@ struct SettingsView: View {
                     errorMessage = "Couldn’t save the theme. Please try again."
                 }
             }
+        )
+    }
+
+    private var relabelQuestionBinding: Binding<Bool> {
+        Binding(
+            get: { relabelQuestion != nil },
+            set: { if !$0 { relabelQuestion = nil } }
         )
     }
 

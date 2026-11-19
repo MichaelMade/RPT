@@ -193,6 +193,9 @@ struct OnboardingView: View {
     }
 
     private func completeOnboarding(using plan: OnboardingLaunchPlan) {
+        // Before the first workout is created, so it is planned in the unit
+        // this lifter's region trains in.
+        adoptRegionalUnitIfNew()
         selectedRootTabRawValue = plan.rootTab.rawValue
         showCreateTemplateAfterOnboarding = plan.shouldShowTemplateComposer
 
@@ -224,7 +227,17 @@ struct OnboardingView: View {
         hasCompletedOnboarding = true
     }
 
+    /// A first-time lifter gets the unit their region trains in. Anyone
+    /// who already has a workout in the store logged it in pounds, whatever
+    /// the onboarding flag says, and keeps pounds.
+    private func adoptRegionalUnitIfNew() {
+        let hasHistory = !WorkoutManager.shared.getWorkouts(from: .distantPast, to: .distantFuture).isEmpty
+        guard !hasHistory else { return }
+        WeightUnit.adoptSuggestedIfUnset()
+    }
+
     private func completeOnboardingByBrowsing() {
+        adoptRegionalUnitIfNew()
         selectedRootTabRawValue = RootTab.home.rawValue
         showCreateTemplateAfterOnboarding = false
         FunnelAnalytics.shared.trackOnboardingComplete(source: .onboardingBrowse)

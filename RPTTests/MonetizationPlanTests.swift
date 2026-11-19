@@ -18,7 +18,7 @@ final class MonetizationPlanTests: XCTestCase {
         XCTAssertEqual(MonetizationPlan.proProductIDs, ["rpt.pro.lifetime"])
         XCTAssertEqual(MonetizationPlan.purchaseOfferTitle, "One-time · No subscription")
         XCTAssertEqual(MonetizationPlan.purchaseOfferSummary, "One-time purchase. No subscription.")
-        XCTAssertTrue(MonetizationPlan.proTier.features.contains("Advanced analytics — weekly volume, muscle balance, PR & e1RM trends"))
+        XCTAssertTrue(MonetizationPlan.proTier.features.contains("Advanced analytics — weekly volume charts, muscle balance, and your PR leaderboard"))
         XCTAssertTrue(MonetizationPlan.proTier.features.contains("Unlimited custom templates"))
         XCTAssertTrue(MonetizationPlan.proTier.features.contains("Full CSV export of every logged set"))
     }
@@ -53,6 +53,32 @@ final class MonetizationPlanTests: XCTestCase {
         XCTAssertEqual(MonetizationPlan.gateTemplatesTitle, "You've used your free custom templates")
         XCTAssertEqual(MonetizationPlan.gateCSVTitle, "Export your full training history")
         XCTAssertEqual(MonetizationPlan.gateAdvancedStatsTitle, "See the trends behind your lifts")
+    }
+
+    func testProAnalyticsBulletOnlyPromisesWhatIsGated() {
+        // The per-exercise e1RM trend chart is free. Selling it as a Pro
+        // feature misdescribes the purchase.
+        let analyticsBullet = MonetizationPlan.proTier.features[0]
+        XCTAssertFalse(analyticsBullet.localizedCaseInsensitiveContains("e1RM"))
+        XCTAssertTrue(analyticsBullet.contains("weekly volume"))
+        XCTAssertTrue(analyticsBullet.contains("muscle balance"))
+    }
+
+    func testEveryGateExplainsWhyThePaywallAppeared() {
+        XCTAssertEqual(MonetizationPlan.gateTitle(for: .templateLimit), MonetizationPlan.gateTemplatesTitle)
+        XCTAssertEqual(MonetizationPlan.gateTitle(for: .csvExport), MonetizationPlan.gateCSVTitle)
+        XCTAssertEqual(MonetizationPlan.gateTitle(for: .advancedStats), MonetizationPlan.gateAdvancedStatsTitle)
+
+        for reason in [FunnelGateReason.templateLimit, .csvExport, .advancedStats] {
+            let message = MonetizationPlan.gateMessage(for: reason)
+            XCTAssertTrue(message.hasPrefix(MonetizationPlan.gateBenefit(for: reason)))
+            XCTAssertTrue(message.contains("Unlock RPT Pro once"), "\(reason.rawValue) gate must carry the one-time offer")
+        }
+
+        XCTAssertTrue(
+            MonetizationPlan.gateBenefit(for: .templateLimit).contains("three templates of your own"),
+            "The template gate should state the free allowance the user just reached"
+        )
     }
 
     func testGateBodyIncludesAntiSubscriptionMessage() {

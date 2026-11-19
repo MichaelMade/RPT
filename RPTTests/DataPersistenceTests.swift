@@ -213,6 +213,72 @@ final class DataPersistenceTests: XCTestCase {
         )
     }
 
+    func testFreshInstallSeedsPullUpAndDipAsBodyweight() throws {
+        let dataManager = DataManager(
+            containerFactory: { schema, _ in
+                let configuration = ModelConfiguration(
+                    isStoredInMemoryOnly: true,
+                    allowsSave: true
+                )
+                return try ModelContainer(for: schema, configurations: configuration)
+            },
+            seedDefaultData: true
+        )
+
+        XCTAssertFalse(dataManager.hasPersistenceFailure)
+
+        let exercises = try dataManager.getModelContext().fetch(FetchDescriptor<Exercise>())
+        let unloadedMovements = exercises.filter { DataManager.builtInBodyweightExerciseNames.contains($0.name) }
+
+        XCTAssertEqual(Set(unloadedMovements.map(\.name)), DataManager.builtInBodyweightExerciseNames)
+        XCTAssertTrue(
+            unloadedMovements.allSatisfy { $0.category == .bodyweight },
+            "Pull-up and Dip must accept a set with no added weight"
+        )
+
+        let pullUp = try XCTUnwrap(unloadedMovements.first { $0.name == "Pull-up" })
+        XCTAssertTrue(
+            ExerciseSet.hasCompletedValues(weight: 0, reps: 8, exerciseCategory: pullUp.category),
+            "A bodyweight pull-up set has to be loggable"
+        )
+    }
+
+    func testExistingStoreRepairsBuiltInPullUpAndDipToBodyweight() throws {
+        // A store seeded by a version that shipped Pull-up and Dip as compound.
+        let staleBuiltIns = ["Pull-up", "Dip"].map {
+            Exercise(name: $0, category: .compound, primaryMuscleGroups: [.back])
+        }
+        let otherBuiltIn = Exercise(name: "Barbell Row", category: .compound, primaryMuscleGroups: [.back])
+        let customExercise = Exercise(
+            name: "Weighted Chin-up",
+            category: .compound,
+            primaryMuscleGroups: [.back],
+            isCustom: true
+        )
+
+        for exercise in staleBuiltIns + [otherBuiltIn, customExercise] {
+            modelContext.insert(exercise)
+        }
+        try modelContext.save()
+
+        let existingContainer = try XCTUnwrap(modelContainer)
+        let dataManager = DataManager(
+            containerFactory: { _, _ in existingContainer },
+            seedDefaultData: true
+        )
+
+        XCTAssertFalse(dataManager.hasPersistenceFailure)
+        XCTAssertTrue(
+            staleBuiltIns.allSatisfy { $0.category == .bodyweight },
+            "Stores seeded before the fix should be corrected on launch"
+        )
+        XCTAssertEqual(otherBuiltIn.category, .compound, "Other built-in exercises are untouched")
+        XCTAssertEqual(customExercise.category, .compound, "The user's own exercises are never recategorized")
+
+        let exerciseCount = try modelContext.fetchCount(FetchDescriptor<Exercise>())
+        XCTAssertEqual(exerciseCount, 4, "Repairing must not re-seed the library")
+    }
+
     func testTemplateManagerCanStillSeedAnInjectedTestContainer() {
         let dataManager = DataManager(
             containerFactory: { schema, _ in

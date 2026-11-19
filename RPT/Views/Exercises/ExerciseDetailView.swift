@@ -80,11 +80,13 @@ struct ExerciseDetailView: View {
             }
         }
         .confirmationDialog(
-            "Delete \(exercise.displayName)?",
+            deletionKeepsHistory
+                ? "Remove \(exercise.displayName) from your library?"
+                : "Delete \(exercise.displayName)?",
             isPresented: $showingDeleteConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Delete Exercise", role: .destructive) {
+            Button(deletionKeepsHistory ? "Remove from Library" : "Delete Exercise", role: .destructive) {
                 deleteExercise()
             }
             Button("Cancel", role: .cancel) {}
@@ -173,7 +175,12 @@ struct ExerciseDetailView: View {
             return nil
         }
 
-        return ProgressionAdvisor.suggestion(lastWeight: topSet.weight, lastReps: topSet.reps)
+        let unit = WeightUnit.current
+        return ProgressionAdvisor.suggestion(
+            lastLoad: topSet.loadableLoad(in: unit),
+            unit: unit,
+            lastReps: topSet.reps
+        )
     }
 
     private func progressionCard(_ suggestion: ProgressionSuggestion) -> some View {
@@ -218,6 +225,12 @@ struct ExerciseDetailView: View {
         e1rmPoints.map(\.value).max() ?? 0
     }
 
+    /// Estimates are held in pounds; the chart's axis is in the lifter's
+    /// unit.
+    private func chartValue(_ point: E1RMPoint) -> Double {
+        WeightUnit.current.converting(point.value, from: .pounds)
+    }
+
     private var e1rmAccessibilitySummary: String {
         guard let first = e1rmPoints.first, let latest = e1rmPoints.last else {
             return "No strength trend data."
@@ -249,14 +262,14 @@ struct ExerciseDetailView: View {
                 Chart(e1rmPoints) { point in
                     LineMark(
                         x: .value("Date", point.date),
-                        y: .value("e1RM", point.value)
+                        y: .value("e1RM", chartValue(point))
                     )
                     .foregroundStyle(Theme.accent)
                     .interpolationMethod(.catmullRom)
 
                     PointMark(
                         x: .value("Date", point.date),
-                        y: .value("e1RM", point.value)
+                        y: .value("e1RM", chartValue(point))
                     )
                     .foregroundStyle(Theme.accentDeep)
                 }
@@ -328,15 +341,22 @@ struct ExerciseDetailView: View {
 
     // MARK: - Deletion
 
+    /// Logged sets are history and are kept: the exercise is archived
+    /// rather than destroyed. See `ExerciseManager.deleteExercise`.
+    private var deletionKeepsHistory: Bool {
+        exerciseManager.deletionImpact(for: exercise).loggedSetCount > 0
+    }
+
     private var deletionImpactMessage: String {
         let impact = exerciseManager.deletionImpact(for: exercise)
+        let keepsHistory = impact.loggedSetCount > 0
 
         var parts: [String] = []
-        if impact.loggedSetCount > 0 {
-            parts.append("\(impact.loggedSetCount) logged \(impact.loggedSetCount == 1 ? "set" : "sets") will be removed from your history")
+        if keepsHistory {
+            parts.append("It leaves your library, and its \(impact.loggedSetCount) logged \(impact.loggedSetCount == 1 ? "set stays" : "sets stay") in your history")
         }
         if impact.draftSetCount > 0 {
-            parts.append("\(impact.draftSetCount) draft \(impact.draftSetCount == 1 ? "set" : "sets") will be removed from in-progress workouts")
+            parts.append("\(impact.draftSetCount) planned \(impact.draftSetCount == 1 ? "set" : "sets") will be removed from in-progress workouts")
         }
         if impact.templateCount > 0 {
             parts.append("\(impact.templateCount) \(impact.templateCount == 1 ? "template references" : "templates reference") this exercise")
@@ -346,7 +366,10 @@ struct ExerciseDetailView: View {
             return "This custom exercise has no logged history. This cannot be undone."
         }
 
-        return parts.joined(separator: ". ") + ". This cannot be undone."
+        let ending = keepsHistory
+            ? "Add an exercise with the same name to bring it back."
+            : "This cannot be undone."
+        return parts.joined(separator: ". ") + ". " + ending
     }
 
     private func deleteExercise() {

@@ -9,15 +9,26 @@
 import Foundation
 
 enum WorkoutCSVExporter {
-    static let header = "date,workout,exercise,set_type,weight_lb,reps,rpe,volume_lb"
+    static let header = header(for: .pounds)
+
+    /// Column names carry the unit, so a spreadsheet never has to guess.
+    static func header(for unit: WeightUnit) -> String {
+        "date,workout,exercise,set_type,weight_\(unit.short),reps,rpe,volume_\(unit.short)"
+    }
 
     /// Builds a CSV string of all logged sets in completed workouts,
     /// newest workout first, sets in logged order.
-    static func csv(for workouts: [Workout]) -> String {
-        var lines: [String] = [header]
+    ///
+    /// Dates are the lifter's own calendar days (`timeZone`, the device's
+    /// zone by default) so the export agrees with History and Stats. A UTC
+    /// date would file an evening session under the following day.
+    ///
+    /// Loads are exported in `unit`, the unit the lifter trains in. A set
+    /// logged in that unit is written exactly as it was entered.
+    static func csv(for workouts: [Workout], timeZone: TimeZone = .current, unit: WeightUnit = .current) -> String {
+        var lines: [String] = [header(for: unit)]
 
-        let dateFormatter = ISO8601DateFormatter()
-        dateFormatter.formatOptions = [.withFullDate]
+        let dateFormatter = dayFormatter(timeZone: timeZone)
 
         let completed = workouts
             .filter(\.isCompleted)
@@ -32,7 +43,11 @@ enum WorkoutCSVExporter {
 
                 let setType = set.isWarmup ? "warmup" : "working"
                 let rpeField = set.displayRPE.map(String.init) ?? ""
-                let volume = set.isWarmup ? 0 : set.weight * set.reps
+                // Volume is the written load times reps, so each row adds
+                // up for anyone checking it by hand.
+                let weightField = set.writtenLoad(in: unit)
+                let writtenLoad = Double(weightField) ?? 0
+                let volumeField = set.isWarmup ? "0" : unit.exactString(for: writtenLoad * Double(set.reps))
 
                 lines.append(
                     [
@@ -40,10 +55,10 @@ enum WorkoutCSVExporter {
                         workoutField,
                         escape(exercise.displayName),
                         setType,
-                        String(set.weight),
+                        weightField,
                         String(set.reps),
                         rpeField,
-                        String(volume)
+                        volumeField
                     ].joined(separator: ",")
                 )
             }
@@ -55,9 +70,7 @@ enum WorkoutCSVExporter {
     /// Writes the CSV to a temporary file suitable for the share sheet.
     static func exportFile(for workouts: [Workout]) -> URL? {
         let content = csv(for: workouts)
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let filename = "RPT-History-\(formatter.string(from: Date())).csv"
+        let filename = "RPT-History-\(dayFormatter(timeZone: .current).string(from: Date())).csv"
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
 
         do {
@@ -66,6 +79,17 @@ enum WorkoutCSVExporter {
         } catch {
             return nil
         }
+    }
+
+    /// `yyyy-MM-dd` in a fixed Gregorian/POSIX format, so the output does not
+    /// change with the device's region, calendar, or numbering system.
+    static func dayFormatter(timeZone: TimeZone) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
     }
 
     /// Escapes a CSV field per RFC 4180.

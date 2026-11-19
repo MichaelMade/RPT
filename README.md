@@ -7,12 +7,13 @@ Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All d
 ## Features
 
 ### Training
-- **Live workout logging** — fast steppers, tap-to-type set editing, RPE tracking, and per-exercise completion check-offs.
+- **Live workout logging** — tap-to-type set editing, one-tap set logging, RPE tracking, and per-exercise completion check-offs.
 - **RPT back-off suggestions** — log your top set and the app calculates every back-off weight from your configured percentage drops (default −10% / −15%), always anchored to the top set.
 - **Warm-up ramp generator** — one tap builds a low-fatigue ramp (bar × 10 → 40% × 5 → 60% × 3 → 80% × 1) toward your top set.
 - **Progression coaching** — double-progression targets on every exercise: hit the top of your rep range and RPT tells you to load more next session.
-- **Rest timer** — progress-ring countdown with ±15s adjustments, haptic and sound cues, and optional auto-start when you check off a set.
+- **Rest timer** — docked countdown with a +15s extension, haptic and sound cues, and optional auto-start when you log a set. The countdown follows the wall clock, so it stays accurate while the app is in the background. Turn on **Alert when rest ends** (Settings, or the bell in the rest dock) to get a notification when rest is over with the phone locked or another app in front. The alert is off until you ask for it.
 - **Follow-up workouts** — re-run any completed session at +2.5% load with one tap.
+- **Pounds or kilograms** — pick your unit in Settings. Kilogram loads can be fractional (62.5, 61.25), and every suggested load is rounded to something you can put on the bar: 5 lb or 2.5 kg steps, with a 20 kg bar for warm-ups. Switching units never rewrites your history; earlier workouts are shown converted. If you typed kilograms back when RPT only tracked pounds, RPT asks once when you switch and can relabel those earlier sets as kilograms (Settings > Training > Earlier workouts, with an undo).
 
 ### Planning
 - **Activation-focused onboarding** — first run now ends with a concrete next step: launch the starter template, open template creation, or begin an empty first workout instead of dumping new users into a generic shell.
@@ -71,7 +72,7 @@ The About screen exposes a support email action, the public [`SUPPORT.md`](SUPPO
 
 RPT ships a privacy manifest that declares on-device UserDefaults access for onboarding, workout-state recovery, settings toggles, and local funnel counts.
 
-The current app binary does not declare camera, photo library, contacts, location, notifications, or tracking permissions. See `Privacy Policy`.
+The current app binary does not declare camera, photo library, contacts, location, or tracking permissions. Notification permission is requested only if you turn on the rest-end alert; that alert is a local notification scheduled on the device, and RPT does not register for remote push. See `Privacy Policy`.
 
 ## How to read the funnel
 

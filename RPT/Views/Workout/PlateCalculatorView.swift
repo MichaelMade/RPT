@@ -11,10 +11,15 @@ import SwiftUI
 struct PlateCalculatorView: View {
     @Environment(\.dismiss) private var dismiss
 
-    var initialTargetWeight: Int = 0
+    /// Load to start from, in `initialUnit`.
+    var initialTargetLoad: Double = 0
+    /// Starts in the unit the lifter trains in. The picker switches the
+    /// bar and plate set; it does not convert the number typed.
+    var initialUnit: WeightUnit = .current
 
     @State private var targetText: String = ""
     @State private var unit: WeightUnit = .pounds
+    @State private var hasAppliedInitialValues = false
     @State private var barbell: BarbellType = .olympic
     @FocusState private var isInputFocused: Bool
 
@@ -42,8 +47,14 @@ struct PlateCalculatorView: View {
                 }
             }
             .onAppear {
-                if initialTargetWeight > 0 {
-                    targetText = "\(initialTargetWeight)"
+                // Once: reappearing must not undo a unit or target the
+                // lifter has changed since.
+                guard !hasAppliedInitialValues else { return }
+                hasAppliedInitialValues = true
+
+                unit = initialUnit
+                if initialTargetLoad > 0 {
+                    targetText = initialUnit.string(for: initialTargetLoad)
                 }
             }
         }
@@ -91,7 +102,8 @@ struct PlateCalculatorView: View {
     // MARK: - Result
 
     private var targetWeight: Double {
-        Double(targetText.trimmingCharacters(in: .whitespaces)) ?? 0
+        // The decimal pad types a comma in most non-US regions.
+        SetInputParser.decimal(from: targetText) ?? 0
     }
 
     private var result: PlateCalculator.Result? {
@@ -213,9 +225,9 @@ struct PlateCalculatorView: View {
         return Theme.info
     }
 
+    /// Plate sizes and loads exactly as stamped: a 1.25 kg plate must not
+    /// read "1.2".
     private func formatted(_ value: Double) -> String {
-        value.truncatingRemainder(dividingBy: 1) == 0
-            ? "\(Int(value))"
-            : String(format: "%.1f", value)
+        WeightUnit.plainString(for: value)
     }
 }

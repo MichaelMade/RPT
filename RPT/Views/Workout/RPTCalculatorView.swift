@@ -11,6 +11,7 @@ import SwiftUI
 struct RPTCalculatorView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var settingsManager = SettingsManager.shared
+    @AppStorage(WeightUnit.defaultsKey) private var weightUnit: WeightUnit = .pounds
 
     @State private var topSetText: String = ""
     @FocusState private var isInputFocused: Bool
@@ -49,12 +50,12 @@ struct RPTCalculatorView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             HStack {
-                TextField("e.g. 225", text: $topSetText)
-                    .keyboardType(.numberPad)
+                TextField(weightUnit == .pounds ? "e.g. 225" : "e.g. 100", text: $topSetText)
+                    .keyboardType(weightUnit.entryFractionDigits > 0 ? .decimalPad : .numberPad)
                     .font(Theme.statFont(size: 32))
                     .focused($isInputFocused)
 
-                Text("lb")
+                Text(weightUnit.short)
                     .font(.headline)
                     .foregroundStyle(.secondary)
             }
@@ -62,22 +63,25 @@ struct RPTCalculatorView: View {
         .rptCard()
     }
 
-    private var topSetWeight: Int {
-        max(0, Int(topSetText.trimmingCharacters(in: .whitespaces)) ?? 0)
+    /// The top set, in the lifter's unit.
+    private var topSetLoad: Double {
+        SetInputParser.load(from: topSetText, unit: weightUnit) ?? 0
     }
 
     @ViewBuilder
     private var resultsCard: some View {
-        if topSetWeight > 0 {
+        if topSetLoad > 0 {
             let drops = settingsManager.settings.defaultRPTPercentageDrops
             let weights = WorkoutManager.shared.calculateRPTWeights(
-                firstSetWeight: Double(topSetWeight),
+                firstSetWeight: topSetLoad,
                 percentageDrops: drops
             )
 
             VStack(spacing: 10) {
                 ForEach(Array(weights.enumerated()), id: \.offset) { index, weight in
-                    let rounded = WorkoutManager.shared.roundToNearest5(weight)
+                    // The top set is the lifter's own number; only the
+                    // calculated back-offs are rounded to a loadable weight.
+                    let rounded = index == 0 ? topSetLoad : weightUnit.roundedToIncrement(weight)
 
                     HStack(spacing: 12) {
                         Text("\(index + 1)")
@@ -97,7 +101,7 @@ struct RPTCalculatorView: View {
                                 .foregroundStyle(.secondary)
                         }
 
-                        Text("\(rounded) lb")
+                        Text(weightUnit.formatted(rounded))
                             .font(.headline)
                             .monospacedDigit()
                     }

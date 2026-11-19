@@ -1,0 +1,421 @@
+//
+//  RestAlertManagerTests.swift
+//  RPTTests
+//
+//  The rest-end alert against a fake notification centre: permission,
+//  scheduling, and cleanup, without touching the system or the app's
+//  defaults.
+//
+
+import XCTest
+@testable import RPT
+
+@MainActor
+final class RestAlertManagerTests: XCTestCase {
+    @MainActor
+    private final class FakeCenter: RestAlertNotificationCenter {
+        struct Scheduled: Equatable {
+            let identifier: String
+            let title: String
+            let body: String
+            let interval: TimeInterval
+        }
+
+        var permission: RestAlertPermission
+        /// What the lifter answers when the system prompt appears.
+        var answerToPrompt: RestAlertPermission = .granted
+
+        private(set) var promptCount = 0
+        private(set) var scheduled: [Scheduled] = []
+        private(set) var cancelled: [String] = []
+        /// Every scheduling call in order, to check what is pending at the end.
+        private(set) var log: [String] = []
+
+        init(permission: RestAlertPermission) {
+            self.permission = permission
+        }
+
+        var hasPendingAlert: Bool {
+            log.last == "schedule"
+        }
+
+        func restAlertPermission() async -> RestAlertPermission {
+            permission
+        }
+
+        func requestRestAlertPermission() async -> Bool {
+            promptCount += 1
+            permission = answerToPrompt
+            return permission == .granted
+        }
+
+        func scheduleRestAlert(identifier: String, title: String, body: String, after interval: TimeInterval) {
+            scheduled.append(Scheduled(identifier: identifier, title: title, body: body, interval: interval))
+            log.append("schedule")
+        }
+
+        func cancelRestAlert(identifier: String) {
+            cancelled.append(identifier)
+            log.append("cancel")
+        }
+    }
+
+    private var suiteName = ""
+    private var defaults: UserDefaults!
+    private let now = Date(timeIntervalSince1970: 1_760_000_000)
+
+    override func setUp() {
+        super.setUp()
+        suiteName = "rpt.tests.rest-alert.\(UUID().uuidString)"
+        defaults = UserDefaults(suiteName: suiteName)
+    }
+
+    override func tearDown() {
+        defaults.removePersistentDomain(forName: suiteName)
+        defaults = nil
+        super.tearDown()
+    }
+
+    /// The rest the dock is counting down in these tests.
+    private let rest = UUID()
+
+    private func makeManager(_ center: FakeCenter) -> RestAlertManager {
+        let manager = RestAlertManager(center: center, defaults: defaults)
+        manager.beginRest(rest)
+        return manager
+    }
+
+    /// A manager whose lifter has turned the alert on and iOS allows it.
+    private func makeActiveManager(_ center: FakeCenter) async -> RestAlertManager {
+        let manager = makeManager(center)
+        let result = await manager.enable()
+        XCTAssertEqual(result, .enabled)
+        return manager
+    }
+
+    // MARK: - Opt-in
+
+    func testAlertIsOffUntilTheLifterTurnsItOn() async {
+        let center = FakeCenter(permission: .granted)
+        let manager = makeManager(center)
+        await manager.refreshPermission()
+
+        XCTAssertFalse(manager.isEnabled)
+        XCTAssertFalse(manager.isActive)
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+        XCTAssertTrue(center.scheduled.isEmpty, "iOS allowing notifications is not the lifter asking for them")
+        XCTAssertEqual(center.promptCount, 0)
+    }
+
+    func testTurningItOnAsksIOSOnceAndRemembersTheChoice() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = makeManager(center)
+
+        let result = await manager.enable()
+
+        XCTAssertEqual(result, .enabled)
+        XCTAssertEqual(center.promptCount, 1)
+        XCTAssertTrue(manager.isEnabled)
+        XCTAssertTrue(manager.isActive)
+
+        let nextLaunch = makeManager(center)
+        XCTAssertTrue(nextLaunch.isEnabled, "The choice must survive a relaunch")
+
+        _ = await nextLaunch.enable()
+        XCTAssertEqual(center.promptCount, 1, "iOS already has an answer; do not ask again")
+    }
+
+    func testTurningItOnStaysOffWhenTheLifterDeclinesThePrompt() async {
+        let center = FakeCenter(permission: .notDetermined)
+        center.answerToPrompt = .denied
+        let manager = makeManager(center)
+
+        let result = await manager.enable()
+
+        XCTAssertEqual(result, .permissionDenied)
+        XCTAssertFalse(manager.isEnabled)
+        XCTAssertFalse(manager.isActive)
+        XCTAssertEqual(manager.permission, .denied)
+    }
+
+    func testTurningItOnDoesNotPromptWhenIOSAlreadyRefused() async {
+        let center = FakeCenter(permission: .denied)
+        let manager = makeManager(center)
+
+        let result = await manager.enable()
+
+        XCTAssertEqual(result, .permissionDenied)
+        XCTAssertEqual(center.promptCount, 0, "The system prompt cannot be shown twice; Settings is the only way back")
+        XCTAssertFalse(manager.isEnabled)
+    }
+
+    func testPermissionRevokedInSettingsStopsAlerts() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+
+        center.permission = .denied
+        await manager.refreshPermission()
+
+        XCTAssertFalse(manager.isActive)
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+        XCTAssertTrue(center.scheduled.isEmpty)
+    }
+
+    func testTurningItOffCancelsAnAlertAlreadyScheduled() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+
+        manager.disable()
+
+        XCTAssertFalse(manager.isEnabled)
+        XCTAssertFalse(center.hasPendingAlert)
+        XCTAssertFalse(makeManager(center).isEnabled, "Off must survive a relaunch too")
+    }
+
+    // MARK: - Scheduling
+
+    func testLeavingTheAppMidRestSchedulesOneAlertForTheEndOfRest() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(137), for: rest, now: now))
+
+        XCTAssertEqual(
+            center.scheduled,
+            [
+                FakeCenter.Scheduled(
+                    identifier: RestAlertPolicy.notificationIdentifier,
+                    title: "Rest complete",
+                    body: "Time for your next set.",
+                    interval: 137
+                )
+            ]
+        )
+        XCTAssertTrue(center.hasPendingAlert)
+    }
+
+    func testNoAlertForARestThatAlreadyEnded() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(-5), for: rest, now: now))
+        XCTAssertFalse(manager.scheduleRestEnd(at: .distantFuture, for: rest, now: now))
+
+        XCTAssertTrue(center.scheduled.isEmpty)
+        XCTAssertFalse(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(600)))
+    }
+
+    func testComingBackBeforeRestEndsTakesTheAlertBack() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+
+        let returnedAt = now.addingTimeInterval(60)
+        XCTAssertFalse(manager.scheduledAlertHasFired(asOf: returnedAt), "Rest is still running; the dock will chime itself")
+        manager.cancelRestEnd()
+
+        XCTAssertFalse(center.hasPendingAlert)
+        XCTAssertEqual(center.cancelled, [RestAlertPolicy.notificationIdentifier])
+        XCTAssertFalse(
+            manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(600)),
+            "A cancelled alert never fired, so the dock must still chime when rest ends in the foreground"
+        )
+    }
+
+    func testComingBackAfterTheAlertFiredIsNotAnnouncedTwice() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+
+        XCTAssertTrue(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(180)))
+        XCTAssertTrue(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(400)))
+
+        manager.cancelRestEnd()
+        XCTAssertEqual(
+            center.cancelled,
+            [RestAlertPolicy.notificationIdentifier],
+            "Returning clears the delivered banner so it does not sit in Notification Center"
+        )
+    }
+
+    func testAlertThatIOSStoppedAllowingStillNeedsTheDockToAnnounceRest() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+
+        // Notifications switched off in the Settings app while RPT was away.
+        center.permission = .denied
+
+        XCTAssertTrue(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(200)))
+        let blocked = await manager.scheduledAlertWasBlocked()
+        XCTAssertTrue(blocked, "The clock says the alert fired, but iOS showed nothing; the dock must chime")
+        XCTAssertEqual(manager.permission, .denied)
+        XCTAssertFalse(manager.isActive)
+    }
+
+    func testAlertThatIOSDeliveredIsNotBlocked() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+
+        let blocked = await manager.scheduledAlertWasBlocked()
+
+        XCTAssertFalse(blocked)
+    }
+
+    func testDockThatWasReplacedCannotScheduleForItsOldDeadline() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+
+        // The next set is logged mid-rest: a new countdown starts while the
+        // old dock is still animating away, then the phone is locked.
+        let restartedRest = UUID()
+        manager.beginRest(restartedRest)
+
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(20), for: rest, now: now))
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: restartedRest, now: now))
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(20), for: rest, now: now))
+
+        XCTAssertEqual(center.scheduled.map(\.interval), [180], "Only the rest on screen may be announced")
+        XCTAssertFalse(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(60)))
+    }
+
+    func testSkippedRestCannotScheduleWhileItsDockAnimatesOut() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+
+        manager.endRest(rest)
+
+        XCTAssertFalse(manager.isCurrentRest(rest))
+        XCTAssertFalse(
+            manager.scheduleRestEnd(at: now.addingTimeInterval(150), for: rest, now: now),
+            "Skip, then lock before the dock is gone: the skipped rest must not be announced"
+        )
+        XCTAssertTrue(center.scheduled.isEmpty)
+    }
+
+    func testEndingAReplacedRestLeavesTheCurrentOneAlone() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        let restartedRest = UUID()
+        manager.beginRest(restartedRest)
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: restartedRest, now: now))
+
+        // The old dock finishes its exit animation and disappears.
+        manager.endRest(rest)
+
+        XCTAssertTrue(manager.isCurrentRest(restartedRest))
+        XCTAssertTrue(center.hasPendingAlert, "The old dock going away must not cancel the new rest's alert")
+        XCTAssertTrue(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(200)))
+    }
+
+    func testPuttingTheWorkoutAwayEndsTheRestAndItsAlert() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+
+        manager.endCurrentRest()
+
+        XCTAssertFalse(manager.isCurrentRest(rest))
+        XCTAssertFalse(center.hasPendingAlert)
+        XCTAssertFalse(manager.scheduleRestEnd(at: now.addingTimeInterval(180), for: rest, now: now))
+        XCTAssertFalse(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(600)))
+    }
+
+    func testNewRestDoesNotInheritAnEarlierRestsAlert() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+
+        // An alert was scheduled for a rest whose dock is gone, so nothing
+        // took it back when RPT returned.
+        XCTAssertTrue(manager.scheduleRestEnd(at: now.addingTimeInterval(60), for: rest, now: now))
+        let later = now.addingTimeInterval(300)
+        XCTAssertTrue(manager.scheduledAlertHasFired(asOf: later))
+
+        let nextRest = UUID()
+        manager.beginRest(nextRest)
+
+        XCTAssertFalse(
+            manager.scheduledAlertHasFired(asOf: later.addingTimeInterval(180)),
+            "A rest that runs entirely in the foreground must still chime at its end"
+        )
+        XCTAssertFalse(center.hasPendingAlert, "Starting a rest clears the leftover banner or pending alert")
+        XCTAssertTrue(manager.isCurrentRest(nextRest))
+    }
+
+    func testStartingARestWithNothingLeftOverTouchesNothing() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+
+        manager.beginRest(UUID())
+
+        XCTAssertTrue(center.cancelled.isEmpty, "No needless calls into the notification centre on every rest")
+    }
+
+    func testLeavingAgainAfterComingBackReschedulesForTheTimeLeft() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = await makeActiveManager(center)
+        let restEnds = now.addingTimeInterval(180)
+
+        XCTAssertTrue(manager.scheduleRestEnd(at: restEnds, for: rest, now: now))
+        manager.cancelRestEnd()
+        XCTAssertTrue(manager.scheduleRestEnd(at: restEnds, for: rest, now: now.addingTimeInterval(100)))
+
+        XCTAssertEqual(center.scheduled.map(\.interval), [180, 80])
+        XCTAssertTrue(center.hasPendingAlert)
+        XCTAssertFalse(manager.scheduledAlertHasFired(asOf: now.addingTimeInterval(170)))
+        XCTAssertTrue(manager.scheduledAlertHasFired(asOf: restEnds))
+    }
+
+    func testCancellingWithNothingScheduledStillClearsLeftovers() {
+        let center = FakeCenter(permission: .granted)
+        let manager = makeManager(center)
+
+        manager.cancelRestEnd()
+
+        XCTAssertEqual(
+            center.cancelled,
+            [RestAlertPolicy.notificationIdentifier],
+            "Launch cleanup relies on this to remove an alert from a previous run"
+        )
+    }
+
+    // MARK: - Dock offer
+
+    func testDockOfferIsMadeForAFewRestsThenStops() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = makeManager(center)
+        await manager.refreshPermission()
+
+        let offers = (0..<RestAlertPolicy.maxDockOffers + 3).map { _ in manager.claimDockOffer() }
+
+        XCTAssertEqual(offers.filter { $0 }.count, RestAlertPolicy.maxDockOffers)
+        XCTAssertEqual(Array(offers.prefix(RestAlertPolicy.maxDockOffers)), Array(repeating: true, count: RestAlertPolicy.maxDockOffers))
+        XCTAssertFalse(makeManager(center).claimDockOffer(), "The count must survive a relaunch")
+    }
+
+    func testNotNowEndsTheDockOffer() async {
+        let center = FakeCenter(permission: .notDetermined)
+        let manager = makeManager(center)
+        await manager.refreshPermission()
+        XCTAssertTrue(manager.claimDockOffer())
+
+        manager.declineDockOffer()
+
+        XCTAssertFalse(manager.claimDockOffer())
+        XCTAssertEqual(center.promptCount, 0, "Declining RPT's own question must not burn the one system prompt")
+    }
+
+    func testDockOfferIsNotMadeOnceTheAlertIsOnOrIOSHasRefused() async {
+        let granted = FakeCenter(permission: .notDetermined)
+        let enabled = await makeActiveManager(granted)
+        XCTAssertFalse(enabled.claimDockOffer())
+
+        defaults.removePersistentDomain(forName: suiteName)
+        let refused = FakeCenter(permission: .denied)
+        let blocked = makeManager(refused)
+        await blocked.refreshPermission()
+        XCTAssertFalse(blocked.claimDockOffer())
+    }
+}

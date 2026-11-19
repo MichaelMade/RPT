@@ -1,5 +1,5 @@
 Privacy Policy for RPT
-Effective Date: July 22, 2026
+Effective Date: November 12, 2026
 
 Introduction
 RPT is a local-first strength training app for reverse pyramid training. This policy explains what information the app handles, where it stays, and what leaves the device.
@@ -15,6 +15,9 @@ RPT uses on-device storage, including UserDefaults, for app preferences, onboard
 
 CSV Export
 If you choose to export your workout history, RPT creates a CSV file locally and opens the iOS share sheet. You control where that exported file goes. Exporting is a user-initiated action.
+
+Notifications
+RPT sends notifications only if you turn on the rest-end alert. When it is on, RPT asks iOS for permission and, if your rest timer is still running when you lock your phone or leave the app, schedules a local notification on your device for the moment that rest ends. The notification says only that rest is complete; it contains no workout data. RPT does not use remote push notifications, does not register a push token, and does not send notification data to any server. You can turn the alert off in RPT's settings or in the iOS Settings app at any time.
 
 Purchases and Restore Purchases
 RPT Pro purchase and restore actions are handled by Apple's StoreKit and the App Store. Apple may process purchase information under Apple's own terms and privacy policy. RPT uses StoreKit only to determine whether the RPT Pro entitlement is unlocked; we do not receive your payment card details.

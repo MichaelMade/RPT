@@ -265,16 +265,12 @@ struct ExercisesView: View {
             .filter { !$0.sets.isEmpty }
 
         guard let lastSession = sessions.first,
-              let topSet = lastSession.sets.max(by: { ($0.weight, $0.reps) < ($1.weight, $1.reps) }) else {
+              let topSet = lastSession.sets.max(by: { ($0.exactPounds, $0.reps) < ($1.exactPounds, $1.reps) }) else {
             return RecentExerciseEntry(exercise: exercise, topSetText: nil, e1RMValue: nil, isPR: false)
         }
 
-        let topSetText: String
-        if topSet.weight == 0 && exercise.category == .bodyweight {
-            topSetText = "BW×\(topSet.reps)"
-        } else {
-            topSetText = "\(topSet.weight)×\(topSet.reps)"
-        }
+        let unit = WeightUnit.current
+        let topSetText = "\(topSet.loadText(in: unit, empty: "0"))×\(topSet.reps)"
 
         let lastBest = OneRepMax.bestEstimate(in: lastSession.sets)
         // A PR means strictly beating the prior best — a first-ever session
@@ -289,7 +285,7 @@ struct ExercisesView: View {
         return RecentExerciseEntry(
             exercise: exercise,
             topSetText: topSetText,
-            e1RMValue: Int(lastBest.rounded()),
+            e1RMValue: unit.wholeNumber(forPounds: lastBest),
             isPR: priorBest > 0 && lastBest > priorBest
         )
     }

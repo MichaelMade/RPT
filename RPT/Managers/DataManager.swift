@@ -101,7 +101,18 @@ final class DataManager: DataManaging {
         }
     }
 
-    private static func makeSchema() -> Schema {
+    /// Every model the store holds.
+    ///
+    /// There is deliberately no `SchemaMigrationPlan`. Stores in the field
+    /// were created by several shipped versions, none of which declared a
+    /// versioned schema, so a plan would have to name every one of those
+    /// shapes exactly or the store fails to open with an unknown model
+    /// version. RPT relies on SwiftData's automatic lightweight migration
+    /// instead, which holds as long as model changes stay additive. Read
+    /// docs/data-migrations.md before changing a stored property;
+    /// `StoreMigrationTests` opens a store written by the shipped models to
+    /// prove a change is safe.
+    static func makeSchema() -> Schema {
         Schema([
             Exercise.self,
             Workout.self,
@@ -155,6 +166,7 @@ final class DataManager: DataManaging {
             // Check if any exercises exist
             let count = try modelContext.fetchCount(descriptor)
             if count > 0 {
+                repairBuiltInBodyweightExercises()
                 return // Exercises already exist
             }
             
@@ -165,9 +177,9 @@ final class DataManager: DataManaging {
                 ("Barbell Squat", .compound, [.quadriceps], [.glutes, .hamstrings, .lowerBack], "Place bar on upper back, squat down until thighs are parallel to floor, then stand up."),
                 ("Deadlift", .compound, [.back, .hamstrings], [.glutes, .quadriceps, .traps, .forearms], "Bend at hips and knees to grab bar, then stand up straight while keeping back flat."),
                 ("Overhead Press", .compound, [.shoulders], [.triceps, .traps], "Press barbell from shoulders to overhead with straight arms."),
-                ("Pull-up", .compound, [.back], [.biceps, .shoulders], "Hang from bar and pull yourself up until chin is over the bar."),
+                ("Pull-up", .bodyweight, [.back], [.biceps, .shoulders], "Hang from bar and pull yourself up until chin is over the bar."),
                 ("Barbell Row", .compound, [.back], [.biceps, .shoulders, .traps], "Bend at hips with back flat, pull barbell to lower chest."),
-                ("Dip", .compound, [.chest, .triceps], [.shoulders], "Support yourself on parallel bars, lower body until upper arms are parallel to floor, then push up."),
+                ("Dip", .bodyweight, [.chest, .triceps], [.shoulders], "Support yourself on parallel bars, lower body until upper arms are parallel to floor, then push up."),
                 
                 // Isolation exercises
                 ("Bicep Curl", .isolation, [.biceps], [.forearms], "Curl weight from full extension to full flexion."),
@@ -202,6 +214,42 @@ final class DataManager: DataManaging {
         }
     }
     
+    /// Built-in movements that are trained unloaded as well as weighted.
+    static let builtInBodyweightExerciseNames: Set<String> = ["Pull-up", "Dip"]
+
+    /// Pull-up and Dip first shipped as `.compound`, and only `.bodyweight`
+    /// exercises can log a set with no added weight — so a plain bodyweight
+    /// pull-up could not be logged at all. New installs seed the right
+    /// category; this corrects stores seeded by an earlier version.
+    ///
+    /// Built-in exercises cannot be edited in the app, so this never
+    /// overrides a choice the user made. It is best-effort by design: a
+    /// failure here must not block launch behind the storage-failure screen.
+    private func repairBuiltInBodyweightExercises() {
+        guard let exercises = try? modelContext.fetch(FetchDescriptor<Exercise>()) else {
+            return
+        }
+
+        let outdated = exercises.filter { exercise in
+            !exercise.isCustom
+                && exercise.category == .compound
+                && Self.builtInBodyweightExerciseNames.contains(exercise.name)
+        }
+        guard !outdated.isEmpty else { return }
+
+        for exercise in outdated {
+            exercise.category = .bodyweight
+        }
+
+        do {
+            try modelContext.save()
+        } catch {
+            for exercise in outdated {
+                exercise.category = .compound
+            }
+        }
+    }
+
     private func initializeTemplates() throws {
         var descriptor = FetchDescriptor<WorkoutTemplate>()
         descriptor.fetchLimit = 1

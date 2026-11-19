@@ -107,14 +107,14 @@ final class ErrorHandlingTests: XCTestCase {
         )
     }
 
-    func testUserSettingsDefaultRPTDrops_normalizesOutOfOrderAndDuplicateDrops() {
+    func testUserSettingsDefaultRPTDrops_normalizesOutOfOrderDropsAndKeepsEqualOnes() {
         let settings = UserSettings()
         settings.defaultRPTPercentageDropsString = "0.20,0.10,0.10,0.00,0.30"
 
         XCTAssertEqual(
             settings.defaultRPTPercentageDrops,
-            [0.0, 0.10, 0.20],
-            "Persisted RPT drops should normalize to deterministic ascending unique values within supported set count"
+            [0.0, 0.10, 0.10],
+            "Persisted RPT drops should normalize to deterministic ascending values within supported set count; equal back-off drops are a valid plan and are kept"
         )
     }
 

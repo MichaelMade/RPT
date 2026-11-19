@@ -13,6 +13,19 @@ struct ContentView: View {
     @StateObject private var settingsManager = SettingsManager.shared
     @StateObject private var session = WorkoutSession.shared
     @AppStorage("selectedRootTab") private var selectedRootTabRawValue = RootTab.home.rawValue
+    /// Changing the unit in Settings rebuilds the other tabs, so every load
+    /// and total they show is read again in the new unit.
+    @AppStorage(WeightUnit.defaultsKey) private var weightUnit: WeightUnit = .pounds
+    /// Relabeling earlier workouts (or undoing it) changes logged loads
+    /// without changing the unit, and the other tabs must not keep showing
+    /// the loads from before.
+    @AppStorage(KilogramRelabelPolicy.revisionDefaultsKey) private var loadHistoryRevision = 0
+
+    /// What the loads on screen depend on. A tab keyed on this is rebuilt
+    /// when either part changes.
+    private var loadIdentity: String {
+        "\(weightUnit.rawValue)-\(loadHistoryRevision)"
+    }
 
     var body: some View {
         if settingsManager.initializationFailureDescription != nil {
@@ -25,24 +38,28 @@ struct ContentView: View {
     private var tabShell: some View {
         TabView(selection: selectedRootTabBinding) {
             HomeView()
+                .id(loadIdentity)
                 .tag(RootTab.home)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
 
             TemplatesListView()
+                .id(loadIdentity)
                 .tag(RootTab.templates)
                 .tabItem {
                     Label("Templates", systemImage: "square.grid.2x2.fill")
                 }
 
             ExercisesView()
+                .id(loadIdentity)
                 .tag(RootTab.exercises)
                 .tabItem {
                     Label("Exercises", systemImage: "figure.strengthtraining.traditional")
                 }
 
             StatsView()
+                .id(loadIdentity)
                 .tag(RootTab.stats)
                 .tabItem {
                     Label("Stats", systemImage: "chart.bar.fill")
@@ -56,7 +73,14 @@ struct ContentView: View {
         }
         .environmentObject(session)
         .tint(Theme.primary)
-        .fullScreenCover(isPresented: $session.isPresentingWorkout) {
+        .fullScreenCover(
+            isPresented: $session.isPresentingWorkout,
+            onDismiss: {
+                // The root is always mounted, so this runs whichever tab the
+                // workout was started from, and only after the cover is gone.
+                ReviewPromptManager.requestReviewAfterWorkoutDismissal()
+            }
+        ) {
             if let workout = session.activeWorkout {
                 ActiveWorkoutView(workout: workout)
                     .environmentObject(session)
@@ -64,6 +88,14 @@ struct ContentView: View {
                 // Defensive: never present an empty workout screen.
                 Color.clear
                     .onAppear { session.isPresentingWorkout = false }
+            }
+        }
+        .onChange(of: session.isPresentingWorkout) { _, isPresenting in
+            // Save for later, finish, discard: the rest dock is on its way
+            // out with the workout screen, so its rest is over now, not when
+            // the dismissal animation ends.
+            if !isPresenting {
+                RestAlertManager.shared.endCurrentRest()
             }
         }
         .onAppear {

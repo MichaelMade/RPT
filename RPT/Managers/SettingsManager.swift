@@ -350,32 +350,32 @@ class SettingsManager: ObservableObject, SettingsManaging {
     
     func calculateRPTExample(firstSetWeight: Int = 100) -> String {
         let drops = settings.defaultRPTPercentageDrops
-        let workoutManager = WorkoutManager.shared
 
-        // Convert each drop percentage to a rounded weight
-        let weights = drops.dropFirst().map { dropPercentage -> Int in
-            let calculatedWeight = Double(firstSetWeight) * (1.0 - dropPercentage)
-            return workoutManager.roundToNearest5(calculatedWeight)
+        // The example is a top set of `firstSetWeight` in the lifter's own
+        // unit, with each back-off rounded to a step they can load.
+        let unit = WeightUnit.current
+        let weights = drops.dropFirst().map { dropPercentage -> String in
+            unit.string(for: unit.roundedToIncrement(Double(firstSetWeight) * (1.0 - dropPercentage)))
         }
 
         guard !weights.isEmpty else {
             return "Top set only"
         }
 
-        return weights.map { "\($0)" }.joined(separator: " → ") + " lb"
+        return weights.joined(separator: " → ") + " \(unit.short)"
     }
-    
-    // Format weight with lb unit
+
+    /// A whole number already in the lifter's unit, with its symbol.
     func formatWeight(_ weight: Int, useUnit: Bool = true) -> String {
         let safeWeight = max(0, weight)
         let formatted = "\(safeWeight)"
-        return useUnit ? "\(formatted) lb" : formatted
+        return useUnit ? "\(formatted) \(WeightUnit.current.short)" : formatted
     }
-    
-    // Format weight with lb unit (Double version)
+
+    /// A value already in the lifter's unit, to one decimal, with its symbol.
     func formatWeight(_ weight: Double, useUnit: Bool = true) -> String {
         let safeWeight = weight.isFinite ? max(0, weight) : 0
         let formatted = String(format: "%.1f", safeWeight)
-        return useUnit ? "\(formatted) lb" : formatted
+        return useUnit ? "\(formatted) \(WeightUnit.current.short)" : formatted
     }
 }

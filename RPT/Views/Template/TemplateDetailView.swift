@@ -167,7 +167,7 @@ struct TemplateDetailView: View {
                         Spacer()
 
                         if range.setNumber > 1, let percentage = range.percentageOfFirstSet {
-                            Text("\(Int(percentage * 100))% of top")
+                            Text("\(Int((percentage * 100).rounded()))% of top")
                                 .font(.system(size: 11))
                                 .monospacedDigit()
                                 .foregroundStyle(Theme.textTertiary)

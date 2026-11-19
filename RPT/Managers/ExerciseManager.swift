@@ -143,9 +143,24 @@ class ExerciseManager {
     
     // MARK: - Fetch Operations
     
+    /// The exercise library: everything the lifter can pick, edit, or build
+    /// a template from. Archived exercises are history only and are left out.
     func fetchAllExercises() -> [Exercise] {
+        fetchEveryStoredExercise().filter { !$0.isArchived }
+    }
+
+    private func fetchEveryStoredExercise() -> [Exercise] {
         let descriptor = FetchDescriptor<Exercise>(sortBy: [SortDescriptor(\.name)])
         return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    /// An archived custom exercise with this name, if the lifter removed one
+    /// from their library earlier.
+    private func fetchArchivedExercise(withName name: String) -> Exercise? {
+        let lookupKey = Self.normalizedNameLookupKey(Self.sanitizeExerciseName(name))
+        return fetchEveryStoredExercise().first {
+            $0.isArchived && Self.normalizedNameLookupKey($0.name) == lookupKey
+        }
     }
     
     func fetchExercise(withName name: String) -> Exercise? {
@@ -154,7 +169,9 @@ class ExerciseManager {
             predicate: #Predicate<Exercise> { $0.name == sanitizedName }
         )
 
-        if let exactMatch = try? modelContext.fetch(descriptor).first {
+        // An archived exercise can share its name with a live one, so take
+        // the first match that is still in the library.
+        if let exactMatch = (try? modelContext.fetch(descriptor))?.first(where: { !$0.isArchived }) {
             return exactMatch
         }
 
@@ -173,7 +190,7 @@ class ExerciseManager {
             predicate: #Predicate<Exercise> { $0.category == category },
             sortBy: [SortDescriptor(\.name)]
         )
-        return (try? modelContext.fetch(descriptor)) ?? []
+        return ((try? modelContext.fetch(descriptor)) ?? []).filter { !$0.isArchived }
     }
     
     func fetchExercises(byMuscleGroup muscleGroup: MuscleGroup) -> [Exercise] {
@@ -219,6 +236,20 @@ class ExerciseManager {
 
         let sanitizedName = Self.sanitizeExerciseName(name)
 
+        // Adding a name the lifter archived earlier brings that exercise
+        // back, so its logged history picks up where it left off instead of
+        // being split across two exercises with the same name.
+        if let archived = fetchArchivedExercise(withName: sanitizedName) {
+            return restoreArchivedExercise(
+                archived,
+                name: sanitizedName,
+                category: category,
+                primaryMuscleGroups: primaryMuscleGroups,
+                secondaryMuscleGroups: secondaryMuscleGroups,
+                instructions: instructions
+            )
+        }
+
         let exercise = Exercise(
             name: sanitizedName,
             category: category,
@@ -235,6 +266,43 @@ class ExerciseManager {
             return .success
         } catch {
             modelContext.delete(exercise)
+            return .persistenceFailure
+        }
+    }
+
+    private func restoreArchivedExercise(
+        _ exercise: Exercise,
+        name: String,
+        category: ExerciseCategory,
+        primaryMuscleGroups: [MuscleGroup],
+        secondaryMuscleGroups: [MuscleGroup],
+        instructions: String
+    ) -> MutationResult {
+        let original = (
+            name: exercise.name,
+            category: exercise.category,
+            primary: exercise.primaryMuscleGroups,
+            secondary: exercise.secondaryMuscleGroups,
+            instructions: exercise.instructions
+        )
+
+        exercise.name = name
+        exercise.category = category
+        exercise.primaryMuscleGroups = primaryMuscleGroups
+        exercise.secondaryMuscleGroups = secondaryMuscleGroups
+        exercise.instructions = instructions
+        exercise.isArchived = false
+
+        do {
+            try dataManager.saveChanges()
+            return .success
+        } catch {
+            exercise.name = original.name
+            exercise.category = original.category
+            exercise.primaryMuscleGroups = original.primary
+            exercise.secondaryMuscleGroups = original.secondary
+            exercise.instructions = original.instructions
+            exercise.isArchived = true
             return .persistenceFailure
         }
     }
@@ -292,6 +360,13 @@ class ExerciseManager {
         }
     }
     
+    /// Removes a custom exercise from the library.
+    ///
+    /// Logged sets are the lifter's training history and are never deleted
+    /// as a side effect of tidying the library. An exercise with logged sets
+    /// is archived: it leaves the library, pickers, and template starts, its
+    /// logged sets stay in history, and only its planned (unlogged) sets are
+    /// removed. An exercise with nothing logged is deleted outright.
     @discardableResult
     func deleteExercise(_ exercise: Exercise) -> DeletionResult {
         // Only allow deletion of custom exercises
@@ -299,15 +374,33 @@ class ExerciseManager {
             return .persistenceFailure
         }
 
-        modelContext.delete(exercise)
+        // Same definition of history the confirmation dialog counts: a
+        // logged set that belongs to a workout.
+        let isHistory: (ExerciseSet) -> Bool = { $0.workout != nil && $0.isCompletedLoggedSet }
+        let archives = exercise.sets.contains(where: isHistory)
+
+        if archives {
+            for otherSet in exercise.sets where !isHistory(otherSet) {
+                modelContext.delete(otherSet)
+            }
+            exercise.isArchived = true
+        } else {
+            modelContext.delete(exercise)
+        }
 
         do {
             try dataManager.saveChanges()
             return .success
         } catch {
             // Re-inserting a pending-delete object doesn't reliably resurrect
-            // it; discarding the uncommitted delete does.
+            // it; discarding the uncommitted changes does.
             modelContext.rollback()
+            // Do not lean on rollback alone to put the exercise back in the
+            // library: a hidden exercise the lifter was told is still there
+            // is worse than a redundant assignment.
+            if archives, exercise.isArchived {
+                exercise.isArchived = false
+            }
             return .persistenceFailure
         }
     }

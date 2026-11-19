@@ -18,57 +18,92 @@ struct ProgressionSuggestion: Equatable {
     }
 
     let direction: Direction
-    let suggestedWeight: Int
+    /// The next top-set target, in `unit`.
+    let suggestedLoad: Double
+    let unit: WeightUnit
     let note: String
+
+    /// The target as a whole number, for callers that think in pounds.
+    var suggestedWeight: Int {
+        Int(suggestedLoad.rounded())
+    }
+
+    /// The target exactly as it appears inside `note`.
+    var formattedLoad: String {
+        unit.formatted(suggestedLoad)
+    }
 }
 
 enum ProgressionAdvisor {
     /// Suggests the next top-set target from the last completed top set.
     ///
     /// - Parameters:
-    ///   - lastWeight: weight of the most recent completed top working set (lb)
+    ///   - lastLoad: load of the most recent completed top working set, in `unit`
+    ///   - unit: the unit the lifter trains in
     ///   - lastReps: reps achieved on that set
     ///   - repRange: the programmed rep range for the top set (e.g. 4...6)
-    ///   - increment: smallest practical jump (5 lb upper body, 10 lb legs)
+    ///   - increment: smallest practical jump; defaults to the unit's
+    ///     loadable step (5 lb or 2.5 kg) and is never smaller than it
+    static func suggestion(
+        lastLoad: Double,
+        unit: WeightUnit,
+        lastReps: Int,
+        repRange: ClosedRange<Int> = 4...6,
+        increment: Double? = nil
+    ) -> ProgressionSuggestion {
+        let safeLoad = lastLoad.isFinite ? max(0, lastLoad) : 0
+        let safeIncrement = max(unit.loadIncrement, increment ?? unit.loadIncrement)
+
+        guard safeLoad > 0, lastReps > 0 else {
+            return ProgressionSuggestion(
+                direction: .holdSteady,
+                suggestedLoad: safeLoad,
+                unit: unit,
+                note: "Log a top set to get a progression target."
+            )
+        }
+
+        if lastReps >= repRange.upperBound {
+            let next = safeLoad + safeIncrement
+            return ProgressionSuggestion(
+                direction: .increaseWeight,
+                suggestedLoad: next,
+                unit: unit,
+                note: "You hit \(lastReps) reps — load \(unit.formatted(next)) and aim for \(repRange.lowerBound)+ reps."
+            )
+        }
+
+        if lastReps < repRange.lowerBound {
+            let next = max(0, safeLoad - safeIncrement)
+            return ProgressionSuggestion(
+                direction: .reduceWeight,
+                suggestedLoad: next,
+                unit: unit,
+                note: "Below the rep range — drop to \(unit.formatted(next)) and rebuild to \(repRange.upperBound) reps."
+            )
+        }
+
+        return ProgressionSuggestion(
+            direction: .addReps,
+            suggestedLoad: safeLoad,
+            unit: unit,
+            note: "Stay at \(unit.formatted(safeLoad)) and push for \(lastReps + 1) reps."
+        )
+    }
+
+    /// The same suggestion for a whole-pound top set.
     static func suggestion(
         lastWeight: Int,
         lastReps: Int,
         repRange: ClosedRange<Int> = 4...6,
         increment: Int = 5
     ) -> ProgressionSuggestion {
-        let safeWeight = max(0, lastWeight)
-        let safeIncrement = max(5, increment)
-
-        guard safeWeight > 0, lastReps > 0 else {
-            return ProgressionSuggestion(
-                direction: .holdSteady,
-                suggestedWeight: safeWeight,
-                note: "Log a top set to get a progression target."
-            )
-        }
-
-        if lastReps >= repRange.upperBound {
-            let next = safeWeight + safeIncrement
-            return ProgressionSuggestion(
-                direction: .increaseWeight,
-                suggestedWeight: next,
-                note: "You hit \(lastReps) reps — load \(next) lb and aim for \(repRange.lowerBound)+ reps."
-            )
-        }
-
-        if lastReps < repRange.lowerBound {
-            let next = max(0, safeWeight - safeIncrement)
-            return ProgressionSuggestion(
-                direction: .reduceWeight,
-                suggestedWeight: next,
-                note: "Below the rep range — drop to \(next) lb and rebuild to \(repRange.upperBound) reps."
-            )
-        }
-
-        return ProgressionSuggestion(
-            direction: .addReps,
-            suggestedWeight: safeWeight,
-            note: "Stay at \(safeWeight) lb and push for \(lastReps + 1) reps."
+        suggestion(
+            lastLoad: Double(max(0, lastWeight)),
+            unit: .pounds,
+            lastReps: lastReps,
+            repRange: repRange,
+            increment: Double(max(5, increment))
         )
     }
 

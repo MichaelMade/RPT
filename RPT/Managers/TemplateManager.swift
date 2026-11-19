@@ -455,7 +455,21 @@ class TemplateManager {
 
     // MARK: - Workout Creation
 
-    func createWorkoutFromTemplate(_ template: WorkoutTemplate) -> Workout? {
+    /// A planned set starts at the load the same set was logged with last
+    /// time. Logged in the unit the lifter trains in now, that is exactly
+    /// the same load. Logged in another unit, it is rounded to a step they
+    /// can load today.
+    static func carryOverLoad(from previousSet: ExerciseSet, to newSet: ExerciseSet, unit: WeightUnit) {
+        guard previousSet.weight > 0 else { return }
+
+        if previousSet.loadUnit == unit {
+            newSet.restoreLoad(previousSet.storedLoad)
+        } else {
+            newSet.setLoad(unit.roundedToIncrement(previousSet.load(in: unit)), in: unit)
+        }
+    }
+
+    func createWorkoutFromTemplate(_ template: WorkoutTemplate, unit: WeightUnit = .current) -> Workout? {
         // Create the workout with the template name
         let workout = Workout(
             name: template.name,
@@ -465,37 +479,43 @@ class TemplateManager {
         modelContext.insert(workout)
         var createdSetCount = 0
 
-        // Get current date/time to stagger completion times slightly for ordering
-        let now = Date()
+        // Last session's loads are filled in here, once, as the workout is
+        // created. Doing it when the workout screen opens meant every reopen
+        // of a saved draft could overwrite what the lifter had entered.
+        let completedWorkouts = completedWorkoutsNewestFirst()
 
         // Find exercises for template exercise names and add them to the workout.
         // If stale/imported data contains duplicate template exercises, keep the first
         // resolvable entry so starts stay deterministic instead of duplicating sections.
-        for (index, resolvedTemplateExercise) in uniqueResolvableTemplateExercises(in: template).enumerated() {
+        for resolvedTemplateExercise in uniqueResolvableTemplateExercises(in: template) {
             let templateExercise = resolvedTemplateExercise.templateExercise
             let exercise = resolvedTemplateExercise.exercise
+            let previousWorkingSets = Workout.lastCompletedWorkingSets(of: exercise, in: completedWorkouts)
 
             // Create sets based on rep ranges
             for (setIndex, repRange) in templateExercise.repRanges.sorted(by: { $0.setNumber < $1.setNumber }).enumerated() {
                 // Use the middle of the rep range as the target
                 let targetReps = (repRange.minReps + repRange.maxReps) / 2
 
-                // Preserve deterministic set ordering while ensuring unstarted sets remain incomplete.
-                let completionTime = now.addingTimeInterval(Double(index) + (Double(setIndex) / 10.0))
-                let initialWeight = 0
+                // Working set N starts at the load working set N was logged
+                // with last time. RPE is not carried over: it describes a
+                // set that was performed.
+                let previousSet = previousWorkingSets[safe: setIndex]
+                let initialReps = targetReps > 0 ? targetReps : max(0, previousSet?.reps ?? 0)
 
                 let newSet = ExerciseSet(
-                    weight: initialWeight, // User will input actual weight during workout
-                    reps: targetReps,
+                    weight: 0,
+                    reps: initialReps,
                     exercise: exercise,
                     workout: workout,
-                    completedAt: Self.initialCompletedAt(
-                        weight: initialWeight,
-                        reps: targetReps,
-                        fallbackDate: completionTime
-                    ),
+                    // Planned, not performed: a pre-filled load must never
+                    // arrive checked off. `orderIndex` carries the ordering.
+                    completedAt: .distantPast,
                     orderIndex: createdSetCount
                 )
+                if let previousSet {
+                    Self.carryOverLoad(from: previousSet, to: newSet, unit: unit)
+                }
 
                 if !workout.sets.contains(where: { $0.id == newSet.id }) {
                     workout.sets.append(newSet)
@@ -516,6 +536,15 @@ class TemplateManager {
             modelContext.delete(workout)
             return nil
         }
+    }
+
+    private func completedWorkoutsNewestFirst() -> [Workout] {
+        let descriptor = FetchDescriptor<Workout>(
+            predicate: #Predicate<Workout> { $0.isCompleted },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     // MARK: - Template Management
