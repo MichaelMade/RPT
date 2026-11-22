@@ -1,8 +1,18 @@
 # RPT — Reverse Pyramid Training
 
-A focused iOS strength-training app built around **reverse pyramid training**: hit your heaviest set first while you're fresh, then drop the weight and chase reps on every back-off set.
+A focused iOS strength-training app built around **reverse pyramid training**: hit your heaviest set first while you're fresh, then drop the weight and chase reps on every back-off set. The core loop is free; RPT Pro is a one-time unlock. All training data stays on the device.
 
-Built with SwiftUI, SwiftData, and Swift Charts. iOS 18+, iPhone and iPad. All data stays on device.
+**App Store:** [RPT: Reverse Pyramid Training](https://apps.apple.com/us/app/rpt-reverse-pyramid-training/id6745407020)
+
+**Tech stack:** Swift, SwiftUI, SwiftData, Swift Charts, StoreKit 2. iOS 18+ (iPhone and iPad).
+
+## How to run
+
+1. Open `RPT.xcodeproj` in Xcode.
+2. Select an iPhone or iPad simulator or device running iOS 18 or later.
+3. Build and run the `RPT` scheme.
+
+Unit tests live in `RPTTests/` and can be run with **⌘U** in Xcode.
 
 ## Features
 
