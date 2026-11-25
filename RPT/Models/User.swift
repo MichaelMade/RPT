@@ -180,6 +180,12 @@ final class User {
     /// `volumeDelta` is the change in pounds times reps across those sets.
     /// A best is read again from the workouts that still exist, since a
     /// maximum cannot be adjusted by a difference.
+    ///
+    /// Both totals are running counters that no screen shows: deleting a
+    /// workout has never taken anything back out of them. So this keeps
+    /// them consistent with the sets that exist, not exact to the pound. A
+    /// best that came from a workout since deleted is replaced by the best
+    /// that remains.
     func correctLoadTotals(volumeDelta: Double, exerciseNames: Set<String>) {
         if volumeDelta.isFinite {
             let corrected = totalVolume + volumeDelta

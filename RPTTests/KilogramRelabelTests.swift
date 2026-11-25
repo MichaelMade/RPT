@@ -191,6 +191,87 @@ final class KilogramRelabelSetTests: XCTestCase {
         }
     }
 
+    // MARK: - Which sets are earlier sets
+
+    func testLoggedSetWasEnteredWhenItWasLogged() {
+        let set = makeSet(weight: 100)
+        let loggedAt = Date(timeIntervalSince1970: 1_760_000_600)
+        set.completedAt = loggedAt
+        let workout = Workout(date: Date(timeIntervalSince1970: 1_750_000_000), name: "Bench Day")
+        set.workout = workout
+
+        XCTAssertEqual(set.loadEnteredAt, loggedAt)
+    }
+
+    func testPlannedSetWasEnteredWhenItsWorkoutWasStarted() {
+        let set = makeSet(weight: 100)
+        set.completedAt = .distantPast
+        let started = Date(timeIntervalSince1970: 1_760_000_000)
+        set.workout = Workout(date: started, name: "Today")
+
+        XCTAssertEqual(set.loadEnteredAt, started)
+
+        set.workout = nil
+        XCTAssertEqual(set.loadEnteredAt, .distantPast, "With nothing to date it by, it counts as old")
+    }
+
+    func testOnlyNumbersEnteredBeforeTheLifterHadKilogramsCanBeRelabeled() {
+        let firstKilogramChoice = Date(timeIntervalSince1970: 1_770_000_000)
+        let before = makeSet(weight: 100)
+        before.completedAt = firstKilogramChoice.addingTimeInterval(-86_400)
+        let atThatMoment = makeSet(weight: 100)
+        atThatMoment.completedAt = firstKilogramChoice
+        let after = makeSet(weight: 225)
+        after.completedAt = firstKilogramChoice.addingTimeInterval(86_400)
+
+        XCTAssertTrue(before.canBeRelabeledAsKilograms(enteredBy: firstKilogramChoice))
+        XCTAssertTrue(atThatMoment.canBeRelabeledAsKilograms(enteredBy: firstKilogramChoice))
+        XCTAssertFalse(
+            after.canBeRelabeledAsKilograms(enteredBy: firstKilogramChoice),
+            "Logged with the unit deliberately on pounds: it is pounds"
+        )
+        XCTAssertTrue(after.holdsUnlabeledWholePounds, "It is stored the same way, which is why the date decides")
+    }
+
+    func testKilogramSetIsNotACandidateWhateverItsDate() {
+        let set = makeSet()
+        set.setLoad(100, in: .kilograms)
+        set.completedAt = Date(timeIntervalSince1970: 1_000_000_000)
+
+        XCTAssertFalse(set.canBeRelabeledAsKilograms(enteredBy: .distantFuture))
+    }
+
+    func testUndoKeepsASetLoggedAfterTheLifterHadKilograms() {
+        let firstKilogramChoice = Date(timeIntervalSince1970: 1_770_000_000)
+        let planned = makeSet(weight: 100)
+        planned.completedAt = .distantPast
+        planned.workout = Workout(date: firstKilogramChoice.addingTimeInterval(-86_400), name: "Saved for later")
+        XCTAssertTrue(planned.canBeRelabeledAsKilograms(enteredBy: firstKilogramChoice))
+        planned.relabelAsKilograms()
+
+        // Trained later, at the 100 kg the screen showed, and checked off.
+        planned.completedAt = firstKilogramChoice.addingTimeInterval(3_600)
+
+        XCTAssertFalse(planned.undoKilogramRelabel(keepingLoadsEnteredAfter: firstKilogramChoice))
+
+        XCTAssertEqual(planned.load(in: .kilograms), 100, "It was performed and logged at 100 kg")
+        XCTAssertEqual(planned.loadUnit, .kilograms)
+        XCTAssertNil(planned.relabeledFromPounds)
+    }
+
+    func testUndoStillRestoresASetThatIsOnlyPlanned() {
+        let firstKilogramChoice = Date(timeIntervalSince1970: 1_770_000_000)
+        let planned = makeSet(weight: 100)
+        planned.completedAt = .distantPast
+        planned.workout = Workout(date: firstKilogramChoice.addingTimeInterval(-86_400), name: "Saved for later")
+        planned.relabelAsKilograms()
+
+        XCTAssertTrue(planned.undoKilogramRelabel(keepingLoadsEnteredAfter: firstKilogramChoice))
+
+        XCTAssertEqual(planned.weight, 100)
+        XCTAssertEqual(planned.loadUnit, .pounds)
+    }
+
     func testSmallestLoadKeepsANonZeroPoundShadow() {
         let set = makeSet(weight: 1)
 
@@ -250,40 +331,59 @@ final class KilogramRelabelPolicyTests: XCTestCase {
 
     // MARK: - Wording
 
-    func testQuestionUsesTheLiftersOwnLastSet() {
+    func testQuestionIsWrittenFromWhatIsStored() {
         let message = Policy.questionMessage(for: preview)
 
         XCTAssertEqual(
             message,
-            "RPT only tracked pounds until now, so your last Bench Press set, entered as 100, now reads 45.4 kg. "
-                + "If you were typing kilograms all along, RPT can relabel your 312 earlier sets so that 100 reads 100 kg. "
+            "RPT stored 312 earlier sets as pounds. "
+                + "The most recent, Bench Press, was entered as 100 and now reads 45.4 kg. "
+                + "If you typed kilograms back then, RPT can relabel them so that 100 reads 100 kg. "
+                + "You can undo this here in Settings."
+        )
+    }
+
+    func testQuestionAboutASingleSet() {
+        let single = Policy.Preview(setCount: 1, exerciseName: "Squat", number: 140)
+
+        XCTAssertEqual(
+            Policy.questionMessage(for: single),
+            "RPT stored 1 earlier set as pounds. "
+                + "It is a Squat set entered as 140, which now reads 63.5 kg. "
+                + "If you typed kilograms back then, RPT can relabel it so that 140 reads 140 kg. "
                 + "You can undo this here in Settings."
         )
     }
 
     func testQuestionFallsBackToAPlainExampleWhenNothingHasBeenLogged() {
-        let planned = Policy.Preview(setCount: 1, exerciseName: nil, number: nil)
+        let planned = Policy.Preview(setCount: 3, exerciseName: nil, number: nil)
 
         XCTAssertEqual(
             Policy.questionMessage(for: planned),
-            "RPT only tracked pounds until now, so a set entered as 100 now reads 45.4 kg. "
-                + "If you were typing kilograms all along, RPT can relabel your 1 earlier set so that 100 reads 100 kg. "
+            "RPT stored 3 earlier sets as pounds. "
+                + "A set entered as 100 now reads 45.4 kg. "
+                + "If you typed kilograms back then, RPT can relabel them so that 100 reads 100 kg. "
                 + "You can undo this here in Settings."
         )
     }
 
-    func testQuestionShowsWhatTheNumberReadsNowAndAfter() {
-        let squat = Policy.Preview(setCount: 2, exerciseName: "Squat", number: 140)
-        let message = Policy.questionMessage(for: squat)
+    func testQuestionAssumesNothingAboutWhenTheLifterStarted() {
+        // A lifter who has had kilograms for a year, or who logged in
+        // kilograms last week, reads the same message. It must not claim
+        // that pounds were all RPT knew "until now", or that the example is
+        // their last set.
+        let message = Policy.questionMessage(for: preview)
 
-        XCTAssertTrue(message.contains("entered as 140, now reads 63.5 kg"), message)
-        XCTAssertTrue(message.contains("so that 140 reads 140 kg"), message)
+        XCTAssertFalse(message.contains("until now"), message)
+        XCTAssertFalse(message.contains("your last"), message)
     }
 
     func testUndoExplainsWhatGoesBackAndWhatStays() {
         XCTAssertEqual(
             Policy.undoMessage(setCount: 312),
-            "The 312 relabeled sets go back to pounds, so 100 kg reads 100 lb again. Sets you have edited since stay as they are."
+            "The 312 relabeled sets go back to pounds, so 100 kg reads 100 lb again. "
+                + "Sets you have edited or logged since stay as they are. "
+                + "Check the planned loads of any workout you saved for later."
         )
         XCTAssertTrue(Policy.undoMessage(setCount: 1).hasPrefix("The 1 relabeled set goes back to pounds"))
     }

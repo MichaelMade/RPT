@@ -37,9 +37,23 @@ struct RPTTrainerApp: App {
         }
         #endif
 
+        #if DEBUG
+        // UI-test hook: the unit choices are cleared before any view reads
+        // them. The history itself is seeded below, once the store exists.
+        if UITestSupport.wantsPoundHistory {
+            UITestSupport.resetUnitChoices()
+        }
+        #endif
+
         // The model container is the only dependency required before the
         // first scene. Feature managers initialize lazily with their views.
         self.dataManager = DataManager.shared
+
+        #if DEBUG
+        if UITestSupport.wantsPoundHistory {
+            UITestSupport.seedPoundHistory(using: dataManager)
+        }
+        #endif
     }
 
     var body: some Scene {

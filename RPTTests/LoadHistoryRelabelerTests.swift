@@ -30,7 +30,43 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         }
     }
 
+    /// Saves for real until told to stop, so a failure can be placed after
+    /// work that did reach the store.
+    private final class FailingAfterDataManager: DataManaging {
+        private let wrappedContext: ModelContext
+        private var savesThatSucceed: Int
+        private(set) var saveAttempts = 0
+
+        init(context: ModelContext, savesThatSucceed: Int) {
+            self.wrappedContext = context
+            self.savesThatSucceed = savesThatSucceed
+        }
+
+        func getModelContext() -> ModelContext {
+            wrappedContext
+        }
+
+        func saveChanges() throws {
+            saveAttempts += 1
+            guard savesThatSucceed > 0 else {
+                throw DataManager.DataError.saveFailed
+            }
+            savesThatSucceed -= 1
+            try wrappedContext.save()
+        }
+    }
+
+    /// The moment the relabeler believes it is.
+    private final class Clock {
+        var now: Date
+
+        init(now: Date) {
+            self.now = now
+        }
+    }
+
     private var dataManager: DataManager!
+    private var clock: Clock!
     private var defaults: UserDefaults!
     private var defaultsSuiteName: String!
     private var relabeler: LoadHistoryRelabeler!
@@ -59,7 +95,13 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         // keys and would rebuild the host app's screens mid-test.
         defaultsSuiteName = "LoadHistoryRelabelerTests.\(UUID().uuidString)"
         defaults = UserDefaults(suiteName: defaultsSuiteName)
-        relabeler = LoadHistoryRelabeler(dataManager: dataManager, defaults: defaults)
+
+        // Far ahead of every fixture, and of the real clock that stamps a
+        // set added without a date, so by default everything logged in a
+        // test happened before the lifter had kilograms. A test about what
+        // came after sets `clock.now` before the relabeler is first asked.
+        clock = Clock(now: Date(timeIntervalSince1970: 4_000_000_000))
+        relabeler = makeRelabeler(using: dataManager)
 
         bench = Exercise(name: "Bench Press", category: .compound, primaryMuscleGroups: [.chest])
         squat = Exercise(name: "Squat", category: .compound, primaryMuscleGroups: [.quadriceps])
@@ -72,6 +114,7 @@ final class LoadHistoryRelabelerTests: XCTestCase {
     override func tearDown() {
         defaults.removePersistentDomain(forName: defaultsSuiteName)
         relabeler = nil
+        clock = nil
         defaults = nil
         defaultsSuiteName = nil
         bench = nil
@@ -82,6 +125,15 @@ final class LoadHistoryRelabelerTests: XCTestCase {
     }
 
     // MARK: - Fixtures
+
+    private func makeRelabeler(using manager: DataManaging) -> LoadHistoryRelabeler {
+        let clock: Clock = self.clock
+        return LoadHistoryRelabeler(dataManager: manager, defaults: defaults, now: { clock.now })
+    }
+
+    private var recordedFirstKilogramChoice: Date? {
+        defaults.object(forKey: KilogramRelabelPolicy.firstKilogramChoiceDefaultsKey) as? Date
+    }
 
     /// A finished workout whose sets were logged as bare whole numbers, the
     /// way every set was stored before RPT had a unit.
@@ -212,6 +264,7 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .nothingToChange)
         XCTAssertEqual(relabeler.undoRelabel(), .nothingToChange)
         XCTAssertEqual(revision, 0)
+        XCTAssertFalse(relabeler.hasAnsweredPrompt, "Nothing was relabeled, so the question has not been answered")
     }
 
     // MARK: - Undo
@@ -333,6 +386,215 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         XCTAssertEqual(user.personalBests["Bench Press"], 220)
     }
 
+    // MARK: - Every earlier set, whatever it looks like
+
+    func testEveryKindOfEarlierSetIsRelabeledAndPutBack() throws {
+        // A history large and varied enough that a relabel which only took
+        // heavy sets, plain sets, or the first few hundred rows would show.
+        let numbers = [1, 2, 5, 10, 20, 44, 45, 135, 225, 1_000, 4_500]
+        let setsPerWorkout = 12
+        let workoutCount = 130
+        var expected = 0
+
+        for workoutIndex in 0..<workoutCount {
+            let date = firstSession.addingTimeInterval(TimeInterval(workoutIndex) * 86_400)
+            let isDraft = workoutIndex % 40 == 39
+            let workout = Workout(date: date, name: "Session \(workoutIndex)", isCompleted: !isDraft)
+            context.insert(workout)
+
+            for setIndex in 0..<setsPerWorkout {
+                let serial = workoutIndex * setsPerWorkout + setIndex
+                let exercise = serial % 3 == 0 ? squat! : bench!
+                let number = numbers[serial % numbers.count]
+                let set = workout.addSet(
+                    exercise: exercise,
+                    weight: number,
+                    reps: 1 + serial % 12,
+                    isWarmup: serial % 7 == 0,
+                    rpe: serial % 5 == 0 ? 8 : nil
+                )
+                set.completedAt = isDraft && setIndex > 5
+                    ? .distantPast
+                    : date.addingTimeInterval(TimeInterval(setIndex + 1) * 120)
+                if serial % 11 == 0 {
+                    set.notes = "note \(serial)"
+                }
+                expected += 1
+            }
+        }
+
+        // Sets that must be left out.
+        let mixed = Workout(date: firstSession, name: "Mixed", isCompleted: true)
+        context.insert(mixed)
+        let kilogram = mixed.addSet(exercise: bench, weight: 0, reps: 5)
+        kilogram.setLoad(100, in: .kilograms)
+        let tooLarge = mixed.addSet(exercise: bench, weight: 4_501, reps: 1)
+        _ = mixed.addSet(exercise: ringDip, weight: 0, reps: 10)
+        try context.save()
+
+        let before = try storedLoads()
+        XCTAssertEqual(expected, workoutCount * setsPerWorkout)
+        XCTAssertEqual(
+            try storedSets().filter(\.holdsUnlabeledWholePounds).count,
+            expected,
+            "The fixture and the rule agree on what an earlier set is"
+        )
+
+        XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: expected))
+
+        let relabeled = try storedSets().filter { $0.relabeledFromPounds != nil }
+        XCTAssertEqual(relabeled.count, expected)
+        XCTAssertTrue(
+            relabeled.allSatisfy { $0.loadUnit == .kilograms && $0.load(in: .kilograms) == Double($0.relabeledFromPounds ?? -1) },
+            "Each set reads, in kilograms, the number it was stored with"
+        )
+        XCTAssertEqual(relabeler.status(for: .pounds), .relabeled(setCount: expected))
+        XCTAssertEqual(kilogram.load(in: .kilograms), 100)
+        XCTAssertNil(kilogram.relabeledFromPounds)
+        XCTAssertEqual(tooLarge.weight, 4_501)
+        XCTAssertNil(tooLarge.loadValue)
+
+        XCTAssertEqual(relabeler.undoRelabel(), .changed(sets: expected))
+
+        XCTAssertEqual(try storedLoads(), before)
+        XCTAssertTrue(try storedSets().allSatisfy { $0.relabeledFromPounds == nil })
+    }
+
+    // MARK: - Only what was entered before the lifter had kilograms
+
+    func testFirstKilogramMomentIsRecordedOnceAndNeverWhileInPounds() throws {
+        let firstSwitch = firstSession.addingTimeInterval(30 * 86_400)
+        clock.now = firstSwitch
+
+        _ = relabeler.status(for: .pounds)
+        _ = relabeler.question(afterSwitchingTo: .pounds)
+        XCTAssertNil(recordedFirstKilogramChoice, "A lifter who has only trained in pounds has made no such choice")
+
+        _ = relabeler.status(for: .kilograms)
+        XCTAssertEqual(recordedFirstKilogramChoice, firstSwitch)
+
+        clock.now = firstSwitch.addingTimeInterval(90 * 86_400)
+        _ = relabeler.status(for: .kilograms)
+        _ = relabeler.question(afterSwitchingTo: .kilograms)
+        relabeler.relabelEarlierSetsAsKilograms()
+        XCTAssertEqual(recordedFirstKilogramChoice, firstSwitch, "The first choice stays the first choice")
+    }
+
+    func testSwitchingWithTheQuestionAlreadyAnsweredStillRecordsTheMoment() throws {
+        clock.now = firstSession.addingTimeInterval(30 * 86_400)
+        relabeler.recordPromptAnswered()
+
+        XCTAssertNil(relabeler.question(afterSwitchingTo: .kilograms))
+
+        XCTAssertEqual(recordedFirstKilogramChoice, clock.now)
+    }
+
+    func testPoundSetsLoggedAfterTheLifterHadKilogramsAreNeverRelabeled() throws {
+        let earlier = try insertFinishedWorkout(bench, loads: [(100, 5)])
+        let firstSwitch = firstSession.addingTimeInterval(30 * 86_400)
+        clock.now = firstSwitch
+        XCTAssertNotNil(relabeler.question(afterSwitchingTo: .kilograms))
+
+        // Back on pounds for a trip, and logging real pounds.
+        let trip = try insertFinishedWorkout(bench, loads: [(225, 5)], at: firstSwitch.addingTimeInterval(10 * 86_400))
+        let tripLoad = try XCTUnwrap(trip.sets.first).storedLoad
+
+        XCTAssertEqual(
+            relabeler.status(for: .kilograms),
+            .readAsPounds(KilogramRelabelPolicy.Preview(setCount: 1, exerciseName: "Bench Press", number: 100)),
+            "Only the set from before is offered, and it is the example"
+        )
+        XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 1))
+
+        XCTAssertEqual(kilograms(earlier), [100])
+        XCTAssertEqual(trip.sets.first?.storedLoad, tripLoad, "225 lb stays 225 lb")
+        XCTAssertNil(trip.sets.first?.relabeledFromPounds)
+    }
+
+    func testLifterWhoStartedInKilogramsIsNeverAsked() throws {
+        // A new install outside the US: kilograms from the first day.
+        clock.now = firstSession
+        XCTAssertEqual(relabeler.status(for: .kilograms), .nothingToOffer)
+
+        let kilogramDay = Workout(date: firstSession.addingTimeInterval(86_400), name: "Kilogram Day", isCompleted: true)
+        context.insert(kilogramDay)
+        let kilogramSet = kilogramDay.addSet(exercise: bench, weight: 0, reps: 5)
+        kilogramSet.setLoad(100, in: .kilograms)
+        kilogramSet.completedAt = firstSession.addingTimeInterval(86_400 + 600)
+        try context.save()
+        let trip = try insertFinishedWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(20 * 86_400))
+
+        XCTAssertNil(relabeler.question(afterSwitchingTo: .kilograms))
+        XCTAssertEqual(relabeler.status(for: .kilograms), .nothingToOffer)
+        XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .nothingToChange)
+
+        XCTAssertEqual(trip.sets.first?.weight, 225)
+        XCTAssertNil(trip.sets.first?.loadValue)
+        XCTAssertNil(trip.sets.first?.relabeledFromPounds)
+    }
+
+    func testUndoThenRelabelComesBackToTheSameSetsWithPoundSetsLoggedInBetween() throws {
+        let earlier = try insertFinishedWorkout(bench, loads: [(100, 5), (90, 6)])
+        let firstSwitch = firstSession.addingTimeInterval(30 * 86_400)
+        clock.now = firstSwitch
+        XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 2))
+
+        let trip = try insertFinishedWorkout(bench, loads: [(225, 5)], at: firstSwitch.addingTimeInterval(10 * 86_400))
+        let tripLoad = try XCTUnwrap(trip.sets.first).storedLoad
+
+        XCTAssertEqual(relabeler.undoRelabel(), .changed(sets: 2))
+        XCTAssertEqual(
+            relabeler.status(for: .kilograms),
+            .readAsPounds(KilogramRelabelPolicy.Preview(setCount: 2, exerciseName: "Bench Press", number: 90))
+        )
+        XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 2))
+
+        let expectedKilograms: [Double] = [100, 90]
+        XCTAssertEqual(kilograms(earlier), expectedKilograms)
+        XCTAssertEqual(trip.sets.first?.storedLoad, tripLoad, "The pound set from the trip is never swept in")
+    }
+
+    func testPlannedSetInAWorkoutStartedAfterTheLifterHadKilogramsIsNotRelabeled() throws {
+        try insertFinishedWorkout(bench, loads: [(100, 5)])
+        let firstSwitch = firstSession.addingTimeInterval(30 * 86_400)
+        clock.now = firstSwitch
+        _ = relabeler.status(for: .kilograms)
+
+        let draft = Workout(date: firstSwitch.addingTimeInterval(86_400), name: "Planned in pounds")
+        context.insert(draft)
+        let planned = draft.addSet(exercise: bench, weight: 225, reps: 5)
+        planned.completedAt = .distantPast
+        try context.save()
+
+        XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 1))
+
+        XCTAssertEqual(planned.weight, 225)
+        XCTAssertNil(planned.loadValue)
+    }
+
+    func testUndoKeepsASetLoggedSinceTheRelabel() throws {
+        try insertFinishedWorkout(bench, loads: [(100, 5)])
+        let draft = Workout(date: firstSession.addingTimeInterval(86_400), name: "Saved for later")
+        context.insert(draft)
+        let planned = draft.addSet(exercise: bench, weight: 100, reps: 5)
+        planned.completedAt = .distantPast
+        try context.save()
+        let firstSwitch = firstSession.addingTimeInterval(30 * 86_400)
+        clock.now = firstSwitch
+        XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 2))
+
+        // The lifter trains the saved workout at the 100 kg it shows and
+        // checks the set off. Logging stamps the time and nothing else.
+        planned.completedAt = firstSwitch.addingTimeInterval(86_400)
+        try context.save()
+
+        XCTAssertEqual(relabeler.undoRelabel(), .changed(sets: 1))
+
+        XCTAssertEqual(planned.load(in: .kilograms), 100, "A set performed and logged at 100 kg is not turned into 100 lb")
+        XCTAssertEqual(planned.loadUnit, .kilograms)
+        XCTAssertNil(planned.relabeledFromPounds)
+    }
+
     // MARK: - Failure
 
     func testFailedSaveLeavesEverySetAndTotalAsItWas() throws {
@@ -344,10 +606,7 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         let loadsBefore = try storedLoads()
         let volumeBefore = user.totalVolume
         let bestsBefore = user.personalBests
-        let failing = LoadHistoryRelabeler(
-            dataManager: FailingDataManager(context: context),
-            defaults: defaults
-        )
+        let failing = makeRelabeler(using: FailingDataManager(context: context))
 
         XCTAssertEqual(failing.relabelEarlierSetsAsKilograms(), .failed)
 
@@ -365,10 +624,7 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         relabeler.relabelEarlierSetsAsKilograms()
         let loadsAfterRelabel = try storedLoads()
         let revisionAfterRelabel = revision
-        let failing = LoadHistoryRelabeler(
-            dataManager: FailingDataManager(context: context),
-            defaults: defaults
-        )
+        let failing = makeRelabeler(using: FailingDataManager(context: context))
 
         XCTAssertEqual(failing.undoRelabel(), .failed)
 
@@ -377,6 +633,36 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         XCTAssertEqual(benchDay.setsInLoggedOrder.map(\.relabeledFromPounds), expectedMarks)
         XCTAssertEqual(revision, revisionAfterRelabel)
         XCTAssertEqual(relabeler.status(for: .kilograms), .relabeled(setCount: 2))
+    }
+
+    func testWorkLeftUnsavedByAnotherScreenSurvivesAFailedRelabel() throws {
+        try insertFinishedWorkout(bench, loads: [(100, 5)])
+        let pending = Workout(date: firstSession.addingTimeInterval(86_400), name: "Not saved yet")
+        context.insert(pending)
+        let saving = FailingAfterDataManager(context: context, savesThatSucceed: 1)
+        let failing = makeRelabeler(using: saving)
+
+        XCTAssertEqual(failing.relabelEarlierSetsAsKilograms(), .failed)
+
+        XCTAssertEqual(saving.saveAttempts, 2, "What was pending is saved on its own, before anything is rewritten")
+        XCTAssertTrue(
+            try context.fetch(FetchDescriptor<Workout>()).contains { $0.name == "Not saved yet" },
+            "Rolling the relabel back must not take another screen's work with it"
+        )
+        XCTAssertTrue(try storedSets().allSatisfy { $0.relabeledFromPounds == nil && $0.loadUnit == .pounds })
+    }
+
+    func testRelabelDoesNotStartWhenPendingWorkCannotBeSaved() throws {
+        let benchDay = try insertFinishedWorkout(bench, loads: [(100, 5)])
+        context.insert(Workout(date: firstSession.addingTimeInterval(86_400), name: "Not saved yet"))
+        let saving = FailingAfterDataManager(context: context, savesThatSucceed: 0)
+        let failing = makeRelabeler(using: saving)
+
+        XCTAssertEqual(failing.relabelEarlierSetsAsKilograms(), .failed)
+
+        XCTAssertEqual(saving.saveAttempts, 1)
+        XCTAssertEqual(benchDay.sets.first?.weight, 100)
+        XCTAssertNil(benchDay.sets.first?.relabeledFromPounds)
     }
 
     // MARK: - What the lifter is offered
@@ -417,8 +703,8 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         try context.save()
 
         XCTAssertEqual(
-            relabeler.preview(),
-            KilogramRelabelPolicy.Preview(setCount: 4, exerciseName: "Squat", number: 140),
+            relabeler.status(for: .kilograms),
+            .readAsPounds(KilogramRelabelPolicy.Preview(setCount: 4, exerciseName: "Squat", number: 140)),
             "A warm-up or a planned set is a poor example of what the lifter lifted"
         )
     }
@@ -431,8 +717,8 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         try context.save()
 
         XCTAssertEqual(
-            relabeler.preview(),
-            KilogramRelabelPolicy.Preview(setCount: 1, exerciseName: nil, number: nil)
+            relabeler.status(for: .kilograms),
+            .readAsPounds(KilogramRelabelPolicy.Preview(setCount: 1, exerciseName: nil, number: nil))
         )
     }
 

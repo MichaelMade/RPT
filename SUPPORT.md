@@ -21,9 +21,11 @@ RPT can notify you when your rest is over while your phone is locked or another 
 
 Choose pounds or kilograms in **Settings > Training > Weight unit**. Switching never changes what you logged: a set keeps the load it was entered with and is shown converted in the other unit.
 
-If you trained in kilograms before RPT supported them, your earlier sets were stored as pounds, so a set you entered as 100 reads 45.4 kg after you switch. When you switch to kilograms RPT asks **Were your earlier workouts logged in kilograms?** Choose **They Were Kilograms** and those sets are relabeled, so 100 reads 100 kg. Sets you logged in kilograms after switching are not touched.
+If you trained in kilograms before RPT supported them, your earlier sets were stored as pounds, so a set you entered as 100 reads 45.4 kg after you switch. The first time you switch to kilograms RPT asks **Were your earlier workouts logged in kilograms?** Choose **They Were Kilograms** and those sets are relabeled, so 100 reads 100 kg. Only sets entered before you first had kilograms are relabeled. Sets you log in kilograms, and sets you log in pounds after that, are never touched.
 
-If you chose the wrong answer, open **Settings > Training > Earlier workouts**. From there you can relabel later, or tap **Undo** to put the relabeled sets back to pounds. Undo leaves alone any set you have edited since.
+If you chose the wrong answer, set **Weight unit** to **kg**, then open **Settings > Training > Earlier workouts**. The row is only there while there is something to decide. From it you can relabel later, or tap **Undo** to put the relabeled sets back to pounds. Undo leaves alone any set you have edited or logged since.
+
+A workout you saved for later keeps the loads it planned, so check them before you train after a relabel or an undo.
 
 ## Data and privacy
 

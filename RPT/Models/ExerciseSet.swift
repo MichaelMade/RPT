@@ -302,18 +302,44 @@ extension ExerciseSet {
 // MARK: - Relabeling earlier history
 
 extension ExerciseSet {
-    /// Whether this set still holds a bare whole number from the time RPT
-    /// only knew pounds. A set logged in kilograms carries its own unit and
-    /// is never one of these, and neither is a set already relabeled.
+    /// Whether this set holds a bare whole number with no unit of its own,
+    /// the way every load was stored while RPT only knew pounds. A set
+    /// logged in kilograms carries its unit and is never one of these, and
+    /// neither is a set already relabeled.
     ///
     /// A number above what a kilogram entry accepts is left alone: it could
     /// not be relabeled without being changed.
+    ///
+    /// A set logged in pounds today is stored the same way, so this alone
+    /// does not make a set a candidate: see
+    /// `canBeRelabeledAsKilograms(enteredBy:)`.
     var holdsUnlabeledWholePounds: Bool {
         weight > 0
             && Double(weight) <= WeightUnit.kilograms.maximumLoad
             && loadValue == nil
             && loadUnitRaw == nil
             && relabeledFromPounds == nil
+    }
+
+    /// When the lifter last stood behind this set's number: the moment it
+    /// was logged, or, for a set that is still only planned, the day its
+    /// workout was started.
+    var loadEnteredAt: Date {
+        if completedAt != .distantPast {
+            return completedAt
+        }
+        return workout?.date ?? .distantPast
+    }
+
+    /// Whether a relabel may reinterpret this set, given the first moment
+    /// the lifter's unit was kilograms.
+    ///
+    /// Before that moment the lifter had no way to say a number was
+    /// kilograms, so a bare number may have been one. After it, a bare
+    /// number was entered with the unit deliberately on pounds, and is
+    /// pounds.
+    func canBeRelabeledAsKilograms(enteredBy firstKilogramChoice: Date) -> Bool {
+        holdsUnlabeledWholePounds && loadEnteredAt <= firstKilogramChoice
     }
 
     /// Reads the stored whole number as kilograms instead of pounds: a set
@@ -339,13 +365,24 @@ extension ExerciseSet {
         return true
     }
 
-    /// Puts back the whole-pound number a relabel replaced. A set whose
-    /// load has been edited since keeps the edit. Either way the set is no
-    /// longer marked as relabeled. Returns whether the load was put back.
+    /// Puts back the whole-pound number a relabel replaced. Either way the
+    /// set is no longer marked as relabeled. Returns whether the load was
+    /// put back.
+    ///
+    /// Two kinds of set keep what they hold:
+    /// - one whose load has been edited since the relabel, and
+    /// - one logged after `firstKilogramChoice`. Only sets entered before
+    ///   that moment were ever relabeled, so a later date means the lifter
+    ///   has since logged the set at the kilogram load it showed. It is
+    ///   their own kilogram entry now.
     @discardableResult
-    func undoKilogramRelabel() -> Bool {
+    func undoKilogramRelabel(keepingLoadsEnteredAfter firstKilogramChoice: Date? = nil) -> Bool {
         guard let original = relabeledFromPounds else { return false }
         relabeledFromPounds = nil
+
+        if let firstKilogramChoice, loadEnteredAt > firstKilogramChoice {
+            return false
+        }
 
         guard original > 0,
               loadUnit == .kilograms,

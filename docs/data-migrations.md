@@ -87,11 +87,19 @@ only knew pounds. It is the pattern to follow.
   separated from the data it describes. A flag in `UserDefaults` that
   changed how rows are read would be lost on a reset and would silently
   reinterpret every row.
-- It only touches rows it can identify from their own contents (a bare
-  whole number with no unit). A set logged in kilograms is never a
-  candidate, before or after.
-- One save. If it fails, every row and stored total is put back.
-- The undo leaves alone any row edited since.
+- It only touches rows it can identify from their own contents: a bare
+  whole number with no unit, entered before the lifter first had
+  kilograms. A set logged in kilograms is never a candidate, and neither
+  is a pound set logged after the lifter could choose, which is stored
+  the same way as an old one and told apart by its date.
+- The moment the lifter first had kilograms is kept in `UserDefaults`. It
+  only limits what a relabel the lifter asks for may touch. It is never
+  used to read a stored row, so losing it cannot change what history
+  says.
+- Whatever another screen left unsaved is saved first, then the rewrite
+  is one save. If that fails, the rollback discards only the rewrite and
+  every row and stored total is put back.
+- The undo leaves alone any row edited or logged since.
 
 ## What enforces this
 
@@ -103,6 +111,13 @@ only knew pounds. It is the pattern to follow.
   frozen copy of the 2.2.1 models, reopens it with the current models, and
   checks that workouts, sets, templates, settings and the user profile all
   come back intact and that new attributes take their defaults.
+
+- `tests/test_rpt_kilogram_relabel_static.py`, `LoadHistoryRelabelerTests`
+  and `KilogramRelabelTests` hold the rules above for the one bulk rewrite:
+  which rows it may touch, that it runs only from the lifter's answer, and
+  that an undo is exact. `StoreMigrationTests` relabels and restores a
+  store written by the shipped models, and `KilogramRelabelUITests` drives
+  the Settings path end to end.
 
 Neither list of shipped shapes is edited to make a failing check pass. When
 a release ships with new stored properties, add a new frozen schema
