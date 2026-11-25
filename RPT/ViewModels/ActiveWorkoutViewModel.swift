@@ -552,23 +552,24 @@ class ActiveWorkoutViewModel: ObservableObject {
 
     /// Explicitly logs or unlogs a set — the tap target on every set row.
     /// Logging stamps the completion time without touching the set's values,
-    /// so template-pre-filled sets can be checked off as planned.
-    func toggleSetLogged(_ set: ExerciseSet) throws -> SetLogResult {
-        let originalCompletedAt = set.completedAt
+    /// so template-pre-filled sets can be checked off as planned. `unit` is
+    /// the unit the lifter is training in, recorded with the log.
+    func toggleSetLogged(_ set: ExerciseSet, unit: WeightUnit = .current) throws -> SetLogResult {
+        let originalLogState = set.logState
 
         if set.isCompletedLoggedSet {
-            set.completedAt = .distantPast
+            set.markUnlogged()
         } else {
             guard set.hasCompletedValues else {
                 return .needsValues
             }
-            set.completedAt = Date()
+            set.markLogged(at: Date(), unit: unit)
         }
 
         do {
             try saveWorkout()
         } catch {
-            set.completedAt = originalCompletedAt
+            set.restoreLogState(originalLogState)
             throw error
         }
 
@@ -576,9 +577,9 @@ class ActiveWorkoutViewModel: ObservableObject {
         return set.isCompletedLoggedSet ? .logged : .unlogged
     }
 
-    func toggleSetLoggedSafely(_ set: ExerciseSet) -> SetLogResult {
+    func toggleSetLoggedSafely(_ set: ExerciseSet, unit: WeightUnit = .current) -> SetLogResult {
         do {
-            return try toggleSetLogged(set)
+            return try toggleSetLogged(set, unit: unit)
         } catch {
             setError(title: "Couldn’t Update Set", message: WorkoutError.saveFailure.description)
             return .failed

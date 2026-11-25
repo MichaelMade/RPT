@@ -12,8 +12,9 @@ launch opens the store with the current models (`DataManager.makeSchema()`),
 and SwiftData's automatic lightweight migration carries an older store
 forward. That is how `ExerciseSet.orderIndex`,
 `UserSettings.autoStartRestTimerEnabled`, `UserSettings.weeklyWorkoutGoal`,
-`Exercise.isArchived`, `ExerciseSet.loadValue` / `loadUnitRaw`, and
-`ExerciseSet.relabeledFromPounds` reached existing users.
+`Exercise.isArchived`, `ExerciseSet.loadValue` / `loadUnitRaw`,
+`ExerciseSet.relabeledFromPounds` and `ExerciseSet.loggedUnitRaw` reached
+existing users.
 
 Lightweight migration only handles additive changes. Anything else makes
 `ModelContainer` throw at launch, and the app shows the storage-unavailable
@@ -87,11 +88,32 @@ only knew pounds. It is the pattern to follow.
   separated from the data it describes. A flag in `UserDefaults` that
   changed how rows are read would be lost on a reset and would silently
   reinterpret every row.
-- It only touches rows it can identify from their own contents (a bare
-  whole number with no unit). A set logged in kilograms is never a
-  candidate, before or after.
-- One save. If it fails, every row and stored total is put back.
-- The undo leaves alone any row edited since.
+- It only touches rows it can identify from the store itself: a bare
+  whole number with no unit, entered before the lifter first logged a set
+  with RPT set to kilograms. A set that carries kilograms is never a
+  candidate. Neither is a pound set logged after that first kilogram
+  session, which is stored the same way as an old one and told apart by
+  its date.
+- "Trained in kilograms" is recorded where it happens: each log stamps
+  the unit in use on the set (`ExerciseSet.loggedUnitRaw`). The unit a
+  load is stored in is not evidence, because a row planned while the
+  picker read kg can be checked off after the lifter has gone back to
+  pounds.
+- That line is read from the store each time, never kept in a setting.
+  An earlier version recorded the first time the unit picker read kg. One
+  look at the picker then shut a lifter out for good, and a wrong device
+  clock or a lost setting moved the line. Evidence that is in the rows
+  cannot go missing or disagree with them. The cost is that deleting the
+  workout that holds the first kilogram log moves the line later, so a
+  pound session before the next one is offered again. It is only an
+  offer: nothing is rewritten unless the lifter says yes.
+- Whatever another screen left unsaved is saved first, then the rewrite
+  is one save. If that fails, the rollback discards only the rewrite and
+  every row and stored total is put back.
+- Logging a relabeled set takes it out of the relabel
+  (`ExerciseSet.markLogged(at:)`): a planned set performed at the kilogram
+  load it showed is the lifter's own entry.
+- The undo leaves alone any row edited or logged since.
 
 ## What enforces this
 
@@ -103,6 +125,13 @@ only knew pounds. It is the pattern to follow.
   frozen copy of the 2.2.1 models, reopens it with the current models, and
   checks that workouts, sets, templates, settings and the user profile all
   come back intact and that new attributes take their defaults.
+
+- `tests/test_rpt_kilogram_relabel_static.py`, `LoadHistoryRelabelerTests`
+  and `KilogramRelabelTests` hold the rules above for the one bulk rewrite:
+  which rows it may touch, that it runs only from the lifter's answer, and
+  that an undo is exact. `StoreMigrationTests` relabels and restores a
+  store written by the shipped models, and `KilogramRelabelUITests` drives
+  the Settings path end to end.
 
 Neither list of shipped shapes is edited to make a failing check pass. When
 a release ships with new stored properties, add a new frozen schema

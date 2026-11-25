@@ -416,6 +416,10 @@ final class StoreMigrationTests: XCTestCase {
         // Relabeling: no set from an existing store may come back marked as
         // already relabeled, or an undo would have something to rewrite.
         XCTAssertTrue(sets.allSatisfy { $0.relabeledFromPounds == nil })
+
+        // No set from an existing store claims to have been logged with
+        // the unit on kilograms: that would close off the relabel.
+        XCTAssertTrue(sets.allSatisfy { $0.loggedUnitRaw == nil && !$0.wasLoggedWithUnitOnKilograms })
     }
 
     func testMigratedStoreAcceptsAKilogramSetAndReadsItBackExactly() throws {

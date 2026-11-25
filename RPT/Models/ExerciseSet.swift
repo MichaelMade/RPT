@@ -41,6 +41,15 @@ final class ExerciseSet {
     /// that relabel, and only so it can be undone exactly; `nil` on every
     /// other set. See `LoadHistoryRelabeler`.
     var relabeledFromPounds: Int? = nil
+    /// `WeightUnit` raw value of the unit RPT was set to when the lifter
+    /// logged this set. `nil` for a set that is not logged, and for every
+    /// set logged before this was recorded.
+    ///
+    /// It is not the unit of the load, which may have been planned in the
+    /// other unit and checked off as shown. It records which unit the
+    /// lifter was training in, which is what tells a deliberate pound
+    /// entry from an old bare number.
+    var loggedUnitRaw: String? = nil
 
     @Relationship(deleteRule: .nullify)
     var exercise: Exercise?
@@ -302,18 +311,63 @@ extension ExerciseSet {
 // MARK: - Relabeling earlier history
 
 extension ExerciseSet {
-    /// Whether this set still holds a bare whole number from the time RPT
-    /// only knew pounds. A set logged in kilograms carries its own unit and
-    /// is never one of these, and neither is a set already relabeled.
+    /// Whether this set holds a bare whole number with no unit of its own,
+    /// the way every load was stored while RPT only knew pounds. A set
+    /// logged in kilograms carries its unit and is never one of these, and
+    /// neither is a set already relabeled.
     ///
     /// A number above what a kilogram entry accepts is left alone: it could
     /// not be relabeled without being changed.
+    ///
+    /// A set logged in pounds today is stored the same way, so this alone
+    /// does not make a set a candidate: see
+    /// `canBeRelabeledAsKilograms(beforeFirstKilogramLog:)`.
     var holdsUnlabeledWholePounds: Bool {
         weight > 0
             && Double(weight) <= WeightUnit.kilograms.maximumLoad
             && loadValue == nil
             && loadUnitRaw == nil
             && relabeledFromPounds == nil
+    }
+
+    /// When the lifter last stood behind this set's number: the moment it
+    /// was logged, or, for a set that is still only planned, the day its
+    /// workout was started.
+    var loadEnteredAt: Date {
+        if completedAt != .distantPast {
+            return completedAt
+        }
+        return workout?.date ?? .distantPast
+    }
+
+    /// Whether the lifter logged this set with RPT set to kilograms.
+    ///
+    /// This is about the unit they were training in, not the unit the load
+    /// is stored in. A row planned while the picker read kg and checked off
+    /// after going back to pounds holds a kilogram load, and is not one of
+    /// these. Neither is a set logged in pounds and later corrected to a
+    /// kilogram figure, nor relabeled history.
+    var wasLoggedWithUnitOnKilograms: Bool {
+        completedAt != .distantPast && loggedUnitRaw == WeightUnit.kilograms.rawValue
+    }
+
+    /// Whether a relabel may reinterpret this set.
+    ///
+    /// `firstKilogramLog` is when the lifter first logged a set with RPT
+    /// set to kilograms, or `nil` if they never have. Until then they have
+    /// not trained in kilograms, so a bare number may be a kilogram figure
+    /// typed into the pound field. From then on a bare number was logged
+    /// with the unit deliberately on pounds, and is pounds.
+    ///
+    /// The line is drawn by what the lifter did, not by the picker having
+    /// read kg once: a lifter who looks at kilograms, even starts a workout
+    /// in them, then goes back to pounds and keeps typing kilogram numbers
+    /// has logged nothing with the unit on kilograms, and every one of
+    /// their sets can still be relabeled.
+    func canBeRelabeledAsKilograms(beforeFirstKilogramLog firstKilogramLog: Date?) -> Bool {
+        guard holdsUnlabeledWholePounds else { return false }
+        guard let firstKilogramLog else { return true }
+        return loadEnteredAt < firstKilogramLog
     }
 
     /// Reads the stored whole number as kilograms instead of pounds: a set
@@ -356,5 +410,46 @@ extension ExerciseSet {
 
         setWholePounds(original)
         return true
+    }
+}
+
+// MARK: - Logging
+
+extension ExerciseSet {
+    /// What logging or unlogging a set changes, for putting it back when
+    /// the save does not go through.
+    struct LogState: Equatable {
+        let completedAt: Date
+        let loggedUnitRaw: String?
+        let relabeledFromPounds: Int?
+    }
+
+    var logState: LogState {
+        LogState(completedAt: completedAt, loggedUnitRaw: loggedUnitRaw, relabeledFromPounds: relabeledFromPounds)
+    }
+
+    func restoreLogState(_ state: LogState) {
+        completedAt = state.completedAt
+        loggedUnitRaw = state.loggedUnitRaw
+        relabeledFromPounds = state.relabeledFromPounds
+    }
+
+    /// Records that the lifter performed this set, at the load it shows,
+    /// with RPT set to `unit`.
+    ///
+    /// A planned set that was relabeled as kilograms and is then performed
+    /// and checked off is the lifter's own entry from that moment. It stops
+    /// being part of the relabel, so an undo will not turn a set performed
+    /// at 100 kg into 100 lb.
+    func markLogged(at date: Date, unit: WeightUnit) {
+        completedAt = date
+        loggedUnitRaw = unit.rawValue
+        relabeledFromPounds = nil
+    }
+
+    /// Takes the log back. The load stays as it is.
+    func markUnlogged() {
+        completedAt = .distantPast
+        loggedUnitRaw = nil
     }
 }

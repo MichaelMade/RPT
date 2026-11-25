@@ -542,7 +542,7 @@ struct ExerciseSectionView: View {
         // never log implicitly, so finish the intent with an explicit toggle.
         if completesLog,
            !set.isCompletedLoggedSet,
-           viewModel.toggleSetLoggedSafely(set) == .logged {
+           viewModel.toggleSetLoggedSafely(set, unit: weightUnit) == .logged {
             HapticFeedbackManager.shared.medium()
             if viewModel.autoStartRestTimerEnabled {
                 viewModel.startRestTimer()
@@ -551,7 +551,7 @@ struct ExerciseSectionView: View {
     }
 
     private func handleLogTap(for set: ExerciseSet) {
-        switch viewModel.toggleSetLoggedSafely(set) {
+        switch viewModel.toggleSetLoggedSafely(set, unit: weightUnit) {
         case .logged:
             HapticFeedbackManager.shared.medium()
             if viewModel.autoStartRestTimerEnabled {

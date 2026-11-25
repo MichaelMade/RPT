@@ -15,7 +15,6 @@ enum KilogramRelabelPolicy {
     /// Counts relabels and undos. The tab shell rebuilds the other tabs when
     /// it changes, so no screen keeps showing the loads from before.
     static let revisionDefaultsKey = "training.loadHistoryRevision"
-
     /// What a relabel would change, for the question put to the lifter.
     struct Preview: Equatable {
         /// Sets still holding a bare whole number.
@@ -68,23 +67,31 @@ enum KilogramRelabelPolicy {
     static let relabelAnswer = "They Were Kilograms"
     static let keepAnswer = "They Were Pounds"
 
-    /// The question's explanation, built around the lifter's own last set
-    /// when there is one.
+    /// The question's explanation. It is written from what is stored, not
+    /// from a guess about the lifter's history: how many sets are held as
+    /// pounds, and what the most recent of them reads now and would read.
     static func questionMessage(for preview: Preview) -> String {
         let kilograms = WeightUnit.kilograms
+        let isSingle = preview.setCount == 1
         let number = preview.number ?? 100
         let shownNow = kilograms.formatted(pounds: Double(number))
         let shownAfter = kilograms.formatted(Double(number))
 
-        let opening: String
+        let stored = isSingle
+            ? "RPT stored 1 earlier set as pounds."
+            : "RPT stored \(preview.setCount) earlier sets as pounds."
+
+        let example: String
         if let exerciseName = preview.exerciseName, preview.number != nil {
-            opening = "RPT only tracked pounds until now, so your last \(exerciseName) set, entered as \(number), now reads \(shownNow)."
+            example = isSingle
+                ? "It is a \(exerciseName) set entered as \(number), which now reads \(shownNow)."
+                : "The most recent, \(exerciseName), was entered as \(number) and now reads \(shownNow)."
         } else {
-            opening = "RPT only tracked pounds until now, so a set entered as \(number) now reads \(shownNow)."
+            example = "A set entered as \(number) now reads \(shownNow)."
         }
 
-        let sets = preview.setCount == 1 ? "your 1 earlier set" : "your \(preview.setCount) earlier sets"
-        return "\(opening) If you were typing kilograms all along, RPT can relabel \(sets) so that \(number) reads \(shownAfter). You can undo this here in Settings."
+        let offer = "If you typed kilograms back then, RPT can relabel \(isSingle ? "it" : "them") so that \(number) reads \(shownAfter)."
+        return "\(stored) \(example) \(offer) You can undo this here in Settings."
     }
 
     static let undoTitle = "Undo the kilogram relabel?"
@@ -95,7 +102,7 @@ enum KilogramRelabelPolicy {
         let sets = setCount == 1 ? "The 1 relabeled set goes" : "The \(setCount) relabeled sets go"
         let relabeled = WeightUnit.kilograms.formatted(100)
         let restored = WeightUnit.pounds.formatted(100)
-        return "\(sets) back to pounds, so \(relabeled) reads \(restored) again. Sets you have edited since stay as they are."
+        return "\(sets) back to pounds, so \(relabeled) reads \(restored) again. Sets you have edited or logged since stay as they are. Check the planned loads of any workout you saved for later."
     }
 
     /// The row's second line while earlier sets are relabeled.

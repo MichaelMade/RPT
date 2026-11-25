@@ -34,7 +34,18 @@ final class DataManager: DataManaging {
 
     static let shared = DataManager(
         containerFactory: { schema, configuration in
-            try ModelContainer(for: schema, configurations: configuration)
+            #if DEBUG && targetEnvironment(simulator)
+            // A UI test that needs its own history gets a store that lives
+            // only for the launch, so nothing it logs or rewrites reaches
+            // the simulator's real data or another test.
+            if UITestSupport.wantsPoundHistory {
+                return try ModelContainer(
+                    for: schema,
+                    configurations: ModelConfiguration(isStoredInMemoryOnly: true, allowsSave: true)
+                )
+            }
+            #endif
+            return try ModelContainer(for: schema, configurations: configuration)
         },
         seedDefaultData: true
     )

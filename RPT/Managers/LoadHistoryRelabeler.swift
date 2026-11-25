@@ -53,7 +53,7 @@ final class LoadHistoryRelabeler {
 
     /// What a relabel would change, or `nil` when there is nothing to
     /// relabel.
-    func preview() -> Preview? {
+    private func preview() -> Preview? {
         guard let sets = try? unlabeledSets(), !sets.isEmpty else {
             return nil
         }
@@ -87,8 +87,11 @@ final class LoadHistoryRelabeler {
 
     // MARK: - Relabel and undo
 
-    /// Reads every earlier bare whole number as kilograms: a set stored as
-    /// 100 becomes 100 kg. Sets logged in kilograms are not touched.
+    /// Reads every bare whole number entered before the lifter first
+    /// trained with RPT set to kilograms as kilograms: a set stored as 100
+    /// becomes 100 kg. Sets that carry kilograms are not touched, and
+    /// neither are pound sets logged after the lifter had started logging
+    /// with the unit on kilograms.
     @discardableResult
     func relabelEarlierSetsAsKilograms() -> Outcome {
         let sets: [ExerciseSet]
@@ -99,7 +102,7 @@ final class LoadHistoryRelabeler {
         }
 
         let outcome = rewrite(sets) { $0.relabelAsKilograms() }
-        if outcome != .failed {
+        if case .changed = outcome {
             recordPromptAnswered()
         }
         return outcome
@@ -107,7 +110,8 @@ final class LoadHistoryRelabeler {
 
     /// Puts back the whole-pound number of every relabeled set that still
     /// holds the load the relabel gave it. A set edited since keeps its
-    /// edit.
+    /// edit. A set logged since is no longer marked at all (see
+    /// `ExerciseSet.markLogged(at:)`), so it is not among them.
     @discardableResult
     func undoRelabel() -> Outcome {
         let sets: [ExerciseSet]
@@ -178,6 +182,17 @@ final class LoadHistoryRelabeler {
             return .nothingToChange
         }
 
+        // The context is shared with every other screen, and a rollback
+        // discards everything unsaved in it. Whatever is pending is saved
+        // first, so the rollback below can only ever discard this rewrite.
+        if modelContext.hasChanges {
+            do {
+                try dataManager.saveChanges()
+            } catch {
+                return .failed
+            }
+        }
+
         var touched: [SetSnapshot] = []
         var corrections: [User: TotalsCorrection] = [:]
         var changedCount = 0
@@ -238,13 +253,35 @@ final class LoadHistoryRelabeler {
         return changedCount > 0 ? .changed(sets: changedCount) : .nothingToChange
     }
 
-    /// Sets still holding a bare whole number. The fetch narrows the rows;
-    /// the set itself decides, so there is one definition of a candidate.
+    /// Sets a relabel may reinterpret. The fetch only narrows the rows and
+    /// must never be the rule: the set itself decides, so there is one
+    /// definition of a candidate. Every matching row is returned. A relabel
+    /// that stopped part-way would leave a history in two units.
     private func unlabeledSets() throws -> [ExerciseSet] {
+        let firstLog = try firstKilogramLog()
         let descriptor = FetchDescriptor<ExerciseSet>(
             predicate: #Predicate<ExerciseSet> { $0.loadUnitRaw == nil && $0.weight > 0 }
         )
-        return try modelContext.fetch(descriptor).filter(\.holdsUnlabeledWholePounds)
+        return try modelContext.fetch(descriptor)
+            .filter { $0.canBeRelabeledAsKilograms(beforeFirstKilogramLog: firstLog) }
+    }
+
+    /// When the lifter first logged a set with RPT set to kilograms, or
+    /// `nil` if they never have. Read from the store every time: it is
+    /// evidence, not a setting, so there is nothing to lose or get out of
+    /// step.
+    ///
+    /// Only the earliest such set is needed, so the store sorts and hands
+    /// back one row instead of every set the lifter has logged in kilograms.
+    private func firstKilogramLog() throws -> Date? {
+        let kilograms = WeightUnit.kilograms.rawValue
+        let neverLogged = Date.distantPast
+        var descriptor = FetchDescriptor<ExerciseSet>(
+            predicate: #Predicate<ExerciseSet> { $0.loggedUnitRaw == kilograms && $0.completedAt > neverLogged },
+            sortBy: [SortDescriptor(\.completedAt)]
+        )
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first(where: \.wasLoggedWithUnitOnKilograms)?.completedAt
     }
 
     private var relabeledSetsDescriptor: FetchDescriptor<ExerciseSet> {
