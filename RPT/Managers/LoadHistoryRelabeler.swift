@@ -29,46 +29,32 @@ final class LoadHistoryRelabeler {
 
     private let dataManager: DataManaging
     private let defaults: UserDefaults
-    private let now: () -> Date
 
     private var modelContext: ModelContext {
         dataManager.getModelContext()
     }
 
-    init(
-        dataManager: DataManaging? = nil,
-        defaults: UserDefaults = .standard,
-        now: @escaping () -> Date = { Date() }
-    ) {
+    init(dataManager: DataManaging? = nil, defaults: UserDefaults = .standard) {
         self.dataManager = dataManager ?? DataManager.shared
         self.defaults = defaults
-        self.now = now
     }
 
     // MARK: - What can be done
 
     /// Where earlier history stands for a lifter training in `unit`.
-    ///
-    /// Asking while the unit is kilograms also records, the first time,
-    /// that the lifter has kilograms now: see `firstKilogramChoice`.
     func status(for unit: WeightUnit) -> Status {
         let relabeledCount = (try? modelContext.fetchCount(relabeledSetsDescriptor)) ?? 0
-        let firstChoice = firstKilogramChoice(observing: unit)
 
         // The candidates are only read when they can matter: a pound
         // lifter with nothing relabeled never pays for the fetch.
-        var preview: Preview?
-        if relabeledCount == 0, unit == .kilograms, let firstChoice {
-            preview = self.preview(enteredBy: firstChoice)
-        }
-
+        let preview = relabeledCount == 0 && unit == .kilograms ? self.preview() : nil
         return KilogramRelabelPolicy.status(unit: unit, relabeledSetCount: relabeledCount, preview: preview)
     }
 
     /// What a relabel would change, or `nil` when there is nothing to
     /// relabel.
-    private func preview(enteredBy firstChoice: Date) -> Preview? {
-        guard let sets = try? unlabeledSets(enteredBy: firstChoice), !sets.isEmpty else {
+    private func preview() -> Preview? {
+        guard let sets = try? unlabeledSets(), !sets.isEmpty else {
             return nil
         }
 
@@ -83,35 +69,11 @@ final class LoadHistoryRelabeler {
         )
     }
 
-    /// The first moment the lifter's unit was kilograms.
-    ///
-    /// Nothing but the Settings picker changes the unit, and Settings asks
-    /// for the status when it appears and on every switch, so the first
-    /// time this is asked with kilograms is that moment, or as close to it
-    /// as matters: no set can have been logged in between. Returns `nil`
-    /// for a lifter who has only ever trained in pounds.
-    private func firstKilogramChoice(observing unit: WeightUnit) -> Date? {
-        let key = KilogramRelabelPolicy.firstKilogramChoiceDefaultsKey
-        if let recorded = defaults.object(forKey: key) as? Date {
-            return recorded
-        }
-
-        guard unit == .kilograms else {
-            return nil
-        }
-
-        let moment = now()
-        defaults.set(moment, forKey: key)
-        return moment
-    }
-
     /// The question to put to the lifter right after they switch to
     /// `unit`, or `nil` when it should not be asked.
     func question(afterSwitchingTo unit: WeightUnit) -> Preview? {
-        // The status is read even when the answer is already known: a
-        // switch to kilograms is when the first choice of them is recorded.
-        let status = status(for: unit)
-        return KilogramRelabelPolicy.question(hasAnswered: hasAnsweredPrompt, status: status)
+        guard !hasAnsweredPrompt else { return nil }
+        return KilogramRelabelPolicy.question(hasAnswered: hasAnsweredPrompt, status: status(for: unit))
     }
 
     var hasAnsweredPrompt: Bool {
@@ -125,20 +87,15 @@ final class LoadHistoryRelabeler {
 
     // MARK: - Relabel and undo
 
-    /// Reads every bare whole number entered before the lifter had
-    /// kilograms as kilograms: a set stored as 100 becomes 100 kg. Sets
-    /// logged in kilograms are not touched, and neither are sets logged in
-    /// pounds after the lifter could choose.
+    /// Reads every bare whole number entered before the lifter first
+    /// logged in kilograms as kilograms: a set stored as 100 becomes
+    /// 100 kg. Sets logged in kilograms are not touched, and neither are
+    /// pound sets logged after the lifter had started logging in kilograms.
     @discardableResult
     func relabelEarlierSetsAsKilograms() -> Outcome {
-        // Asking for a relabel is itself a choice of kilograms.
-        guard let firstChoice = firstKilogramChoice(observing: .kilograms) else {
-            return .failed
-        }
-
         let sets: [ExerciseSet]
         do {
-            sets = try unlabeledSets(enteredBy: firstChoice)
+            sets = try unlabeledSets()
         } catch {
             return .failed
         }
@@ -152,7 +109,8 @@ final class LoadHistoryRelabeler {
 
     /// Puts back the whole-pound number of every relabeled set that still
     /// holds the load the relabel gave it. A set edited since keeps its
-    /// edit, and a set logged since keeps the load it was logged at.
+    /// edit. A set logged since is no longer marked at all (see
+    /// `ExerciseSet.markLogged(at:)`), so it is not among them.
     @discardableResult
     func undoRelabel() -> Outcome {
         let sets: [ExerciseSet]
@@ -162,8 +120,7 @@ final class LoadHistoryRelabeler {
             return .failed
         }
 
-        let firstChoice = defaults.object(forKey: KilogramRelabelPolicy.firstKilogramChoiceDefaultsKey) as? Date
-        return rewrite(sets) { $0.undoKilogramRelabel(keepingLoadsEnteredAfter: firstChoice) }
+        return rewrite(sets) { $0.undoKilogramRelabel() }
     }
 
     // MARK: - Implementation
@@ -299,11 +256,32 @@ final class LoadHistoryRelabeler {
     /// must never be the rule: the set itself decides, so there is one
     /// definition of a candidate. Every matching row is returned. A relabel
     /// that stopped part-way would leave a history in two units.
-    private func unlabeledSets(enteredBy firstChoice: Date) throws -> [ExerciseSet] {
+    private func unlabeledSets() throws -> [ExerciseSet] {
+        let firstLog = try firstKilogramLog()
         let descriptor = FetchDescriptor<ExerciseSet>(
             predicate: #Predicate<ExerciseSet> { $0.loadUnitRaw == nil && $0.weight > 0 }
         )
-        return try modelContext.fetch(descriptor).filter { $0.canBeRelabeledAsKilograms(enteredBy: firstChoice) }
+        return try modelContext.fetch(descriptor)
+            .filter { $0.canBeRelabeledAsKilograms(beforeFirstKilogramLog: firstLog) }
+    }
+
+    /// When the lifter first logged a set in kilograms, or `nil` if they
+    /// never have. Read from the store every time: it is evidence, not a
+    /// setting, so there is nothing to record, lose or get out of step.
+    ///
+    /// Only the earliest such set is needed, so the store sorts and hands
+    /// back one row instead of every kilogram set the lifter has logged.
+    private func firstKilogramLog() throws -> Date? {
+        let kilograms = WeightUnit.kilograms.rawValue
+        let neverLogged = Date.distantPast
+        var descriptor = FetchDescriptor<ExerciseSet>(
+            predicate: #Predicate<ExerciseSet> {
+                $0.loadUnitRaw == kilograms && $0.relabeledFromPounds == nil && $0.completedAt > neverLogged
+            },
+            sortBy: [SortDescriptor(\.completedAt)]
+        )
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first(where: \.isLoggedInKilograms)?.completedAt
     }
 
     private var relabeledSetsDescriptor: FetchDescriptor<ExerciseSet> {

@@ -15,14 +15,6 @@ enum KilogramRelabelPolicy {
     /// Counts relabels and undos. The tab shell rebuilds the other tabs when
     /// it changes, so no screen keeps showing the loads from before.
     static let revisionDefaultsKey = "training.loadHistoryRevision"
-    /// The first moment the lifter's unit was kilograms. Only bare numbers
-    /// entered before it can be relabeled: after it, a bare number was
-    /// entered with the unit deliberately on pounds.
-    ///
-    /// It decides what a relabel the lifter asks for may touch. It never
-    /// changes how a stored set is read.
-    static let firstKilogramChoiceDefaultsKey = "training.kilogramsFirstChosenAt"
-
     /// What a relabel would change, for the question put to the lifter.
     struct Preview: Equatable {
         /// Sets still holding a bare whole number.

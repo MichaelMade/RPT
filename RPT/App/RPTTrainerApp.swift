@@ -37,7 +37,7 @@ struct RPTTrainerApp: App {
         }
         #endif
 
-        #if DEBUG
+        #if DEBUG && targetEnvironment(simulator)
         // UI-test hook: the unit choices are cleared before any view reads
         // them. The history itself is seeded below, once the store exists.
         if UITestSupport.wantsPoundHistory {
@@ -49,7 +49,7 @@ struct RPTTrainerApp: App {
         // first scene. Feature managers initialize lazily with their views.
         self.dataManager = DataManager.shared
 
-        #if DEBUG
+        #if DEBUG && targetEnvironment(simulator)
         if UITestSupport.wantsPoundHistory {
             UITestSupport.seedPoundHistory(using: dataManager)
         }

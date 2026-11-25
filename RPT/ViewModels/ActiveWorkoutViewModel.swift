@@ -554,7 +554,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     /// Logging stamps the completion time without touching the set's values,
     /// so template-pre-filled sets can be checked off as planned.
     func toggleSetLogged(_ set: ExerciseSet) throws -> SetLogResult {
-        let originalCompletedAt = set.completedAt
+        let originalLogState = set.logState
 
         if set.isCompletedLoggedSet {
             set.completedAt = .distantPast
@@ -562,13 +562,13 @@ class ActiveWorkoutViewModel: ObservableObject {
             guard set.hasCompletedValues else {
                 return .needsValues
             }
-            set.completedAt = Date()
+            set.markLogged(at: Date())
         }
 
         do {
             try saveWorkout()
         } catch {
-            set.completedAt = originalCompletedAt
+            set.restoreLogState(originalLogState)
             throw error
         }
 

@@ -312,7 +312,7 @@ extension ExerciseSet {
     ///
     /// A set logged in pounds today is stored the same way, so this alone
     /// does not make a set a candidate: see
-    /// `canBeRelabeledAsKilograms(enteredBy:)`.
+    /// `canBeRelabeledAsKilograms(beforeFirstKilogramLog:)`.
     var holdsUnlabeledWholePounds: Bool {
         weight > 0
             && Double(weight) <= WeightUnit.kilograms.maximumLoad
@@ -331,15 +331,29 @@ extension ExerciseSet {
         return workout?.date ?? .distantPast
     }
 
-    /// Whether a relabel may reinterpret this set, given the first moment
-    /// the lifter's unit was kilograms.
+    /// Whether this set was logged with a load the lifter entered in
+    /// kilograms themselves. A relabeled set is not one: its number was
+    /// typed while RPT only knew pounds.
+    var isLoggedInKilograms: Bool {
+        completedAt != .distantPast && loadUnit == .kilograms && relabeledFromPounds == nil
+    }
+
+    /// Whether a relabel may reinterpret this set.
     ///
-    /// Before that moment the lifter had no way to say a number was
-    /// kilograms, so a bare number may have been one. After it, a bare
-    /// number was entered with the unit deliberately on pounds, and is
-    /// pounds.
-    func canBeRelabeledAsKilograms(enteredBy firstKilogramChoice: Date) -> Bool {
-        holdsUnlabeledWholePounds && loadEnteredAt <= firstKilogramChoice
+    /// `firstKilogramLog` is when the lifter first logged a set in
+    /// kilograms, or `nil` if they never have. Until then they have not
+    /// shown that they can tell RPT a number is kilograms, so a bare number
+    /// may be one. From then on a bare number was entered with the unit
+    /// deliberately on pounds, and is pounds.
+    ///
+    /// The line is drawn by what is in the store, not by the picker having
+    /// read kg once: a lifter who looks at kilograms, goes back to pounds
+    /// and keeps typing kilogram numbers has logged nothing in kilograms,
+    /// and every one of their sets can still be relabeled.
+    func canBeRelabeledAsKilograms(beforeFirstKilogramLog firstKilogramLog: Date?) -> Bool {
+        guard holdsUnlabeledWholePounds else { return false }
+        guard let firstKilogramLog else { return true }
+        return loadEnteredAt < firstKilogramLog
     }
 
     /// Reads the stored whole number as kilograms instead of pounds: a set
@@ -365,24 +379,13 @@ extension ExerciseSet {
         return true
     }
 
-    /// Puts back the whole-pound number a relabel replaced. Either way the
-    /// set is no longer marked as relabeled. Returns whether the load was
-    /// put back.
-    ///
-    /// Two kinds of set keep what they hold:
-    /// - one whose load has been edited since the relabel, and
-    /// - one logged after `firstKilogramChoice`. Only sets entered before
-    ///   that moment were ever relabeled, so a later date means the lifter
-    ///   has since logged the set at the kilogram load it showed. It is
-    ///   their own kilogram entry now.
+    /// Puts back the whole-pound number a relabel replaced. A set whose
+    /// load has been edited since keeps the edit. Either way the set is no
+    /// longer marked as relabeled. Returns whether the load was put back.
     @discardableResult
-    func undoKilogramRelabel(keepingLoadsEnteredAfter firstKilogramChoice: Date? = nil) -> Bool {
+    func undoKilogramRelabel() -> Bool {
         guard let original = relabeledFromPounds else { return false }
         relabeledFromPounds = nil
-
-        if let firstKilogramChoice, loadEnteredAt > firstKilogramChoice {
-            return false
-        }
 
         guard original > 0,
               loadUnit == .kilograms,
@@ -393,5 +396,36 @@ extension ExerciseSet {
 
         setWholePounds(original)
         return true
+    }
+}
+
+// MARK: - Logging
+
+extension ExerciseSet {
+    /// What logging a set changes, for putting it back when the save does
+    /// not go through.
+    struct LogState: Equatable {
+        let completedAt: Date
+        let relabeledFromPounds: Int?
+    }
+
+    var logState: LogState {
+        LogState(completedAt: completedAt, relabeledFromPounds: relabeledFromPounds)
+    }
+
+    func restoreLogState(_ state: LogState) {
+        completedAt = state.completedAt
+        relabeledFromPounds = state.relabeledFromPounds
+    }
+
+    /// Records that the lifter performed this set, at the load it shows.
+    ///
+    /// A planned set that was relabeled as kilograms and is then performed
+    /// and checked off is the lifter's own kilogram entry from that moment.
+    /// It stops being part of the relabel, so an undo will not turn a set
+    /// performed at 100 kg into 100 lb.
+    func markLogged(at date: Date) {
+        completedAt = date
+        relabeledFromPounds = nil
     }
 }

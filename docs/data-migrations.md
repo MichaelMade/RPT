@@ -87,18 +87,22 @@ only knew pounds. It is the pattern to follow.
   separated from the data it describes. A flag in `UserDefaults` that
   changed how rows are read would be lost on a reset and would silently
   reinterpret every row.
-- It only touches rows it can identify from their own contents: a bare
-  whole number with no unit, entered before the lifter first had
-  kilograms. A set logged in kilograms is never a candidate, and neither
-  is a pound set logged after the lifter could choose, which is stored
-  the same way as an old one and told apart by its date.
-- The moment the lifter first had kilograms is kept in `UserDefaults`. It
-  only limits what a relabel the lifter asks for may touch. It is never
-  used to read a stored row, so losing it cannot change what history
-  says.
+- It only touches rows it can identify from the store itself: a bare
+  whole number with no unit, entered before the lifter first logged a set
+  in kilograms. A set logged in kilograms is never a candidate. Neither is
+  a pound set logged after that first kilogram set, which is stored the
+  same way as an old one and told apart by its date.
+- That line is read from the store each time, never recorded. An earlier
+  version recorded the first time the unit picker read kg. One look at the
+  picker then shut a lifter out for good, and a wrong device clock or a
+  lost setting moved the line. Evidence that is already in the rows cannot
+  go missing or disagree with them.
 - Whatever another screen left unsaved is saved first, then the rewrite
   is one save. If that fails, the rollback discards only the rewrite and
   every row and stored total is put back.
+- Logging a relabeled set takes it out of the relabel
+  (`ExerciseSet.markLogged(at:)`): a planned set performed at the kilogram
+  load it showed is the lifter's own entry.
 - The undo leaves alone any row edited or logged since.
 
 ## What enforces this

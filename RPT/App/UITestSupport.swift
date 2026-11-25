@@ -3,10 +3,12 @@
 //  RPT
 //
 //  Launch arguments the UI tests use to put the app in a known state.
-//  Debug builds only: none of this exists in a release build.
+//  Debug builds for the simulator only: none of this exists in a release
+//  build, or in any build that runs on a phone, so it can never reach a
+//  lifter's own settings.
 //
 
-#if DEBUG
+#if DEBUG && targetEnvironment(simulator)
 import Foundation
 import SwiftData
 
@@ -14,7 +16,10 @@ enum UITestSupport {
     /// Launches with a finished workout logged as bare pound numbers, the
     /// way every set was stored before RPT had a weight unit, and with the
     /// unit back on pounds. The store lives only for that launch, so the
-    /// workout never reaches another test or the simulator's real data.
+    /// workout never reaches another test or the simulator's stored
+    /// workouts. The unit choice does persist in the simulator's defaults,
+    /// as it would from the picker: `resetUnitChoices` starts each run
+    /// from pounds, and the test ends on pounds.
     static let poundHistoryArgument = "--uiTestPoundHistory"
 
     static var wantsPoundHistory: Bool {
@@ -27,7 +32,6 @@ enum UITestSupport {
     static func resetUnitChoices(in defaults: UserDefaults = .standard) {
         defaults.removeObject(forKey: WeightUnit.defaultsKey)
         defaults.removeObject(forKey: KilogramRelabelPolicy.promptAnsweredDefaultsKey)
-        defaults.removeObject(forKey: KilogramRelabelPolicy.firstKilogramChoiceDefaultsKey)
         defaults.removeObject(forKey: KilogramRelabelPolicy.revisionDefaultsKey)
     }
 

@@ -34,7 +34,7 @@ final class DataManager: DataManaging {
 
     static let shared = DataManager(
         containerFactory: { schema, configuration in
-            #if DEBUG
+            #if DEBUG && targetEnvironment(simulator)
             // A UI test that needs its own history gets a store that lives
             // only for the launch, so nothing it logs or rewrites reaches
             // the simulator's real data or another test.
