@@ -88,9 +88,10 @@ final class LoadHistoryRelabeler {
     // MARK: - Relabel and undo
 
     /// Reads every bare whole number entered before the lifter first
-    /// logged in kilograms as kilograms: a set stored as 100 becomes
-    /// 100 kg. Sets logged in kilograms are not touched, and neither are
-    /// pound sets logged after the lifter had started logging in kilograms.
+    /// trained with RPT set to kilograms as kilograms: a set stored as 100
+    /// becomes 100 kg. Sets that carry kilograms are not touched, and
+    /// neither are pound sets logged after the lifter had started logging
+    /// with the unit on kilograms.
     @discardableResult
     func relabelEarlierSetsAsKilograms() -> Outcome {
         let sets: [ExerciseSet]
@@ -265,23 +266,22 @@ final class LoadHistoryRelabeler {
             .filter { $0.canBeRelabeledAsKilograms(beforeFirstKilogramLog: firstLog) }
     }
 
-    /// When the lifter first logged a set in kilograms, or `nil` if they
-    /// never have. Read from the store every time: it is evidence, not a
-    /// setting, so there is nothing to record, lose or get out of step.
+    /// When the lifter first logged a set with RPT set to kilograms, or
+    /// `nil` if they never have. Read from the store every time: it is
+    /// evidence, not a setting, so there is nothing to lose or get out of
+    /// step.
     ///
     /// Only the earliest such set is needed, so the store sorts and hands
-    /// back one row instead of every kilogram set the lifter has logged.
+    /// back one row instead of every set the lifter has logged in kilograms.
     private func firstKilogramLog() throws -> Date? {
         let kilograms = WeightUnit.kilograms.rawValue
         let neverLogged = Date.distantPast
         var descriptor = FetchDescriptor<ExerciseSet>(
-            predicate: #Predicate<ExerciseSet> {
-                $0.loadUnitRaw == kilograms && $0.relabeledFromPounds == nil && $0.completedAt > neverLogged
-            },
+            predicate: #Predicate<ExerciseSet> { $0.loggedUnitRaw == kilograms && $0.completedAt > neverLogged },
             sortBy: [SortDescriptor(\.completedAt)]
         )
         descriptor.fetchLimit = 1
-        return try modelContext.fetch(descriptor).first(where: \.isLoggedInKilograms)?.completedAt
+        return try modelContext.fetch(descriptor).first(where: \.wasLoggedWithUnitOnKilograms)?.completedAt
     }
 
     private var relabeledSetsDescriptor: FetchDescriptor<ExerciseSet> {

@@ -114,8 +114,8 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         LoadHistoryRelabeler(dataManager: manager, defaults: defaults)
     }
 
-    /// A finished workout logged with the unit on kilograms: every set
-    /// carries its own unit.
+    /// A finished workout trained with RPT set to kilograms: every set
+    /// carries its own unit and was logged with the unit on kilograms.
     @discardableResult
     private func insertKilogramWorkout(
         _ exercise: Exercise,
@@ -127,7 +127,25 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         for (index, load) in loads.enumerated() {
             let set = workout.addSet(exercise: exercise, weight: 0, reps: load.reps)
             set.setLoad(load.kilograms, in: .kilograms)
-            set.completedAt = date.addingTimeInterval(TimeInterval(index + 1) * 180)
+            set.markLogged(at: date.addingTimeInterval(TimeInterval(index + 1) * 180), unit: .kilograms)
+        }
+        try context.save()
+        return workout
+    }
+
+    /// A finished workout trained with RPT deliberately set to pounds, by a
+    /// build that records the unit in use.
+    @discardableResult
+    private func insertPoundWorkout(
+        _ exercise: Exercise,
+        loads: [(weight: Int, reps: Int)],
+        at date: Date
+    ) throws -> Workout {
+        let workout = Workout(date: date, name: "\(exercise.name) Day, lb", isCompleted: true)
+        context.insert(workout)
+        for (index, load) in loads.enumerated() {
+            let set = workout.addSet(exercise: exercise, weight: load.weight, reps: load.reps)
+            set.markLogged(at: date.addingTimeInterval(TimeInterval(index + 1) * 180), unit: .pounds)
         }
         try context.save()
         return workout
@@ -466,7 +484,7 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         let earlier = try insertFinishedWorkout(bench, loads: [(100, 5)])
         try insertKilogramWorkout(bench, loads: [(102.5, 5)], at: firstSession.addingTimeInterval(30 * day))
         // Back on pounds for a trip, and logging real pounds.
-        let trip = try insertFinishedWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(40 * day))
+        let trip = try insertPoundWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(40 * day))
         let tripLoad = try XCTUnwrap(trip.sets.first).storedLoad
         // Kilograms again afterwards: the line is the first kilogram set,
         // not the latest one.
@@ -488,7 +506,7 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         // A new install outside the US: kilograms from the first day, then
         // one session with the unit on pounds.
         try insertKilogramWorkout(bench, loads: [(100, 5)], at: firstSession)
-        let trip = try insertFinishedWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(20 * day))
+        let trip = try insertPoundWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(20 * day))
 
         XCTAssertNil(relabeler.question(afterSwitchingTo: .kilograms))
         XCTAssertEqual(relabeler.status(for: .kilograms), .nothingToOffer)
@@ -516,6 +534,84 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         )
         XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 4))
         XCTAssertTrue(try storedSets().allSatisfy { $0.loadUnit == .kilograms })
+    }
+
+    func testAKilogramRowCheckedOffWithTheUnitBackOnPoundsIsNotTrainingInKilograms() throws {
+        // Typed kilograms for months, switched to kg, tapped They Were
+        // Pounds, started a workout (its rows are planned in kilograms from
+        // the misread history), went back to lb where the top row reads
+        // 110 lb, and checked it off.
+        try insertFinishedWorkout(bench, loads: [(110, 5), (100, 6)])
+        relabeler.recordPromptAnswered()
+        let draft = Workout(date: firstSession.addingTimeInterval(10 * day), name: "Started while looking at kg")
+        context.insert(draft)
+        let planned = draft.addSet(exercise: bench, weight: 0, reps: 5)
+        planned.setLoad(50, in: .kilograms)
+        planned.completedAt = .distantPast
+        try context.save()
+
+        let viewModel = ActiveWorkoutViewModel(
+            workout: draft,
+            workoutManager: WorkoutManager(dataManager: dataManager)
+        )
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(planned, unit: .pounds), .logged)
+        XCTAssertEqual(planned.loadUnit, .kilograms, "The row still holds the kilogram load it was planned with")
+        try insertFinishedWorkout(bench, loads: [(112, 5), (102, 6)], at: firstSession.addingTimeInterval(20 * day))
+
+        XCTAssertEqual(
+            relabeler.status(for: .kilograms),
+            .readAsPounds(KilogramRelabelPolicy.Preview(setCount: 4, exerciseName: "Bench Press", number: 102)),
+            "Nothing was logged with the unit on kilograms, so every bare set is still on offer"
+        )
+        XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 4))
+    }
+
+    func testCorrectingALoggedSetToKilogramsDoesNotBackdateTheLine() throws {
+        // A parked workout with a set logged months ago, then months of
+        // sessions typed in kilograms with the unit on pounds. The lifter
+        // switches to kg and corrects the parked set in the editor.
+        let parked = Workout(date: firstSession, name: "Parked")
+        context.insert(parked)
+        let loggedLongAgo = parked.addSet(exercise: bench, weight: 100, reps: 5)
+        loggedLongAgo.completedAt = firstSession.addingTimeInterval(600)
+        try context.save()
+        try insertFinishedWorkout(bench, loads: [(105, 5)], at: firstSession.addingTimeInterval(30 * day))
+        try insertFinishedWorkout(bench, loads: [(110, 5)], at: firstSession.addingTimeInterval(60 * day))
+
+        let viewModel = ActiveWorkoutViewModel(
+            workout: parked,
+            workoutManager: WorkoutManager(dataManager: dataManager)
+        )
+        XCTAssertTrue(viewModel.updateSetSafely(loggedLongAgo, load: 100, unit: .kilograms, reps: 5, rpe: nil))
+        XCTAssertEqual(loggedLongAgo.loadUnit, .kilograms)
+        XCTAssertTrue(loggedLongAgo.isCompletedLoggedSet)
+
+        XCTAssertEqual(
+            relabeler.status(for: .kilograms),
+            .readAsPounds(KilogramRelabelPolicy.Preview(setCount: 2, exerciseName: "Bench Press", number: 110)),
+            "The months of sessions after it are still on offer"
+        )
+    }
+
+    func testABareRowConfirmedWithTheUnitOnKilogramsIsNotRelabeled() throws {
+        // A planned 100 (pounds) shown as 45.4 kg and checked off as shown.
+        try insertFinishedWorkout(bench, loads: [(100, 5)])
+        let draft = Workout(date: firstSession.addingTimeInterval(day), name: "Saved for later")
+        context.insert(draft)
+        let planned = draft.addSet(exercise: bench, weight: 100, reps: 5)
+        planned.completedAt = .distantPast
+        try context.save()
+        let viewModel = ActiveWorkoutViewModel(
+            workout: draft,
+            workoutManager: WorkoutManager(dataManager: dataManager)
+        )
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(planned, unit: .kilograms), .logged)
+
+        XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 1))
+
+        XCTAssertEqual(planned.weight, 100, "The lifter stood behind 45.4 kg, not 100 kg")
+        XCTAssertNil(planned.loadValue)
+        XCTAssertNil(planned.relabeledFromPounds)
     }
 
     func testASetOnlyPlannedInKilogramsIsNotTrainingInKilograms() throws {
@@ -548,12 +644,33 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         planned.completedAt = .distantPast
         try context.save()
         try insertKilogramWorkout(bench, loads: [(102.5, 5)], at: firstSession.addingTimeInterval(10 * day))
-        let trip = try insertFinishedWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(20 * day))
+        let trip = try insertPoundWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(20 * day))
 
         XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 1))
 
         XCTAssertEqual(trip.sets.first?.weight, 225)
         XCTAssertNil(trip.sets.first?.loadValue, "The trip came after a set really logged in kilograms")
+    }
+
+    func testAnUnloggedRowThatOnceWasLoggedInKilogramsDoesNotHideTheFirstRealLog() throws {
+        // Clearing a set's values takes its log back without going through
+        // the check, so the row can keep the unit it was once logged with.
+        // It carries no date, and must not be the row the store hands back.
+        try insertFinishedWorkout(bench, loads: [(100, 5)])
+        let draft = Workout(date: firstSession.addingTimeInterval(5 * day), name: "Open")
+        context.insert(draft)
+        let cleared = draft.addSet(exercise: bench, weight: 0, reps: 5)
+        cleared.setLoad(60, in: .kilograms)
+        cleared.markLogged(at: firstSession.addingTimeInterval(5 * day + 600), unit: .kilograms)
+        cleared.completedAt = .distantPast
+        try context.save()
+        try insertKilogramWorkout(bench, loads: [(102.5, 5)], at: firstSession.addingTimeInterval(10 * day))
+        let trip = try insertPoundWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(20 * day))
+
+        XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 1))
+
+        XCTAssertEqual(trip.sets.first?.weight, 225)
+        XCTAssertNil(trip.sets.first?.loadValue, "The trip came after a session really trained in kilograms")
     }
 
     func testRelabeledHistoryDoesNotHideTheFirstSetLoggedInKilograms() throws {
@@ -562,7 +679,7 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         try insertFinishedWorkout(bench, loads: [(100, 5)])
         XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 1))
         try insertKilogramWorkout(bench, loads: [(102.5, 5)], at: firstSession.addingTimeInterval(10 * day))
-        let trip = try insertFinishedWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(20 * day))
+        let trip = try insertPoundWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(20 * day))
 
         XCTAssertEqual(
             relabeler.relabelEarlierSetsAsKilograms(),
@@ -593,7 +710,7 @@ final class LoadHistoryRelabelerTests: XCTestCase {
         let earlier = try insertFinishedWorkout(bench, loads: [(100, 5), (90, 6)])
         XCTAssertEqual(relabeler.relabelEarlierSetsAsKilograms(), .changed(sets: 2))
         try insertKilogramWorkout(bench, loads: [(102.5, 5)], at: firstSession.addingTimeInterval(10 * day))
-        let trip = try insertFinishedWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(20 * day))
+        let trip = try insertPoundWorkout(bench, loads: [(225, 5)], at: firstSession.addingTimeInterval(20 * day))
         let tripLoad = try XCTUnwrap(trip.sets.first).storedLoad
 
         XCTAssertEqual(relabeler.undoRelabel(), .changed(sets: 2))
@@ -641,9 +758,10 @@ final class LoadHistoryRelabelerTests: XCTestCase {
             workout: draft,
             workoutManager: WorkoutManager(dataManager: dataManager)
         )
-        XCTAssertEqual(viewModel.toggleSetLoggedSafely(planned), .logged)
+        XCTAssertEqual(viewModel.toggleSetLoggedSafely(planned, unit: .kilograms), .logged)
 
         XCTAssertNil(planned.relabeledFromPounds, "Logged at 100 kg: it is their own kilogram entry now")
+        XCTAssertTrue(planned.wasLoggedWithUnitOnKilograms)
         XCTAssertEqual(relabeler.status(for: .pounds), .relabeled(setCount: 1))
         XCTAssertEqual(relabeler.undoRelabel(), .changed(sets: 1))
 
@@ -663,10 +781,11 @@ final class LoadHistoryRelabelerTests: XCTestCase {
             workout: draft,
             workoutManager: WorkoutManager(dataManager: FailingDataManager(context: context))
         )
-        XCTAssertEqual(failingModel.toggleSetLoggedSafely(planned), .failed)
+        XCTAssertEqual(failingModel.toggleSetLoggedSafely(planned, unit: .kilograms), .failed)
 
         XCTAssertEqual(planned.relabeledFromPounds, 100, "The log did not happen, so neither did what it implies")
         XCTAssertFalse(planned.isCompletedLoggedSet)
+        XCTAssertNil(planned.loggedUnitRaw)
         XCTAssertEqual(relabeler.undoRelabel(), .changed(sets: 1))
         XCTAssertEqual(planned.weight, 100)
         XCTAssertEqual(planned.loadUnit, .pounds)

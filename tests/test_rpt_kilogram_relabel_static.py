@@ -133,7 +133,7 @@ class RPTKilogramRelabelStaticTests(unittest.TestCase):
     def test_only_numbers_entered_before_the_first_kilogram_log_are_candidates(self):
         """A pound set logged today is stored exactly like a set from the
         pound-only days. What tells them apart is whether the lifter had
-        already logged a set in kilograms."""
+        already logged a set with RPT set to kilograms."""
         model = _code(EXERCISE_SET)
         candidate = _block(
             model,
@@ -147,13 +147,6 @@ class RPTKilogramRelabelStaticTests(unittest.TestCase):
         self.assertStatement("if completedAt != .distantPast { return completedAt }", entered)
         self.assertStatement("return workout?.date ?? .distantPast", entered)
 
-        evidence = _block(model, "var isLoggedInKilograms: Bool {")
-        self.assertStatement(
-            "completedAt != .distantPast && loadUnit == .kilograms && relabeledFromPounds == nil",
-            evidence,
-            "planned rows and relabeled history are not evidence of training in kilograms",
-        )
-
         relabeler = _code(RELABELER)
         candidates = _block(relabeler, "private func unlabeledSets() throws -> [ExerciseSet] {")
         self.assertStatement("let firstLog = try firstKilogramLog()", candidates)
@@ -164,7 +157,38 @@ class RPTKilogramRelabelStaticTests(unittest.TestCase):
         first_log = _block(relabeler, "private func firstKilogramLog() throws -> Date? {")
         self.assertStatement("sortBy: [SortDescriptor(\\.completedAt)]", first_log, "the earliest, not the latest")
         self.assertNotIn("order:", first_log)
-        self.assertStatement(".first(where: \\.isLoggedInKilograms)?.completedAt", first_log)
+        self.assertStatement(".first(where: \\.wasLoggedWithUnitOnKilograms)?.completedAt", first_log)
+
+    def test_training_in_kilograms_is_the_unit_in_use_at_the_log_not_the_stored_unit(self):
+        """A row planned while the picker read kg holds a kilogram load.
+        Checked off after going back to pounds, it must not count as the
+        lifter training in kilograms, or one look at kg strands their
+        later sets."""
+        model = _code(EXERCISE_SET)
+        self.assertIn("var loggedUnitRaw: String? = nil", EXERCISE_SET.read_text())
+
+        evidence = _block(model, "var wasLoggedWithUnitOnKilograms: Bool {")
+        self.assertStatement(
+            "completedAt != .distantPast && loggedUnitRaw == WeightUnit.kilograms.rawValue", evidence
+        )
+        for stored_unit in ("loadUnitRaw", "loadUnit ", "loadValue"):
+            with self.subTest(stored_unit=stored_unit):
+                self.assertNotIn(stored_unit, evidence, "the load's own unit says nothing about how it was logged")
+
+        # Only logging writes it, and only with the unit the lifter is in.
+        writers = sorted(
+            name for name, source in _app_sources().items() if re.search(r"\bloggedUnitRaw\s*=[^=]", source)
+        )
+        self.assertEqual(writers, ["RPT/Models/ExerciseSet.swift"])
+        self.assertStatement("loggedUnitRaw = unit.rawValue", _block(model, "func markLogged(at date: Date, unit: WeightUnit) {"))
+        self.assertStatement("loggedUnitRaw = nil", _block(model, "func markUnlogged() {"))
+
+        self.assertIn(
+            "$0.loggedUnitRaw == nil && !$0.wasLoggedWithUnitOnKilograms",
+            MIGRATION_TESTS.read_text(),
+            "the migration test must prove no old set claims to have been logged in kilograms",
+        )
+        self.assertIn("ExerciseSet.loggedUnitRaw", MIGRATION_DOC.read_text())
 
     def test_the_line_is_drawn_by_the_store_and_never_by_a_recorded_moment(self):
         """Recording 'the first time the unit was kg' shut a lifter out for
@@ -185,8 +209,7 @@ class RPTKilogramRelabelStaticTests(unittest.TestCase):
             predicates,
             [
                 "#Predicate<ExerciseSet> { $0.loadUnitRaw == nil && $0.weight > 0 }",
-                "#Predicate<ExerciseSet> { $0.loadUnitRaw == kilograms && $0.relabeledFromPounds == nil"
-                " && $0.completedAt > neverLogged }",
+                "#Predicate<ExerciseSet> { $0.loggedUnitRaw == kilograms && $0.completedAt > neverLogged }",
                 "#Predicate<ExerciseSet> { $0.relabeledFromPounds != nil }",
             ],
         )
@@ -216,19 +239,29 @@ class RPTKilogramRelabelStaticTests(unittest.TestCase):
         """A planned set relabeled to 100 kg, then performed and checked
         off, is the lifter's own entry. An undo must not make it 100 lb."""
         model = _code(EXERCISE_SET)
-        logged = _block(model, "func markLogged(at date: Date) {")
+        logged = _block(model, "func markLogged(at date: Date, unit: WeightUnit) {")
         self.assertStatement("completedAt = date", logged)
         self.assertStatement("relabeledFromPounds = nil", logged)
 
         restore = _block(model, "func restoreLogState(_ state: LogState) {")
-        self.assertStatement("completedAt = state.completedAt", restore)
-        self.assertStatement("relabeledFromPounds = state.relabeledFromPounds", restore)
+        for field in ("completedAt", "loggedUnitRaw", "relabeledFromPounds"):
+            with self.subTest(field=field):
+                self.assertStatement(f"{field} = state.{field}", restore)
 
-        toggle = _block(_code(VIEW_MODEL), "func toggleSetLogged(_ set: ExerciseSet) throws -> SetLogResult {")
-        self.assertStatement("set.markLogged(at: Date())", toggle)
-        self.assertBefore("let originalLogState = set.logState", "set.markLogged(at: Date())", toggle)
+        toggle = _block(
+            _code(VIEW_MODEL),
+            "func toggleSetLogged(_ set: ExerciseSet, unit: WeightUnit = .current) throws -> SetLogResult {",
+        )
+        self.assertStatement("set.markLogged(at: Date(), unit: unit)", toggle)
+        self.assertStatement("set.markUnlogged()", toggle)
+        self.assertBefore("let originalLogState = set.logState", "set.markLogged(at: Date(), unit: unit)", toggle)
         self.assertStatement("set.restoreLogState(originalLogState)", _block(toggle, "} catch {"))
-        self.assertNotRegex(toggle, r"completedAt\s*=\s*Date\(\)", "a log has to go through markLogged")
+        self.assertNotRegex(toggle, r"completedAt\s*=", "a log or unlog has to go through the set's own methods")
+
+        # The screen logs with the unit the lifter has chosen, not a default.
+        section = _code(APP / "Views" / "Workout" / "ExerciseSectionView.swift")
+        calls = re.findall(r"toggleSetLoggedSafely\(([^)]*)\)", section)
+        self.assertEqual(calls, ["set, unit: weightUnit", "set, unit: weightUnit"])
 
     # MARK: - The rewrite
 

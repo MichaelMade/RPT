@@ -249,41 +249,103 @@ final class KilogramRelabelSetTests: XCTestCase {
         XCTAssertFalse(set.canBeRelabeledAsKilograms(beforeFirstKilogramLog: .distantFuture))
     }
 
-    func testOnlyALoggedUnrelabeledKilogramSetCountsAsLoggingInKilograms() {
-        let logged = makeSet()
-        logged.setLoad(100, in: .kilograms)
-        logged.completedAt = Date(timeIntervalSince1970: 1_770_000_000)
-        XCTAssertTrue(logged.isLoggedInKilograms)
+    func testTrainingInKilogramsMeansLoggingWithTheUnitOnKilograms() {
+        let loggedAt = Date(timeIntervalSince1970: 1_770_000_000)
 
-        let planned = makeSet()
-        planned.setLoad(100, in: .kilograms)
-        planned.completedAt = .distantPast
-        XCTAssertFalse(planned.isLoggedInKilograms, "Planned, never performed")
+        let trainedInKilograms = makeSet()
+        trainedInKilograms.setLoad(100, in: .kilograms)
+        trainedInKilograms.markLogged(at: loggedAt, unit: .kilograms)
+        XCTAssertTrue(trainedInKilograms.wasLoggedWithUnitOnKilograms)
+
+        // Planned while the picker read kg, checked off after going back
+        // to pounds: a kilogram load, logged by a lifter training in pounds.
+        let plannedInKilograms = makeSet()
+        plannedInKilograms.setLoad(50, in: .kilograms)
+        plannedInKilograms.markLogged(at: loggedAt, unit: .pounds)
+        XCTAssertEqual(plannedInKilograms.loadUnit, .kilograms)
+        XCTAssertFalse(plannedInKilograms.wasLoggedWithUnitOnKilograms)
+
+        let neverLogged = makeSet()
+        neverLogged.setLoad(100, in: .kilograms)
+        neverLogged.completedAt = .distantPast
+        XCTAssertFalse(neverLogged.wasLoggedWithUnitOnKilograms, "Planned, never performed")
+
+        // Logged before the unit in use was recorded: no evidence either way.
+        let loggedLongAgo = makeSet()
+        loggedLongAgo.setLoad(100, in: .kilograms)
+        loggedLongAgo.completedAt = loggedAt
+        XCTAssertFalse(loggedLongAgo.wasLoggedWithUnitOnKilograms)
 
         let relabeled = makeSet(weight: 100)
-        relabeled.completedAt = Date(timeIntervalSince1970: 1_770_000_000)
+        relabeled.completedAt = loggedAt
         relabeled.relabelAsKilograms()
-        XCTAssertFalse(relabeled.isLoggedInKilograms, "Typed before the lifter could say it was kilograms")
-
-        let pounds = makeSet(weight: 225)
-        pounds.completedAt = Date(timeIntervalSince1970: 1_770_000_000)
-        XCTAssertFalse(pounds.isLoggedInKilograms)
+        XCTAssertFalse(relabeled.wasLoggedWithUnitOnKilograms, "Typed before the lifter could say it was kilograms")
     }
 
-    // MARK: - Logging a relabeled set
+    func testCorrectingALoggedPoundSetToKilogramsIsNotTrainingInKilograms() {
+        // Logged in pounds, then given a kilogram figure in the editor. Its
+        // log time does not move, so if this counted it would backdate the
+        // moment the lifter started training in kilograms.
+        let set = makeSet(weight: 100)
+        set.markLogged(at: Date(timeIntervalSince1970: 1_760_000_000), unit: .pounds)
+
+        set.setLoad(102.5, in: .kilograms)
+
+        XCTAssertEqual(set.loadUnit, .kilograms)
+        XCTAssertFalse(set.wasLoggedWithUnitOnKilograms)
+    }
+
+    func testBareNumberConfirmedWithTheUnitOnKilogramsIsNotACandidate() {
+        // A planned 100 (pounds) shown as 45.4 kg and checked off as shown.
+        // The lifter stood behind 45.4 kg, and this log is itself the first
+        // with the unit on kilograms.
+        let set = makeSet(weight: 100)
+        let loggedAt = Date(timeIntervalSince1970: 1_770_000_000)
+        set.markLogged(at: loggedAt, unit: .kilograms)
+
+        XCTAssertTrue(set.holdsUnlabeledWholePounds)
+        XCTAssertTrue(set.wasLoggedWithUnitOnKilograms)
+        XCTAssertFalse(set.canBeRelabeledAsKilograms(beforeFirstKilogramLog: loggedAt))
+    }
+
+    // MARK: - Logging
+
+    func testLoggingRecordsTheTimeAndTheUnitInUse() {
+        let set = makeSet(weight: 135)
+        set.completedAt = .distantPast
+        let before = set.storedLoad
+        let loggedAt = Date(timeIntervalSince1970: 1_770_003_600)
+
+        set.markLogged(at: loggedAt, unit: .pounds)
+
+        XCTAssertEqual(set.completedAt, loggedAt)
+        XCTAssertEqual(set.loggedUnitRaw, "pounds")
+        XCTAssertEqual(set.storedLoad, before, "Logging never changes the load")
+        XCTAssertNil(set.relabeledFromPounds)
+    }
+
+    func testUnloggingForgetsTheUnitAndKeepsTheLoad() {
+        let set = makeSet()
+        set.setLoad(62.5, in: .kilograms)
+        set.markLogged(at: Date(timeIntervalSince1970: 1_770_003_600), unit: .kilograms)
+
+        set.markUnlogged()
+
+        XCTAssertEqual(set.completedAt, .distantPast)
+        XCTAssertNil(set.loggedUnitRaw)
+        XCTAssertFalse(set.wasLoggedWithUnitOnKilograms)
+        XCTAssertEqual(set.load(in: .kilograms), 62.5)
+    }
 
     func testLoggingARelabeledSetTakesItOutOfTheRelabel() {
         let planned = makeSet(weight: 100)
         planned.completedAt = .distantPast
         planned.relabelAsKilograms()
-        let loggedAt = Date(timeIntervalSince1970: 1_770_003_600)
 
-        planned.markLogged(at: loggedAt)
+        planned.markLogged(at: Date(timeIntervalSince1970: 1_770_003_600), unit: .kilograms)
 
-        XCTAssertEqual(planned.completedAt, loggedAt)
         XCTAssertNil(planned.relabeledFromPounds)
         XCTAssertEqual(planned.load(in: .kilograms), 100, "Logging never changes the load")
-        XCTAssertTrue(planned.isLoggedInKilograms)
         XCTAssertFalse(planned.undoKilogramRelabel(), "There is nothing left to undo on a set performed at 100 kg")
         XCTAssertEqual(planned.load(in: .kilograms), 100)
     }
@@ -294,24 +356,28 @@ final class KilogramRelabelSetTests: XCTestCase {
         planned.relabelAsKilograms()
         let before = planned.logState
 
-        planned.markLogged(at: Date(timeIntervalSince1970: 1_770_003_600))
+        planned.markLogged(at: Date(timeIntervalSince1970: 1_770_003_600), unit: .kilograms)
         planned.restoreLogState(before)
 
         XCTAssertEqual(planned.completedAt, .distantPast)
+        XCTAssertNil(planned.loggedUnitRaw)
         XCTAssertEqual(planned.relabeledFromPounds, 100)
         XCTAssertTrue(planned.undoKilogramRelabel(), "Still part of the relabel, so still undone with it")
         XCTAssertEqual(planned.weight, 100)
     }
 
-    func testLoggingAnOrdinarySetOnlyStampsTheTime() {
+    func testFailedUnlogPutsTheLogBackAsItWas() {
         let set = makeSet(weight: 135)
-        set.completedAt = .distantPast
-        let before = set.storedLoad
+        let loggedAt = Date(timeIntervalSince1970: 1_770_003_600)
+        set.markLogged(at: loggedAt, unit: .kilograms)
+        let before = set.logState
 
-        set.markLogged(at: Date(timeIntervalSince1970: 1_770_003_600))
+        set.markUnlogged()
+        set.restoreLogState(before)
 
-        XCTAssertEqual(set.storedLoad, before)
-        XCTAssertNil(set.relabeledFromPounds)
+        XCTAssertEqual(set.completedAt, loggedAt)
+        XCTAssertEqual(set.loggedUnitRaw, "kilograms")
+        XCTAssertTrue(set.wasLoggedWithUnitOnKilograms)
     }
 
     func testSmallestLoadKeepsANonZeroPoundShadow() {
